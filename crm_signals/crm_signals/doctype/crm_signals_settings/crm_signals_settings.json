@@ -36,7 +36,7 @@
    "fieldname": "notification_preset",
    "fieldtype": "Select",
    "label": "Starter preset",
-   "options": "Balanced\\nSales Focused\\nExecutive\\nCustom",
+   "options": "Balanced\nSales Focused\nExecutive\nCustom",
    "default": "Balanced",
    "description": "A starter configuration only. Changing a preset applies its values; you can then customise every field."
   },
