@@ -1,3 +1,13 @@
+## 2026-11-01 — User guide and configurable starter profiles (documentation/specification)
+
+### Added
+- Task-oriented user guide for installation, first-run setup, dashboard use, webhook integration, troubleshooting and safe operation.
+- Specification for opt-in, customizable starter profiles with preview, dependency checks and rollback.
+
+### Decisions
+- Starter profiles never grant permissions, create secrets or enable privacy-sensitive/unsupported features automatically.
+- Applying a profile preserves unrelated settings and is auditable/reversible.
+
 # Changelog
 
 This changelog records user-visible and operationally significant changes. It is not a substitute for commit history. Entries do not imply a production release unless explicitly stated.
@@ -17,7 +27,7 @@ This changelog records user-visible and operationally significant changes. It is
 - GitHub ruleset API returned the active ruleset and complete rule list.
 - [Issue #12](https://github.com/MitMike/crm_signals/issues/12) closed after verification.
 
-## 2026-11-01 — D1/D2 metric safety corrections (under review)
+## 2026-11-01 — D1/D2 metric safety corrections (merged)
 
 ### Changed
 - D1 active Lead/Opportunity metrics, Opportunity stages and active pipeline now report unavailable when required status metadata is absent instead of counting every record as active.
@@ -27,7 +37,7 @@ This changelog records user-visible and operationally significant changes. It is
 
 ### Validation
 - Added regression tests for missing Lead status, Opportunity status and Sales Invoice is_return metadata.
-- Code and documentation are in review on branch fix/stage1-metric-correctness; this entry does not claim the change is merged.
+- Merged in PR #17 as [fed496f](https://github.com/MitMike/crm_signals/commit/fed496f230f5ca88af25d663bc61fe4d748f5f83). Final Quality Checks, Security Scanning and Bench Integration/E2E all passed on the PR head.
 
 ## 2026-11-01 — Dependency security and CI hardening (merged; not a product release)
 
