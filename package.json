@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "lint:js": "eslint crm_signals/crm_signals/page crm_signals/public/js && oxlint crm_signals/crm_signals/page crm_signals/public/js",
-    "format:check": "prettier --check eslint.config.mjs playwright.config.ts e2e/**/*.ts",
+    "format:check": "prettier --check eslint.config.mjs playwright.config.ts e2e/**/*.ts crm_signals/crm_signals/page/**/*.js crm_signals/crm_signals/page/**/*.css crm_signals/public/js/**/*.js",
     "test:e2e": "playwright test"
   },
   "devDependencies": {
