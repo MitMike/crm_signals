@@ -100,6 +100,6 @@ This is a source review, not a live-site validation. No Frappe/ERPNext v15 or v1
 - [x] Initial Quotation/Opportunity party-link improvements (fixtures and status decision open)
 - [x] Core signal validation and record/list permission hooks (live role matrix tests open)
 - [x] Per-user realtime targeting via related document owner and active ToDo assignees
-- [x] Digest HTML safety and removal of guessed Lead status filter (live semantics open)
+- [x] Digest HTML safety and recipient filtering (live inactivity/quotation semantics open)
 - [x] Security docs, unit tests, and Python CI workflow
 - [ ] Live v15/v16 acceptance and release
