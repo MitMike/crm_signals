@@ -56,7 +56,7 @@ GitHub ruleset [Protect main](https://github.com/MitMike/crm_signals/rules/26282
 
 ### On the active implementation branch; not yet merged
 - Add System Manager-only CRM Signals Settings singleton and editable Balanced, Sales Focused and Executive presets.
-- Configure master/external-ingestion/Quotation/Opportunity/digest switches, Company-currency threshold, Opportunity status list, stale-day window, digest time and extra enabled System User recipients.
+- Configure master/external-ingestion/Quotation/Opportunity/digest switches, Company-currency threshold, Opportunity status list, stale-day window, digest time and extra recipients validated against registered enabled System Users.
 - Add source-event metadata and a unique hash-based identity for CRM Signals.
 - Make webhook retries idempotent when the caller supplies a stable `source_event_id`.
 - Schedule the digest at the configured System Settings timezone and store the date marker in the same transaction as the email-queue request.
