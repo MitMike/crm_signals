@@ -49,6 +49,7 @@ def notify_signal(signal):
         "name": signal.name,
         "signal_type": signal.signal_type,
         "priority": signal.priority,
+        "message": signal.message,
         "lead": signal.lead,
         "customer": signal.customer,
     }
