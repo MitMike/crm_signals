@@ -1,6 +1,6 @@
 # D1 — Sales Compass
 
-**Status:** Implemented baseline; status-metadata safety fix is in branch `fix/stage1-metric-correctness` and awaiting CI/merge. Target-site workflow/status validation remains.
+**Status:** Implemented; status-metadata safety fix merged in PR #17 (commit fed496f). Target-site workflow/status validation remains.
 
 ## Problem and user
 
