@@ -42,42 +42,6 @@ async function loginAsAdministrator(page: Page) {
     );
 }
 
-async function createRoleUser(
-    page: Page,
-    email: string,
-    firstName: string,
-    role: string
-) {
-    const result = await page.evaluate(
-        async ({ email, firstName, role }) => {
-            const frappeApp = (window as any).frappe;
-            const csrfToken =
-                frappeApp?.csrf_token || (window as any).csrf_token || "";
-            const response = await fetch("/api/resource/User", {
-                method: "POST",
-                credentials: "same-origin",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-Frappe-CSRF-Token": csrfToken
-                },
-                body: JSON.stringify({
-                    email,
-                    first_name: firstName,
-                    enabled: 1,
-                    user_type: "System User",
-                    send_welcome_email: 0,
-                    roles: [{ role }]
-                })
-            });
-            const payload = await response.json();
-            return { status: response.status, payload };
-        },
-        { email, firstName, role }
-    );
-
-    expect([200, 201]).toContain(result.status);
-}
-
 async function currentUserRoles(page: Page): Promise<string[]> {
     return page.evaluate(async () => {
         const response = await fetch(
@@ -332,8 +296,6 @@ test("Sales User can open the Executive Compass", async ({ page }) => {
     const email = process.env.E2E_SALES_USER || "e2e-sales-user@example.com";
     const password = process.env.E2E_SALES_PASSWORD;
     expect(password).toBeTruthy();
-    await createRoleUser(page, email, "E2E Sales User", "Sales User");
-
     await page.context().clearCookies();
     await loginAs(page, email, password!);
 
@@ -351,8 +313,6 @@ test("Users without a Sales role cannot open the Compass", async ({ page }) => {
     const email = process.env.E2E_EMPLOYEE_USER || "e2e-employee@example.com";
     const password = process.env.E2E_EMPLOYEE_PASSWORD;
     expect(password).toBeTruthy();
-    await createRoleUser(page, email, "E2E Employee", "Employee");
-
     await page.context().clearCookies();
     await loginAs(page, email, password!);
 
