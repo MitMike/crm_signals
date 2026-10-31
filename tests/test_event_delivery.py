@@ -136,8 +136,7 @@ def test_unique_index_race_returns_existing_signal_without_duplicate_notificatio
 
 def test_quotation_threshold_requires_matching_site_currency(monkeypatch):
     module, _, _, _, _, _ = load_events(monkeypatch)
-    settings_module = sys.modules["crm_signals.settings"]
-    settings_module.get_company_default_currency = lambda company=None: "EUR"
+    module.get_company_default_currency = lambda company=None: "EUR"
     quotation = types.SimpleNamespace(
         company="Example Ltd",
         currency="USD",
