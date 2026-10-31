@@ -25,3 +25,9 @@ class CRMSignal(Document):
             frappe.throw("A CRM Signal message is required.")
         if len(self.message) > 2000:
             frappe.throw("CRM Signal message cannot exceed 2000 characters.")
+
+        source_parts = (self.source_doctype, self.source_name, self.source_event_id)
+        if any(source_parts) and not all(source_parts):
+            frappe.throw("Source type, source name and source event ID must be supplied together.")
+        if all(source_parts) != bool(self.source_event_key):
+            frappe.throw("A complete source identity and its unique event key are required together.")
