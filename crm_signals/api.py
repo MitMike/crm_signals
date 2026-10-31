@@ -115,7 +115,7 @@ def get_dashboard_data():
         "CRM Signal",
         fields=["signal_type", "count(name) as total"],
         group_by="signal_type",
-        order_by="total desc",
+        order_by="signal_type asc",
         limit_page_length=20,
     )
 
