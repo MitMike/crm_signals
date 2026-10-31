@@ -2,8 +2,8 @@
 
 **Last reviewed:** 2026-11-01  
 **Repository:** [MitMike/crm_signals](https://github.com/MitMike/crm_signals)  
-**Main baseline observed:** [b8aa7cc](https://github.com/MitMike/crm_signals/commit/b8aa7cc97a0ae2b6d5eef2dd9a074d3bf7dd27f7)  
-**Active delivery branches:** automation/dependency-security-scans (PR #11), docs/full-specifications-and-roadmap (documentation/specification work)
+**Main baseline observed:** [05ad767](https://github.com/MitMike/crm_signals/commit/05ad767f6b62814cca5b7d0c1e233a2f690baa77)  
+**Active delivery branches:** docs/complete-specifications-roadmap (documentation/specification work)
 
 This is the operational status record. IMPLEMENTATION_PLAN.md is the delivery roadmap; DECISIONS.md is the durable decision register; specs/ contains the feature contracts.
 
@@ -22,13 +22,13 @@ The mainline baseline contains CRM Signals core, the Signals Console, S.A.H.D.E.
 | E Explorer | Specified; planned | Inventory actual installed integrations and implement source adapters |
 | V Vault | Specified; planned | Approve metric registry, source visibility and retention before scheduling |
 | A Analysis | Specified; planned | Build approved metric/query registry; no model-generated SQL |
-| Dependency/security hardening | PR #11 open | Complete all four CI workflows on the latest head, then merge |
-| Full specifications and roadmap | Documentation branch prepared | Open PR after the security PR is merged, validate, then merge |
+| Dependency/security hardening | Merged | PR #11 merged as 05ad767; all four PR checks passed; post-merge Bench verification in progress |
+| Full specifications and roadmap | Documentation branch prepared | Open PR from docs/complete-specifications-roadmap, validate, then merge |
 | Main branch ruleset | Not verified by current GitHub connection | Prior 2026-10-31 check reported protection disabled; current read endpoint is denied to the connected integration |
 
 ## Repository hardening — PR #11
 
-[PR #11 — automated dependency security monitoring](https://github.com/MitMike/crm_signals/pull/11) includes:
+[PR #11 — automated dependency security monitoring](https://github.com/MitMike/crm_signals/pull/11) merged as [05ad767](https://github.com/MitMike/crm_signals/commit/05ad767f6b62814cca5b7d0c1e233a2f690baa77). It includes:
 - weekly Dependabot for pip, npm and GitHub Actions;
 - patched JavaScript tooling: Playwright 1.64.1 and ESLint 10.14.0;
 - a direct override to patched minimatch 11.0.1;
@@ -37,20 +37,20 @@ The mainline baseline contains CRM Signals core, the Signals Console, S.A.H.D.E.
 - Semgrep SARIF scanning and the existing v15/v16 Bench + Playwright gates;
 - security and quality guide updates.
 
-The first committed lockfile transfer was accidentally truncated to 1,000 lines. That was identified from the failed npm ci run and replaced with the complete runner-generated lockfile (50,138 bytes, 105 packages). The current branch head has a valid parsed lockfile. Latest workflow runs are being checked:
+The first committed lockfile transfer was accidentally truncated to 1,000 lines. That was identified from the failed npm ci run and replaced with the complete runner-generated lockfile (50,138 bytes, 105 packages). The complete lockfile is committed on main. The final PR-head checks all passed:
 
 | Workflow | Run | Status at this snapshot |
 |---|---|---|
-| Quality Checks | [41232087717](https://github.com/MitMike/crm_signals/actions/runs/41232087717) | Queued |
-| Bench Integration and E2E | [41232087747](https://github.com/MitMike/crm_signals/actions/runs/41232087747) | Pending |
-| Security Scanning | [41232087776](https://github.com/MitMike/crm_signals/actions/runs/41232087776) | Pending |
-| Dependency Security Audit | [41232087748](https://github.com/MitMike/crm_signals/actions/runs/41232087748) | In progress |
+| Quality Checks | [41232087717](https://github.com/MitMike/crm_signals/actions/runs/41232087717) | Passed |
+| Bench Integration and E2E | [41232087747](https://github.com/MitMike/crm_signals/actions/runs/41232087747) | Passed (v15 and v16 + Playwright) |
+| Security Scanning | [41232087776](https://github.com/MitMike/crm_signals/actions/runs/41232087776) | Passed |
+| Dependency Security Audit | [41232087748](https://github.com/MitMike/crm_signals/actions/runs/41232087748) | Passed (npm and Python) |
 
-Do not merge PR #11 until all four workflows pass on its latest head.
+Post-merge validation on main: Quality Checks [41232593555](https://github.com/MitMike/crm_signals/actions/runs/41232593555) and Security Scanning [41232593543](https://github.com/MitMike/crm_signals/actions/runs/41232593543) passed. The fresh post-merge Bench run [41232593526](https://github.com/MitMike/crm_signals/actions/runs/41232593526) had v15 passed and v16 still running when this snapshot was written.
 
 ## Specifications and plan
 
-The documentation branch adds full feature specs for:
+The documentation branch docs/complete-specifications-roadmap adds full feature specs for:
 - CRM Signals core, ingestion, permissions and Console;
 - Quotation/Opportunity event routing and realtime notifications;
 - daily sales digest;
@@ -61,7 +61,7 @@ The documentation branch adds full feature specs for:
 - E Explorer;
 - V Vault.
 
-The existing D2 Billing Realization spec remains the D2 contract. The new specifications catalogue links all ten specs. IMPLEMENTATION_PLAN.md now sequences repository security, core/release hardening, D3, H, E, V and A with dependencies, acceptance criteria and exit gates. These documentation changes are on the separate documentation branch and are not yet on main.
+The existing D2 Billing Realization spec remains the D2 contract. The new specifications catalogue links all ten specs. IMPLEMENTATION_PLAN.md now sequences repository security, core/release hardening, D3, H, E, V and A with dependencies, acceptance criteria and exit gates. These documentation changes are on docs/complete-specifications-roadmap and are not yet on main.
 
 ## Delivered on the observed main baseline
 
