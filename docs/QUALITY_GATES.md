@@ -10,7 +10,7 @@ Every push and pull request runs the main code and compatibility checks:
 
 The **Dependency Security Audit** workflow runs on pull requests that change dependency-related files, weekly, and on manual dispatch. It runs `pip-audit` for Python and `npm audit` for JavaScript tooling; moderate- and higher-severity npm findings fail the audit.
 
-The browser test authenticates through Frappe, opens /app/sahdev-dashboard, checks that the endpoint returns billing data and verifies that the Billing Realization section renders without browser JavaScript errors.
+The Playwright suite authenticates through Frappe, verifies the live S.A.H.D.E.V. dashboard and CRM Signals Console, exercises dashboard empty/unavailable states, checks Sales User/non-sales visibility, and opens CRM Signals Settings to apply a preset and customise it. The v16 Bench lane runs the browser suite against the installed app.
 
 ## Local commands
 
