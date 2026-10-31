@@ -106,6 +106,7 @@ def test_existing_source_event_is_returned_without_insert_or_notification(monkey
 
 def test_unique_index_race_returns_existing_signal_without_duplicate_notification(monkeypatch):
     module, notifications, inserted, lookups, loaded, fake = load_events(
+        monkeypatch,
         duplicate_on_insert=True,
     )
     lookup_count = 0
