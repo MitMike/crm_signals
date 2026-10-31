@@ -220,7 +220,7 @@ def test_sales_compass_uses_structured_aggregates_on_frappe_v16(monkeypatch):
 
     assert result["opportunities"]["active_count"] == 4
     assert any(
-        isinstance(field, dict) and field.get("COUNT") == "name"
+        isinstance(field, dict) and field.get("COUNT") == "*"
         for query in queries
         for field in query["fields"]
     )
