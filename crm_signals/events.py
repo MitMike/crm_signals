@@ -28,10 +28,11 @@ def _insert_signal(signal_type, message, priority, lead=None, customer=None):
         "priority": priority,
         "is_read": 0,
     })
-    signal.insert(ignore_permissions=True)  # Trusted document event, not public input.
-    from crm_signals.notifications import notify_signal
+    from crm_signals.notifications import notify_signal, set_recipient_tokens
 
-    notify_signal(signal)
+    recipients = set_recipient_tokens(signal)
+    signal.insert(ignore_permissions=True)  # Trusted document event, not public input.
+    notify_signal(signal, recipients=recipients)
     return signal
 
 
