@@ -1,17 +1,60 @@
-name: Quality Checks
+name: Quality Gates
 
 on:
   push:
+    branches: ["main", "develop", "feature/**", "fix/**", "chore/**"]
   pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quality-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  static-and-unit:
+  lint-and-security:
+    name: Lint, format and dependency security
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+          cache: pip
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+      - name: Install quality tools
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install ruff pre-commit pip-audit semgrep
+          npm install --global prettier eslint
+      - name: Ruff lint
+        run: ruff check crm_signals tests
+      - name: Ruff format check
+        run: ruff format --check crm_signals tests
+      - name: Prettier check
+        run: prettier --check "**/*.{js,css,json,yml,yaml}" --ignore-path .gitignore
+      - name: ESLint
+        run: eslint "crm_signals/**/*.js"
+      - name: Pre-commit validation
+        run: SKIP=ruff,ruff-format,prettier,eslint pre-commit run --all-files
+      - name: Semgrep
+        run: semgrep scan --error --config p/python --config r/python.lang.correctness crm_signals
+      - name: Dependency audit
+        run: pip-audit --desc on .
+
+  unit:
+    name: Unit tests · Python ${{ matrix.python-version }}
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         python-version: ["3.10", "3.11", "3.12", "3.14"]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
@@ -20,11 +63,66 @@ jobs:
           node-version: "24"
       - name: Install test runner
         run: python -m pip install --upgrade pip pytest
-      - name: Validate editable package install
+      - name: Install application
         run: python -m pip install -e .
       - name: Compile application
         run: python -m compileall -q crm_signals
-      - name: Check Desk dashboard JavaScript syntax
-        run: node --check crm_signals/crm_signals/page/crm_signals_dashboard/crm_signals_dashboard.js
-      - name: Run tests
+      - name: Check Desk JavaScript syntax
+        run: |
+          node --check crm_signals/crm_signals/page/crm_signals_dashboard/crm_signals_dashboard.js
+          node --check crm_signals/crm_signals/page/sahdev_dashboard/sahdev_dashboard.js
+      - name: Run unit and contract tests
         run: python -m pytest -q
+
+  frappe-integration:
+    name: Frappe Bench integration · v16 / Python 3.14
+    runs-on: ubuntu-latest
+    services:
+      redis-cache:
+        image: redis:7-alpine
+        ports: ["13000:6379"]
+      redis-queue:
+        image: redis:7-alpine
+        ports: ["11000:6379"]
+      mariadb:
+        image: mariadb:11.8
+        env:
+          MARIADB_ROOT_PASSWORD: root
+          MARIADB_DATABASE: frappe_test
+        ports: ["3306:3306"]
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+      - name: Install OS dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y mariadb-client libmariadb-dev pkg-config
+      - name: Install Bench
+        run: python -m pip install --upgrade pip frappe-bench
+      - name: Initialize Bench
+        run: bench init --skip-redis-config-generation --skip-assets --python "$(which python)" ~/frappe-bench --frappe-branch version-16
+      - name: Install CRM Signals
+        working-directory: /home/runner/frappe-bench
+        env:
+          CI: "1"
+        run: |
+          bench get-app crm_signals "$GITHUB_WORKSPACE"
+          bench setup requirements --dev
+          bench new-site --db-root-password root --admin-password admin test_site --no-mariadb-socket
+          bench --site test_site install-app crm_signals
+          bench build --app crm_signals
+      - name: Run Frappe integration tests
+        working-directory: /home/runner/frappe-bench
+        run: |
+          bench --site test_site set-config allow_tests true
+          bench --site test_site run-tests --app crm_signals
