@@ -214,12 +214,15 @@ def get_sales_compass_data():
         "leads": {
             "available": False,
             "created_last_30_days": None,
+            "active_available": False,
             "active": None,
         },
         "opportunities": {
             "available": False,
             "total_count": None,
+            "status_available": False,
             "active_count": None,
+            "stages_available": False,
             "stages": [],
             "pipeline_value_available": False,
             "pipeline_by_currency": [],
@@ -233,28 +236,25 @@ def get_sales_compass_data():
     try:
         lead_meta = _sales_dashboard_doctype_meta("Lead")
         if lead_meta:
-            lead_group_fields = [_dashboard_aggregate_field("COUNT", "name", "total")]
-            lead_group_by = None
-            if lead_meta.has_field("status"):
-                lead_group_fields.insert(0, "status")
-                lead_group_by = "status"
-
-            lead_groups = frappe.get_list(
-                "Lead",
-                fields=lead_group_fields,
-                group_by=lead_group_by,
-                order_by="status asc" if lead_group_by else None,
-                limit_page_length=100,
-            )
-            lead_active = (
-                sum(
+            lead_has_status = lead_meta.has_field("status")
+            lead_active = None
+            if lead_has_status:
+                lead_groups = frappe.get_list(
+                    "Lead",
+                    fields=[
+                        "status",
+                        _dashboard_aggregate_field("COUNT", "name", "total"),
+                    ],
+                    group_by="status",
+                    order_by="status asc",
+                    limit_page_length=100,
+                )
+                lead_active = sum(
                     int(_sales_dashboard_value(row, "total", 0) or 0)
                     for row in lead_groups
                     if not _sales_dashboard_is_terminal(_sales_dashboard_value(row, "status"))
                 )
-                if lead_group_by
-                else _sales_dashboard_count(lead_groups)
-            )
+
             new_lead_rows = frappe.get_list(
                 "Lead",
                 fields=[_dashboard_aggregate_field("COUNT", "name", "total")],
@@ -264,6 +264,7 @@ def get_sales_compass_data():
             result["leads"] = {
                 "available": True,
                 "created_last_30_days": _sales_dashboard_count(new_lead_rows),
+                "active_available": lead_has_status,
                 "active": lead_active,
             }
     except frappe.PermissionError:
@@ -277,17 +278,19 @@ def get_sales_compass_data():
             has_status = opportunity_meta.has_field("status")
             has_amount = opportunity_meta.has_field("opportunity_amount")
             has_currency = opportunity_meta.has_field("currency")
+            pipeline_available = has_status and has_amount and has_currency
 
             group_fields = [_dashboard_aggregate_field("COUNT", "name", "total")]
             group_by_fields = []
             if has_status:
                 group_fields.insert(0, "status")
                 group_by_fields.append("status")
-            if has_currency:
+            if pipeline_available:
                 group_fields.append("currency")
                 group_by_fields.append("currency")
-            if has_amount:
-                group_fields.append(_dashboard_aggregate_field("SUM", "opportunity_amount", "total_amount"))
+                group_fields.append(
+                    _dashboard_aggregate_field("SUM", "opportunity_amount", "total_amount")
+                )
 
             group_rows = frappe.get_list(
                 "Opportunity",
@@ -301,23 +304,24 @@ def get_sales_compass_data():
             stages = {}
             pipeline = {}
             active_count = 0
-            for row in group_rows:
-                status = _sales_dashboard_value(row, "status")
-                count = int(_sales_dashboard_value(row, "total", 0) or 0)
-                if has_status and _sales_dashboard_is_terminal(status):
-                    continue
+            if has_status:
+                for row in group_rows:
+                    status = _sales_dashboard_value(row, "status")
+                    count = int(_sales_dashboard_value(row, "total", 0) or 0)
+                    if _sales_dashboard_is_terminal(status):
+                        continue
 
-                active_count += count
-                stage_name = str(status or _("Unspecified"))
-                stages[stage_name] = stages.get(stage_name, 0) + count
+                    active_count += count
+                    stage_name = str(status or _("Unspecified"))
+                    stages[stage_name] = stages.get(stage_name, 0) + count
 
-                if has_amount:
-                    currency = str(
-                        _sales_dashboard_value(row, "currency") or _("Unspecified currency")
-                    )
-                    pipeline[currency] = pipeline.get(currency, 0.0) + float(
-                        _sales_dashboard_value(row, "total_amount", 0) or 0
-                    )
+                    if pipeline_available:
+                        currency = str(
+                            _sales_dashboard_value(row, "currency") or _("Unspecified currency")
+                        )
+                        pipeline[currency] = pipeline.get(currency, 0.0) + float(
+                            _sales_dashboard_value(row, "total_amount", 0) or 0
+                        )
 
             recent_fields = ["name"]
             for optional_field in (
@@ -342,12 +346,14 @@ def get_sales_compass_data():
             result["opportunities"] = {
                 "available": True,
                 "total_count": total_count,
-                "active_count": active_count,
+                "status_available": has_status,
+                "active_count": active_count if has_status else None,
+                "stages_available": has_status,
                 "stages": [
                     {"status": status, "total": total}
                     for status, total in sorted(stages.items(), key=lambda item: item[0].lower())
                 ],
-                "pipeline_value_available": has_amount,
+                "pipeline_value_available": pipeline_available,
                 "pipeline_by_currency": [
                     {"currency": currency, "total_amount": amount}
                     for currency, amount in sorted(pipeline.items())
@@ -433,7 +439,10 @@ def _get_sales_billing_data(period_start, today):
         if has_is_return:
             base_filters["is_return"] = 0
 
-        if has_currency and has_grand_total and has_posting_date:
+        # Every Sales Invoice measure in this section claims to exclude returns.
+        # If metadata cannot establish return identity, do not run the aggregate
+        # without the filter: that would silently count credit/return documents.
+        if has_is_return and has_currency and has_grand_total and has_posting_date:
             invoiced_filters = dict(base_filters)
             invoiced_filters["posting_date"] = [">=", period_start]
             result["invoiced_by_currency"] = _sales_billing_group_rows(
@@ -444,7 +453,7 @@ def _get_sales_billing_data(period_start, today):
             )
             result["invoiced_available"] = True
 
-        if has_party_currency and has_outstanding:
+        if has_is_return and has_party_currency and has_outstanding:
             outstanding_filters = dict(base_filters)
             outstanding_filters["outstanding_amount"] = [">", 0]
             result["outstanding_by_currency"] = _sales_billing_group_rows(
@@ -455,7 +464,13 @@ def _get_sales_billing_data(period_start, today):
             )
             result["outstanding_available"] = True
 
-        if has_currency and invoice_meta.has_field("is_pos") and invoice_meta.has_field("paid_amount") and has_posting_date:
+        if (
+            has_is_return
+            and has_currency
+            and invoice_meta.has_field("is_pos")
+            and invoice_meta.has_field("paid_amount")
+            and has_posting_date
+        ):
             pos_filters = dict(base_filters)
             pos_filters.update({
                 "is_pos": 1,
@@ -470,7 +485,12 @@ def _get_sales_billing_data(period_start, today):
             )
             result["pos_receipts_available"] = True
 
-        if has_outstanding and has_party_currency and invoice_meta.has_field("due_date"):
+        if (
+            has_is_return
+            and has_outstanding
+            and has_party_currency
+            and invoice_meta.has_field("due_date")
+        ):
             overdue_filters = dict(base_filters)
             overdue_filters.update({
                 "outstanding_amount": [">", 0],
