@@ -35,7 +35,7 @@ Billing semantics are explicit: Payment Entry receipts are grouped by receiving-
 - Stable source-event identity for hook events and external webhook retries that include a source event ID.
 - Realtime notifications routed to related document owners and active ToDo assignees; no site-wide fallback.
 - Record-level read/write permission hooks for linked-party owners and assignees.
-- Scheduled digest for Leads not modified beyond the configured window and submitted quotations expiring today; enabled System User Sales Managers receive it.
+- Scheduled digest sends each enabled System User recipient a separate digest filtered through that user's ERPNext read permissions.
 
 CRM Signals Settings provides starter presets and administrator-editable business rules. The threshold is interpreted in the default Company's currency; this first release uses one site-wide threshold currency. The digest's Lead condition means "not modified"; it does not prove there was no call, email or meeting.
 
