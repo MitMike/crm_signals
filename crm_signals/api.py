@@ -28,7 +28,7 @@ def _dashboard_aggregate_field(operation, fieldname, alias):
         major_version = 15
 
     if major_version >= 16:
-        return {operation.upper(): fieldname, "as": alias}
+        return {operation.upper(): "*" if operation.upper() == "COUNT" else fieldname, "as": alias}
     return f"{operation.lower()}({fieldname}) as {alias}"
 
 
