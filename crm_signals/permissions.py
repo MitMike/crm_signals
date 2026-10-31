@@ -70,23 +70,23 @@ def crm_signal_query(user=None):
         return ""
 
     escaped_user = frappe.db.escape(user)
-    lead_match = f"""(\`tabCRM Signal\`.lead IN (
-        SELECT \`tabLead\`.name FROM \`tabLead\`
-        WHERE \`tabLead\`.owner = {escaped_user}
+    lead_match = f"""(`tabCRM Signal`.lead IN (
+        SELECT `tabLead`.name FROM `tabLead`
+        WHERE `tabLead`.owner = {escaped_user}
         UNION
-        SELECT \`tabToDo\`.reference_name FROM \`tabToDo\`
-        WHERE \`tabToDo\`.reference_type = 'Lead'
-          AND \`tabToDo\`.allocated_to = {escaped_user}
-          AND \`tabToDo\`.status NOT IN ('Cancelled', 'Closed')
+        SELECT `tabToDo`.reference_name FROM `tabToDo`
+        WHERE `tabToDo`.reference_type = 'Lead'
+          AND `tabToDo`.allocated_to = {escaped_user}
+          AND `tabToDo`.status NOT IN ('Cancelled', 'Closed')
     ))"""
-    customer_match = f"""(\`tabCRM Signal\`.customer IN (
-        SELECT \`tabCustomer\`.name FROM \`tabCustomer\`
-        WHERE \`tabCustomer\`.owner = {escaped_user}
+    customer_match = f"""(`tabCRM Signal`.customer IN (
+        SELECT `tabCustomer`.name FROM `tabCustomer`
+        WHERE `tabCustomer`.owner = {escaped_user}
         UNION
-        SELECT \`tabToDo\`.reference_name FROM \`tabToDo\`
-        WHERE \`tabToDo\`.reference_type = 'Customer'
-          AND \`tabToDo\`.allocated_to = {escaped_user}
-          AND \`tabToDo\`.status NOT IN ('Cancelled', 'Closed')
+        SELECT `tabToDo`.reference_name FROM `tabToDo`
+        WHERE `tabToDo`.reference_type = 'Customer'
+          AND `tabToDo`.allocated_to = {escaped_user}
+          AND `tabToDo`.status NOT IN ('Cancelled', 'Closed')
     ))"""
-    own_signal = f"(\`tabCRM Signal\`.owner = {escaped_user})"
+    own_signal = f"(`tabCRM Signal`.owner = {escaped_user})"
     return f"({lead_match} OR {customer_match} OR {own_signal})"
