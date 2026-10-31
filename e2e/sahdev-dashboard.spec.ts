@@ -399,15 +399,9 @@ test("CRM Signals Settings presets can be applied and customised", async ({ page
     await loginAsAdministrator(page);
     await page.goto("/app/crm-signals-settings");
 
-    const preset = page.locator(
-        '.frappe-control[data-fieldname="notification_preset"] select',
-    );
-    const staleDays = page.locator(
-        '.frappe-control[data-fieldname="lead_stale_days"] input',
-    );
-    const quotationThreshold = page.locator(
-        '.frappe-control[data-fieldname="quotation_threshold"] input',
-    );
+    const preset = page.locator('.frappe-control[data-fieldname="notification_preset"] select');
+    const staleDays = page.locator('.frappe-control[data-fieldname="lead_stale_days"] input');
+    const quotationThreshold = page.locator('.frappe-control[data-fieldname="quotation_threshold"] input');
 
     await expect(preset).toBeVisible();
     await preset.selectOption({ label: "Sales Focused" });
