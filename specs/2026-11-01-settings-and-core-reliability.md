@@ -23,7 +23,7 @@ The threshold is interpreted in one site-wide threshold currency. Quotation even
 
 ## Event identity and deduplication
 
-A source event is identified by source DocType/type, source document/integration identity and a stable source event ID. The app derives a SHA-256 key from those values and enforces a unique CRM Signal field. A repeated event returns the existing signal and does not publish another notification.
+A source event is identified by source DocType/type, source document/integration identity and a stable source event ID. CRM Signal DocType validation normalizes those values and derives the SHA-256 key itself; it never trusts a caller-supplied hash. A unique field enforces the key. A repeated event returns the existing signal and does not publish another notification. Partial identities are rejected; a key without identity is cleared.
 
 External API callers may provide a source event ID. The integration user is part of the source namespace; retries must use the same integration identity and the same ID. Without an ID, the endpoint retains legacy non-idempotent behavior.
 
@@ -45,6 +45,7 @@ Notification delivery to one recipient is isolated from other recipients and the
 - Preset selection fills values; manual changes switch the profile indicator to Custom.
 - The event handler uses configured thresholds/statuses and no hard-coded currency symbol.
 - The API requires Guest rejection, honors the ingestion switch, validates optional source identity and deduplicates stable IDs.
+- DocType validation recomputes source-event keys and rejects partial identities regardless of whether records arrive through hooks, the ingestion endpoint, Desk or another API.
 - Repeated source event IDs return the original CRM Signal without duplicate notification.
 - Digest schedule respects the System Settings timezone and sends at most one queued digest per date.
 - Digest labels the stale Lead condition as not modified, formats each Quote in its transaction currency and filters recipients to enabled System Users.
