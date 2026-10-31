@@ -5,11 +5,10 @@ Per-company overrides can be added later without changing signal identity.
 """
 from __future__ import annotations
 
-from datetime import time
+import datetime
 import re
 
 import frappe
-from frappe import _
 
 
 PRESETS = {
@@ -141,16 +140,16 @@ def get_signal_settings() -> dict:
     return values
 
 
-def _parse_time(value) -> time:
-    if isinstance(value, time):
+def _parse_time(value) -> datetime.time:
+    if isinstance(value, datetime.time):
         return value.replace(second=0, microsecond=0)
-    return time.fromisoformat(str(value).strip()[:8]).replace(second=0, microsecond=0)
+    return datetime.time.fromisoformat(str(value).strip()[:8]).replace(second=0, microsecond=0)
 
 
 def validate_settings_document(doc) -> None:
     """Validate admin-entered settings and populate the Company currency."""
     if doc.quotation_threshold is None or float(doc.quotation_threshold) < 0:
-        frappe.throw(_("Quotation threshold must be zero or greater."), frappe.ValidationError)
+        frappe.throw(frappe._("Quotation threshold must be zero or greater."), frappe.ValidationError)
 
     company_currency = get_company_default_currency()
     if company_currency:
