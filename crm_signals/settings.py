@@ -3,8 +3,6 @@
 Settings are a singleton so the first release has one coherent site policy.
 Per-company overrides can be added later without changing signal identity.
 """
-from __future__ import annotations
-
 import datetime
 import re
 
@@ -195,7 +193,7 @@ def validate_settings_document(doc) -> None:
         frappe.throw(frappe._("Digest time must be a valid site-local time."), frappe.ValidationError)
 
     for recipient in parse_recipients(doc.digest_extra_recipients):
-        if not re.fullmatch(r"[^@\\s]+@[^@\\s]+\\.[^@\\s]+", recipient):
+        if not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", recipient):
             frappe.throw(
                 frappe._("Additional digest recipient must be a valid System User email address: {0}").format(
                     recipient
