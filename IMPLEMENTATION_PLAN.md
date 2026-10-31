@@ -32,14 +32,15 @@ The following capabilities are present in the repository. "Implemented" means th
 |---|---|---|
 | Frappe app packaging and Pilot discovery metadata | Implemented | Run the actual Pilot import flow on the intended site |
 | CRM Signal DocType and validation | Implemented | Validate installed schema, roles and customizations |
-| Authenticated POST ingestion | Implemented | Test with a dedicated integration user and deployment rate limits |
-| Quotation and Opportunity event hooks | Implemented | Configure business rules, add durable idempotency and verify target-site semantics |
+| Authenticated POST ingestion | Implemented baseline; event-ID idempotency in PR #19 | Test with a dedicated integration user and deployment rate limits |
+| Quotation and Opportunity event hooks | Implemented baseline; settings/idempotency in PR #19 | Confirm target-site status and threshold policy; durable outbox remains deferred |
 | Record-level Signal permissions | Implemented | Verify list, direct form, report, export and API on target roles |
 | Recipient-scoped realtime notifications | Implemented | Validate target-site assignments/permissions and failure isolation |
-| Daily CRM digest | Implemented | Confirm semantics, currency, timezone, recipients and retry safety |
+| Daily CRM digest | Implemented baseline; configurable schedule/retry marker in PR #19 | Verify target-site semantics, timezone, recipient policy and scheduler concurrency |
+| CRM Signals Settings | In PR #19 | Pass CI, migrate singleton on v15/v16, validate the default Company currency and preset behavior |
 | CRM Signals Desk Console | Implemented | Target-site permission and usability smoke test |
-| D1 Sales Compass | Implemented | Harden missing-status handling and verify target-site status semantics |
-| D2 Billing Realization | Implemented | Reconcile totals and currency basis against target-site reports |
+| D1 Sales Compass | Implemented; missing-status fix merged in PR #17 | Verify target-site status semantics and role visibility |
+| D2 Billing Realization | Implemented; return-metadata guard merged in PR #17 | Reconcile totals and currency basis against target-site reports |
 | D3 Service Resolution/SLA | Not implemented | Discover and map the installed support/SLA source first |
 | H Highlights | Partially present for quote events | Finish settings/idempotency foundation; VIP link tracking still needs privacy review |
 | E Explorer | Not implemented | Verify installed activity integrations and source adapters |
@@ -249,11 +250,12 @@ A slice is done only when all applicable items are complete:
 
 | Area | Specification | State |
 |---|---|---|
-| CRM Signals data, ingestion and access | [Core and access](specs/2026-11-01-crm-signals-core-and-access.md) | Baseline implemented; hardening open |
-| Document events and realtime routing | [Events and notifications](specs/2026-11-01-crm-signals-events-and-notifications.md) | Baseline implemented; idempotency/config open |
-| Daily digest | [Digest](specs/2026-11-01-crm-signals-daily-digest.md) | Baseline implemented; site semantics open |
-| D1 | [Sales Compass](specs/2026-11-01-pillar-d1-sales-compass.md) | Implemented; semantic hardening open |
-| D2 | [Billing Realization](specs/2026-10-31-pillar-d2-billing-realization.md) | Implemented; target-site reconciliation open |
+| CRM Signals data, ingestion and access | [Core and access](specs/2026-11-01-crm-signals-core-and-access.md) | Baseline implemented; release hardening open |
+| Settings and core reliability | [Settings, presets and idempotency](specs/2026-11-01-settings-and-core-reliability.md) | PR #19 in review; CI/merge pending |
+| Document events and realtime routing | [Events and notifications](specs/2026-11-01-crm-signals-events-and-notifications.md) | Baseline implemented; settings/idempotency in PR #19 |
+| Daily digest | [Digest](specs/2026-11-01-crm-signals-daily-digest.md) | Configurable schedule/date marker in PR #19; target-site policy open |
+| D1 | [Sales Compass](specs/2026-11-01-pillar-d1-sales-compass.md) | Missing-status correction merged; target-site validation open |
+| D2 | [Billing Realization](specs/2026-10-31-pillar-d2-billing-realization.md) | Return-metadata guard merged; target-site reconciliation open |
 | D3 | [Service Resolution/SLA](specs/2026-11-01-pillar-d3-service-resolution-sla.md) | Discovery spec ready; source mapping gated |
 | H | [Highlights](specs/2026-11-01-pillar-h-highlights.md) | Planned |
 | A | [Analysis](specs/2026-11-01-pillar-a-analysis.md) | Planned |
