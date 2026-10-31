@@ -1,7 +1,5 @@
 """Record-level access policy for CRM Signal documents."""
 
-import hashlib
-
 import frappe
 
 MANAGER_ROLES = {"Sales Manager", "System Manager"}
@@ -9,15 +7,6 @@ MANAGER_ROLES = {"Sales Manager", "System Manager"}
 
 def _has_manager_role(user):
     return bool(set(frappe.get_roles(user) or []) & MANAGER_ROLES)
-
-
-def _recipient_token(user):
-    return hashlib.sha256(user.strip().lower().encode("utf-8")).hexdigest()
-
-
-def _has_recipient_token(doc, user):
-    tokens = getattr(doc, "recipient_tokens", "") or ""
-    return f"|{_recipient_token(user)}|" in tokens
 
 
 def _is_assigned(doctype, name, user):
@@ -42,7 +31,6 @@ def crm_signal_has_permission(doc, user=None, permission_type=None):
     if _has_manager_role(user):
         return None
 
-    recipient = _has_recipient_token(doc, user)
     links = []
     if doc.lead:
         links.append(("Lead", doc.lead))
@@ -54,7 +42,7 @@ def crm_signal_has_permission(doc, user=None, permission_type=None):
     for doctype, name in links:
         parent_owner = frappe.db.get_value(doctype, name, "owner")
         is_assigned = _is_assigned(doctype, name, user)
-        is_related = parent_owner == user or is_assigned or recipient
+        is_related = parent_owner == user or is_assigned
         assigned = assigned or is_assigned
         if is_related and frappe.has_permission(
             doctype, ptype="read", doc=name, user=user
@@ -62,7 +50,7 @@ def crm_signal_has_permission(doc, user=None, permission_type=None):
             related_and_readable = True
 
     if not links:
-        related_and_readable = doc.owner == user or recipient
+        related_and_readable = doc.owner == user
 
     if permission_type == "read":
         return bool(related_and_readable)
@@ -71,27 +59,58 @@ def crm_signal_has_permission(doc, user=None, permission_type=None):
             frappe.db.get_value(doctype, name, "owner") == user
             for doctype, name in links
         )
-        return bool(
-            related_and_readable
-            and (doc.owner == user or owns_related_party or assigned or recipient)
-        )
+        return bool(related_and_readable and (doc.owner == user or owns_related_party or assigned))
     return None
 
 
-def crm_signal_query(user=None):
-    """Filter list queries by owner or the recipient token stored on each signal.
+def _get_visible_party_names(doctype, user):
+    """Return only owned/assigned party records the current user can read."""
+    owned = frappe.get_list(
+        doctype,
+        filters={"owner": user},
+        pluck="name",
+        limit_page_length=0,
+    )
 
-    The generated condition contains no subqueries or UNION, which keeps it
-    compatible with Frappe v16's generated-list-query validation.
+    assigned_names = frappe.get_all(
+        "ToDo",
+        filters={
+            "reference_type": doctype,
+            "allocated_to": user,
+            "status": ["not in", ["Cancelled", "Closed"]],
+        },
+        pluck="reference_name",
+    )
+    assigned = []
+    if assigned_names:
+        assigned = frappe.get_list(
+            doctype,
+            filters={"name": ["in", sorted(set(assigned_names))]},
+            pluck="name",
+            limit_page_length=0,
+        )
+
+    return sorted(set(owned or []) | set(assigned or []))
+
+
+def crm_signal_query(user=None):
+    """Build a simple list filter from currently readable owned/assigned records.
+
+    The resulting SQL contains only literal IN lists, not subqueries or UNION,
+    and party name lookup uses permission-aware get_list calls.
     """
     user = user or frappe.session.user
     if _has_manager_role(user):
         return ""
 
-    escaped_user = frappe.db.escape(user)
-    escaped_token_pattern = frappe.db.escape(f"%|{_recipient_token(user)}|%")
-    own_signal = f"(`tabCRM Signal`.owner = {escaped_user})"
-    recipient_signal = (
-        f"(`tabCRM Signal`.recipient_tokens LIKE {escaped_token_pattern})"
-    )
-    return f"({own_signal} OR {recipient_signal})"
+    clauses = [f"(`tabCRM Signal`.owner = {frappe.db.escape(user)})"]
+    for doctype, fieldname in (("Lead", "lead"), ("Customer", "customer")):
+        try:
+            names = _get_visible_party_names(doctype, user)
+        except frappe.PermissionError:
+            names = []
+        if names:
+            escaped_names = ", ".join(frappe.db.escape(name) for name in names)
+            clauses.append(f"(`tabCRM Signal`.`{fieldname}` IN ({escaped_names}))")
+
+    return "(" + " OR ".join(clauses) + ")"
