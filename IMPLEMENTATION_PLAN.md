@@ -61,7 +61,7 @@ The following capabilities are present in the repository. "Implemented" means th
 
 ### Stage 0 — Repository security and reproducible CI
 
-**Status:** Merged in [PR #11](https://github.com/MitMike/crm_signals/pull/11) as [05ad767](https://github.com/MitMike/crm_signals/commit/05ad767f6b62814cca5b7d0c1e233a2f690baa77). All four gates passed on the PR head; post-merge Bench validation is being confirmed on main. GitHub ruleset [Protect main](https://github.com/MitMike/crm_signals/rules/26282133) (ID 26282133) is active and has been verified; the required contexts and remaining enforcement details are recorded in docs/PROGRESS.md.
+**Status:** Merged in [PR #11](https://github.com/MitMike/crm_signals/pull/11) as [05ad767](https://github.com/MitMike/crm_signals/commit/05ad767f6b62814cca5b7d0c1e233a2f690baa77). All four gates passed on the PR head and post-merge main validation passed (Quality, Security, Bench v15/v16). GitHub ruleset [Protect main](https://github.com/MitMike/crm_signals/rules/26282133) (ID 26282133) is active and has been verified; the required contexts and remaining enforcement details are recorded in docs/PROGRESS.md.
 
 Work:
 - Add weekly Dependabot checks for pip, npm and GitHub Actions.
@@ -82,12 +82,12 @@ Exit criteria:
 
 **Priority:** P0
 
-**Completed code slice:** PR #17 merged as [fed496f](https://github.com/MitMike/crm_signals/commit/fed496f230f5ca88af25d663bc61fe4d748f5f83) adds explicit unavailable behavior when D1 status metadata is absent and requires Sales Invoice is_return for D2 return-sensitive aggregations. Required CI passed on the final PR head (Quality, Semgrep, Bench v15 and Bench v16 + authenticated Playwright). The rest of Stage 1 remains open.  
+**Completed code slice:** PR #17 merged as [fed496f](https://github.com/MitMike/crm_signals/commit/fed496f230f5ca88af25d663bc61fe4d748f5f83). It adds explicit unavailable behavior when D1 status metadata is absent and requires Sales Invoice is_return for D2 return-sensitive aggregations. Required CI passed on the final PR head (Quality, Semgrep, Bench v15 and Bench v16 + authenticated Playwright). The rest of Stage 1 remains open.  
 **Dependencies:** Stage 0.
 
 Work:
 - Run a target-site preflight: framework versions, installed apps, Company default currency, timezone, roles, DocType metadata, workflows, custom fields and permissions.
-- Configure a dedicated integration user, rotateable API credentials, HTTPS, gateway rate limiting and secret storage.
+- Configure a dedicated integration user, rotatable API credentials, HTTPS, gateway rate limiting and secret storage.
 - Add source DocType, source document name and source event ID to CRM Signals; enforce idempotent inserts for identifiable events.
 - Add a validated CRM Signals Settings singleton for the quotation threshold, Opportunity trigger statuses, Lead stale window, digest time and escalation recipients.
 - [x] Fix D1 active-count handling when `status` metadata is missing: active Leads/Opportunities, stage distribution and active pipeline are unavailable; independent counts/recent records remain available. Regression tests passed; merged in PR #17.
