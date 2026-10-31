@@ -6,7 +6,7 @@ async function loginAs(page: Page, username: string, password: string) {
     await page.goto("/login");
     await page.locator("#login_email").fill(username);
     await page.locator("#login_password").fill(password);
-    await page.locator('button[type="submit"]').click();
+    await page.locator('.form-login button[type="submit"]').click();
 
     await expect
         .poll(
