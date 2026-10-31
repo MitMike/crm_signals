@@ -48,3 +48,52 @@ def test_presets_have_explicit_digest_and_event_defaults(monkeypatch):
 def test_company_currency_comes_from_company_metadata(monkeypatch):
     settings = load_settings(monkeypatch)
     assert settings.get_company_default_currency("Example Ltd") == "USD"
+
+
+def test_extra_digest_recipient_must_be_an_enabled_system_user(monkeypatch):
+    settings = load_settings(monkeypatch)
+    frappe = sys.modules["frappe"]
+    frappe.db.get_value = lambda doctype, *args, **kwargs: (
+        "USD"
+        if doctype == "Company"
+        else {"enabled": 1, "user_type": "System User"}
+    )
+    doc = types.SimpleNamespace(
+        quotation_threshold=200000,
+        threshold_currency=None,
+        enable_quotation_signals=1,
+        enable_opportunity_signals=1,
+        opportunity_trigger_statuses="Replied",
+        lead_stale_days=3,
+        digest_time="08:30:00",
+        digest_extra_recipients="sales@example.com",
+    )
+
+    settings.validate_settings_document(doc)
+
+    assert doc.threshold_currency == "USD"
+
+
+def test_unregistered_digest_recipient_is_rejected(monkeypatch):
+    settings = load_settings(monkeypatch)
+    frappe = sys.modules["frappe"]
+    frappe.db.get_value = lambda doctype, *args, **kwargs: (
+        "USD" if doctype == "Company" else None
+    )
+    doc = types.SimpleNamespace(
+        quotation_threshold=200000,
+        threshold_currency=None,
+        enable_quotation_signals=1,
+        enable_opportunity_signals=1,
+        opportunity_trigger_statuses="Replied",
+        lead_stale_days=3,
+        digest_time="08:30:00",
+        digest_extra_recipients="unknown@example.com",
+    )
+
+    try:
+        settings.validate_settings_document(doc)
+    except frappe.ValidationError as error:
+        assert "not a registered User" in str(error)
+    else:
+        raise AssertionError("Unregistered digest recipients must be rejected")
