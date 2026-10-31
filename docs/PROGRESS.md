@@ -160,3 +160,20 @@ For every feature delivery:
 4. Record consequential choices in DECISIONS.md.
 5. Update CHANGELOG.md for user-visible or operationally significant changes.
 6. Reconcile this status document after merge and validation.
+
+
+## Repository source standards — branch chore/file-standards
+
+**Status:** Implemented on branch; automated CI validation and pull-request review pending.
+
+- [x] Calibrate the file policy: production 500-line warning / 800-line hard limit; tests 800 / 1,200.
+- [x] Add Python function-size warnings and hard limits, with more generous test thresholds.
+- [x] Enable Ruff C901 and ESLint complexity/function-size rules.
+- [x] Add a dependency-free checker, exact-path exception registry and unit tests.
+- [x] Integrate the checker into pre-commit and Quality Checks CI.
+- [x] Record the rationale and usage in the decision register and quality guide.
+- [ ] Run the full checker, unit suite and all CI workflows on the branch; address any existing hard-limit violations.
+- [ ] Review warnings from the existing source tree and decide which merit refactoring rather than suppressing them.
+- [ ] Open and merge a PR only after CI and the full source audit are green.
+
+The policy intentionally does not impose an arbitrary 400-line ceiling. Current file-length warnings are review signals, not build failures. No file exceptions are pre-approved; any later exception requires an exact path and a written reason.
