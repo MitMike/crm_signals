@@ -24,7 +24,7 @@ The mainline baseline contains CRM Signals core, the Signals Console, S.A.H.D.E.
 | A Analysis | Specified; planned | Build approved metric/query registry; no model-generated SQL |
 | Dependency/security hardening | Merged | PR #11 merged as 05ad767; all four PR checks passed; post-merge Bench verification in progress |
 | Full specifications and roadmap | Merged | PR #16 merged; all CI checks passed on the final head |
-| Main branch ruleset | <badge>Verified active</badge> | Ruleset Protect main (ID 26282133) targets refs/heads/main. Full details are recorded below; issue #12 closed after verification |
+| Main branch ruleset | Verified active | Ruleset Protect main (ID 26282133) targets refs/heads/main. Full details are recorded below; issue #12 closed after verification |
 
 ## Repository hardening — PR #11
 
@@ -129,7 +129,7 @@ Dependency Security Audit is active and passing on relevant PRs, weekly and manu
 - [ ] Deliver Analysis only against an approved metric registry and server-owned permission-aware queries.
 
 
-## Stage 1 metric correctness — active branch
+## Stage 1 metric correctness — PR #17
 
 Branch: \`fix/stage1-metric-correctness\` (based on the documentation/specification branch so its contracts and decisions are carried forward).
 
