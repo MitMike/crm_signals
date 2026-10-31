@@ -38,7 +38,12 @@ export default [
             "no-unexpected-multiline": "error",
             "no-debugger": "error",
             "no-alert": "error",
-            eqeqeq: ["error", "always"]
+            eqeqeq: ["error", "always"],
+            complexity: ["error", 15],
+            "max-lines-per-function": [
+                "error",
+                { max: 100, skipBlankLines: true, skipComments: true }
+            ]
         }
     }
 ];
