@@ -56,6 +56,22 @@ DEFAULTS = {
 }
 
 
+@frappe.whitelist()
+def get_preset_values(preset: str) -> dict:
+    """Return one starter profile to an authorized Settings administrator."""
+    if not frappe.has_permission("CRM Signals Settings", "write"):
+        frappe.throw(
+            frappe._("Only System Managers can read CRM Signals preset values."),
+            frappe.PermissionError,
+        )
+    if preset not in PRESETS:
+        frappe.throw(
+            frappe._("Unknown CRM Signals preset: {0}").format(preset),
+            frappe.ValidationError,
+        )
+    return dict(PRESETS[preset])
+
+
 def parse_statuses(value: str | None) -> list[str]:
     """Split newline/comma-separated status values and remove duplicates."""
     result = []
