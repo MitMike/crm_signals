@@ -38,8 +38,8 @@ The following capabilities are present in the repository. "Implemented" means th
 | Recipient-scoped realtime notifications | Implemented | Validate target-site assignments/permissions and failure isolation |
 | Daily CRM digest | Implemented | Confirm semantics, currency, timezone, recipients and retry safety |
 | CRM Signals Desk Console | Implemented | Target-site permission and usability smoke test |
-| D1 Sales Compass | Implemented | Harden missing-status handling and verify target-site status semantics |
-| D2 Billing Realization | Implemented | Reconcile totals and currency basis against target-site reports |
+| D1 Sales Compass | Implemented | Missing-status correctness fix merged; target-site status semantics remain |
+| D2 Billing Realization | Implemented | Return-metadata safety fix merged; reconcile totals and currency basis against target-site reports |
 | D3 Service Resolution/SLA | Not implemented | Discover and map the installed support/SLA source first |
 | H Highlights | Partially present for quote events | Settings, source-event idempotency, VIP link tracking/privacy review |
 | E Explorer | Not implemented | Verify installed activity integrations and source adapters |
@@ -61,7 +61,7 @@ The following capabilities are present in the repository. "Implemented" means th
 
 ### Stage 0 — Repository security and reproducible CI
 
-**Status:** Merged in [PR #11](https://github.com/MitMike/crm_signals/pull/11) as [05ad767](https://github.com/MitMike/crm_signals/commit/05ad767f6b62814cca5b7d0c1e233a2f690baa77). All four gates passed on the PR head; post-merge Bench validation is being confirmed on main. GitHub ruleset [Protect main](https://github.com/MitMike/crm_signals/rules/26282133) (ID 26282133) is active and has been verified; the required contexts and remaining enforcement details are recorded in docs/PROGRESS.md.
+**Status:** Merged in [PR #11](https://github.com/MitMike/crm_signals/pull/11) as [05ad767](https://github.com/MitMike/crm_signals/commit/05ad767f6b62814cca5b7d0c1e233a2f690baa77). All four gates passed on the PR head; post-merge Quality, Security and Bench/E2E validation passed on main. GitHub ruleset [Protect main](https://github.com/MitMike/crm_signals/rules/26282133) (ID 26282133) is active and has been verified; the required contexts and remaining enforcement details are recorded in docs/PROGRESS.md.
 
 Work:
 - Add weekly Dependabot checks for pip, npm and GitHub Actions.
@@ -88,8 +88,8 @@ Work:
 - Configure a dedicated integration user, rotateable API credentials, HTTPS, gateway rate limiting and secret storage.
 - Add source DocType, source document name and source event ID to CRM Signals; enforce idempotent inserts for identifiable events.
 - Add a validated CRM Signals Settings singleton for the quotation threshold, Opportunity trigger statuses, Lead stale window, digest time and escalation recipients.
-- [x] Fix D1 active-count handling when `status` metadata is missing: active Leads/Opportunities, stage distribution and active pipeline are unavailable; independent counts/recent records remain available. Regression tests are included in `fix/stage1-metric-correctness`; CI/merge is pending.
-- [x] Require `is_return` metadata for every return-sensitive D2 Sales Invoice measure. Invoiced, POS, outstanding and overdue measures are unavailable when the field is missing; no Sales Invoice aggregate runs without the return filter. Payment Entry receipts remain independent. Regression tests are included in `fix/stage1-metric-correctness`; CI/merge is pending.
+- [x] Fix D1 active-count handling when `status` metadata is missing: active Leads/Opportunities, stage distribution and active pipeline are unavailable; independent counts/recent records remain available. Regression tests are merged in PR #17; final Quality, Security and Bench/E2E workflows passed.
+- [x] Require `is_return` metadata for every return-sensitive D2 Sales Invoice measure. Invoiced, POS, outstanding and overdue measures are unavailable when the field is missing; no Sales Invoice aggregate runs without the return filter. Payment Entry receipts remain independent. Regression tests are merged in PR #17; final Quality, Security and Bench/E2E workflows passed.
 - Verify that CRM Signal list, direct-document, API, report and export permissions are equivalent.
 - Verify that the current shared is_read flag is acceptable as a team acknowledgement.
 - Confirm daily digest currency formatting, site timezone, recipients and duplicate-run behavior.
