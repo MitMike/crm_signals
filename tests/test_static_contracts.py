@@ -42,6 +42,8 @@ def test_doctype_json_is_valid_and_field_options_are_consistent():
     }
     assert fields["lead"]["options"] == "Lead"
     assert fields["customer"]["options"] == "Customer"
+    assert fields["recipient_tokens"]["hidden"] == 1
+    assert fields["recipient_tokens"]["read_only"] == 1
 
 
 def test_python_sources_parse():
@@ -100,6 +102,10 @@ def test_dashboard_page_workspace_and_permission_aware_api():
     assert 'frappe.get_list("CRM Signal"' in api
     assert 'frappe.has_permission("CRM Signal", ptype="read")' in api
     assert "frappe.db.sql(" not in api
+    permissions = (APP_ROOT / "permissions.py").read_text()
+    assert "recipient_tokens LIKE" in permissions
+    assert "UNION" not in permissions
+    assert "SELECT" not in permissions.upper()
 
 
 def test_dashboard_displays_core_metrics_and_activity_navigation():
