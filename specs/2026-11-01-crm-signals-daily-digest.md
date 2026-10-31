@@ -34,9 +34,10 @@ The Lead metric is exactly "Leads not modified in more than 3 days". It is not p
 - Resolve recipients from Has Role for Sales Manager and explicitly configured additional digest recipients.
 - Filter to enabled System Users and deduplicate.
 - Never send to Guest, disabled users or arbitrary addresses supplied in a document.
-- Generate the digest from permission-safe, validated source data. The scheduler runs in a trusted server context, but site policy must still constrain the information sent to recipients.
-- Use a digest-date idempotency key so a scheduler retry cannot send duplicate copies. Record the run state and recipient count without logging secrets or full sensitive document contents.
-- A failed recipient delivery must be logged and retried according to Frappe mail queue behavior; it must not duplicate successfully delivered mail.
+- Generate each digest while impersonating the individual recipient. Use permission-aware `frappe.get_list` calls for Leads and Quotations; never send one privileged site-wide result to every recipient.
+- Show a source as unavailable when the recipient lacks read permission or required metadata; do not convert a permission failure into zero.
+- Track the recipients queued for the site-local digest date in CRM Signals Settings. Each email queue request and its recipient marker are saved in the same transaction. A later scheduler run skips already queued recipients and retries only those still pending.
+- Do not log secrets or full sensitive document contents. A scheduler concurrency lock/unique recipient delivery row is still required before guaranteeing duplicate-free behavior under simultaneous scheduler executions.
 
 ## Content and security
 
