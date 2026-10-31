@@ -58,12 +58,15 @@ function dashboardPayload(overrides: Record<string, unknown> = {}) {
         leads: {
             available: true,
             created_last_30_days: 2,
+            active_available: true,
             active: 4
         },
         opportunities: {
             available: true,
             total_count: 2,
+            status_available: true,
             active_count: 2,
+            stages_available: true,
             stages: [{ status: "Open", total: 2 }],
             pipeline_value_available: true,
             pipeline_by_currency: [
@@ -199,7 +202,9 @@ test("Empty ERPNext datasets render empty states", async ({ page }) => {
         opportunities: {
             available: true,
             total_count: 0,
+            status_available: true,
             active_count: 0,
+            stages_available: true,
             stages: [],
             pipeline_value_available: true,
             pipeline_by_currency: [],
@@ -232,6 +237,41 @@ test("Empty ERPNext datasets render empty states", async ({ page }) => {
     await expect(
         page.getByText("No active opportunities found.")
     ).toBeVisible();
+});
+
+
+
+test("Status-dependent metrics show unavailable states when status metadata is missing", async ({ page }) => {
+    await loginAsAdministrator(page);
+    const payload = dashboardPayload({
+        leads: {
+            available: true,
+            created_last_30_days: 2,
+            active_available: false,
+            active: null
+        },
+        opportunities: {
+            available: true,
+            total_count: 2,
+            status_available: false,
+            active_count: null,
+            stages_available: false,
+            stages: [],
+            pipeline_value_available: false,
+            pipeline_by_currency: [],
+            recent: []
+        }
+    });
+    await mockDashboard(page, payload);
+
+    await page.goto("/app/sahdev-dashboard");
+
+    await expect(page.getByText("Lead status field unavailable")).toBeVisible();
+    await expect(page.getByText("Opportunity status field unavailable")).toBeVisible();
+    await expect(
+        page.getByText("Opportunity status field is unavailable; stage distribution cannot be calculated.")
+    ).toBeVisible();
+    await expect(page.getByText("Status field unavailable")).toBeVisible();
 });
 
 test("API permission failures render a helpful message", async ({ page }) => {
