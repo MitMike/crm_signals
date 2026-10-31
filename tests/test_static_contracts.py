@@ -101,6 +101,8 @@ def test_dashboard_page_workspace_and_permission_aware_api():
     assert '"CRM Signal"' in api
     assert 'frappe.has_permission("CRM Signal", ptype="read")' in api
     assert "frappe.db.sql(" not in api
+    assert '_dashboard_aggregate_field("COUNT", "name", "total")' in api
+    assert '"count(name) as total"' not in api
     permissions = (APP_ROOT / "permissions.py").read_text()
     assert "def _get_visible_party_names" in permissions
     assert "frappe.get_list(" in permissions
@@ -118,7 +120,6 @@ def test_dashboard_displays_core_metrics_and_activity_navigation():
     assert 'frappe.set_route("List", "CRM Signal")' in script
     assert 'frappe.set_route("Form", "Lead", lead)' in script
     assert 'frappe.set_route("Form", "Customer", customer)' in script
-
 
 
 def test_sahdev_sales_compass_page_and_workspace_shortcut():
