@@ -94,9 +94,9 @@ async function mockDashboard(page: Page, message: Record<string, unknown>) {
     );
 }
 
-test("Administrator can open the live Executive Compass and read billing data", async ({
-    page
-}) => {
+test(
+    "Administrator can open the live Executive Compass and read billing data",
+    async ({ page }) => {
     const pageErrors: string[] = [];
     page.on("pageerror", (error) => pageErrors.push(error.message));
 
@@ -142,9 +142,9 @@ test("Administrator can open the live Executive Compass and read billing data", 
     expect(pageErrors).toEqual([]);
 });
 
-test("billing cards keep currencies separate and overdue invoices drill down", async ({
-    page
-}) => {
+test(
+    "billing cards keep currencies separate and overdue invoices drill down",
+    async ({ page }) => {
     await loginAsAdministrator(page);
     await mockDashboard(page, dashboardPayload());
 
@@ -156,7 +156,9 @@ test("billing cards keep currencies separate and overdue invoices drill down", a
     ).toBeVisible();
     await expect(billing).toContainText("INR");
     await expect(billing).toContainText("USD");
-    await expect(billing).toContainText("Invoice and POS amounts use invoice currency");
+    await expect(billing).toContainText(
+        "Invoice and POS amounts use invoice currency"
+    );
 
     const overdueInvoice = page.locator(".sahdev-invoice-row");
     await expect(overdueInvoice).toBeVisible();
@@ -169,7 +171,9 @@ test("billing cards keep currencies separate and overdue invoices drill down", a
     );
 });
 
-test("empty ERPNext datasets show explicit empty states", async ({ page }) => {
+test(
+    "empty ERPNext datasets show explicit empty states",
+    async ({ page }) => {
     await loginAsAdministrator(page);
     const empty = dashboardPayload({
         opportunities: {
@@ -202,13 +206,15 @@ test("empty ERPNext datasets show explicit empty states", async ({ page }) => {
     await page.goto("/app/sahdev-dashboard");
 
     await expect(page.getByText("No overdue open invoices.")).toBeVisible();
-    await expect(page.getByText("No transactions in this period")).toHaveCount(4);
+    await expect(
+        page.getByText("No transactions in this period")
+    ).toHaveCount(4);
     await expect(page.getByText("No active opportunities found.")).toBeVisible();
 });
 
-test("dashboard renders a useful message when its API is forbidden", async ({
-    page
-}) => {
+test(
+    "dashboard renders a useful message when its API is forbidden",
+    async ({ page }) => {
     await loginAsAdministrator(page);
     await page.route(dashboardMethod, (route) =>
         route.fulfill({
@@ -230,9 +236,9 @@ test("dashboard renders a useful message when its API is forbidden", async ({
 });
 
 
-test("CRM Signals Desk dashboard loads its live permission-filtered API", async ({
-    page
-}) => {
+test(
+    "CRM Signals Desk dashboard loads its live permission-filtered API",
+    async ({ page }) => {
     await loginAsAdministrator(page);
 
     const responsePromise = page.waitForResponse(
@@ -270,10 +276,9 @@ test("CRM Signals Desk dashboard loads its live permission-filtered API", async 
     ).toBeVisible();
 });
 
-test("Guest users are redirected from Desk and cannot call either dashboard API", async ({
-    page,
-    request
-}) => {
+test(
+    "Guest users are redirected from Desk and cannot call either dashboard API",
+    async ({ page, request }) => {
     const salesCompass = await request.get(
         "/api/method/crm_signals.api.get_sales_compass_data"
     );
