@@ -36,6 +36,15 @@ jobs:
         run: npm ls @playwright/test eslint minimatch --all
       - name: ESLint and Oxlint
         run: npm run lint:js
+      - name: Temporarily normalize E2E spec with repository Prettier
+        run: npx prettier --write e2e/sahdev-dashboard.spec.ts
+      - name: Upload normalized E2E spec for review
+        uses: actions/upload-artifact@v4
+        with:
+          name: prettier-normalized-e2e
+          path: e2e/sahdev-dashboard.spec.ts
+          if-no-files-found: error
+          retention-days: 1
       - name: Check formatting of tooling and E2E tests
         run: npm run format:check
       - name: Compile Python
