@@ -68,7 +68,7 @@ jobs:
       - name: Check Desk JavaScript syntax
         run: |
           node --check crm_signals/crm_signals/page/crm_signals_dashboard/crm_signals_dashboard.js
-          node --check crm_signals/crm_signals/page/sahdev_dashboard/sahdev_dashboard.js
+          node --check crm_signals/page/sahdev_dashboard/sahdev_dashboard.js
       - name: Run unit and contract tests
         run: python -m pytest -q
 
