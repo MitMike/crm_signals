@@ -5,7 +5,7 @@ This file records known work that is intentionally not represented as complete. 
 ## P0 — required before production sign-off
 
 - [ ] **Target-site preflight and acceptance.** Record Frappe/ERPNext versions, installed apps, Company currencies, timezone, workflows, custom fields and role matrix. Run Pilot import, migrate, scheduler, email, realtime, dashboard and rollback smoke tests.
-- [ ] **Permission parity.** Verify Sales User, Sales Manager, System Manager and non-sales users across list, direct form, API, report, export and print. Notifications are not an authorization grant.
+- [ ] **Permission parity.** Verify Sales User, Sales Manager, System Manager and non-sales users across list, direct form, API, report, export and print. Notifications are not an authorization grant. The scheduled digest now queries Leads and Quotations separately under each recipient's user context; confirm this behavior with the target site's actual user permissions.
 - [ ] **D2 financial reconciliation.** Compare invoices, Payment Entry receipts, separate POS receipts and party-account-currency receivables to native ERPNext reports, by currency.
 - [ ] **Webhook operations.** Provision a dedicated integration System User, least-privilege create access, TLS, gateway rate limiting, monitoring, secret rotation and secure secret storage.
 - [ ] **Deployment runbook.** Document backup, migration, smoke tests, rollback and supported release procedure for the intended site.
