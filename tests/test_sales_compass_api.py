@@ -44,7 +44,7 @@ def load_sales_api(monkeypatch, *, lead_read=True, opportunity_read=True, invoic
             "Sales Invoice": {
                 "currency", "posting_date", "grand_total", "outstanding_amount",
                 "is_return", "is_pos", "paid_amount", "due_date", "customer",
-                "customer_name",
+                "customer_name", "party_account_currency",
             },
             "Payment Entry": {
                 "payment_type", "party_type", "posting_date", "received_amount",
@@ -75,7 +75,8 @@ def load_sales_api(monkeypatch, *, lead_read=True, opportunity_read=True, invoic
                         "customer_name": "Acme Ltd",
                         "posting_date": "2026-10-01",
                         "due_date": "2026-10-15",
-                        "currency": "INR",
+                        "currency": "USD",
+                        "party_account_currency": "INR",
                         "outstanding_amount": 45000,
                     }]
                 return [{"total": 2}]
@@ -85,8 +86,8 @@ def load_sales_api(monkeypatch, *, lead_read=True, opportunity_read=True, invoic
                 ]
             if filters and "outstanding_amount" in filters:
                 return [
-                    {"currency": "INR", "total_amount": 75000, "record_count": 2},
-                    {"currency": "USD", "total_amount": 300, "record_count": 1},
+                    {"party_account_currency": "INR", "total_amount": 75000, "record_count": 2},
+                    {"party_account_currency": "EUR", "total_amount": 300, "record_count": 1},
                 ]
             return [
                 {"currency": "INR", "total_amount": 250000, "record_count": 3},
