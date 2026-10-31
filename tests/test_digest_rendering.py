@@ -16,6 +16,7 @@ def load_tasks(monkeypatch):
     fake.get_all = lambda *args, **kwargs: []
     fake.get_meta = lambda doctype: types.SimpleNamespace(has_field=lambda field: True)
     fake.log_error = lambda **kwargs: None
+    fake.get_traceback = lambda: "simulated test traceback"
     fake.PermissionError = type("PermissionError", (Exception,), {})
     fake.throw = lambda message: (_ for _ in ()).throw(ValueError(message))
     monkeypatch.setitem(sys.modules, "frappe", fake)
