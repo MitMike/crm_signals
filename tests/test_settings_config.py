@@ -8,6 +8,9 @@ import types
 def load_settings(monkeypatch):
     fake = types.ModuleType("frappe")
     fake._ = lambda message: message
+    fake.whitelist = lambda **kwargs: (lambda function: function)
+    fake.has_permission = lambda *args, **kwargs: True
+    fake.PermissionError = type("PermissionError", (Exception,), {})
     fake.ValidationError = type("ValidationError", (Exception,), {})
     fake.throw = lambda message, exc=None: (_ for _ in ()).throw((exc or Exception)(message))
     fake.db = types.SimpleNamespace(
@@ -97,3 +100,34 @@ def test_unregistered_digest_recipient_is_rejected(monkeypatch):
         assert "not a registered User" in str(error)
     else:
         raise AssertionError("Unregistered digest recipients must be rejected")
+
+
+def test_preset_values_are_read_from_the_python_registry(monkeypatch):
+    settings = load_settings(monkeypatch)
+
+    assert settings.get_preset_values("Balanced") == settings.PRESETS["Balanced"]
+
+
+def test_preset_values_require_settings_write_permission(monkeypatch):
+    settings = load_settings(monkeypatch)
+    frappe = sys.modules["frappe"]
+    frappe.has_permission = lambda *args, **kwargs: False
+
+    try:
+        settings.get_preset_values("Balanced")
+    except frappe.PermissionError as error:
+        assert "System Managers" in str(error)
+    else:
+        raise AssertionError("Preset values must require Settings write permission")
+
+
+def test_unknown_preset_is_rejected(monkeypatch):
+    settings = load_settings(monkeypatch)
+    frappe = sys.modules["frappe"]
+
+    try:
+        settings.get_preset_values("Unknown")
+    except frappe.ValidationError as error:
+        assert "Unknown CRM Signals preset" in str(error)
+    else:
+        raise AssertionError("Unknown preset names must be rejected")
