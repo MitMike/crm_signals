@@ -4,7 +4,7 @@
 
 Every push and pull request runs two workflows:
 
-- **Quality Checks:** Ruff lint, ESLint, Oxlint, Prettier checks, Python compile, configuration validation and pytest across Python 3.10, 3.11, 3.12 and 3.14. Coverage is published as a build artifact.
+- **Quality Checks:** Ruff lint, ESLint, Oxlint, Prettier checks for E2E/tooling files, Python compile, configuration validation and pytest across Python 3.10, 3.11, 3.12 and 3.14. Coverage is published as a build artifact. Ruff formatting is applied locally through the pre-commit formatter hook.
 - **Bench Integration and E2E:** creates real Frappe + ERPNext sites on v15/Python 3.11 and v16/Python 3.14, installs this app, migrates the site and runs the Python suite inside the Bench environment. The v16 lane also starts Frappe and runs the Playwright browser test.
 
 The browser test authenticates through Frappe, opens /app/sahdev-dashboard, checks that the endpoint returns billing data and verifies that the Billing Realization section renders without browser JavaScript errors.
