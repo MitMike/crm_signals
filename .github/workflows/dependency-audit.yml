@@ -46,7 +46,15 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: "24"
+      - name: Verify npm lockfile and configuration
+        run: |
+          pwd
+          test -s package.json
+          test -s package-lock.json
+          git ls-files --error-unmatch package-lock.json
+          npm config set package-lock true
+          npm config get package-lock
       - name: Install locked dependencies
-        run: npm ci --ignore-scripts --no-audit --no-fund
+        run: npm ci --package-lock=true --ignore-scripts --no-audit --no-fund
       - name: Audit npm dependencies
         run: npm audit --audit-level=moderate
