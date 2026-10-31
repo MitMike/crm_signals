@@ -19,6 +19,18 @@ Billing semantics are explicit: Payment Entry receipts are grouped by receiving-
 
 The planned follow-on slices are tracked in [docs/SAHDEV_VERTICAL_SLICES.md](docs/SAHDEV_VERTICAL_SLICES.md).
 
+## Project records
+
+Project delivery and decisions are tracked in the repository:
+
+- [Implementation plan](IMPLEMENTATION_PLAN.md) — scope, implementation slices and exit criteria.
+- [Progress log](docs/PROGRESS.md) — merged work, validation evidence, blockers and next actions.
+- [Decision register](docs/DECISIONS.md) — durable product and engineering decisions, with rationale.
+- [Specifications](specs/) — feature behavior, calculations, acceptance criteria and test mapping.
+- [Changelog](CHANGELOG.md) — user-visible and operationally significant changes.
+
+Update these records as part of meaningful feature delivery. See the progress log for the maintenance protocol.
+
 ## Implemented scope
 - CRM Signal DocType for signal type, priority, Lead/Customer reference, message, and read state.
 - Authenticated POST endpoint at /api/method/crm_signals.api.ingest_signal.
@@ -28,7 +40,7 @@ The planned follow-on slices are tracked in [docs/SAHDEV_VERTICAL_SLICES.md](doc
 - Scheduled digest for Leads not modified in more than three days and submitted quotations expiring today; only enabled System User Sales Managers receive it.
 
 ## Compatibility
-The source declares intended Frappe/ERPNext v15 and v16 compatibility. This is a version range declaration, not proof of runtime compatibility. Clean-site install/migrate checks on both version lines are still required.
+The source declares intended Frappe/ERPNext v15 and v16 compatibility. GitHub Actions Bench validation has passed on both version lines (v15/Python 3.11 and v16/Python 3.14), with browser E2E in the v16 lane. This is CI evidence, not a substitute for validation on the target site's roles, customizations and financial data.
 
 ## Installation
 ```bash
@@ -60,7 +72,7 @@ curl -X POST 'https://<site>/api/method/crm_signals.api.ingest_signal' \
 - Validate exact field/status semantics on the deployed ERPNext v15/v16 site.
 
 ## Engineering quality gates
-See [docs/QUALITY_GATES.md](docs/QUALITY_GATES.md) for the spec-driven workflow, Ruff/ESLint/Oxlint rules, pre-commit hooks, Bench compatibility matrix and authenticated Playwright E2E tests. New behavior should have a spec in [specs/](specs/) with acceptance criteria linked to unit, integration and browser tests.
+See [docs/QUALITY_GATES.md](docs/QUALITY_GATES.md) for the spec-driven workflow, Ruff/ESLint/Oxlint rules, pre-commit hooks, Bench compatibility matrix and authenticated Playwright E2E tests. New behavior should have a spec in [specs/](specs/) with acceptance criteria linked to unit, integration and browser tests. Track merged status and remaining validation in [docs/PROGRESS.md](docs/PROGRESS.md), and record durable decisions in [docs/DECISIONS.md](docs/DECISIONS.md).
 
 ## Developer checks
 Run:
