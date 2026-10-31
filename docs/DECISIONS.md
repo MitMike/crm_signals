@@ -200,3 +200,13 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Rationale:** Counting return documents as invoices/receipts or balances would materially distort the metric and conflict with its published definition.
 - **Consequences:** D2 acceptance includes metadata-absence tests for each return-sensitive metric. The current conditional filter implementation must be corrected before Stage 1 is complete.
 - **Sources:** [D2 Billing Realization spec](../specs/2026-10-31-pillar-d2-billing-realization.md), [Implementation plan](../IMPLEMENTATION_PLAN.md).
+
+
+## ADR-023 — Protect main with CI gates without blocking a solo maintainer
+
+- **Status:** Accepted; repository settings implementation pending
+- **Recorded:** 2026-11-01
+- **Decision:** Protect main with pull requests and required passing Quality Checks (all Python matrix jobs and static checks), both Bench v15/v16 jobs, Semgrep security scanning, and both Python/npm dependency audit jobs. Block force pushes and branch deletion, require conversation resolution, and retain a documented administrator emergency path. Do not require a fixed approval count while one maintainer is responsible for the repository; add peer review when another maintainer becomes available.
+- **Rationale:** Green CI must be enforced rather than advisory, but a required second-person approval would make a solo maintainer unable to deliver urgent fixes.
+- **Consequences:** GitHub administrator must configure and verify the ruleset. [Issue #12](https://github.com/MitMike/crm_signals/issues/12) tracks this external repository-settings task. Record the resulting ruleset in PROGRESS.md after verification.
+- **Sources:** [Quality gates](QUALITY_GATES.md), [Progress](PROGRESS.md), [Issue #12](https://github.com/MitMike/crm_signals/issues/12).
