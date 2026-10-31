@@ -13,7 +13,7 @@ This roadmap follows the product capabilities described in the Sahdev Signals pr
 
 ### D2. Billing realization (implemented in this branch)
 - Invoiced: submitted, non-return Sales Invoice grand totals posted in the last 30 days, grouped by invoice currency.
-- Outstanding: current positive outstanding amounts on submitted, non-return Sales Invoices, grouped by invoice currency.
+- Outstanding: current positive outstanding amounts on submitted, non-return Sales Invoices, grouped by the Sales Invoice party-account currency (the currency used by ERPNext's outstanding_amount field).
 - Customer receipts: submitted Receive Payment Entries for Customer parties in the last 30 days, grouped by receiving-account currency. This includes allocated and advance/unallocated receipts.
 - POS receipts: submitted POS Sales Invoice paid_amount in the last 30 days, grouped by invoice currency. Kept separate from Payment Entry receipts.
 - Overdue: count and top eight submitted, non-return invoices with a positive outstanding amount and a due date before today.
