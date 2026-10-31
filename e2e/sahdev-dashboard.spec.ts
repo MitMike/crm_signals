@@ -229,12 +229,64 @@ test("dashboard renders a useful message when its API is forbidden", async ({
     ).toBeVisible();
 });
 
-test("Guest users cannot call the Sales Compass API", async ({ request }) => {
-    const response = await request.get(
-        "/api/method/crm_signals.api.get_sales_compass_data"
+
+test("CRM Signals Desk dashboard loads its live permission-filtered API", async ({
+    page
+}) => {
+    await loginAsAdministrator(page);
+
+    const responsePromise = page.waitForResponse(
+        (response) =>
+            response.url().includes(
+                "/api/method/crm_signals.api.get_dashboard_data"
+            ),
+        { timeout: 30_000 }
+    );
+    await page.goto("/app/crm-signals-dashboard");
+
+    const response = await responsePromise;
+    expect(response.ok()).toBeTruthy();
+    const payload = await response.json();
+    expect(payload.message.stats).toEqual(
+        expect.objectContaining({
+            total: expect.any(Number),
+            unread: expect.any(Number),
+            high_priority: expect.any(Number),
+            last_7_days: expect.any(Number)
+        })
     );
 
-    expect(response.status()).toBeGreaterThanOrEqual(400);
-    const body = await response.text();
-    expect(body).toMatch(/Authentication is required|AuthenticationError/);
+    await expect(
+        page.getByRole("heading", { name: "CRM Signals Dashboard" })
+    ).toBeVisible();
+    await expect(
+        page.getByRole("heading", { name: "Sales activity at a glance" })
+    ).toBeVisible();
+    await expect(
+        page.getByRole("heading", { name: "Signals by type" })
+    ).toBeVisible();
+    await expect(
+        page.getByRole("heading", { name: "Recent activity" })
+    ).toBeVisible();
+});
+
+test("Guest users are redirected from Desk and cannot call either dashboard API", async ({
+    page,
+    request
+}) => {
+    const salesCompass = await request.get(
+        "/api/method/crm_signals.api.get_sales_compass_data"
+    );
+    const signals = await request.get(
+        "/api/method/crm_signals.api.get_dashboard_data"
+    );
+
+    for (const response of [salesCompass, signals]) {
+        expect(response.status()).toBeGreaterThanOrEqual(400);
+        const body = await response.text();
+        expect(body).toMatch(/Authentication is required|AuthenticationError/);
+    }
+
+    await page.goto("/app/sahdev-dashboard");
+    await expect(page).toHaveURL(/\/login(?:\?|$)/);
 });
