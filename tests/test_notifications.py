@@ -87,7 +87,7 @@ def test_notification_failure_for_one_recipient_does_not_block_the_other(monkeyp
     module, published = load_module(
         monkeypatch,
         {("Lead", "LEAD-1"): "failed@example.com"},
-        [],
+        ["good@example.com"],
         ["failed@example.com", "good@example.com"],
     )
     fake_frappe = sys.modules["frappe"]
