@@ -86,7 +86,7 @@ curl -X POST 'https://<site>/api/method/crm_signals.api.ingest_signal' \
   --data-urlencode 'source_event_id=web-visit-evt-123'
 ```
 
-A stable `source_event_id` is strongly recommended. Requests from the same integration user with the same source event ID create at most one signal. Requests without it retain legacy at-least-once behavior and can create duplicates on retries.
+A stable `source_event_id` is strongly recommended. When `source_doctype` and `source_name` are omitted, the server uses `API Integration` plus the authenticated integration user as the source namespace. When callers supply both fields, that pair becomes the namespace and must be stable and unique across integrations. Reuse the same integration account, source namespace and event ID for retries. Requests without an event ID retain legacy at-least-once behavior and can create duplicates on retries.
 
 ## Troubleshooting
 
