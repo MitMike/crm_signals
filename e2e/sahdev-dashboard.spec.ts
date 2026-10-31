@@ -1,8 +1,8 @@
 import { expect, test } from "@playwright/test";
 
-test(
-    "Executive Compass loads permission-filtered billing data",
-    async ({ page }) => {
+test("Executive Compass loads permission-filtered billing data", async ({
+    page
+}) => {
         const pageErrors: string[] = [];
         page.on("pageerror", (error) => pageErrors.push(error.message));
 
@@ -15,7 +15,9 @@ test(
         expect(loginResponse.ok()).toBeTruthy();
 
         const dashboardResponsePromise = page.waitForResponse((response) =>
-            response.url().includes("/api/method/crm_signals.api.get_sales_compass_data")
+            response
+            .url()
+            .includes("/api/method/crm_signals.api.get_sales_compass_data")
         );
 
         await page.goto("/app/sahdev-dashboard");
@@ -46,5 +48,4 @@ test(
         ).toBeVisible();
 
         expect(pageErrors).toEqual([]);
-    }
-);
+});
