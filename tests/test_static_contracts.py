@@ -15,6 +15,10 @@ def test_pilot_repository_discovery_contract():
     assert "[tool.bench.frappe-dependencies]" in project
     assert 'frappe = ">=15.0.0,<17.0.0"' in project
     assert hooks.is_file()
+    # Frappe v16's esbuild app scanner checks for these markers under
+    # apps/<app>/<app>/ before registering its public asset directory.
+    assert (APP_ROOT / "modules.txt").is_file()
+    assert (APP_ROOT / "patches.txt").is_file()
 
 
 def test_default_module_and_doctype_follow_frappe_layout():
