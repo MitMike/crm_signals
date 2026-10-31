@@ -93,7 +93,7 @@ def test_dashboard_page_workspace_and_permission_aware_api():
     )
     assert workspace["title"] == "CRM Signals"
     assert json.loads(workspace["content"])[0]["type"] == "shortcut"
-    assert workspace["shortcuts"][0]["link_to"] == "crm-signals-dashboard"
+    assert workspace["shortcuts"][1]["link_to"] == "crm-signals-dashboard"
 
     api = (APP_ROOT / "api.py").read_text()
     assert "def get_dashboard_data():" in api
