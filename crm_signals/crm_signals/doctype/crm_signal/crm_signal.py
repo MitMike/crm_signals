@@ -1,6 +1,8 @@
 import frappe
 from frappe.model.document import Document
 
+from crm_signals.event_identity import build_source_event_key
+
 ALLOWED_SIGNAL_TYPES = {
     "Website Visit",
     "Email Opened",
@@ -26,8 +28,17 @@ class CRMSignal(Document):
         if len(self.message) > 2000:
             frappe.throw("CRM Signal message cannot exceed 2000 characters.")
 
-        source_parts = (self.source_doctype, self.source_name, self.source_event_id)
+        source_parts = tuple(
+            str(value).strip() if value else None
+            for value in (self.source_doctype, self.source_name, self.source_event_id)
+        )
         if any(source_parts) and not all(source_parts):
             frappe.throw("Source type, source name and source event ID must be supplied together.")
-        if all(source_parts) != bool(self.source_event_key):
-            frappe.throw("A complete source identity and its unique event key are required together.")
+
+        if all(source_parts):
+            self.source_doctype, self.source_name, self.source_event_id = source_parts
+            # Never trust a hash supplied by a Desk/API caller. The server owns
+            # the source-event namespace and must derive the unique key itself.
+            self.source_event_key = build_source_event_key(*source_parts)
+        else:
+            self.source_event_key = None
