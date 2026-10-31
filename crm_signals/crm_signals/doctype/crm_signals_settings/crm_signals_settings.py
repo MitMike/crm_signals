@@ -4,7 +4,7 @@ from frappe.model.document import Document
 from frappe.utils import flt, cint
 
 
-class CRM Signals Settings(Document):
+class CRMSignalsSettings(Document):
     def validate(self):
         if flt(self.high_value_quotation_threshold) < 0:
             frappe.throw(_("High-value quotation threshold cannot be negative."))
@@ -20,7 +20,6 @@ class CRM Signals Settings(Document):
         if not statuses:
             frappe.throw(_("Configure at least one Opportunity signal status."))
 
-        # Keep values deterministic and avoid duplicate workflow statuses.
         self.opportunity_signal_statuses = "\n".join(dict.fromkeys(statuses))
 
         if self.company:
