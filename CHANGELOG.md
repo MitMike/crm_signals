@@ -89,3 +89,14 @@ This entry retrospectively records the capabilities present on main at commit [b
 On the baseline commit, GitHub Actions reported success for [Quality Checks](https://github.com/MitMike/crm_signals/actions/runs/41227467943), [Bench Integration and E2E](https://github.com/MitMike/crm_signals/actions/runs/41227467937) and [Security Scanning](https://github.com/MitMike/crm_signals/actions/runs/41227467867).
 
 Production/target-site acceptance is not implied by these CI results. See [Project Progress](docs/PROGRESS.md) for outstanding validation and repository-protection actions.
+
+
+## 2026-11-01 — Source size and complexity guardrails (under review)
+
+### Added
+- Graduated file-size thresholds: production source warns above 500 non-blank lines and fails above 800; test/E2E source warns above 800 and fails above 1,200.
+- Python function-length checks, Ruff cyclomatic-complexity enforcement, and ESLint complexity/function-length enforcement.
+- A standard-library checker, unit tests, pre-commit integration and a narrow exact-path exception registry.
+
+### Validation
+- Changes are on branch `chore/file-standards`; CI and pull-request review are pending. This entry does not claim that the policy has been merged or deployed.

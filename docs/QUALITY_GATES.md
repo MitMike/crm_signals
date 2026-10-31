@@ -18,8 +18,8 @@ Python:
 
     python -m pip install -e .
     python -m pip install pytest pytest-cov ruff pre-commit
-    ruff check crm_signals tests
-    ruff format crm_signals tests
+    ruff check crm_signals tests scripts
+    ruff format crm_signals tests scripts
     python -m pytest -q --cov=crm_signals
 
 JavaScript and browser E2E:
@@ -31,6 +31,10 @@ JavaScript and browser E2E:
     npm audit --audit-level=moderate
     npx playwright install chromium
     BASE_URL=http://test.local:8000 npm run test:e2e
+
+Code size and complexity:
+
+    python scripts/check_code_standards.py
 
 Hooks:
 
@@ -47,7 +51,30 @@ Hooks:
 6. Keep test data isolated and clean it up. Never write tests against production data.
 7. Do not bypass Frappe permissions to make dashboards appear populated.
 8. Treat green mocked tests as necessary, not sufficient: the Bench and E2E jobs are the compatibility gate.
+9. Keep production source files and functions cohesive; use the graduated size/complexity rules below as review signals, not as a reason to split code mechanically.
 
 ## Merge policy
 
 Configure the GitHub repository's branch protection/ruleset to require the Lint and static checks, Python unit tests, and Bench Integration and E2E checks before merging to the protected branch. Keep direct pushes to the protected branch disabled.
+
+
+## File size and complexity policy
+
+A line count is a maintainability signal, not a quality score. These limits apply to non-blank physical lines in hand-written source files; comments count so that the measure is predictable. Documentation, configuration, lockfiles, generated/minified bundles, vendored dependencies and build output are not source targets.
+
+| Scope | Review warning | Hard CI limit |
+|---|---:|---:|
+| Production source file | 500 lines | 800 lines |
+| Test/E2E source file | 800 lines | 1,200 lines |
+| Production Python function/method | 50 lines | 100 lines |
+| Production JavaScript function | — | 100 lines |
+| Test Python function/method | 80 lines | 150 lines |
+| Python/JavaScript cyclomatic complexity | Review above 10 | 15 |
+
+Python complexity is enforced by Ruff's C901 rule. JavaScript complexity and function length are enforced by ESLint. Python function length and cross-language file length are enforced by the repository checker.
+
+A warning requires a maintainability review and should normally result in a refactoring issue or a documented decision to retain the structure. A hard-limit failure blocks the quality workflow. Do not split cohesive modules or tests solely to satisfy a metric; extract by responsibility, dependency boundary or independently testable behavior.
+
+The test thresholds are intentionally more permissive because test suites often group fixtures and lifecycle scenarios. Generated, minified and vendored assets are excluded. Any other file-level exception must be added to `scripts/code_standards_exceptions.json` with its exact repository-relative path and a reason. Keep exceptions narrow; do not add directory-wide or wildcard exemptions. Review the exception register periodically and remove entries when the underlying file is refactored.
+
+Run the checker locally with `python scripts/check_code_standards.py`. Warnings do not fail the check; exceeding a hard limit does.

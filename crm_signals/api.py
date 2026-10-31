@@ -195,21 +195,8 @@ def _sales_dashboard_count(rows):
     return sum(int(_sales_dashboard_value(row, "total", 0) or 0) for row in rows)
 
 
-@frappe.whitelist()
-def get_sales_compass_data():
-    """Return the first Pillar D sales slice from permission-filtered ERPNext CRM data.
-
-    Metrics intentionally stay in transaction currency; the endpoint never adds
-    amounts from different currencies together. Billing and service SLA data are
-    not included until their own source-backed slices are implemented.
-    """
-    if frappe.session.user == "Guest":
-        frappe.throw(_("Authentication is required"), frappe.AuthenticationError)
-
-    from frappe.utils import add_days, nowdate
-
-    period_start = add_days(nowdate(), -30)
-    result = {
+def _sales_compass_empty_result():
+    return {
         "period_days": 30,
         "leads": {
             "available": False,
@@ -230,139 +217,185 @@ def get_sales_compass_data():
         },
     }
 
-    # Lead data is independently permission-checked. A user without Lead read
-    # access sees an unavailable metric, not a count calculated with elevated
-    # permissions.
+
+def _sales_compass_lead_metrics(period_start):
+    metrics = {
+        "available": False,
+        "created_last_30_days": None,
+        "active_available": False,
+        "active": None,
+    }
     try:
         lead_meta = _sales_dashboard_doctype_meta("Lead")
-        if lead_meta:
-            lead_has_status = lead_meta.has_field("status")
-            lead_active = None
-            if lead_has_status:
-                lead_groups = frappe.get_list(
-                    "Lead",
-                    fields=[
-                        "status",
-                        _dashboard_aggregate_field("COUNT", "name", "total"),
-                    ],
-                    group_by="status",
-                    order_by="status asc",
-                    limit_page_length=100,
-                )
-                lead_active = sum(
-                    int(_sales_dashboard_value(row, "total", 0) or 0)
-                    for row in lead_groups
-                    if not _sales_dashboard_is_terminal(_sales_dashboard_value(row, "status"))
-                )
+        if not lead_meta:
+            return metrics
 
-            new_lead_rows = frappe.get_list(
+        lead_has_status = lead_meta.has_field("status")
+        lead_active = None
+        if lead_has_status:
+            lead_groups = frappe.get_list(
                 "Lead",
-                fields=[_dashboard_aggregate_field("COUNT", "name", "total")],
-                filters={"creation": [">=", period_start]},
-                limit_page_length=1,
+                fields=["status", _dashboard_aggregate_field("COUNT", "name", "total")],
+                group_by="status",
+                order_by="status asc",
+                limit_page_length=100,
             )
-            result["leads"] = {
-                "available": True,
-                "created_last_30_days": _sales_dashboard_count(new_lead_rows),
-                "active_available": lead_has_status,
-                "active": lead_active,
-            }
-    except frappe.PermissionError:
-        pass
+            lead_active = sum(
+                int(_sales_dashboard_value(row, "total", 0) or 0)
+                for row in lead_groups
+                if not _sales_dashboard_is_terminal(_sales_dashboard_value(row, "status"))
+            )
 
-    # Opportunity aggregates are grouped by status and currency. Frappe's
-    # permission-aware get_list applies the current user's DocType and row rules.
+        new_lead_rows = frappe.get_list(
+            "Lead",
+            fields=[_dashboard_aggregate_field("COUNT", "name", "total")],
+            filters={"creation": [">=", period_start]},
+            limit_page_length=1,
+        )
+        return {
+            "available": True,
+            "created_last_30_days": _sales_dashboard_count(new_lead_rows),
+            "active_available": lead_has_status,
+            "active": lead_active,
+        }
+    except frappe.PermissionError:
+        return metrics
+
+
+def _sales_dashboard_opportunity_group_rows(opportunity_meta, has_status, pipeline_available):
+    group_fields = [_dashboard_aggregate_field("COUNT", "name", "total")]
+    group_by_fields = []
+    if has_status:
+        group_fields.insert(0, "status")
+        group_by_fields.append("status")
+    if pipeline_available:
+        group_fields.extend([
+            "currency",
+            _dashboard_aggregate_field("SUM", "opportunity_amount", "total_amount"),
+        ])
+        group_by_fields.append("currency")
+
+    return frappe.get_list(
+        "Opportunity",
+        fields=group_fields,
+        group_by=", ".join(group_by_fields) if group_by_fields else None,
+        order_by="status asc" if has_status else None,
+        limit_page_length=200,
+    )
+
+
+def _sales_dashboard_opportunity_stage_metrics(group_rows, has_status, pipeline_available):
+    stages = {}
+    pipeline = {}
+    active_count = 0
+    if has_status:
+        for row in group_rows:
+            status = _sales_dashboard_value(row, "status")
+            count = int(_sales_dashboard_value(row, "total", 0) or 0)
+            if _sales_dashboard_is_terminal(status):
+                continue
+
+            active_count += count
+            stage_name = str(status or _("Unspecified"))
+            stages[stage_name] = stages.get(stage_name, 0) + count
+            if pipeline_available:
+                currency = str(
+                    _sales_dashboard_value(row, "currency") or _("Unspecified currency")
+                )
+                pipeline[currency] = pipeline.get(currency, 0.0) + float(
+                    _sales_dashboard_value(row, "total_amount", 0) or 0
+                )
+    return active_count, stages, pipeline
+
+
+def _sales_dashboard_recent_opportunities(opportunity_meta):
+    fields = ["name"]
+    optional_fields = (
+        "creation",
+        "status",
+        "opportunity_from",
+        "party_name",
+        "customer_name",
+        "opportunity_amount",
+        "currency",
+        "expected_closing",
+    )
+    fields.extend(field for field in optional_fields if opportunity_meta.has_field(field))
+    return frappe.get_list(
+        "Opportunity",
+        fields=fields,
+        order_by="creation desc",
+        limit_page_length=8,
+    )
+
+
+def _sales_compass_opportunity_metrics():
+    metrics = {
+        "available": False,
+        "total_count": None,
+        "status_available": False,
+        "active_count": None,
+        "stages_available": False,
+        "stages": [],
+        "pipeline_value_available": False,
+        "pipeline_by_currency": [],
+        "recent": [],
+    }
     try:
         opportunity_meta = _sales_dashboard_doctype_meta("Opportunity")
-        if opportunity_meta:
-            has_status = opportunity_meta.has_field("status")
-            has_amount = opportunity_meta.has_field("opportunity_amount")
-            has_currency = opportunity_meta.has_field("currency")
-            pipeline_available = has_status and has_amount and has_currency
+        if not opportunity_meta:
+            return metrics
 
-            group_fields = [_dashboard_aggregate_field("COUNT", "name", "total")]
-            group_by_fields = []
-            if has_status:
-                group_fields.insert(0, "status")
-                group_by_fields.append("status")
-            if pipeline_available:
-                group_fields.append("currency")
-                group_by_fields.append("currency")
-                group_fields.append(
-                    _dashboard_aggregate_field("SUM", "opportunity_amount", "total_amount")
-                )
+        has_status = opportunity_meta.has_field("status")
+        has_amount = opportunity_meta.has_field("opportunity_amount")
+        has_currency = opportunity_meta.has_field("currency")
+        pipeline_available = has_status and has_amount and has_currency
+        group_rows = _sales_dashboard_opportunity_group_rows(
+            opportunity_meta, has_status, pipeline_available
+        )
+        total_count = _sales_dashboard_count(group_rows)
+        active_count, stages, pipeline = _sales_dashboard_opportunity_stage_metrics(
+            group_rows, has_status, pipeline_available
+        )
+        recent = _sales_dashboard_recent_opportunities(opportunity_meta)
 
-            group_rows = frappe.get_list(
-                "Opportunity",
-                fields=group_fields,
-                group_by=", ".join(group_by_fields) if group_by_fields else None,
-                order_by="status asc" if has_status else None,
-                limit_page_length=200,
-            )
-
-            total_count = _sales_dashboard_count(group_rows)
-            stages = {}
-            pipeline = {}
-            active_count = 0
-            if has_status:
-                for row in group_rows:
-                    status = _sales_dashboard_value(row, "status")
-                    count = int(_sales_dashboard_value(row, "total", 0) or 0)
-                    if _sales_dashboard_is_terminal(status):
-                        continue
-
-                    active_count += count
-                    stage_name = str(status or _("Unspecified"))
-                    stages[stage_name] = stages.get(stage_name, 0) + count
-
-                    if pipeline_available:
-                        currency = str(
-                            _sales_dashboard_value(row, "currency") or _("Unspecified currency")
-                        )
-                        pipeline[currency] = pipeline.get(currency, 0.0) + float(
-                            _sales_dashboard_value(row, "total_amount", 0) or 0
-                        )
-
-            recent_fields = ["name"]
-            for optional_field in (
-                "creation",
-                "status",
-                "opportunity_from",
-                "party_name",
-                "customer_name",
-                "opportunity_amount",
-                "currency",
-                "expected_closing",
-            ):
-                if opportunity_meta.has_field(optional_field):
-                    recent_fields.append(optional_field)
-
-            recent = frappe.get_list(
-                "Opportunity",
-                fields=recent_fields,
-                order_by="creation desc",
-                limit_page_length=8,
-            )
-            result["opportunities"] = {
-                "available": True,
-                "total_count": total_count,
-                "status_available": has_status,
-                "active_count": active_count if has_status else None,
-                "stages_available": has_status,
-                "stages": [
-                    {"status": status, "total": total}
-                    for status, total in sorted(stages.items(), key=lambda item: item[0].lower())
-                ],
-                "pipeline_value_available": pipeline_available,
-                "pipeline_by_currency": [
-                    {"currency": currency, "total_amount": amount}
-                    for currency, amount in sorted(pipeline.items())
-                ],
-                "recent": recent,
-            }
+        return {
+            "available": True,
+            "total_count": total_count,
+            "status_available": has_status,
+            "active_count": active_count if has_status else None,
+            "stages_available": has_status,
+            "stages": [
+                {"status": status, "total": total}
+                for status, total in sorted(stages.items(), key=lambda item: item[0].lower())
+            ],
+            "pipeline_value_available": pipeline_available,
+            "pipeline_by_currency": [
+                {"currency": currency, "total_amount": amount}
+                for currency, amount in sorted(pipeline.items())
+            ],
+            "recent": recent,
+        }
     except frappe.PermissionError:
-        pass
+        return metrics
 
+
+@frappe.whitelist()
+def get_sales_compass_data():
+    """Return permission-filtered Pillar D metrics from ERPNext CRM data.
+
+    Monetary metrics remain grouped by transaction currency. Billing and
+    service SLA use separate source-backed metric contracts.
+    """
+    if frappe.session.user == "Guest":
+        frappe.throw(_("Authentication is required"), frappe.AuthenticationError)
+
+    from frappe.utils import add_days, nowdate
+
+    period_start = add_days(nowdate(), -30)
+    result = _sales_compass_empty_result()
+    result["leads"] = _sales_compass_lead_metrics(period_start)
+    result["opportunities"] = _sales_compass_opportunity_metrics()
     result["billing"] = _get_sales_billing_data(period_start, nowdate())
     return result
 
@@ -396,18 +429,8 @@ def _sales_billing_group_rows(doctype, filters, currency_field, amount_field):
     ]
 
 
-def _get_sales_billing_data(period_start, today):
-    """Return permission-filtered billing metrics with explicit source semantics.
-
-    - Invoiced: submitted, non-return Sales Invoice grand totals posted in period.
-    - Outstanding: current positive outstanding on submitted, non-return invoices.
-    - Customer receipts: submitted Receive Payment Entries, shown in receiving
-      account currency. This includes allocated and unallocated/advance receipts.
-    - POS receipts: paid_amount on submitted POS Sales Invoices, shown in invoice
-      currency. Kept separate from Payment Entry receipts to avoid mixed currencies
-      and double counting.
-    """
-    result = {
+def _sales_billing_empty_result():
+    return {
         "available": False,
         "period_days": 30,
         "sales_invoice_unavailable_reason": None,
@@ -424,128 +447,121 @@ def _get_sales_billing_data(period_start, today):
         "overdue_invoices": [],
     }
 
-    try:
-        invoice_meta = _sales_dashboard_doctype_meta("Sales Invoice")
-        if not invoice_meta:
-            result["sales_invoice_unavailable_reason"] = _(
-                "Sales Invoice source is unavailable for this user"
-            )
-            return result
 
-        result["available"] = True
-        has_currency = invoice_meta.has_field("currency")
-        has_posting_date = invoice_meta.has_field("posting_date")
-        has_grand_total = invoice_meta.has_field("grand_total")
-        has_outstanding = invoice_meta.has_field("outstanding_amount")
-        has_party_currency = invoice_meta.has_field("party_account_currency")
-        has_is_return = invoice_meta.has_field("is_return")
-        base_filters = {"docstatus": 1}
-        if has_is_return:
-            base_filters["is_return"] = 0
-        else:
-            result["sales_invoice_unavailable_reason"] = _(
-                "Sales Invoice is_return metadata is unavailable; return-sensitive measures cannot exclude returns"
-            )
+def _sales_billing_group_metrics(result, invoice_meta, base_filters, period_start):
+    has_currency = invoice_meta.has_field("currency")
+    has_posting_date = invoice_meta.has_field("posting_date")
+    has_grand_total = invoice_meta.has_field("grand_total")
+    has_outstanding = invoice_meta.has_field("outstanding_amount")
+    has_party_currency = invoice_meta.has_field("party_account_currency")
+    has_is_return = invoice_meta.has_field("is_return")
 
-        # Every Sales Invoice measure in this section claims to exclude returns.
-        # If metadata cannot establish return identity, do not run the aggregate
-        # without the filter: that would silently count credit/return documents.
-        if has_is_return and has_currency and has_grand_total and has_posting_date:
-            invoiced_filters = dict(base_filters)
-            invoiced_filters["posting_date"] = [">=", period_start]
-            result["invoiced_by_currency"] = _sales_billing_group_rows(
-                "Sales Invoice",
-                invoiced_filters,
-                "currency",
-                "grand_total",
-            )
-            result["invoiced_available"] = True
+    if has_is_return and has_currency and has_grand_total and has_posting_date:
+        invoiced_filters = dict(base_filters)
+        invoiced_filters["posting_date"] = [">=", period_start]
+        result["invoiced_by_currency"] = _sales_billing_group_rows(
+            "Sales Invoice", invoiced_filters, "currency", "grand_total"
+        )
+        result["invoiced_available"] = True
 
-        if has_is_return and has_party_currency and has_outstanding:
-            outstanding_filters = dict(base_filters)
-            outstanding_filters["outstanding_amount"] = [">", 0]
-            result["outstanding_by_currency"] = _sales_billing_group_rows(
-                "Sales Invoice",
-                outstanding_filters,
-                "party_account_currency",
-                "outstanding_amount",
-            )
-            result["outstanding_available"] = True
+    if has_is_return and has_party_currency and has_outstanding:
+        outstanding_filters = dict(base_filters)
+        outstanding_filters["outstanding_amount"] = [">", 0]
+        result["outstanding_by_currency"] = _sales_billing_group_rows(
+            "Sales Invoice", outstanding_filters, "party_account_currency", "outstanding_amount"
+        )
+        result["outstanding_available"] = True
 
-        if (
-            has_is_return
-            and has_currency
-            and invoice_meta.has_field("is_pos")
-            and invoice_meta.has_field("paid_amount")
-            and has_posting_date
-        ):
-            pos_filters = dict(base_filters)
-            pos_filters.update({
-                "is_pos": 1,
-                "paid_amount": [">", 0],
-                "posting_date": [">=", period_start],
-            })
-            result["pos_receipts_by_currency"] = _sales_billing_group_rows(
-                "Sales Invoice",
-                pos_filters,
-                "currency",
-                "paid_amount",
-            )
-            result["pos_receipts_available"] = True
+    if (
+        has_is_return
+        and has_currency
+        and invoice_meta.has_field("is_pos")
+        and invoice_meta.has_field("paid_amount")
+        and has_posting_date
+    ):
+        pos_filters = dict(base_filters)
+        pos_filters.update({
+            "is_pos": 1,
+            "paid_amount": [">", 0],
+            "posting_date": [">=", period_start],
+        })
+        result["pos_receipts_by_currency"] = _sales_billing_group_rows(
+            "Sales Invoice", pos_filters, "currency", "paid_amount"
+        )
+        result["pos_receipts_available"] = True
 
-        if (
-            has_is_return
-            and has_outstanding
-            and has_party_currency
-            and invoice_meta.has_field("due_date")
-        ):
-            overdue_filters = dict(base_filters)
-            overdue_filters.update({
-                "outstanding_amount": [">", 0],
-                "due_date": ["<", today],
-            })
-            overdue_count_rows = frappe.get_list(
-                "Sales Invoice",
-                fields=[_dashboard_aggregate_field("COUNT", "name", "total")],
-                filters=overdue_filters,
-                limit_page_length=1,
-            )
-            result["overdue_count"] = int(
-                _sales_dashboard_value(overdue_count_rows[0], "total", 0)
-                if overdue_count_rows else 0
-            )
-            overdue_fields = [
-                "name", "customer", "due_date", "party_account_currency", "outstanding_amount"
-            ]
-            if invoice_meta.has_field("currency"):
-                overdue_fields.append("currency")
-            if invoice_meta.has_field("customer_name"):
-                overdue_fields.insert(2, "customer_name")
-            if invoice_meta.has_field("posting_date"):
-                overdue_fields.insert(2, "posting_date")
-            result["overdue_invoices"] = frappe.get_list(
-                "Sales Invoice",
-                fields=overdue_fields,
-                filters=overdue_filters,
-                order_by="due_date asc",
-                limit_page_length=8,
-            )
-            result["overdue_available"] = True
-    except frappe.PermissionError:
-        return result
 
-    # Standard customer receipts. Payment Entry rows are first filtered through
-    # the parent's permission-aware get_list before any aggregate is returned.
+def _sales_billing_overdue_metrics(result, invoice_meta, base_filters, today):
+    if not (
+        invoice_meta.has_field("is_return")
+        and invoice_meta.has_field("outstanding_amount")
+        and invoice_meta.has_field("party_account_currency")
+        and invoice_meta.has_field("due_date")
+    ):
+        return
+
+    overdue_filters = dict(base_filters)
+    overdue_filters.update({
+        "outstanding_amount": [">", 0],
+        "due_date": ["<", today],
+    })
+    overdue_count_rows = frappe.get_list(
+        "Sales Invoice",
+        fields=[_dashboard_aggregate_field("COUNT", "name", "total")],
+        filters=overdue_filters,
+        limit_page_length=1,
+    )
+    result["overdue_count"] = int(
+        _sales_dashboard_value(overdue_count_rows[0], "total", 0)
+        if overdue_count_rows else 0
+    )
+
+    overdue_fields = [
+        "name", "customer", "due_date", "party_account_currency", "outstanding_amount"
+    ]
+    if invoice_meta.has_field("currency"):
+        overdue_fields.append("currency")
+    if invoice_meta.has_field("customer_name"):
+        overdue_fields.insert(2, "customer_name")
+    if invoice_meta.has_field("posting_date"):
+        overdue_fields.insert(2, "posting_date")
+    result["overdue_invoices"] = frappe.get_list(
+        "Sales Invoice",
+        fields=overdue_fields,
+        filters=overdue_filters,
+        order_by="due_date asc",
+        limit_page_length=8,
+    )
+    result["overdue_available"] = True
+
+
+def _sales_invoice_metrics(result, invoice_meta, period_start, today):
+    has_is_return = invoice_meta.has_field("is_return")
+    base_filters = {"docstatus": 1}
+    if has_is_return:
+        base_filters["is_return"] = 0
+    else:
+        result["sales_invoice_unavailable_reason"] = _(
+            "Sales Invoice is_return metadata is unavailable; return-sensitive measures cannot exclude returns"
+        )
+
+    # Every Sales Invoice measure claims to exclude returns. Do not aggregate
+    # if the metadata cannot establish return identity.
+    _sales_billing_group_metrics(result, invoice_meta, base_filters, period_start)
+    _sales_billing_overdue_metrics(result, invoice_meta, base_filters, today)
+
+
+def _sales_customer_receipt_metrics(result, period_start):
     try:
         payment_meta = _sales_dashboard_doctype_meta("Payment Entry")
-        if (
-            payment_meta
-            and payment_meta.has_field("payment_type")
-            and payment_meta.has_field("party_type")
-            and payment_meta.has_field("posting_date")
-            and payment_meta.has_field("received_amount")
-            and payment_meta.has_field("paid_to_account_currency")
-        ):
+        required_fields = (
+            "payment_type",
+            "party_type",
+            "posting_date",
+            "received_amount",
+            "paid_to_account_currency",
+        )
+        if payment_meta and all(payment_meta.has_field(field) for field in required_fields):
             result["customer_receipts_by_currency"] = _sales_billing_group_rows(
                 "Payment Entry",
                 {
@@ -560,5 +576,27 @@ def _get_sales_billing_data(period_start, today):
             result["customer_receipts_available"] = True
     except frappe.PermissionError:
         pass
-
     return result
+
+
+def _get_sales_billing_data(period_start, today):
+    """Return permission-filtered billing metrics with explicit source semantics.
+
+    Payment Entry receipts are grouped in receiving-account currency and include
+    allocated and advance receipts. POS receipts remain a separate measure.
+    """
+    result = _sales_billing_empty_result()
+    try:
+        invoice_meta = _sales_dashboard_doctype_meta("Sales Invoice")
+        if not invoice_meta:
+            result["sales_invoice_unavailable_reason"] = _(
+                "Sales Invoice source is unavailable for this user"
+            )
+            return result
+
+        result["available"] = True
+        _sales_invoice_metrics(result, invoice_meta, period_start, today)
+    except frappe.PermissionError:
+        return result
+
+    return _sales_customer_receipt_metrics(result, period_start)

@@ -218,3 +218,14 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Rationale:** Treating all rows as active when status is absent is a false business assertion, not a safe fallback.
 - **Consequences:** API results expose explicit availability flags; the UI shows an unavailable state instead of 0 or a misleading all-active count. Regression tests cover metadata absence.
 - **Sources:** [D1 Sales Compass specification](../specs/2026-11-01-pillar-d1-sales-compass.md), [Implementation plan](../IMPLEMENTATION_PLAN.md).
+
+
+## ADR-025 — Enforce graduated source-size and complexity guardrails
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-01
+- **Context:** Frappe repositories inspected use Ruff, ESLint/Prettier, pre-commit and custom Semgrep rules, but the sampled configurations did not establish a universal per-file line-count limit. A flat 400-line hard cap would be overly restrictive for cohesive Frappe controllers, Desk pages and test modules.
+- **Decision:** Use review warnings and hard CI ceilings rather than a universal 400-line cap. Production source files warn above 500 non-blank lines and fail above 800; test/E2E files warn above 800 and fail above 1,200. Production Python functions/methods warn above 50 lines and fail above 100; test functions warn above 80 and fail above 150. Ruff and ESLint enforce cyclomatic complexity no higher than 15; complexity above 10 is a review signal. Enforce in CI and pre-commit. Ignore generated, minified and vendored output. Exceptions must be exact-path entries with a reason.
+- **Rationale:** File size alone is a weak proxy for maintainability. Graduated limits identify outliers without forcing arbitrary decomposition; complexity and function size target difficult-to-test logic more directly.
+- **Consequences:** Add a standard-library checker, automated tests, Ruff/ESLint rules, pre-commit integration and a dedicated exception register. Warnings are visible but do not block CI; hard-limit violations fail the Quality Checks gate. Revisit thresholds against actual code review and warning volume after adoption.
+- **Sources:** [Quality Gates](QUALITY_GATES.md), [Frappe Semgrep rules](https://github.com/frappe/semgrep-rules), [Frappe Insights custom rules](https://github.com/frappe/insights/blob/develop/.semgrep/insights.yml).
