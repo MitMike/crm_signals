@@ -51,7 +51,7 @@ Hooks:
 6. Keep test data isolated and clean it up. Never write tests against production data.
 7. Do not bypass Frappe permissions to make dashboards appear populated.
 8. Treat green mocked tests as necessary, not sufficient: the Bench and E2E jobs are the compatibility gate.
-9. Keep production source files and functions cohesive; use the graduated size/complexity rules below as review signals, not as a reason to split code mechanically. Keep production source files and functions cohesive; use the graduated size/complexity rules below as review signals, not as a reason to split code mechanically.
+9. Keep production source files and functions cohesive; use the graduated size/complexity rules below as review signals, not as a reason to split code mechanically.
 
 ## Merge policy
 
