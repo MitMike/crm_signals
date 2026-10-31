@@ -97,8 +97,10 @@ class SahdevSalesCompass {
 
         const pipelineValue = !opportunities.available
             ? __("No access")
-            : !opportunities.pipeline_value_available
-                ? __("Amount field unavailable")
+            : !opportunities.status_available
+                ? __("Status field unavailable")
+                : !opportunities.pipeline_value_available
+                    ? __("Amount or currency field unavailable")
                 : pipeline.length
                     ? pipeline.map((item) =>
                         '<span class="sahdev-metric-subvalue">' +
@@ -115,13 +117,23 @@ class SahdevSalesCompass {
             },
             {
                 label: __("Active leads"),
-                value: leads.available ? this.number(leads.active) : "—",
-                hint: __("Excludes converted, lost, closed and do-not-contact statuses")
+                value: leads.available && leads.active_available ? this.number(leads.active) : "—",
+                hint: !leads.available
+                    ? __("Lead access unavailable")
+                    : leads.active_available
+                        ? __("Excludes converted, lost, closed and do-not-contact statuses")
+                        : __("Lead status field unavailable")
             },
             {
                 label: __("Active opportunities"),
-                value: opportunities.available ? this.number(opportunities.active_count) : "—",
-                hint: opportunities.available ? __("Excludes terminal opportunity statuses") : __("Opportunity access unavailable")
+                value: opportunities.available && opportunities.status_available
+                    ? this.number(opportunities.active_count)
+                    : "—",
+                hint: !opportunities.available
+                    ? __("Opportunity access unavailable")
+                    : opportunities.status_available
+                        ? __("Excludes terminal opportunity statuses")
+                        : __("Opportunity status field unavailable")
             },
             {
                 label: __("Open pipeline value"),
@@ -144,7 +156,9 @@ class SahdevSalesCompass {
         const maxStage = Math.max(1, ...stages.map((item) => Number(item.total || 0)));
         const stageHtml = !opportunities.available
             ? '<div class="sahdev-empty">' + __("Opportunity data is not available to your user.") + "</div>"
-            : stages.length
+            : !opportunities.stages_available
+                ? '<div class="sahdev-empty">' + __("Opportunity status field is unavailable; stage distribution cannot be calculated.") + "</div>"
+                : stages.length
                 ? stages.map((item) => {
                     const total = Number(item.total || 0);
                     const width = Math.max(3, Math.min(100, Math.round(total / maxStage * 100)));
@@ -183,10 +197,10 @@ class SahdevSalesCompass {
                 }).join("")
                 : '<div class="sahdev-empty">' + __("No opportunities found.") + "</div>";
 
-        const billingMetric = (label, available, rows, countLabel) => {
+        const billingMetric = (label, available, rows, countLabel, unavailableMessage) => {
             let content = "";
             if (!available) {
-                content = __("Not available for your account");
+                content = unavailableMessage || __("Not available for your account");
             } else if (!rows || !rows.length) {
                 content = __("No transactions in this period");
             } else {
@@ -206,18 +220,20 @@ class SahdevSalesCompass {
 
         const billingCards = [
             billingMetric(__("Invoiced · 30 days"), billing.invoiced_available,
-                billing.invoiced_by_currency, __("invoices")),
+                billing.invoiced_by_currency, __("invoices"), billing.sales_invoice_unavailable_reason),
             billingMetric(__("Customer receipts · 30 days"), billing.customer_receipts_available,
                 billing.customer_receipts_by_currency, __("Payment Entries")),
             billingMetric(__("POS receipts · 30 days"), billing.pos_receipts_available,
-                billing.pos_receipts_by_currency, __("POS invoices")),
+                billing.pos_receipts_by_currency, __("POS invoices"), billing.sales_invoice_unavailable_reason),
             billingMetric(__("Open receivables · current"), billing.outstanding_available,
-                billing.outstanding_by_currency, __("open invoices"))
+                billing.outstanding_by_currency, __("open invoices"), billing.sales_invoice_unavailable_reason)
         ].join("");
 
         const overdue = billing.overdue_invoices || [];
         const overdueHtml = !billing.overdue_available
-            ? '<div class="sahdev-empty">' + __("Overdue invoice details are not available.") + "</div>"
+            ? '<div class="sahdev-empty">' + this.escape(
+                billing.sales_invoice_unavailable_reason || __("Overdue invoice details are not available.")
+            ) + "</div>"
             : overdue.length
                 ? overdue.map((item) => {
                     const customer = item.customer_name || item.customer || item.name;
