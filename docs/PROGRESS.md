@@ -18,7 +18,7 @@ This file is the operational source of truth. [IMPLEMENTATION_PLAN.md](../IMPLEM
 | File/function standards | Merged | PR #18 merged as `f51fbce`; limits, checker, pre-commit and CI enforcement are on main |
 | Settings + presets | Implemented on active branch | Settings singleton, validation, Balanced/Sales Focused/Executive presets and guide; CI/merge pending |
 | Event identity/idempotency | Implemented on active branch | Unique SHA-256 source-event key, API event ID support and duplicate-safe notification; CI/merge pending |
-| Digest hardening | Implemented on active branch | Site-timezone schedule, configurable stale window/time/recipients, currency-code formatting and date marker; CI/merge pending |
+| Digest hardening | Implemented on active branch | Site-timezone schedule, per-recipient permission-aware emails, recipient queue tracking, configurable stale window/time/recipients and currency-code formatting; CI/merge pending |
 | Notification failure isolation | Implemented on active branch | Recipient failures are logged and do not block other recipients or source-document saves; automated retry/outbox remains deferred |
 | D3 Service Resolution/SLA | Specified; not implemented | Discover target-site support/SLA application and source semantics before adapter implementation |
 | H Highlights | Partial/planned | Finish idempotent events, recipient controls, verified proposal tracking and privacy approval |
@@ -59,7 +59,7 @@ GitHub ruleset [Protect main](https://github.com/MitMike/crm_signals/rules/26282
 - Configure master/external-ingestion/Quotation/Opportunity/digest switches, Company-currency threshold, Opportunity status list, stale-day window, digest time and extra recipients validated against registered enabled System Users.
 - Add source-event metadata and a unique hash-based identity for CRM Signals.
 - Make webhook retries idempotent when the caller supplies a stable `source_event_id`.
-- Schedule the digest at the configured System Settings timezone and store the date marker in the same transaction as the email-queue request.
+- Schedule the digest at the configured System Settings timezone, query CRM rows under each recipient's user context, send separate permission-filtered emails and record each queued recipient in the same transaction as that email-queue request.
 - Remove hard-coded INR formatting and isolate realtime notification errors by recipient.
 - Add an admin guide, settings/reliability spec and configuration/identity/digest tests.
 
