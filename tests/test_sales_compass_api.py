@@ -5,7 +5,19 @@ import sys
 import types
 
 
-def load_sales_api(monkeypatch, *, lead_read=True, opportunity_read=True, invoice_read=True, payment_read=True, user="sales@example.com", version="15.0.0"):
+def load_sales_api(
+    monkeypatch,
+    *,
+    lead_read=True,
+    opportunity_read=True,
+    invoice_read=True,
+    payment_read=True,
+    lead_has_status=True,
+    opportunity_has_status=True,
+    invoice_has_is_return=True,
+    user="sales@example.com",
+    version="15.0.0",
+):
     frappe = types.ModuleType("frappe")
     frappe.__path__ = []
     frappe._ = lambda message: message
@@ -56,6 +68,12 @@ def load_sales_api(monkeypatch, *, lead_read=True, opportunity_read=True, invoic
             self.doctype = doctype
 
         def has_field(self, fieldname):
+            if self.doctype == "Lead" and fieldname == "status":
+                return lead_has_status
+            if self.doctype == "Opportunity" and fieldname == "status":
+                return opportunity_has_status
+            if self.doctype == "Sales Invoice" and fieldname == "is_return":
+                return invoice_has_is_return
             return fieldname in self.fields.get(self.doctype, set())
 
     frappe.get_meta = lambda doctype: FakeMeta(doctype)
@@ -150,11 +168,14 @@ def test_sales_compass_returns_permission_filtered_lead_and_opportunity_metrics(
     assert result["leads"] == {
         "available": True,
         "created_last_30_days": 5,
+        "active_available": True,
         "active": 7,
     }
     opportunities = result["opportunities"]
     assert opportunities["available"] is True
     assert opportunities["total_count"] == 5
+    assert opportunities["status_available"] is True
+    assert opportunities["stages_available"] is True
     assert opportunities["active_count"] == 4
     assert opportunities["stages"] == [
         {"status": "Open", "total": 3},
@@ -270,3 +291,64 @@ def test_billing_uses_structured_aggregate_fields_on_frappe_v16(monkeypatch):
         for query in queries if query["doctype"] == "Payment Entry"
         for field in query["fields"]
     )
+
+def test_sales_compass_marks_active_leads_unavailable_without_status_metadata(monkeypatch):
+    api, queries, _ = load_sales_api(monkeypatch, lead_has_status=False)
+
+    result = api.get_sales_compass_data()
+
+    assert result["leads"]["available"] is True
+    assert result["leads"]["created_last_30_days"] == 5
+    assert result["leads"]["active_available"] is False
+    assert result["leads"]["active"] is None
+    assert not any(
+        query["doctype"] == "Lead" and query.get("group_by") == "status"
+        for query in queries
+    )
+
+
+def test_sales_compass_marks_opportunity_status_dependent_metrics_unavailable(monkeypatch):
+    api, queries, _ = load_sales_api(monkeypatch, opportunity_has_status=False)
+
+    result = api.get_sales_compass_data()
+    opportunities = result["opportunities"]
+
+    assert opportunities["available"] is True
+    assert opportunities["total_count"] == 5
+    assert opportunities["status_available"] is False
+    assert opportunities["active_count"] is None
+    assert opportunities["stages_available"] is False
+    assert opportunities["stages"] == []
+    assert opportunities["pipeline_value_available"] is False
+    assert opportunities["pipeline_by_currency"] == []
+    assert opportunities["recent"][0]["name"] == "OPP-0001"
+    aggregate = next(
+        query for query in queries
+        if query["doctype"] == "Opportunity" and "name" not in query["fields"]
+    )
+    assert aggregate["group_by"] is None
+    assert all(
+        not isinstance(field, dict) or field.get("SUM") != "opportunity_amount"
+        for field in aggregate["fields"]
+    )
+
+
+def test_billing_marks_return_sensitive_invoice_metrics_unavailable_without_is_return(monkeypatch):
+    api, queries, _ = load_sales_api(monkeypatch, invoice_has_is_return=False)
+
+    result = api.get_sales_compass_data()["billing"]
+
+    assert result["available"] is True
+    assert result["invoiced_available"] is False
+    assert result["invoiced_by_currency"] == []
+    assert result["outstanding_available"] is False
+    assert result["outstanding_by_currency"] == []
+    assert result["pos_receipts_available"] is False
+    assert result["pos_receipts_by_currency"] == []
+    assert result["overdue_available"] is False
+    assert result["overdue_count"] is None
+    assert result["overdue_invoices"] == []
+    assert result["customer_receipts_available"] is True
+    assert not any(query["doctype"] == "Sales Invoice" for query in queries)
+    assert any(query["doctype"] == "Payment Entry" for query in queries)
+
