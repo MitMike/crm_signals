@@ -59,6 +59,9 @@ curl -X POST 'https://<site>/api/method/crm_signals.api.ingest_signal' \
 - Verify record-level permissions in Desk/list/report/export workflows on both supported versions.
 - Validate exact field/status semantics on the deployed ERPNext v15/v16 site.
 
+## Engineering quality gates
+See [docs/QUALITY_GATES.md](docs/QUALITY_GATES.md) for the spec-driven workflow, Ruff/ESLint/Oxlint rules, pre-commit hooks, Bench compatibility matrix and authenticated Playwright E2E tests. New behavior should have a spec in [specs/](specs/) with acceptance criteria linked to unit, integration and browser tests.
+
 ## Developer checks
 Run:
 ```bash
