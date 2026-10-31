@@ -2,6 +2,18 @@
 
 This changelog records user-visible and operationally significant changes. It is not a substitute for commit history. Entries do not imply a production release unless explicitly stated.
 
+## 2026-11-01 — D1/D2 metric safety corrections (under review)
+
+### Changed
+- D1 active Lead/Opportunity metrics, Opportunity stages and active pipeline now report unavailable when required status metadata is absent instead of counting every record as active.
+- D2 return-sensitive Sales Invoice measures require is_return; invoiced, POS receipts, outstanding receivables and overdue measures do not run when return identity cannot be established.
+- The dashboard distinguishes missing metadata from successful zero counts and ordinary permission-denied states.
+- Payment Entry receipt metrics remain independent of Sales Invoice return metadata.
+
+### Validation
+- Added regression tests for missing Lead status, Opportunity status and Sales Invoice is_return metadata.
+- Code and documentation are in review on branch fix/stage1-metric-correctness; this entry does not claim the change is merged.
+
 ## 2026-11-01 — Dependency security and CI hardening (merged; not a product release)
 
 ### Added
