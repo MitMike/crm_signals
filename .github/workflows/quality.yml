@@ -29,10 +29,8 @@ jobs:
         run: npm install --ignore-scripts --no-audit --no-fund
       - name: ESLint and Oxlint
         run: npm run lint:js
-      - name: Preview canonical formatting for tooling and E2E tests
-        run: |
-          npx prettier --write eslint.config.mjs playwright.config.ts e2e/**/*.ts
-          git diff -- eslint.config.mjs e2e/sahdev-dashboard.spec.ts
+      - name: Check formatting of tooling and E2E tests
+        run: npm run format:check
       - name: Compile Python
         run: python -m compileall -q crm_signals tests
       - name: Validate JSON, YAML and TOML
