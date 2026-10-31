@@ -46,7 +46,16 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: "24"
-      - name: Install dependencies
-        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Generate npm lockfile
+        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Audit npm dependencies
         run: npm audit --audit-level=moderate
+      - name: Publish generated lockfile for repository maintenance
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-package-lock
+          path: package-lock.json
+          if-no-files-found: error
+          retention-days: 1
