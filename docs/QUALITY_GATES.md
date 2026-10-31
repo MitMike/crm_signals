@@ -32,6 +32,10 @@ JavaScript and browser E2E:
     npx playwright install chromium
     BASE_URL=http://test.local:8000 npm run test:e2e
 
+Code size and complexity:
+
+    python scripts/check_code_standards.py
+
 Hooks:
 
     pre-commit install
@@ -46,7 +50,8 @@ Hooks:
 5. Add or update Playwright E2E coverage for user-visible workflows.
 6. Keep test data isolated and clean it up. Never write tests against production data.
 7. Do not bypass Frappe permissions to make dashboards appear populated.
-8. Treat green mocked tests as necessary, not sufficient: the Bench and E2E jobs are the compatibility gate.\n9. Keep production source files and functions cohesive; use the graduated size/complexity rules below as review signals, not as a reason to split code mechanically.
+8. Treat green mocked tests as necessary, not sufficient: the Bench and E2E jobs are the compatibility gate.
+9. Keep production source files and functions cohesive; use the graduated size/complexity rules below as review signals, not as a reason to split code mechanically. Keep production source files and functions cohesive; use the graduated size/complexity rules below as review signals, not as a reason to split code mechanically.
 
 ## Merge policy
 
