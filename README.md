@@ -13,7 +13,9 @@ A native Desk dashboard is available at `/app/crm-signals-dashboard` and from th
 ## S.A.H.D.E.V. Sales Compass — first Pillar D slice
 A separate executive dashboard is available at `/app/sahdev-dashboard` from the **CRM Signals** workspace. This first vertical slice shows Leads created in the last 30 days, active Leads, active Opportunities, Opportunity pipeline totals grouped by transaction currency, stage counts, and recent Opportunities. It uses permission-aware `frappe.get_list` calls and marks a source unavailable when the current user cannot read it. Amounts in different currencies are never added together.
 
-This is the CRM-sales foundation of Pillar D, not the complete cross-department dashboard. Billing realization and service-ticket SLA rollups are intentionally deferred until those data sources and metric definitions are implemented. The existing `/app/crm-signals-dashboard` remains the Signals Console.
+The dashboard now includes the first two Pillar D slices. D1 shows Leads created in the last 30 days, active Leads, active Opportunities, Opportunity pipeline totals grouped by transaction currency, stage counts, and recent Opportunities. D2 adds submitted invoice totals for the last 30 days, customer receipts from submitted Receive Payment Entries, separate POS receipt totals, current positive outstanding receivables, and overdue invoice drill-down. All sources use permission-aware `frappe.get_list` queries and retain separate currency groups.
+
+Billing semantics are explicit: Payment Entry receipts are grouped by receiving-account currency and include both allocated and advance/unallocated receipts; POS receipts use the Sales Invoice `paid_amount` field and stay separate. No amounts in unlike currencies are summed. D3 service-ticket SLA metrics remain deferred until the target site's support-ticket and SLA configuration are confirmed. The existing `/app/crm-signals-dashboard` remains the Signals Console.
 
 The planned follow-on slices are tracked in [docs/SAHDEV_VERTICAL_SLICES.md](docs/SAHDEV_VERTICAL_SLICES.md).
 
