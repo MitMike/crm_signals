@@ -1,0 +1,101 @@
+{
+  "doctype": "DocType",
+  "name": "CRM Signals Settings",
+  "module": "Crm Signals",
+  "issingle": 1,
+  "custom": 0,
+  "istable": 0,
+  "editable_grid": 0,
+  "track_changes": 1,
+  "allow_rename": 0,
+  "field_order": [
+    "company",
+    "company_currency",
+    "high_value_quotation_threshold",
+    "opportunity_signal_statuses",
+    "lead_stale_days",
+    "digest_time",
+    "enable_digest",
+    "additional_digest_recipients"
+  ],
+  "fields": [
+    {
+      "fieldname": "company",
+      "fieldtype": "Link",
+      "label": "Company",
+      "options": "Company",
+      "reqd": 1,
+      "description": "The company whose base currency is used for the quotation threshold. CRM Signals settings are single-company in v1."
+    },
+    {
+      "fieldname": "company_currency",
+      "fieldtype": "Link",
+      "label": "Company Currency",
+      "options": "Currency",
+      "read_only": 1,
+      "description": "Resolved from the selected Company default_currency."
+    },
+    {
+      "fieldname": "high_value_quotation_threshold",
+      "fieldtype": "Currency",
+      "label": "High-Value Quotation Threshold",
+      "options": "company_currency",
+      "default": "200000",
+      "reqd": 1,
+      "description": "Compared with Quotation.base_grand_total in the selected company's currency."
+    },
+    {
+      "fieldname": "opportunity_signal_statuses",
+      "fieldtype": "Small Text",
+      "label": "Opportunity Signal Statuses",
+      "default": "Replied",
+      "reqd": 1,
+      "description": "One Opportunity status per line. Values must be verified against the site's workflow."
+    },
+    {
+      "fieldname": "lead_stale_days",
+      "fieldtype": "Int",
+      "label": "Lead Stale Days",
+      "default": "3",
+      "reqd": 1,
+      "description": "Calendar days since Lead.modified; this is not proof of no customer activity."
+    },
+    {
+      "fieldname": "digest_time",
+      "fieldtype": "Time",
+      "label": "Daily Digest Time",
+      "default": "08:30:00",
+      "reqd": 1,
+      "description": "Site-local time. Scheduler dispatch is idempotent per local calendar date."
+    },
+    {
+      "fieldname": "enable_digest",
+      "fieldtype": "Check",
+      "label": "Enable Daily Digest",
+      "default": "1"
+    },
+    {
+      "fieldname": "additional_digest_recipients",
+      "fieldtype": "Table MultiSelect",
+      "label": "Additional Digest Recipients",
+      "options": "CRM Signals Digest Recipient"
+    }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 0,
+      "report": 0,
+      "export": 0,
+      "share": 0,
+      "print": 0,
+      "email": 0
+    }
+  ],
+  "sort_field": "modified",
+  "sort_order": "DESC",
+  "engine": "InnoDB"
+}
