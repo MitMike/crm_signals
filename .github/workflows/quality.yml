@@ -120,6 +120,7 @@ jobs:
           bench setup requirements --dev
           bench new-site --db-root-password root --admin-password admin test_site --no-mariadb-socket
           bench --site test_site install-app crm_signals
+          bench --site test_site migrate
           bench build --app crm_signals
       - name: Run Frappe integration tests
         working-directory: /home/runner/frappe-bench
