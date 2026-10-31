@@ -15,7 +15,23 @@ ALLOWED_PRIORITIES = {"Low", "Medium", "High", "Urgent"}
 MAX_MESSAGE_LENGTH = 2000
 
 
-@frappe.whitelist()
+def _read_text(value, fieldname, *, required=False, max_length=None):
+    if value is None:
+        value = ""
+    if not isinstance(value, str):
+        frappe.throw(_("{0} must be text").format(fieldname), frappe.ValidationError)
+    value = value.strip()
+    if required and not value:
+        frappe.throw(_("{0} is mandatory").format(fieldname), frappe.MandatoryError)
+    if max_length is not None and len(value) > max_length:
+        frappe.throw(
+            _("{0} cannot exceed {1} characters").format(fieldname, max_length),
+            frappe.ValidationError,
+        )
+    return value or None
+
+
+@frappe.whitelist(methods=["POST"])
 def ingest_signal():
     """Create a CRM Signal from an authenticated server-to-server integration.
 
@@ -26,20 +42,18 @@ def ingest_signal():
         frappe.throw(_("Authentication is required"), frappe.AuthenticationError)
 
     data = frappe.local.form_dict
-    signal_type = (data.get("signal_type") or "").strip()
-    message = (data.get("message") or "").strip()
-    lead = (data.get("lead") or "").strip() or None
-    customer = (data.get("customer") or "").strip() or None
-    priority = (data.get("priority") or "Medium").strip()
+    signal_type = _read_text(data.get("signal_type"), "signal_type", required=True)
+    message = _read_text(
+        data.get("message"), "message", required=True, max_length=MAX_MESSAGE_LENGTH
+    )
+    lead = _read_text(data.get("lead"), "lead")
+    customer = _read_text(data.get("customer"), "customer")
+    priority = _read_text(data.get("priority") or "Medium", "priority", required=True)
 
-    if not signal_type or not message:
-        frappe.throw(_("signal_type and message are mandatory fields"), frappe.MandatoryError)
     if signal_type not in ALLOWED_SIGNAL_TYPES:
         frappe.throw(_("Unsupported signal_type"), frappe.ValidationError)
     if priority not in ALLOWED_PRIORITIES:
         frappe.throw(_("Unsupported priority"), frappe.ValidationError)
-    if len(message) > MAX_MESSAGE_LENGTH:
-        frappe.throw(_("message cannot exceed {0} characters").format(MAX_MESSAGE_LENGTH), frappe.ValidationError)
     if lead and customer:
         frappe.throw(_("Provide either lead or customer, not both"), frappe.ValidationError)
     if lead and not frappe.db.exists("Lead", lead):
