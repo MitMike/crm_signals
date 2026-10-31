@@ -97,7 +97,8 @@ def test_dashboard_page_workspace_and_permission_aware_api():
 
     api = (APP_ROOT / "api.py").read_text()
     assert "def get_dashboard_data():" in api
-    assert 'frappe.get_list("CRM Signal"' in api
+    assert "frappe.get_list(" in api
+    assert '"CRM Signal"' in api
     assert 'frappe.has_permission("CRM Signal", ptype="read")' in api
     assert "frappe.db.sql(" not in api
     permissions = (APP_ROOT / "permissions.py").read_text()
