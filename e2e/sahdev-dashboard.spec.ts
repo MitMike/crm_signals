@@ -94,9 +94,7 @@ async function mockDashboard(page: Page, message: Record<string, unknown>) {
     );
 }
 
-test(
-    "Administrator can open the live Executive Compass and read billing data",
-    async ({ page }) => {
+test("Live Executive Compass loads billing data", async ({ page }) => {
     const pageErrors: string[] = [];
     page.on("pageerror", (error) => pageErrors.push(error.message));
 
@@ -142,9 +140,7 @@ test(
     expect(pageErrors).toEqual([]);
 });
 
-test(
-    "billing cards keep currencies separate and overdue invoices drill down",
-    async ({ page }) => {
+test("Billing cards preserve currencies and drill down", async ({ page }) => {
     await loginAsAdministrator(page);
     await mockDashboard(page, dashboardPayload());
 
@@ -171,9 +167,7 @@ test(
     );
 });
 
-test(
-    "empty ERPNext datasets show explicit empty states",
-    async ({ page }) => {
+test("Empty ERPNext datasets render empty states", async ({ page }) => {
     await loginAsAdministrator(page);
     const empty = dashboardPayload({
         opportunities: {
@@ -212,9 +206,7 @@ test(
     await expect(page.getByText("No active opportunities found.")).toBeVisible();
 });
 
-test(
-    "dashboard renders a useful message when its API is forbidden",
-    async ({ page }) => {
+test("API permission failures render a helpful message", async ({ page }) => {
     await loginAsAdministrator(page);
     await page.route(dashboardMethod, (route) =>
         route.fulfill({
@@ -236,9 +228,7 @@ test(
 });
 
 
-test(
-    "CRM Signals Desk dashboard loads its live permission-filtered API",
-    async ({ page }) => {
+test("CRM Signals dashboard loads its live API", async ({ page }) => {
     await loginAsAdministrator(page);
 
     const responsePromise = page.waitForResponse(
@@ -276,9 +266,7 @@ test(
     ).toBeVisible();
 });
 
-test(
-    "Guest users are redirected from Desk and cannot call either dashboard API",
-    async ({ page, request }) => {
+test("Guest access is rejected", async ({ page, request }) => {
     const salesCompass = await request.get(
         "/api/method/crm_signals.api.get_sales_compass_data"
     );
