@@ -3,7 +3,7 @@
 **Last reviewed:** 2026-11-01  
 **Repository:** [MitMike/crm_signals](https://github.com/MitMike/crm_signals)  
 **Main baseline observed:** [05ad767](https://github.com/MitMike/crm_signals/commit/05ad767f6b62814cca5b7d0c1e233a2f690baa77)  
-**Active delivery branches:** docs/complete-specifications-roadmap (documentation/specification work)
+**Active delivery branches:** docs/complete-specifications-roadmap (PR #16), fix/stage1-metric-correctness (Stage 1 code hardening)
 
 This is the operational status record. IMPLEMENTATION_PLAN.md is the delivery roadmap; DECISIONS.md is the durable decision register; specs/ contains the feature contracts.
 
@@ -15,15 +15,15 @@ The mainline baseline contains CRM Signals core, the Signals Console, S.A.H.D.E.
 |---|---|---|
 | CRM Signals core | Implemented baseline | Target-site permissions, deployment controls and idempotency hardening remain |
 | Signals Console | Implemented baseline | Target-site role and workflow smoke tests remain |
-| D1 Sales Compass | Implemented baseline | Fix missing-status fallback and validate target workflow/status meanings |
-| D2 Billing Realization | Implemented baseline | Require return metadata and reconcile values against native reports |
+| D1 Sales Compass | Implemented baseline; correctness fix in review | Active count, stages and pipeline now become unavailable when status metadata is missing; target-site status validation remains |
+| D2 Billing Realization | Implemented baseline; return guard in review | Return-sensitive invoice metrics now require `is_return`; target-site financial reconciliation remains |
 | D3 Service Resolution/SLA | Specified; implementation gated | Complete target-site support/SLA discovery before selecting source adapter |
 | H Highlights | Specified; partial quote event exists | Settings, idempotency, verified proposal events and privacy approval remain |
 | E Explorer | Specified; planned | Inventory actual installed integrations and implement source adapters |
 | V Vault | Specified; planned | Approve metric registry, source visibility and retention before scheduling |
 | A Analysis | Specified; planned | Build approved metric/query registry; no model-generated SQL |
 | Dependency/security hardening | Merged | PR #11 merged as 05ad767; all four PR checks passed; post-merge Bench verification in progress |
-| Full specifications and roadmap | Documentation branch prepared | Open PR from docs/complete-specifications-roadmap, validate, then merge |
+| Full specifications and roadmap | PR #16 open | Validate Quality, Security and Bench v15/v16, then merge |
 | Main branch ruleset | Not verified by current GitHub connection | Prior 2026-10-31 check reported protection disabled; current read endpoint is denied to the connected integration |
 
 ## Repository hardening — PR #11
@@ -104,6 +104,27 @@ The previously observed state on 2026-10-31 was unprotected. The current linked 
 - [ ] Deliver E only for integrations verified as installed/configured.
 - [ ] Keep Vault scheduling disabled until metric provenance, source visibility and retention are approved.
 - [ ] Deliver Analysis only against an approved metric registry and server-owned permission-aware queries.
+
+
+## Stage 1 metric correctness — active branch
+
+Branch: \`fix/stage1-metric-correctness\` (based on the documentation/specification branch so its contracts and decisions are carried forward).
+
+Changes in review:
+- D1 Lead active count is unavailable when Lead.status metadata is missing; Lead creation count remains available.
+- D1 Opportunity active count, stage distribution and active pipeline are unavailable when Opportunity.status is missing. Total count and recent Opportunities remain available.
+- D1 active pipeline additionally requires amount and currency metadata; unlike currencies remain separate.
+- D2 invoiced, POS receipt, current outstanding and overdue Sales Invoice metrics do not run without is_return. Each remains unavailable rather than dropping the safety filter.
+- Payment Entry customer receipts continue independently of Sales Invoice return metadata.
+- The Desk page explains missing metadata rather than rendering false zero/all-active values.
+- Regression tests cover missing Lead status, missing Opportunity status and missing Sales Invoice is_return.
+
+Latest push validation is running on the current code branch:
+- Quality Checks: [41233382583](https://github.com/MitMike/crm_signals/actions/runs/41233382583) — Python 3.10/3.11/3.12/3.14 passed; lint/static job was completing.
+- Security Scanning: [41233382608](https://github.com/MitMike/crm_signals/actions/runs/41233382608) — queued at this snapshot.
+- Bench Integration and E2E: [41233382641](https://github.com/MitMike/crm_signals/actions/runs/41233382641) — v15/v16 in progress at this snapshot.
+
+Do not mark Stage 1 code complete until all three workflows pass and the pull request is merged. Target-site semantics remain separate acceptance gates.
 
 ## Update protocol
 
