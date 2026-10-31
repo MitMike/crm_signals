@@ -22,6 +22,14 @@ class SahdevSalesCompass {
         page.add_inner_button(__("All Opportunities"), () => {
             frappe.set_route("List", "Opportunity");
         });
+        page.add_inner_button(__("Sales Invoices"), () => {
+            frappe.set_route("List", "Sales Invoice");
+        });
+
+        this.body.on("click", ".sahdev-invoice-row", (event) => {
+            const name = $(event.currentTarget).attr("data-name");
+            if (name) frappe.set_route("Form", "Sales Invoice", name);
+        });
 
         this.body.on("click", ".sahdev-opportunity-row", (event) => {
             const name = $(event.currentTarget).attr("data-name");
@@ -84,6 +92,7 @@ class SahdevSalesCompass {
     render(data) {
         const leads = data.leads || {};
         const opportunities = data.opportunities || {};
+        const billing = data.billing || {};
         const pipeline = opportunities.pipeline_by_currency || [];
 
         const pipelineValue = !opportunities.available
@@ -173,6 +182,84 @@ class SahdevSalesCompass {
                     "</button>";
                 }).join("")
                 : '<div class="sahdev-empty">' + __("No opportunities found.") + "</div>";
+
+        const billingMetric = (label, available, rows, countLabel) => {
+            let content = "";
+            if (!available) {
+                content = __("Not available for your account");
+            } else if (!rows || !rows.length) {
+                content = __("No transactions in this period");
+            } else {
+                content = rows.map((item) =>
+                    '<span class="sahdev-billing-currency-line">' +
+                        '<strong>' + this.escape(this.amount(item.total_amount, item.currency)) + "</strong>" +
+                        '<small>' + this.escape(item.currency) + " · " +
+                        this.number(item.record_count) + " " + this.escape(countLabel) + "</small>" +
+                    "</span>"
+                ).join("");
+            }
+            return '<section class="sahdev-metric-card">' +
+                '<div class="sahdev-metric-label">' + this.escape(label) + "</div>" +
+                '<div class="sahdev-metric-value sahdev-metric-currency">' + content + "</div>" +
+            "</section>";
+        };
+
+        const billingCards = [
+            billingMetric(__("Invoiced · 30 days"), billing.invoiced_available,
+                billing.invoiced_by_currency, __("invoices")),
+            billingMetric(__("Customer receipts · 30 days"), billing.customer_receipts_available,
+                billing.customer_receipts_by_currency, __("Payment Entries")),
+            billingMetric(__("POS receipts · 30 days"), billing.pos_receipts_available,
+                billing.pos_receipts_by_currency, __("POS invoices")),
+            billingMetric(__("Open receivables · current"), billing.outstanding_available,
+                billing.outstanding_by_currency, __("open invoices"))
+        ].join("");
+
+        const overdue = billing.overdue_invoices || [];
+        const overdueHtml = !billing.overdue_available
+            ? '<div class="sahdev-empty">' + __("Overdue invoice details are not available.") + "</div>"
+            : overdue.length
+                ? overdue.map((item) => {
+                    const customer = item.customer_name || item.customer || item.name;
+                    const amount = this.amount(item.outstanding_amount, item.currency);
+                    return '<button type="button" class="sahdev-invoice-row" data-name="' +
+                        this.escape(item.name) + '">' +
+                        '<span class="sahdev-invoice-main">' +
+                            '<strong>' + this.escape(customer) + "</strong>" +
+                            '<span class="sahdev-opportunity-meta">' + this.escape(item.name) +
+                            " · " + __("Due") + " " + this.escape(item.due_date || "") + "</span>" +
+                        "</span>" +
+                        '<span class="sahdev-invoice-side">' +
+                            '<strong>' + this.escape(amount) + "</strong>" +
+                            '<span>' + this.escape(item.currency || "") + "</span>" +
+                        "</span>" +
+                    "</button>";
+                }).join("")
+                : '<div class="sahdev-empty">' + __("No overdue open invoices.") + "</div>";
+
+        const overdueSummary = billing.overdue_available
+            ? this.number(billing.overdue_count) + " " + __("overdue invoices")
+            : __("Overdue count unavailable");
+
+        const billingNote = __("Invoice and POS amounts use invoice currency. Payment Entry customer receipts use receiving account currency and include allocated as well as advance/unallocated receipts. POS receipts are shown separately. All transaction groups remain separate by currency.");
+
+        const billingHtml =
+            '<section class="sahdev-billing-section">' +
+                '<div class="sahdev-section-intro">' +
+                    '<div><div class="sahdev-eyebrow">' + __("S.A.H.D.E.V. · PILLAR D2") + "</div>" +
+                    '<h3>' + __("Billing realization") + "</h3>" +
+                    '<p>' + __("Invoice value, customer receipts and open receivables from submitted ERPNext records.") + "</p></div>" +
+                "</div>" +
+                '<div class="sahdev-billing-metrics">' + billingCards + "</div>" +
+                '<section class="sahdev-panel sahdev-overdue-panel">' +
+                    '<div class="sahdev-panel-heading">' +
+                        '<h4>' + __("Overdue customer invoices") + "</h4>" +
+                        '<span class="sahdev-overdue-count">' + this.escape(overdueSummary) + "</span>" +
+                    "</div>" +
+                    '<div class="sahdev-invoice-list">' + overdueHtml + "</div>" +
+                "</section>" +
+                '<div class="sahdev-billing-note">' + this.escape(billingNote) + "</div>" +
+            "</section>";
 
         this.body.html(
             '<div class="sahdev-intro">' +
