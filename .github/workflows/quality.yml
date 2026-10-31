@@ -24,7 +24,9 @@ jobs:
         run: python -m pip install -e .
       - name: Compile application
         run: python -m compileall -q crm_signals
-      - name: Check Desk dashboard JavaScript syntax
-        run: node --check crm_signals/crm_signals/page/crm_signals_dashboard/crm_signals_dashboard.js
+      - name: Check Desk page JavaScript syntax
+        run: |
+          node --check crm_signals/crm_signals/page/crm_signals_dashboard/crm_signals_dashboard.js
+          node --check crm_signals/crm_signals/page/sahdev_dashboard/sahdev_dashboard.js
       - name: Run tests
         run: python -m pytest -q
