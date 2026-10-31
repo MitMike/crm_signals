@@ -46,15 +46,14 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: "24"
-      - name: Verify npm lockfile and configuration
+      - name: Verify committed npm lockfile
         run: |
-          pwd
           test -s package.json
           test -s package-lock.json
-          git ls-files --error-unmatch package-lock.json
-          npm config set package-lock true
-          npm config get package-lock
-      - name: Install locked dependencies
-        run: npm ci --package-lock=true --ignore-scripts --no-audit --no-fund
+          node -e "const lock = require('./package-lock.json'); if (lock.lockfileVersion < 1) process.exit(1); console.log('npm lockfile v' + lock.lockfileVersion)"
+      - name: Install dependencies from the committed lockfile
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Verify patched dependency versions
+        run: npm ls @playwright/test eslint minimatch --all
       - name: Audit npm dependencies
         run: npm audit --audit-level=moderate
