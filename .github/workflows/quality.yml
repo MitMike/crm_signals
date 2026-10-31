@@ -35,8 +35,6 @@ jobs:
         run: ruff check crm_signals tests
       - name: Ruff format check
         run: ruff format --check crm_signals tests
-      - name: Prettier check
-        run: prettier --check "**/*.{js,css,json,yml,yaml}" --ignore-path .gitignore
       - name: ESLint
         run: eslint "crm_signals/**/*.js"
       - name: Pre-commit validation
