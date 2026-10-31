@@ -83,7 +83,7 @@ These are code/CI baselines. They do not prove acceptance on a particular custom
 - [ ] Require Quality Checks, Bench Integration and E2E, Security Scanning and Dependency Security Audit.
 - [ ] Disable ordinary direct pushes to main while retaining an approved emergency path.
 
-The previously observed state on 2026-10-31 was unprotected. The current linked GitHub integration cannot read the protection endpoint (403), so the present state is explicitly unverified rather than assumed unchanged. An administrator must verify/configure it in repository settings.
+The previously observed state on 2026-10-31 was unprotected. The current linked GitHub integration cannot read or write the protection endpoint (403), so the present state is explicitly unverified rather than assumed unchanged. [Issue #12](https://github.com/MitMike/crm_signals/issues/12) tracks the administrator action and exact required checks.
 
 ### Target-site and operational acceptance
 
