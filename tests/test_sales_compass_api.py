@@ -176,8 +176,8 @@ def test_sales_compass_returns_permission_filtered_lead_and_opportunity_metrics(
         {"currency": "USD", "total_amount": 1000.0, "record_count": 1},
     ]
     assert billing["outstanding_by_currency"] == [
-        {"party_account_currency": "INR", "total_amount": 75000.0, "record_count": 2},
-        {"party_account_currency": "EUR", "total_amount": 300.0, "record_count": 1},
+        {"currency": "INR", "total_amount": 75000.0, "record_count": 2},
+        {"currency": "EUR", "total_amount": 300.0, "record_count": 1},
     ]
     assert billing["customer_receipts_by_currency"] == [
         {"currency": "INR", "total_amount": 55000.0, "record_count": 2},
