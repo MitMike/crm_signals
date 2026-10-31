@@ -2,7 +2,6 @@
 from pathlib import Path
 
 from scripts.check_code_standards import (
-    ROOT,
     discover_files,
     inspect_file,
     is_test_file,
