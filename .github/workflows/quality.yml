@@ -25,8 +25,16 @@ jobs:
         run: python -m pip install --upgrade pip ruff==0.8.1 pyyaml==6.0.2
       - name: Python lint
         run: ruff check crm_signals tests
+      - name: Verify npm lockfile and configuration
+        run: |
+          pwd
+          test -s package.json
+          test -s package-lock.json
+          git ls-files --error-unmatch package-lock.json
+          npm config set package-lock true
+          npm config get package-lock
       - name: Install JavaScript tooling
-        run: npm ci --ignore-scripts --no-audit --no-fund
+        run: npm ci --package-lock=true --ignore-scripts --no-audit --no-fund
       - name: ESLint and Oxlint
         run: npm run lint:js
       - name: Check formatting of tooling and E2E tests
