@@ -54,7 +54,7 @@ def test_webhook_is_not_guest_whitelisted_or_permission_bypassed():
     tree = ast.parse(source)
     target = next(
         node for node in tree.body
-        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+        if isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef)
         and node.name == "ingest_signal"
     )
     decorators = [ast.unparse(item) for item in target.decorator_list]
