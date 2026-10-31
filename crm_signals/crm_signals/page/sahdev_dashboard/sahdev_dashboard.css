@@ -284,3 +284,11 @@
     font-size: 11px;
     line-height: 1.5;
 }
+
+@media (max-width: 1000px) {
+    .sahdev-billing-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 480px) {
+    .sahdev-billing-metrics { gap: 8px; }
+    .sahdev-invoice-row { padding: 12px; }
+}
