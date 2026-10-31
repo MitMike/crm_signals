@@ -15,11 +15,16 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
       - name: Install test runner
         run: python -m pip install --upgrade pip pytest
       - name: Validate editable package install
         run: python -m pip install -e .
       - name: Compile application
         run: python -m compileall -q crm_signals
+      - name: Check Desk dashboard JavaScript syntax
+        run: node --check crm_signals/crm_signals/page/crm_signals_dashboard/crm_signals_dashboard.js
       - name: Run tests
         run: python -m pytest -q
