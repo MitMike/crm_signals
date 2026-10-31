@@ -23,6 +23,14 @@ The supplied archive is a **CRM Signals extension**, not a complete CRM. The pla
 - Put the `Crm Signals` module and its DocType at `crm_signals/crm_signals/`.
 - Check the repository discovery contract and editable package install in CI.
 
+## Dashboard delivered
+- Added a native `CRM Signals Dashboard` Desk Page and a `CRM Signals` workspace shortcut.
+- KPI cards: total signals, unread signals, high/urgent priority signals and signals created in the last seven days.
+- Signal-type breakdown and the 12 most recent signals with Lead/Customer navigation.
+- Backend reads use `frappe.get_list` and enforce the existing DocType and list-query permissions.
+- Added dashboard API tests, page/workspace metadata checks and JavaScript syntax validation in CI.
+- Live Frappe Desk rendering and access checks remain required after installation.
+
 ## Remaining slices
 ### Slice 1 — webhook security
 - Authenticated API key/secret with a dedicated integration user.
