@@ -15,7 +15,7 @@ def load_settings(monkeypatch):
         get_value=lambda *args: "USD",
     )
     monkeypatch.setitem(sys.modules, "frappe", fake)
-    sys.modules.pop("crm_signals.settings", None)
+    monkeypatch.delitem(sys.modules, "crm_signals.settings", raising=False)
     return importlib.import_module("crm_signals.settings")
 
 
