@@ -110,7 +110,11 @@ def discover_files(arguments: list[str]) -> list[Path]:
 
 def inspect_file(path: Path, exceptions: dict[str, str]) -> tuple[list[str], list[str]]:
     """Return (warnings, errors) for one supported source file."""
-    try:\n        relative = path.resolve().relative_to(ROOT).as_posix()\n    except ValueError:\n        # Temporary paths are used by unit tests; source discovery still enforces ROOT.\n        relative = path.name
+    try:
+        relative = path.resolve().relative_to(ROOT).as_posix()
+    except ValueError:
+        # Temporary paths are used by unit tests; source discovery still enforces ROOT.
+        relative = path.name
     if relative in exceptions:
         return [], []
 
