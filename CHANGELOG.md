@@ -111,7 +111,7 @@ Production/target-site acceptance is not implied by these CI results. See [Proje
 - Configurable event switches, quotation threshold/currency, Opportunity trigger statuses, digest time/stale window and additional enabled System User recipients.
 - SHA-256 source-event identity with a unique database key; DocType validation derives the hash server-side, and optional webhook event IDs return the original signal on retry.
 - Site-timezone digest scheduling, separate permission-filtered emails per recipient, transactional per-recipient queue tracking, transaction-currency amount labels, registered enabled-System-User recipient validation and per-recipient notification failure isolation.
-- Administrator guide, settings/reliability spec, regression tests and recorded ADR-026 through ADR-033.
+- Administrator guide, settings/reliability spec, regression tests, Settings preset Playwright coverage and recorded ADR-026 through ADR-033.
 
 ### Validation
 - Changes are on `feat/settings-and-core-reliability`. CI and target-site validation are not yet complete.
