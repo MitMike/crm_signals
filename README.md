@@ -2,6 +2,11 @@
 
 A small Frappe app that adds event-driven CRM signals, Desk notifications, and a scheduled sales digest. **This is an extension to ERPNext CRM, not a complete CRM implementation.**
 
+## Frappe app packaging
+The repository root contains a `pyproject.toml` with a `[project].name` of `crm_signals`, which allows Frappe Pilot to identify the app. The default `Crm Signals` module and DocType are stored under `crm_signals/crm_signals/`.
+
+See [FRAPPE_PILOT_IMPORT.md](FRAPPE_PILOT_IMPORT.md) for the import fix and [pyproject.toml](pyproject.toml) for supported framework ranges.
+
 ## Implemented scope
 - CRM Signal DocType for signal type, priority, Lead/Customer reference, message, and read state.
 - Authenticated POST endpoint at /api/method/crm_signals.api.ingest_signal.
@@ -11,10 +16,11 @@ A small Frappe app that adds event-driven CRM signals, Desk notifications, and a
 - Scheduled digest for Leads not modified in more than three days and submitted quotations expiring today; only enabled System User Sales Managers receive it.
 
 ## Compatibility
-The source targets Frappe/ERPNext v15 and v16 APIs, but compatibility is **unverified until CI and clean-site acceptance tests pass on both version lines**. See IMPLEMENTATION_PLAN.md. The supplied archive contained no test evidence for its original v15/v16 compatibility claim.
+The source declares intended Frappe/ERPNext v15 and v16 compatibility. This is a version range declaration, not proof of runtime compatibility. Clean-site install/migrate checks on both version lines are still required.
 
 ## Installation
 ```bash
+bench get-app https://github.com/MitMike/crm_signals --branch main
 bench --site <site-name> install-app crm_signals
 bench --site <site-name> migrate
 bench build --app crm_signals
@@ -44,6 +50,7 @@ curl -X POST 'https://<site>/api/method/crm_signals.api.ingest_signal' \
 ## Developer checks
 Run:
 ```bash
+python -m pip install -e .
 python -m compileall -q crm_signals
 python -m pytest -q
 ```
