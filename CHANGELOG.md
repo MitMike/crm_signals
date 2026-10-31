@@ -17,7 +17,7 @@ This changelog records user-visible and operationally significant changes. It is
 - GitHub ruleset API returned the active ruleset and complete rule list.
 - [Issue #12](https://github.com/MitMike/crm_signals/issues/12) closed after verification.
 
-## 2026-11-01 — D1/D2 metric safety corrections (under review)
+## 2026-11-01 — D1/D2 metric safety corrections (merged in PR #17 as fed496f)
 
 ### Changed
 - D1 active Lead/Opportunity metrics, Opportunity stages and active pipeline now report unavailable when required status metadata is absent instead of counting every record as active.
@@ -27,7 +27,7 @@ This changelog records user-visible and operationally significant changes. It is
 
 ### Validation
 - Added regression tests for missing Lead status, Opportunity status and Sales Invoice is_return metadata.
-- Code and documentation are in review on branch fix/stage1-metric-correctness; this entry does not claim the change is merged.
+- PR #17 merged as [fed496f](https://github.com/MitMike/crm_signals/commit/fed496f230f5ca88af25d663bc61fe4d748f5f83). CI passed on the merged head; target-site semantics and financial reconciliation remain separate acceptance gates.
 
 ## 2026-11-01 — Dependency security and CI hardening (merged; not a product release)
 
@@ -100,3 +100,17 @@ Production/target-site acceptance is not implied by these CI results. See [Proje
 
 ### Validation
 - Changes are on branch `chore/file-standards`; CI and pull-request review are pending. This entry does not claim that the policy has been merged or deployed.
+
+
+## 2026-11-01 — Configurable Settings and core reliability (implementation branch; not yet a release)
+
+### Added
+- System Manager-only CRM Signals Settings singleton with Balanced, Sales Focused and Executive starter presets.
+- Configurable event switches, quotation threshold/currency, Opportunity trigger statuses, digest time/stale window and additional enabled System User recipients.
+- SHA-256 source-event identity with a unique database key; optional webhook event IDs return the original signal on retry.
+- Site-timezone digest scheduling, transactional queued-date marker, transaction-currency amount labels and per-recipient notification failure isolation.
+- Administrator guide, settings/reliability spec, tests and recorded ADR-026 through ADR-030.
+
+### Validation
+- Changes are on `feat/settings-and-core-reliability`. CI and target-site validation are not yet complete.
+- This entry does not claim a production rollout or a formal product release.
