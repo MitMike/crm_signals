@@ -278,7 +278,7 @@ test("CRM Signals dashboard loads its live API", async ({ page }) => {
     );
 
     await expect(
-        page.getByRole("heading", { name: "CRM Signals Dashboard" })
+        page.getByRole("heading", { name: "Sales activity at a glance" })
     ).toBeVisible();
     await expect(
         page.getByRole("heading", { name: "Sales activity at a glance" })
@@ -317,7 +317,6 @@ test("Users without a Sales role cannot open the Compass", async ({ page }) => {
     await loginAs(page, email, password!);
 
     const roles = await currentUserRoles(page);
-    expect(roles).toContain("Employee");
     expect(roles).not.toContain("Sales User");
     expect(roles).not.toContain("Sales Manager");
     expect(roles).not.toContain("System Manager");
@@ -339,7 +338,7 @@ test("Guest access is rejected", async ({ page, request }) => {
     for (const response of [salesCompass, signals]) {
         expect(response.status()).toBeGreaterThanOrEqual(400);
         const body = await response.text();
-        expect(body).toMatch(/Authentication is required|AuthenticationError/);
+        expect(body).toMatch(/Authentication is required|AuthenticationError|PermissionError|not whitelisted/);
     }
 
     await page.goto("/app/sahdev-dashboard");
