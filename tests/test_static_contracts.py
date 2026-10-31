@@ -35,7 +35,7 @@ def test_webhook_is_not_guest_whitelisted_or_permission_bypassed():
         and node.name == "ingest_signal"
     )
     decorators = [ast.unparse(item) for item in target.decorator_list]
-    assert decorators == ["frappe.whitelist()"]
+    assert decorators == ["frappe.whitelist(methods=['POST'])"]
     assert "ignore_permissions=True" not in source
     assert "frappe.db.commit()" not in source
     assert "allow_guest=True" not in source
