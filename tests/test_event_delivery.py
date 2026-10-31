@@ -132,3 +132,24 @@ def test_unique_index_race_returns_existing_signal_without_duplicate_notificatio
     assert inserted == [True]
     assert loaded[0].values["source_event_key"]
     assert notifications.sent == []
+
+
+def test_quotation_threshold_requires_matching_site_currency(monkeypatch):
+    module, _, _, _, _, _ = load_events(monkeypatch)
+    settings_module = sys.modules["crm_signals.settings"]
+    settings_module.get_company_default_currency = lambda company=None: "EUR"
+    quotation = types.SimpleNamespace(
+        company="Example Ltd",
+        currency="USD",
+        base_grand_total=1234.5,
+        grand_total=1350,
+    )
+
+    assert module._company_threshold_value(quotation, {"threshold_currency": None}) is None
+    assert (
+        module._company_threshold_value(quotation, {"threshold_currency": "USD"}) is None
+    )
+    assert (
+        module._company_threshold_value(quotation, {"threshold_currency": "EUR"})
+        == 1234.5
+    )
