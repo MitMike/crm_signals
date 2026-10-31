@@ -1,0 +1,13 @@
+{
+  "doctype": "Page",
+  "name": "sahdev-dashboard",
+  "page_name": "sahdev-dashboard",
+  "module": "Crm Signals",
+  "title": "Sahdev Dashboard",
+  "standard": "Yes",
+  "roles": [
+    {"role": "Sales User"},
+    {"role": "Sales Manager"},
+    {"role": "System Manager"}
+  ]
+}

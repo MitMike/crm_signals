@@ -155,3 +155,206 @@ def get_dashboard_data():
         ],
         "recent": recent,
     }
+
+
+# ---------------------------------------------------------------------------
+# S.A.H.D.E.V. Pillar D — Sales Compass (first executive dashboard slice)
+# ---------------------------------------------------------------------------
+
+_TERMINAL_SALES_STATUSES = {
+    "cancelled",
+    "closed",
+    "converted",
+    "do not contact",
+    "lost",
+    "obsolete",
+}
+
+
+def _sales_dashboard_value(row, fieldname, default=None):
+    if isinstance(row, dict):
+        return row.get(fieldname, default)
+    return getattr(row, fieldname, default)
+
+
+def _sales_dashboard_is_terminal(status):
+    normalized = str(status or "").strip().lower()
+    return normalized in _TERMINAL_SALES_STATUSES or normalized.startswith("lost ")
+
+
+def _sales_dashboard_doctype_meta(doctype):
+    """Return metadata only when this user can read the requested standard DocType."""
+    if not frappe.db.exists("DocType", doctype):
+        return None
+    if not frappe.has_permission(doctype, ptype="read"):
+        return None
+    return frappe.get_meta(doctype)
+
+
+def _sales_dashboard_count(rows):
+    return sum(int(_sales_dashboard_value(row, "total", 0) or 0) for row in rows)
+
+
+@frappe.whitelist()
+def get_sales_compass_data():
+    """Return the first Pillar D sales slice from permission-filtered ERPNext CRM data.
+
+    Metrics intentionally stay in transaction currency; the endpoint never adds
+    amounts from different currencies together. Billing and service SLA data are
+    not included until their own source-backed slices are implemented.
+    """
+    if frappe.session.user == "Guest":
+        frappe.throw(_("Authentication is required"), frappe.AuthenticationError)
+
+    from frappe.utils import add_days, nowdate
+
+    period_start = add_days(nowdate(), -30)
+    result = {
+        "period_days": 30,
+        "leads": {
+            "available": False,
+            "created_last_30_days": None,
+            "active": None,
+        },
+        "opportunities": {
+            "available": False,
+            "total_count": None,
+            "active_count": None,
+            "stages": [],
+            "pipeline_value_available": False,
+            "pipeline_by_currency": [],
+            "recent": [],
+        },
+    }
+
+    # Lead data is independently permission-checked. A user without Lead read
+    # access sees an unavailable metric, not a count calculated with elevated
+    # permissions.
+    try:
+        lead_meta = _sales_dashboard_doctype_meta("Lead")
+        if lead_meta:
+            lead_group_fields = [_dashboard_aggregate_field("COUNT", "name", "total")]
+            lead_group_by = None
+            if lead_meta.has_field("status"):
+                lead_group_fields.insert(0, "status")
+                lead_group_by = "status"
+
+            lead_groups = frappe.get_list(
+                "Lead",
+                fields=lead_group_fields,
+                group_by=lead_group_by,
+                order_by="status asc" if lead_group_by else None,
+                limit_page_length=100,
+            )
+            lead_active = (
+                sum(
+                    int(_sales_dashboard_value(row, "total", 0) or 0)
+                    for row in lead_groups
+                    if not _sales_dashboard_is_terminal(_sales_dashboard_value(row, "status"))
+                )
+                if lead_group_by
+                else _sales_dashboard_count(lead_groups)
+            )
+            new_lead_rows = frappe.get_list(
+                "Lead",
+                fields=[_dashboard_aggregate_field("COUNT", "name", "total")],
+                filters={"creation": [">=", period_start]},
+                limit_page_length=1,
+            )
+            result["leads"] = {
+                "available": True,
+                "created_last_30_days": _sales_dashboard_count(new_lead_rows),
+                "active": lead_active,
+            }
+    except frappe.PermissionError:
+        pass
+
+    # Opportunity aggregates are grouped by status and currency. Frappe's
+    # permission-aware get_list applies the current user's DocType and row rules.
+    try:
+        opportunity_meta = _sales_dashboard_doctype_meta("Opportunity")
+        if opportunity_meta:
+            has_status = opportunity_meta.has_field("status")
+            has_amount = opportunity_meta.has_field("opportunity_amount")
+            has_currency = opportunity_meta.has_field("currency")
+
+            group_fields = [_dashboard_aggregate_field("COUNT", "name", "total")]
+            group_by_fields = []
+            if has_status:
+                group_fields.insert(0, "status")
+                group_by_fields.append("status")
+            if has_currency:
+                group_fields.append("currency")
+                group_by_fields.append("currency")
+            if has_amount:
+                group_fields.append(_dashboard_aggregate_field("SUM", "opportunity_amount", "total_amount"))
+
+            group_rows = frappe.get_list(
+                "Opportunity",
+                fields=group_fields,
+                group_by=", ".join(group_by_fields) if group_by_fields else None,
+                order_by="status asc" if has_status else None,
+                limit_page_length=200,
+            )
+
+            total_count = _sales_dashboard_count(group_rows)
+            stages = {}
+            pipeline = {}
+            active_count = 0
+            for row in group_rows:
+                status = _sales_dashboard_value(row, "status")
+                count = int(_sales_dashboard_value(row, "total", 0) or 0)
+                if has_status and _sales_dashboard_is_terminal(status):
+                    continue
+
+                active_count += count
+                stage_name = str(status or _("Unspecified"))
+                stages[stage_name] = stages.get(stage_name, 0) + count
+
+                if has_amount:
+                    currency = str(
+                        _sales_dashboard_value(row, "currency") or _("Unspecified currency")
+                    )
+                    pipeline[currency] = pipeline.get(currency, 0.0) + float(
+                        _sales_dashboard_value(row, "total_amount", 0) or 0
+                    )
+
+            recent_fields = ["name"]
+            for optional_field in (
+                "creation",
+                "status",
+                "opportunity_from",
+                "party_name",
+                "customer_name",
+                "opportunity_amount",
+                "currency",
+                "expected_closing",
+            ):
+                if opportunity_meta.has_field(optional_field):
+                    recent_fields.append(optional_field)
+
+            recent = frappe.get_list(
+                "Opportunity",
+                fields=recent_fields,
+                order_by="creation desc",
+                limit_page_length=8,
+            )
+            result["opportunities"] = {
+                "available": True,
+                "total_count": total_count,
+                "active_count": active_count,
+                "stages": [
+                    {"status": status, "total": total}
+                    for status, total in sorted(stages.items(), key=lambda item: item[0].lower())
+                ],
+                "pipeline_value_available": has_amount,
+                "pipeline_by_currency": [
+                    {"currency": currency, "total_amount": amount}
+                    for currency, amount in sorted(pipeline.items())
+                ],
+                "recent": recent,
+            }
+    except frappe.PermissionError:
+        pass
+
+    return result

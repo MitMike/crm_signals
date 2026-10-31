@@ -10,6 +10,13 @@ See [FRAPPE_PILOT_IMPORT.md](FRAPPE_PILOT_IMPORT.md) for the import fix and [pyp
 ## CRM Signals Desk dashboard
 A native Desk dashboard is available at `/app/crm-signals-dashboard` and from the **CRM Signals** workspace. It shows total, unread, high-priority and last-7-day signal counts, a signal-type breakdown, and the 12 most recent signals. Selecting a linked item opens its Lead or Customer. Dashboard queries use permission-aware Frappe list APIs.
 
+## S.A.H.D.E.V. Sales Compass — first Pillar D slice
+A separate executive dashboard is available at `/app/sahdev-dashboard` from the **CRM Signals** workspace. This first vertical slice shows Leads created in the last 30 days, active Leads, active Opportunities, Opportunity pipeline totals grouped by transaction currency, stage counts, and recent Opportunities. It uses permission-aware `frappe.get_list` calls and marks a source unavailable when the current user cannot read it. Amounts in different currencies are never added together.
+
+This is the CRM-sales foundation of Pillar D, not the complete cross-department dashboard. Billing realization and service-ticket SLA rollups are intentionally deferred until those data sources and metric definitions are implemented. The existing `/app/crm-signals-dashboard` remains the Signals Console.
+
+The planned follow-on slices are tracked in [docs/SAHDEV_VERTICAL_SLICES.md](docs/SAHDEV_VERTICAL_SLICES.md).
+
 ## Implemented scope
 - CRM Signal DocType for signal type, priority, Lead/Customer reference, message, and read state.
 - Authenticated POST endpoint at /api/method/crm_signals.api.ingest_signal.

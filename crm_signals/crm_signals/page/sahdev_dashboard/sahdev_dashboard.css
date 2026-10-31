@@ -1,0 +1,177 @@
+.sahdev-sales-compass {
+    padding: 20px 0 36px;
+}
+.sahdev-intro {
+    margin-bottom: 20px;
+}
+.sahdev-intro h3 {
+    margin: 3px 0 5px;
+    font-size: 22px;
+    font-weight: 700;
+}
+.sahdev-intro p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 13px;
+}
+.sahdev-eyebrow {
+    color: var(--text-muted);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .09em;
+}
+.sahdev-metrics {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 16px;
+}
+.sahdev-metric-card,
+.sahdev-panel {
+    min-width: 0;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-lg);
+}
+.sahdev-metric-card {
+    padding: 17px;
+}
+.sahdev-metric-label,
+.sahdev-metric-hint {
+    color: var(--text-muted);
+    font-size: 12px;
+}
+.sahdev-metric-label {
+    font-weight: 650;
+}
+.sahdev-metric-value {
+    margin: 9px 0 4px;
+    font-size: 28px;
+    line-height: 1.2;
+    font-weight: 700;
+}
+.sahdev-metric-currency {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    font-size: 15px;
+}
+.sahdev-metric-subvalue {
+    display: block;
+}
+.sahdev-follow-on-note {
+    margin: 0 0 18px;
+    padding: 12px 15px;
+    border-left: 3px solid var(--blue-500);
+    background: var(--subtle-fg);
+    color: var(--text-color);
+    font-size: 12px;
+}
+.sahdev-panels {
+    display: grid;
+    grid-template-columns: minmax(260px, .85fr) minmax(420px, 1.4fr);
+    gap: 16px;
+    align-items: start;
+}
+.sahdev-panel {
+    overflow: hidden;
+}
+.sahdev-panel-heading {
+    padding: 15px 17px;
+    border-bottom: 1px solid var(--border-color);
+}
+.sahdev-panel-heading h4 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 650;
+}
+.sahdev-panel-content {
+    padding: 17px;
+}
+.sahdev-stage-row + .sahdev-stage-row {
+    margin-top: 17px;
+}
+.sahdev-stage-heading {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 7px;
+    font-size: 12px;
+}
+.sahdev-stage-track {
+    height: 7px;
+    overflow: hidden;
+    border-radius: 10px;
+    background: var(--subtle-fg);
+}
+.sahdev-stage-track span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--blue-500);
+}
+.sahdev-opportunity-list {
+    display: flex;
+    flex-direction: column;
+}
+.sahdev-opportunity-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    padding: 13px 16px;
+    color: var(--text-color);
+    text-align: left;
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--border-color);
+}
+.sahdev-opportunity-row:last-child {
+    border-bottom: 0;
+}
+.sahdev-opportunity-row:hover {
+    background: var(--bg-light-gray);
+}
+.sahdev-opportunity-main,
+.sahdev-opportunity-side {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    gap: 4px;
+}
+.sahdev-opportunity-main strong,
+.sahdev-opportunity-side strong {
+    font-size: 12px;
+}
+.sahdev-opportunity-meta,
+.sahdev-opportunity-side span {
+    color: var(--text-muted);
+    font-size: 11px;
+}
+.sahdev-opportunity-side {
+    flex-shrink: 0;
+    align-items: flex-end;
+}
+.sahdev-empty,
+.sahdev-loading {
+    padding: 24px 17px;
+    color: var(--text-muted);
+    font-size: 13px;
+    text-align: center;
+}
+.sahdev-footer {
+    padding-top: 12px;
+    color: var(--text-muted);
+    font-size: 11px;
+}
+@media (max-width: 1000px) {
+    .sahdev-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .sahdev-panels { grid-template-columns: 1fr; }
+}
+@media (max-width: 480px) {
+    .sahdev-metrics { gap: 8px; }
+    .sahdev-metric-card { padding: 12px; }
+    .sahdev-metric-value { font-size: 23px; }
+    .sahdev-opportunity-row { padding: 12px; }
+}

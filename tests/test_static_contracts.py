@@ -93,7 +93,7 @@ def test_dashboard_page_workspace_and_permission_aware_api():
     )
     assert workspace["title"] == "CRM Signals"
     assert json.loads(workspace["content"])[0]["type"] == "shortcut"
-    assert workspace["shortcuts"][0]["link_to"] == "crm-signals-dashboard"
+    assert workspace["shortcuts"][1]["link_to"] == "crm-signals-dashboard"
 
     api = (APP_ROOT / "api.py").read_text()
     assert "def get_dashboard_data():" in api
@@ -120,3 +120,39 @@ def test_dashboard_displays_core_metrics_and_activity_navigation():
     assert 'frappe.set_route("List", "CRM Signal")' in script
     assert 'frappe.set_route("Form", "Lead", lead)' in script
     assert 'frappe.set_route("Form", "Customer", customer)' in script
+
+
+def test_sahdev_sales_compass_page_and_workspace_shortcut():
+    page_root = APP_ROOT / "crm_signals/page/sahdev_dashboard"
+    page_json = json.loads((page_root / "sahdev_dashboard.json").read_text())
+    page_script = (page_root / "sahdev_dashboard.js").read_text()
+    assert page_json["page_name"] == "sahdev-dashboard"
+    assert page_json["module"] == "Crm Signals"
+    assert (page_root / "sahdev_dashboard.css").is_file()
+    assert 'frappe.pages["sahdev-dashboard"]' in page_script
+    assert 'method: "crm_signals.api.get_sales_compass_data"' in page_script
+    for label in ["Executive Compass", "New leads", "Active leads",
+                  "Active opportunities", "Open pipeline value",
+                  "Active pipeline by stage", "Recent opportunities"]:
+        assert label in page_script
+
+    workspace = json.loads(
+        (APP_ROOT / "crm_signals/workspace/crm_signals/crm_signals.json").read_text()
+    )
+    content = json.loads(workspace["content"])
+    assert content[0]["data"]["shortcut_name"] == "Sahdev Dashboard"
+    assert workspace["shortcuts"][0]["link_to"] == "sahdev-dashboard"
+    assert any(link.get("link_to") == "crm-signals-dashboard" for link in workspace["links"])
+
+
+def test_sales_compass_api_uses_permission_aware_reads_and_currency_grouping():
+    source = (APP_ROOT / "api.py").read_text()
+    assert "def get_sales_compass_data():" in source
+    assert '_sales_dashboard_doctype_meta("Lead")' in source
+    assert '_sales_dashboard_doctype_meta("Opportunity")' in source
+    assert 'frappe.get_list(' in source
+    assert '_dashboard_aggregate_field("SUM", "opportunity_amount", "total_amount")' in source
+    assert '_dashboard_aggregate_field("COUNT", "name", "total")' in source
+    assert 'group_by=", ".join(group_by_fields)' in source
+    assert '"ignore_permissions"' not in source
+    assert "frappe.db.sql(" not in source

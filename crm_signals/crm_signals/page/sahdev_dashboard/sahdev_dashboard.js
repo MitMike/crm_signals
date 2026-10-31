@@ -1,0 +1,203 @@
+frappe.pages["sahdev-dashboard"].on_page_load = function (wrapper) {
+    const page = frappe.ui.make_app_page({
+        parent: wrapper,
+        title: __("Sahdev Dashboard"),
+        single_column: true
+    });
+
+    const dashboard = new SahdevSalesCompass(page);
+    wrapper.sahdev_sales_compass = dashboard;
+    dashboard.refresh();
+};
+
+class SahdevSalesCompass {
+    constructor(page) {
+        this.page = page;
+        this.body = $('<div class="sahdev-sales-compass"></div>').appendTo(page.main);
+
+        page.set_primary_action(__("Refresh"), () => this.refresh(), "refresh");
+        page.add_inner_button(__("Signals Console"), () => {
+            frappe.set_route("crm-signals-dashboard");
+        });
+        page.add_inner_button(__("All Opportunities"), () => {
+            frappe.set_route("List", "Opportunity");
+        });
+
+        this.body.on("click", ".sahdev-opportunity-row", (event) => {
+            const name = $(event.currentTarget).attr("data-name");
+            if (name) frappe.set_route("Form", "Opportunity", name);
+        });
+    }
+
+    escape(value) {
+        return frappe.utils.escape_html(String(value == null ? "" : value));
+    }
+
+    number(value) {
+        return Number(value || 0).toLocaleString();
+    }
+
+    amount(value, currency) {
+        const code = String(currency || "").trim().toUpperCase();
+        if (!code) return this.number(value);
+        try {
+            return new Intl.NumberFormat(undefined, {
+                style: "currency",
+                currency: code,
+                maximumFractionDigits: 0
+            }).format(Number(value || 0));
+        } catch (error) {
+            return code + " " + this.number(value);
+        }
+    }
+
+    refresh() {
+        this.body.html(
+            '<div class="sahdev-loading">' +
+            '<span class="spinner-border spinner-border-sm"></span> ' +
+            __("Loading the sales compass…") +
+            "</div>"
+        );
+
+        frappe.call({
+            method: "crm_signals.api.get_sales_compass_data",
+            freeze: false,
+            callback: (response) => {
+                if (response.message) {
+                    this.render(response.message);
+                } else {
+                    this.showError();
+                }
+            },
+            error: () => this.showError()
+        });
+    }
+
+    showError() {
+        this.body.html(
+            '<div class="sahdev-empty">' +
+            __("Unable to load the sales compass. Check your Lead and Opportunity access, then refresh.") +
+            "</div>"
+        );
+    }
+
+    render(data) {
+        const leads = data.leads || {};
+        const opportunities = data.opportunities || {};
+        const pipeline = opportunities.pipeline_by_currency || [];
+
+        const pipelineValue = !opportunities.available
+            ? __("No access")
+            : !opportunities.pipeline_value_available
+                ? __("Amount field unavailable")
+                : pipeline.length
+                    ? pipeline.map((item) =>
+                        '<span class="sahdev-metric-subvalue">' +
+                        this.escape(item.currency) + " " + this.escape(this.amount(item.total_amount, item.currency)) +
+                        "</span>"
+                    ).join("")
+                    : __("No open pipeline");
+
+        const cards = [
+            {
+                label: __("New leads · 30 days"),
+                value: leads.available ? this.number(leads.created_last_30_days) : "—",
+                hint: leads.available ? __("New Lead records created in the last 30 days") : __("Lead access unavailable")
+            },
+            {
+                label: __("Active leads"),
+                value: leads.available ? this.number(leads.active) : "—",
+                hint: __("Excludes converted, lost, closed and do-not-contact statuses")
+            },
+            {
+                label: __("Active opportunities"),
+                value: opportunities.available ? this.number(opportunities.active_count) : "—",
+                hint: opportunities.available ? __("Excludes terminal opportunity statuses") : __("Opportunity access unavailable")
+            },
+            {
+                label: __("Open pipeline value"),
+                value: pipelineValue,
+                hint: __("Kept separate by transaction currency; no currency conversion is applied")
+            }
+        ];
+
+        const cardHtml = cards.map((card, index) =>
+            '<section class="sahdev-metric-card">' +
+                '<div class="sahdev-metric-label">' + this.escape(card.label) + "</div>" +
+                (index === 3
+                    ? '<div class="sahdev-metric-value sahdev-metric-currency">' + card.value + "</div>"
+                    : '<div class="sahdev-metric-value">' + this.escape(card.value) + "</div>") +
+                '<div class="sahdev-metric-hint">' + this.escape(card.hint) + "</div>" +
+            "</section>"
+        ).join("");
+
+        const stages = opportunities.stages || [];
+        const maxStage = Math.max(1, ...stages.map((item) => Number(item.total || 0)));
+        const stageHtml = !opportunities.available
+            ? '<div class="sahdev-empty">' + __("Opportunity data is not available to your user.") + "</div>"
+            : stages.length
+                ? stages.map((item) => {
+                    const total = Number(item.total || 0);
+                    const width = Math.max(3, Math.min(100, Math.round(total / maxStage * 100)));
+                    return '<div class="sahdev-stage-row">' +
+                        '<div class="sahdev-stage-heading"><span>' + this.escape(item.status || __("Unspecified")) +
+                        '</span><strong>' + this.number(total) + "</strong></div>" +
+                        '<div class="sahdev-stage-track"><span style="width:' + width + '%"></span></div>' +
+                    "</div>";
+                }).join("")
+                : '<div class="sahdev-empty">' + __("No active opportunities found.") + "</div>";
+
+        const recent = opportunities.recent || [];
+        const recentHtml = !opportunities.available
+            ? '<div class="sahdev-empty">' + __("Opportunity data is not available to your user.") + "</div>"
+            : recent.length
+                ? recent.map((item) => {
+                    const title = item.party_name || item.customer_name || item.name;
+                    const source = item.opportunity_from && item.party_name
+                        ? item.opportunity_from + ": " + item.party_name
+                        : item.name;
+                    const amount = item.opportunity_amount != null
+                        ? this.amount(item.opportunity_amount, item.currency)
+                        : "";
+                    return '<button type="button" class="sahdev-opportunity-row" data-name="' +
+                        this.escape(item.name) + '">' +
+                        '<span class="sahdev-opportunity-main">' +
+                            '<strong>' + this.escape(title) + "</strong>" +
+                            '<span class="sahdev-opportunity-meta">' + this.escape(source) + " · " +
+                            this.escape(item.status || __("Unspecified status")) + "</span>" +
+                        "</span>" +
+                        '<span class="sahdev-opportunity-side">' +
+                            (amount ? '<strong>' + this.escape(amount) + "</strong>" : "") +
+                            '<span>' + this.escape(item.expected_closing || item.creation || "") + "</span>" +
+                        "</span>" +
+                    "</button>";
+                }).join("")
+                : '<div class="sahdev-empty">' + __("No opportunities found.") + "</div>";
+
+        this.body.html(
+            '<div class="sahdev-intro">' +
+                '<div><div class="sahdev-eyebrow">' + __("S.A.H.D.E.V. · PILLAR D") + "</div>" +
+                '<h3>' + __("Executive Compass") + "</h3>" +
+                '<p>' + __("A focused view of sales movement from the Lead and Opportunity records you can access.") + "</p></div>" +
+            "</div>" +
+            '<div class="sahdev-metrics">' + cardHtml + "</div>" +
+            '<div class="sahdev-follow-on-note">' +
+                '<strong>' + __("Scope of this slice") + "</strong> " +
+                __("This release covers CRM sales data. Billing realization and service-ticket SLA rollups will be added as separate, connected vertical slices.") +
+            "</div>" +
+            '<div class="sahdev-panels">' +
+                '<section class="sahdev-panel">' +
+                    '<div class="sahdev-panel-heading"><h4>' + __("Active pipeline by stage") + "</h4></div>" +
+                    '<div class="sahdev-panel-content">' + stageHtml + "</div>" +
+                "</section>" +
+                '<section class="sahdev-panel">' +
+                    '<div class="sahdev-panel-heading"><h4>' + __("Recent opportunities") + "</h4></div>" +
+                    '<div class="sahdev-opportunity-list">' + recentHtml + "</div>" +
+                "</section>" +
+            "</div>" +
+            '<div class="sahdev-footer">' +
+                __("Pipeline totals are grouped by transaction currency. Terminal statuses are excluded from active counts and pipeline value.") +
+            "</div>"
+        );
+    }
+}
