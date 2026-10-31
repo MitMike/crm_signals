@@ -410,6 +410,7 @@ def _get_sales_billing_data(period_start, today):
     result = {
         "available": False,
         "period_days": 30,
+        "sales_invoice_unavailable_reason": None,
         "invoiced_available": False,
         "invoiced_by_currency": [],
         "outstanding_available": False,
@@ -426,6 +427,9 @@ def _get_sales_billing_data(period_start, today):
     try:
         invoice_meta = _sales_dashboard_doctype_meta("Sales Invoice")
         if not invoice_meta:
+            result["sales_invoice_unavailable_reason"] = _(
+                "Sales Invoice source is unavailable for this user"
+            )
             return result
 
         result["available"] = True
@@ -438,6 +442,10 @@ def _get_sales_billing_data(period_start, today):
         base_filters = {"docstatus": 1}
         if has_is_return:
             base_filters["is_return"] = 0
+        else:
+            result["sales_invoice_unavailable_reason"] = _(
+                "Sales Invoice is_return metadata is unavailable; return-sensitive measures cannot exclude returns"
+            )
 
         # Every Sales Invoice measure in this section claims to exclude returns.
         # If metadata cannot establish return identity, do not run the aggregate
