@@ -38,8 +38,8 @@ The following capabilities are present in the repository. "Implemented" means th
 | Recipient-scoped realtime notifications | Implemented | Validate target-site assignments/permissions and failure isolation |
 | Daily CRM digest | Implemented | Confirm semantics, currency, timezone, recipients and retry safety |
 | CRM Signals Desk Console | Implemented | Target-site permission and usability smoke test |
-| D1 Sales Compass | Implemented | Harden missing-status handling and verify target-site status semantics |
-| D2 Billing Realization | Implemented | Reconcile totals and currency basis against target-site reports |
+| D1 Sales Compass | Implemented | Missing-status handling hardened in PR #17; verify target-site status semantics |
+| D2 Billing Realization | Implemented | Return-sensitive aggregations now require is_return (PR #17); reconcile totals/currency against target-site reports |
 | D3 Service Resolution/SLA | Not implemented | Discover and map the installed support/SLA source first |
 | H Highlights | Partially present for quote events | Settings, source-event idempotency, VIP link tracking/privacy review |
 | E Explorer | Not implemented | Verify installed activity integrations and source adapters |
@@ -80,7 +80,9 @@ Exit criteria:
 
 ### Stage 1 — Release readiness and CRM core hardening
 
-**Priority:** P0  
+**Priority:** P0
+
+**Completed code slice:** PR #17 merged as [fed496f](https://github.com/MitMike/crm_signals/commit/fed496f230f5ca88af25d663bc61fe4d748f5f83) adds explicit unavailable behavior when D1 status metadata is absent and requires Sales Invoice is_return for D2 return-sensitive aggregations. Required CI passed on the final PR head (Quality, Semgrep, Bench v15 and Bench v16 + authenticated Playwright). The rest of Stage 1 remains open.  
 **Dependencies:** Stage 0.
 
 Work:
@@ -88,8 +90,8 @@ Work:
 - Configure a dedicated integration user, rotateable API credentials, HTTPS, gateway rate limiting and secret storage.
 - Add source DocType, source document name and source event ID to CRM Signals; enforce idempotent inserts for identifiable events.
 - Add a validated CRM Signals Settings singleton for the quotation threshold, Opportunity trigger statuses, Lead stale window, digest time and escalation recipients.
-- [x] Fix D1 active-count handling when `status` metadata is missing: active Leads/Opportunities, stage distribution and active pipeline are unavailable; independent counts/recent records remain available. Regression tests are included in `fix/stage1-metric-correctness`; CI/merge is pending.
-- [x] Require `is_return` metadata for every return-sensitive D2 Sales Invoice measure. Invoiced, POS, outstanding and overdue measures are unavailable when the field is missing; no Sales Invoice aggregate runs without the return filter. Payment Entry receipts remain independent. Regression tests are included in `fix/stage1-metric-correctness`; CI/merge is pending.
+- [x] Fix D1 active-count handling when `status` metadata is missing: active Leads/Opportunities, stage distribution and active pipeline are unavailable; independent counts/recent records remain available. Regression tests passed; merged in PR #17.
+- [x] Require `is_return` metadata for every return-sensitive D2 Sales Invoice measure. Invoiced, POS, outstanding and overdue measures are unavailable when the field is missing; no Sales Invoice aggregate runs without the return filter. Payment Entry receipts remain independent. Regression tests passed; merged in PR #17.
 - Verify that CRM Signal list, direct-document, API, report and export permissions are equivalent.
 - Verify that the current shared is_read flag is acceptable as a team acknowledgement.
 - Confirm daily digest currency formatting, site timezone, recipients and duplicate-run behavior.
