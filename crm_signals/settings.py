@@ -3,6 +3,7 @@
 Settings are a singleton so the first release has one coherent site policy.
 Per-company overrides can be added later without changing signal identity.
 """
+
 import datetime
 import re
 
