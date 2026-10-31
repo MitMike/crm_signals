@@ -76,4 +76,17 @@ The supplied archive is a **CRM Signals extension**, not a complete CRM. The pla
 - Clean install/migrate/uninstall succeeds on Frappe/ERPNext v15 and v16.
 
 ## Remaining verification
-No live Frappe bench/site was available in this session. The declared ranges express intended compatibility only. End-to-end v15/v16 testing is still required.
+
+GitHub Actions validation passed on 2026-10-31 for main commit `b55cce6469bbe7c1603c49175651eafa7259d879`:
+- Quality Checks: passed.
+- Bench Integration and E2E: passed for Frappe/ERPNext v15 on Python 3.11 and v16 on Python 3.14; the v16 lane includes the authenticated Playwright dashboard E2E test.
+- Security Scanning: passed.
+
+These are automated CI results, not proof of acceptance on a particular customer or production site. Still required:
+- Run the Frappe Pilot import flow and verify installation on the intended target site.
+- Validate target-site roles, query permissions, DocType customizations and dashboard access.
+- Reconcile billing totals against the site's Sales Invoice and Payment Entry reports.
+- Verify operational configuration, credentials, rate limits, runbook and rollback.
+- Complete the full release checks, including the target deployment's upgrade/uninstall expectations.
+
+See [docs/PROGRESS.md](docs/PROGRESS.md) for the current operational checklist and [docs/DECISIONS.md](docs/DECISIONS.md) for durable project decisions.
