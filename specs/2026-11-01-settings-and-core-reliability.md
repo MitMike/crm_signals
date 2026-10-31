@@ -33,7 +33,7 @@ Quotation submit identity includes the source document and its submission modifi
 
 The scheduled checker runs every minute. It compares the configured time with the timezone in System Settings, and uses a site-local calendar date as its idempotency boundary. After `frappe.sendmail` successfully queues a digest, the same Settings transaction records that date. If queuing raises an exception, the date marker is not updated and the scheduler can retry.
 
-Recipients are enabled System Users holding the Sales Manager role plus explicitly configured additional System User email addresses. The task does not send to Guest, disabled users or arbitrary external recipients.
+Recipients are enabled System Users holding the Sales Manager role plus explicitly configured additional System User email addresses. Settings validation rejects unknown, disabled or Website User addresses; the task still filters recipients to enabled System Users and never sends to Guest or arbitrary external recipients.
 
 ## Failure behavior
 
