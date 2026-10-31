@@ -188,7 +188,9 @@ test("Billing cards preserve currencies and drill down", async ({ page }) => {
     await expect(overdueInvoice).toContainText("ACC-SINV-E2E-0001");
 
     await overdueInvoice.click();
-    await expect(page).toHaveURL(/\/desk\/(?:accounts\/)?sales-invoice\/ACC-SINV-E2E-0001/);
+    await expect(page).toHaveURL(
+        /\/desk\/(?:accounts\/)?sales-invoice\/ACC-SINV-E2E-0001/
+    );
 });
 
 test("Empty ERPNext datasets render empty states", async ({ page }) => {
@@ -338,7 +340,9 @@ test("Guest access is rejected", async ({ page, request }) => {
     for (const response of [salesCompass, signals]) {
         expect(response.status()).toBeGreaterThanOrEqual(400);
         const body = await response.text();
-        expect(body).toMatch(/Authentication is required|AuthenticationError|PermissionError|not whitelisted/);
+        expect(body).toMatch(
+            /Authentication is required|AuthenticationError|PermissionError|not whitelisted/
+        );
     }
 
     await page.goto("/app/sahdev-dashboard");
