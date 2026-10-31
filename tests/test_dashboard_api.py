@@ -32,7 +32,7 @@ def load_api(monkeypatch, user="sales.user@example.com", allowed=True, version="
     frappe.throw = throw
     queries = []
 
-    aggregate_count = {"COUNT": "name", "as": "total"} if int(version.split(".")[0]) >= 16 else "count(name) as total"
+    aggregate_count = {"COUNT": "*", "as": "total"} if int(version.split(".")[0]) >= 16 else "count(name) as total"
 
     def get_list(doctype, fields=None, filters=None, **kwargs):
         queries.append({"doctype": doctype, "fields": fields, "filters": filters, **kwargs})
@@ -123,10 +123,10 @@ def test_dashboard_uses_structured_aggregates_on_frappe_v16(monkeypatch):
 
     assert result["stats"]["total"] == 14
     assert any(
-        query["fields"] == [{"COUNT": "name", "as": "total"}]
+        query["fields"] == [{"COUNT": "*", "as": "total"}]
         for query in queries
     )
     assert any(
-        query["fields"] == ["signal_type", {"COUNT": "name", "as": "total"}]
+        query["fields"] == ["signal_type", {"COUNT": "*", "as": "total"}]
         for query in queries
     )
