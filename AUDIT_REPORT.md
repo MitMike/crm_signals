@@ -4,7 +4,7 @@
 **Audit type:** Static source review  
 **Audit date:** 2026-10-31  
 **Target:** Frappe / ERPNext v15 and v16  
-**Overall assessment:** Baseline not production-ready. Initial remediation is included; live-site acceptance remains outstanding.
+**Overall assessment:** Baseline not production-ready. Initial remediation and repeatable unit checks are now included; live-site acceptance remains outstanding.
 
 ## Executive assessment
 The package is a CRM Signals extension, not a complete CRM. It implements a signal DocType, inbound endpoint, two document hooks, browser toast notifications, and a daily digest. It does not implement lead capture/qualification workflows, full contact lifecycle, sales pipeline management, campaigns, omnichannel communication, customer service, or full CRM analytics.
@@ -35,11 +35,11 @@ The package is a CRM Signals extension, not a complete CRM. It implements a sign
 **Remediation:** Derive single party from `opportunity_from` and `party_name`.  
 **Remaining:** `Replied` remains hard-coded until business status rules and target schema are confirmed.
 
-### Medium — Realtime recipient policy is unresolved
+### Medium — Realtime recipient policy was unsafe
 **Baseline:** API accepted arbitrary `assigned_user`; otherwise event was published without user targeting. Hooks also published without a recipient rule.  
 **Impact:** Over-broad delivery or disclosure.  
-**Remediation:** Webhook no longer accepts recipient; event payload minimized and published after commit.  
-**Remaining:** Implement and test explicit recipient resolution. Verify realtime delivery scope on v15/v16.
+**Remediation:** Added shared recipient resolution from related Lead/Customer owner and active ToDo assignments. Notifications are published into per-user rooms after commit, with a minimal payload and no site-wide fallback.  
+**Remaining:** Verify that those users can read the CRM Signal record under deployed permission rules.
 
 ### Medium — Digest HTML was not escaped
 **Baseline:** Party names and quotation IDs interpolated into HTML directly.  
@@ -49,25 +49,25 @@ The package is a CRM Signals extension, not a complete CRM. It implements a sign
 ### Medium — No tests or compatibility evidence
 **Baseline:** No tests, CI, or pinned framework dependencies; README claimed tested v15/v16.  
 **Impact:** Compatibility cannot be established.  
-**Remediation:** Documentation now treats compatibility as unverified and provides acceptance matrix. Automated CI/live tests remain open.
+**Remediation:** Added static contract tests, notification routing unit tests, and a Python-version GitHub Actions workflow. These do not replace database-backed Frappe v15/v16 integration tests. The README now treats compatibility as unverified.
 
 ## Component assessment
 
 | Component | Baseline | Current state |
 |---|---|---|
-| Signal DocType | Basic fields/roles, no server validation | Model/permission hardening still open |
-| Inbound API | Critical guest write and permission bypass | Auth-only, validation added, live permissions pending |
+| Signal DocType | Basic fields/roles, no server validation | Basic server validation added; access model hardening remains |
+| Inbound API | Critical guest write and permission bypass | Auth-only, validation added, normal create permission enforced |
 | Quotation hook | Unsafe party mapping | Mapping corrected, live fixture pending |
 | Opportunity hook | Unverified party/status fields | Mapping improved; status decision pending |
-| Desk notification | Toast and list refresh | Payload reduced; recipient policy pending |
+| Desk notification | Toast and list refresh | Minimal payload and per-user recipient targeting added; record permission test pending |
 | Daily digest | Guessed status filter; unsafe HTML | HTML escaped; stale-modified proxy used; live semantics pending |
-| Packaging/docs | Unsupported compatibility claim | Claim removed; plan and security notes added |
+| Packaging/docs | Unsupported compatibility claim | Claim removed; roadmap and security notes added |
 
 ## Verification performed
 - Inspected all 14 files in the supplied ZIP.
 - Parsed DocType JSON successfully.
 - Parsed Python source with `ast` and ran `compileall`.
-- Reviewed API, hooks, tasks, DocType metadata, and Desk scripts.
+- Ran 7 local tests covering DocType metadata, syntax, webhook security contracts, and per-user recipient routing.
 
 ## Not verified
 - No Frappe/ERPNext bench or site was available.
@@ -75,4 +75,4 @@ The package is a CRM Signals extension, not a complete CRM. It implements a sign
 - No clean install/migration/uninstall test was performed on v15 or v16.
 
 ## Recommendation
-Do not deploy the baseline. Before production, complete P0/P1 items in `IMPLEMENTATION_PLAN.md`, especially recipient authorization and target-site schema verification. Treat all version compatibility as unverified until the acceptance matrix passes on clean, pinned v15 and v16 environments.
+Do not deploy until signal record read permissions are verified, the remaining P0/P1 slices are completed, and the acceptance matrix passes on clean, pinned v15 and v16 environments.
