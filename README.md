@@ -35,7 +35,7 @@ Billing semantics are explicit: Payment Entry receipts are grouped by receiving-
 - Stable source-event identity for hook events and external webhook retries that include a source event ID.
 - Realtime notifications routed to related document owners and active ToDo assignees; no site-wide fallback.
 - Record-level read/write permission hooks for linked-party owners and assignees.
-- Scheduled digest for Leads not modified in more than three calendar days and submitted quotations expiring today; enabled System User Sales Managers receive it.
+- Scheduled digest for Leads not modified beyond the configured window and submitted quotations expiring today; enabled System User Sales Managers receive it.
 
 CRM Signals Settings provides starter presets and administrator-editable business rules. The threshold is interpreted in the default Company's currency; this first release uses one site-wide threshold currency. The digest's Lead condition means "not modified"; it does not prove there was no call, email or meeting.
 
@@ -57,13 +57,13 @@ The source declares intended Frappe/ERPNext v15 and v16 compatibility. GitHub Ac
 
 ## Installation
 
-\`\`\`bash
+```bash
 bench get-app https://github.com/MitMike/crm_signals --branch main
 bench --site <site-name> install-app crm_signals
 bench --site <site-name> migrate
 bench build --app crm_signals
 bench restart
-\`\`\`
+```
 
 ## Webhook authentication
 
@@ -71,7 +71,7 @@ Use a dedicated integration user and Frappe API key/secret over HTTPS. The endpo
 
 Example:
 
-\`\`\`bash
+```bash
 curl -X POST 'https://<site>/api/method/crm_signals.api.ingest_signal'
   -H 'Authorization: token <api_key>:<api_secret>' \
   -H 'Content-Type: application/x-www-form-urlencoded' \
@@ -79,7 +79,7 @@ curl -X POST 'https://<site>/api/method/crm_signals.api.ingest_signal'
   --data-urlencode 'message=Visited product pricing page' \
   --data-urlencode 'lead=LEAD-00001' \
   --data-urlencode 'source_event_id=web-visit-evt-123'
-\`\`\`
+```
 
 ## Configuration still required
 
@@ -96,7 +96,7 @@ curl -X POST 'https://<site>/api/method/crm_signals.api.ingest_signal'
 
 See [docs/QUALITY_GATES.md](docs/QUALITY_GATES.md) for Ruff, ESLint, Oxlint, Prettier, Python tests, Bench compatibility and Playwright E2E. JavaScript dependencies are pinned in package.json and package-lock.json; use npm ci for clean installs. [Dependency Security Audit](docs/SECURITY_SCANNING.md) runs Python pip-audit and npm audit at moderate severity or higher. New behavior starts with a spec and must map acceptance criteria to unit, Bench integration and browser tests.
 
-\`\`\`bash
+```bash
 python -m pip install -e .
 python -m compileall -q crm_signals
 python -m pytest -q
@@ -104,4 +104,4 @@ npm ci
 npm run lint:js
 npm run format:check
 npm audit --audit-level=moderate
-\`\`\`
+```
