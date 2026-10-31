@@ -97,7 +97,30 @@ jobs:
           bench --site test.local set-config allow_tests true
           bench --site test.local set-config host_name "http://test.local:8000"
           bench --site test.local migrate
-          bench build
+
+      - name: Generate ephemeral E2E user passwords
+        if: ${{ matrix.run_e2e }}
+        id: e2e_credentials
+        shell: bash
+        run: |
+          sales_password="$(python -c 'import secrets; print(secrets.token_urlsafe(24))')"
+          employee_password="$(python -c 'import secrets; print(secrets.token_urlsafe(24))')"
+          echo "::add-mask::$sales_password"
+          echo "::add-mask::$employee_password"
+          echo "sales_password=$sales_password" >> "$GITHUB_OUTPUT"
+          echo "employee_password=$employee_password" >> "$GITHUB_OUTPUT"
+
+      - name: Complete ERPNext setup and create E2E users
+        if: ${{ matrix.run_e2e }}
+        working-directory: /home/runner/frappe-bench
+        env:
+          E2E_SALES_PASSWORD: ${{ steps.e2e_credentials.outputs.sales_password }}
+          E2E_EMPLOYEE_PASSWORD: ${{ steps.e2e_credentials.outputs.employee_password }}
+        run: bench --site test.local execute crm_signals.ci.prepare_e2e_site
+
+      - name: Build application assets
+        working-directory: /home/runner/frappe-bench
+        run: bench build
 
       - name: Run Python tests in the Bench environment
         working-directory: /home/runner/frappe-bench/apps/crm_signals
@@ -131,6 +154,10 @@ jobs:
           BASE_URL: http://test.local:8000
           FRAPPE_USER: Administrator
           FRAPPE_PASSWORD: admin
+          E2E_SALES_USER: e2e-sales-user@example.com
+          E2E_SALES_PASSWORD: ${{ steps.e2e_credentials.outputs.sales_password }}
+          E2E_EMPLOYEE_USER: e2e-employee@example.com
+          E2E_EMPLOYEE_PASSWORD: ${{ steps.e2e_credentials.outputs.employee_password }}
           CI: "true"
         run: npm run test:e2e
 
