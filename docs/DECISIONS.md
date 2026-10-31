@@ -210,3 +210,13 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Rationale:** Green CI must be enforced rather than advisory, but a required second-person approval would make a solo maintainer unable to deliver urgent fixes.
 - **Consequences:** GitHub administrator must configure and verify the ruleset. [Issue #12](https://github.com/MitMike/crm_signals/issues/12) tracks this external repository-settings task. Record the resulting ruleset in PROGRESS.md after verification.
 - **Sources:** [Quality gates](QUALITY_GATES.md), [Progress](PROGRESS.md), [Issue #12](https://github.com/MitMike/crm_signals/issues/12).
+
+
+## ADR-024 — Status-dependent metrics are unavailable without status metadata
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-01
+- **Decision:** Lead and Opportunity active counts require a readable status field and the accepted terminal-status policy. When status is missing, keep status-independent metrics (such as total/created counts and recent records) available, but set active counts to unavailable. Opportunity stage distribution also requires status. Active pipeline additionally requires both amount and currency fields so it can exclude terminal Opportunities and keep currencies separate.
+- **Rationale:** Treating all rows as active when status is absent is a false business assertion, not a safe fallback.
+- **Consequences:** API results expose explicit availability flags; the UI shows an unavailable state instead of 0 or a misleading all-active count. Regression tests cover metadata absence.
+- **Sources:** [D1 Sales Compass specification](../specs/2026-11-01-pillar-d1-sales-compass.md), [Implementation plan](../IMPLEMENTATION_PLAN.md).
