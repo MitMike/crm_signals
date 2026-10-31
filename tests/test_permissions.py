@@ -26,6 +26,28 @@ def load_permissions(monkeypatch, roles=None, parent_access=True, assigned=False
     fake.db = FakeDB(owners, assigned)
     fake.get_roles = lambda user: roles or ["Sales User"]
     fake.has_permission = lambda *args, **kwargs: parent_access
+    fake.PermissionError = type("PermissionError", (Exception,), {})
+
+    def get_list(doctype, filters=None, pluck=None, **kwargs):
+        if doctype == "Lead" and filters == {"owner": "rep@example.com"}:
+            return ["LEAD-OWNED"]
+        if doctype == "Customer" and filters == {"owner": "rep@example.com"}:
+            return ["CUST-OWNED"]
+        if doctype == "Lead" and filters and filters.get("name"):
+            return ["LEAD-ASSIGNED"]
+        if doctype == "Customer" and filters and filters.get("name"):
+            return ["CUST-ASSIGNED"]
+        return []
+
+    def get_all(doctype, filters=None, pluck=None):
+        if doctype == "ToDo" and filters and filters.get("reference_type") == "Lead":
+            return ["LEAD-ASSIGNED"]
+        if doctype == "ToDo" and filters and filters.get("reference_type") == "Customer":
+            return ["CUST-ASSIGNED"]
+        return []
+
+    fake.get_list = get_list
+    fake.get_all = get_all
     monkeypatch.setitem(sys.modules, "frappe", fake)
     sys.modules.pop("crm_signals.permissions", None)
     return importlib.import_module("crm_signals.permissions")
@@ -35,7 +57,6 @@ class Signal:
     owner = "integration@example.com"
     lead = "LEAD-0001"
     customer = None
-    recipient_tokens = ""
 
 
 def test_manager_permission_falls_back_to_doc_type_permissions(monkeypatch):
@@ -86,30 +107,13 @@ def test_unlinked_signal_is_not_visible_to_unrelated_sales_user(monkeypatch):
     assert permissions.crm_signal_has_permission(signal, "rep@example.com", "read") is False
 
 
-def test_sales_user_list_query_limits_to_owner_assignment_or_own_signal(monkeypatch):
+def test_sales_user_list_query_uses_permission_aware_flat_in_lists(monkeypatch):
     permissions = load_permissions(monkeypatch)
     condition = permissions.crm_signal_query("rep@example.com")
-    assert "recipient_tokens" in condition
-    assert "SELECT" not in condition.upper()
-    assert "UNION" not in condition.upper()
-    assert "rep@example.com" in condition
-
-
-
-def test_persisted_recipient_token_grants_related_read_access(monkeypatch):
-    permissions = load_permissions(
-        monkeypatch, parent_access=True,
-        owners={("Lead", "LEAD-0001"): "lead-owner@example.com"},
-    )
-    signal = Signal()
-    signal.recipient_tokens = "|" + permissions._recipient_token("rep@example.com") + "|"
-    assert permissions.crm_signal_has_permission(signal, "rep@example.com", "read") is True
-
-
-def test_recipient_list_query_uses_hashed_token_without_subqueries(monkeypatch):
-    permissions = load_permissions(monkeypatch)
-    condition = permissions.crm_signal_query("rep@example.com")
-    assert permissions._recipient_token("rep@example.com") in condition
-    assert "recipient_tokens LIKE" in condition
+    assert "tabLead" in condition
+    assert "tabCustomer" in condition
+    assert "LEAD-OWNED" in condition
+    assert "LEAD-ASSIGNED" in condition
+    assert "CUST-OWNED" in condition
     assert "SELECT" not in condition.upper()
     assert "UNION" not in condition.upper()
