@@ -200,7 +200,7 @@ class SahdevSalesCompass {
         const billingMetric = (label, available, rows, countLabel, unavailableMessage) => {
             let content = "";
             if (!available) {
-                content = unavailableMessage || __("Not available for your account");
+                content = this.escape(unavailableMessage || __("Not available for your account"));
             } else if (!rows || !rows.length) {
                 content = __("No transactions in this period");
             } else {
