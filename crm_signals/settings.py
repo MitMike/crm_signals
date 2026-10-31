@@ -149,39 +149,59 @@ def _parse_time(value) -> datetime.time:
 def validate_settings_document(doc) -> None:
     """Validate admin-entered settings and populate the Company currency."""
     if doc.quotation_threshold is None or float(doc.quotation_threshold) < 0:
-        frappe.throw(frappe._("Quotation threshold must be zero or greater."), frappe.ValidationError)
+        frappe.throw(frappe.frappe._("Quotation threshold must be zero or greater."), frappe.ValidationError)
 
     company_currency = get_company_default_currency()
     if company_currency:
         doc.threshold_currency = company_currency
     if doc.enable_quotation_signals and not doc.threshold_currency:
         frappe.throw(
-            _("Set a default Company currency before enabling quotation threshold alerts."),
+            frappe._("Set a default Company currency before enabling quotation threshold alerts."),
             frappe.ValidationError,
         )
 
     statuses = parse_statuses(doc.opportunity_trigger_statuses)
     if doc.enable_opportunity_signals and not statuses:
         frappe.throw(
-            _("Enter at least one Opportunity status when Opportunity signals are enabled."),
+            frappe._("Enter at least one Opportunity status when Opportunity signals are enabled."),
             frappe.ValidationError,
         )
     if len(statuses) > 20:
-        frappe.throw(_("Configure no more than 20 Opportunity statuses."), frappe.ValidationError)
+        frappe.throw(frappe._("Configure no more than 20 Opportunity statuses."), frappe.ValidationError)
 
     stale_days = int(doc.lead_stale_days or 0)
     if not 1 <= stale_days <= 365:
-        frappe.throw(_("Lead stale window must be between 1 and 365 days."), frappe.ValidationError)
+        frappe.throw(frappe._("Lead stale window must be between 1 and 365 days."), frappe.ValidationError)
 
     try:
         _parse_time(doc.digest_time)
     except (TypeError, ValueError):
-        frappe.throw(_("Digest time must be a valid site-local time."), frappe.ValidationError)
+        frappe.throw(frappe._("Digest time must be a valid site-local time."), frappe.ValidationError)
 
     for recipient in parse_recipients(doc.digest_extra_recipients):
-        if not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", recipient):
+        if not re.fullmatch(r"[^@\\s]+@[^@\\s]+\\.[^@\\s]+", recipient):
             frappe.throw(
-                _("Additional digest recipient must be a valid System User email address: {0}").format(
+                frappe._("Additional digest recipient must be a valid System User email address: {0}").format(
+                    recipient
+                ),
+                frappe.ValidationError,
+            )
+        user = frappe.db.get_value(
+            "User",
+            {"email": recipient},
+            ["enabled", "user_type"],
+            as_dict=True,
+        )
+        if not user:
+            frappe.throw(
+                frappe._("Additional digest recipient is not a registered User: {0}").format(
+                    recipient
+                ),
+                frappe.ValidationError,
+            )
+        if not user.get("enabled") or user.get("user_type") != "System User":
+            frappe.throw(
+                frappe._("Additional digest recipient must be an enabled System User: {0}").format(
                     recipient
                 ),
                 frappe.ValidationError,
