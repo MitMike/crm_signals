@@ -198,7 +198,7 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Recorded:** 2026-11-01
 - **Decision:** Sales Invoice measures that claim to exclude returns must require the Sales Invoice is_return field. If it is absent or cannot be queried, affected invoiced, POS receipt, outstanding and overdue measures are unavailable. Never silently omit the exclusion filter and proceed.
 - **Rationale:** Counting return documents as invoices/receipts or balances would materially distort the metric and conflict with its published definition.
-- **Consequences:** D2 acceptance includes metadata-absence tests for each return-sensitive metric. The current conditional filter implementation must be corrected before Stage 1 is complete.
+- **Consequences:** D2 metadata-absence regression tests now pass. PR #17 merged the correction: affected measures are unavailable without is_return and no unsafe Sales Invoice aggregation runs.
 - **Sources:** [D2 Billing Realization spec](../specs/2026-10-31-pillar-d2-billing-realization.md), [Implementation plan](../IMPLEMENTATION_PLAN.md).
 
 
@@ -216,5 +216,5 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Recorded:** 2026-11-01
 - **Decision:** Lead and Opportunity active counts require a readable status field and the accepted terminal-status policy. When status is missing, keep status-independent metrics (such as total/created counts and recent records) available, but set active counts to unavailable. Opportunity stage distribution also requires status. Active pipeline additionally requires both amount and currency fields so it can exclude terminal Opportunities and keep currencies separate.
 - **Rationale:** Treating all rows as active when status is absent is a false business assertion, not a safe fallback.
-- **Consequences:** API results expose explicit availability flags; the UI shows an unavailable state instead of 0 or a misleading all-active count. Regression tests cover metadata absence.
+- **Consequences:** API results expose explicit availability flags; the UI shows an unavailable state instead of 0 or a misleading all-active count. Missing Lead/Opportunity status regression tests passed and the correction merged in PR #17 (commit fed496f).
 - **Sources:** [D1 Sales Compass specification](../specs/2026-11-01-pillar-d1-sales-compass.md), [Implementation plan](../IMPLEMENTATION_PLAN.md).
