@@ -38,7 +38,7 @@ class SahdevSalesCompass {
     }
 
     escape(value) {
-        return frappe.utils.escape_html(String(value == null ? "" : value));
+        return frappe.utils.escape_html(String(value === null || value === undefined ? "" : value));
     }
 
     number(value) {
@@ -165,7 +165,7 @@ class SahdevSalesCompass {
                     const source = item.opportunity_from && item.party_name
                         ? item.opportunity_from + ": " + item.party_name
                         : item.name;
-                    const amount = item.opportunity_amount != null
+                    const amount = item.opportunity_amount !== null && item.opportunity_amount !== undefined
                         ? this.amount(item.opportunity_amount, item.currency)
                         : "";
                     return '<button type="button" class="sahdev-opportunity-row" data-name="' +
