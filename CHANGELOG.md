@@ -2,6 +2,21 @@
 
 This changelog records user-visible and operationally significant changes. It is not a substitute for commit history. Entries do not imply a production release unless explicitly stated.
 
+## 2026-11-01 — Main branch protection verified
+
+### Confirmed
+- Active ruleset Protect main (ID 26282133) targets refs/heads/main.
+- Pull requests and eight strict, up-to-date required CI contexts are enforced.
+- Review-thread resolution is required; the approval count is zero to avoid deadlocking a single maintainer.
+- Branch deletion and force pushes are blocked; merge, squash and rebase are allowed.
+- No bypass actors are configured. Emergency recovery requires an authorized administrator to edit and restore the ruleset.
+- Dependency Security Audit remains active and passing but is not one of the eight required contexts.
+
+### Validation
+- GitHub branch API reports main as protected.
+- GitHub ruleset API returned the active ruleset and complete rule list.
+- [Issue #12](https://github.com/MitMike/crm_signals/issues/12) closed after verification.
+
 ## 2026-11-01 — D1/D2 metric safety corrections (under review)
 
 ### Changed
