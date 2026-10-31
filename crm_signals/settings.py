@@ -149,7 +149,7 @@ def _parse_time(value) -> datetime.time:
 def validate_settings_document(doc) -> None:
     """Validate admin-entered settings and populate the Company currency."""
     if doc.quotation_threshold is None or float(doc.quotation_threshold) < 0:
-        frappe.throw(frappe.frappe._("Quotation threshold must be zero or greater."), frappe.ValidationError)
+        frappe.throw(frappe._("Quotation threshold must be zero or greater."), frappe.ValidationError)
 
     company_currency = get_company_default_currency()
     if company_currency:
