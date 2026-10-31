@@ -1,7 +1,6 @@
 import frappe
 from frappe import _
 
-
 ALLOWED_SIGNAL_TYPES = {
     "Website Visit",
     "Email Opened",
