@@ -218,3 +218,21 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Rationale:** Treating all rows as active when status is absent is a false business assertion, not a safe fallback.
 - **Consequences:** API results expose explicit availability flags; the UI shows an unavailable state instead of 0 or a misleading all-active count. Regression tests cover metadata absence.
 - **Sources:** [D1 Sales Compass specification](../specs/2026-11-01-pillar-d1-sales-compass.md), [Implementation plan](../IMPLEMENTATION_PLAN.md).
+
+
+## ADR-025 — User-configurable starter profiles are additive, safe and reversible
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-01
+- **Decision:** Provide named, pre-built configuration profiles as opt-in starting points, not hidden behavior switches. Initial profiles: Sales Starter, Sales Manager, Executive Overview, Service Desk (only when a supported service source is discovered), and Privacy-First. Profiles may enable only capabilities whose dependencies and permissions are available. Applying a profile previews changes, preserves unrelated settings, records the actor/time/profile/version, and supports reset/rollback. Users can customize each setting after applying a profile. No profile silently changes ERPNext roles, grants permissions, creates external credentials, enables tracking/retention, or turns on unsupported integrations.
+- **Rationale:** Users need a quick setup path without losing control or inheriting unsafe assumptions.
+- **Consequences:** Implement a versioned settings schema, profile catalogue, dependency/availability validation, preview/apply/reset flows, permission-aware UI and migration-safe defaults. Service Desk, Vault and proposal tracking remain disabled until their prerequisites and policies are verified.
+- **Sources:** [User guide](../USER_GUIDE.md), [Configuration profiles specification](../specs/2026-11-01-configuration-profiles.md), [Implementation plan](../IMPLEMENTATION_PLAN.md).
+
+## ADR-026 — The user guide is the operational entry point
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-01
+- **Decision:** Maintain a task-oriented USER_GUIDE.md covering installation, first-run setup, roles, dashboard interpretation, webhooks, starter profiles, customization, troubleshooting, backup/rollback and safe upgrades. Link it from README and keep it aligned with implemented behavior; clearly label planned functionality.
+- **Rationale:** Operators and administrators need one accurate path to install, configure, use and troubleshoot the app without reading engineering specifications.
+- **Consequences:** Update the guide whenever user-facing workflows change. The guide must distinguish verified behavior from planned capability and must never instruct users to enable a feature whose implementation or prerequisites are absent.
