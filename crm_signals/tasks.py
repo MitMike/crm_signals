@@ -55,6 +55,12 @@ def send_daily_signals_digest():
     )
     recipients = sorted({user for user in recipients if user and user != "Guest"})
     if recipients:
+        recipients = frappe.get_all(
+            "User",
+            filters={"name": ["in", recipients], "enabled": 1, "user_type": "System User"},
+            pluck="name",
+        )
+    if recipients:
         frappe.sendmail(
             recipients=recipients,
             subject=f"Daily CRM Signals Digest — {nowdate()}",
