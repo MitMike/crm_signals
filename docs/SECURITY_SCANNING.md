@@ -31,6 +31,6 @@ Run dependency audits:
 ```bash
 python -m pip install pip-audit
 pip-audit
-npm install --ignore-scripts
+npm ci --ignore-scripts
 npm audit --audit-level=moderate
 ```
