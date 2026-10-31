@@ -16,10 +16,10 @@ MAX_MESSAGE_LENGTH = 2000
 
 
 def _dashboard_aggregate_field(operation, fieldname, alias):
-    """Use the aggregate field syntax supported by the installed Frappe major version.
+    """Use aggregate syntax supported by both Frappe v15 and v16.
 
-    Frappe v16 moved aggregate fields from raw SQL strings to a structured
-    dict representation. Keep the app compatible with both declared versions.
+    Frappe v16 rejects SQL functions embedded in fields strings. Its get_list
+    API accepts structured aggregate field descriptors instead.
     """
     version = str(getattr(frappe, "__version__", "15"))
     try:
@@ -155,7 +155,6 @@ def get_dashboard_data():
         ],
         "recent": recent,
     }
-
 
 
 # ---------------------------------------------------------------------------
