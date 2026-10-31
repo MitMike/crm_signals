@@ -262,9 +262,9 @@ Append a new ADR with the next available identifier. Include status, date record
 
 - **Status:** Accepted
 - **Recorded:** 2026-11-01
-- **Decision:** Check the digest every minute, compare against the timezone configured in System Settings, and store the site-local queued date only after `frappe.sendmail` has queued the message. The email queue write and Settings marker are expected to commit in the same Frappe transaction.
-- **Rationale:** A source-code cron expression cannot reflect runtime administrator settings, and a retry must not enqueue the same daily digest twice.
-- **Consequences:** Actual delivery can be delayed by scheduler/worker/mail-queue load. Failures before successful queueing leave the date marker untouched. Validate timezone behavior on the target site.
+- **Decision:** Check the digest every minute, compare against the timezone configured in System Settings, and queue a separate permission-filtered email for each recipient. Track the recipients queued for the site-local date in Settings only after each `frappe.sendmail` call succeeds; save the email-queue request and recipient marker in the same transaction.
+- **Rationale:** A source-code cron expression cannot reflect runtime administrator settings, and each recipient must only receive source rows their ERPNext account can read. Per-recipient tracking lets a later scheduler run retry a failed recipient without resending to those already queued.
+- **Consequences:** Actual delivery can be delayed by scheduler/worker/mail-queue load. Concurrent scheduler executions can still race before the recipient marker commits; a per-recipient lock/unique delivery record remains a follow-up. Validate timezone and queue transaction behavior on the target site.
 - **Sources:** [Daily digest spec](../specs/2026-11-01-crm-signals-daily-digest.md), [Settings and reliability spec](../specs/2026-11-01-settings-and-core-reliability.md).
 
 ## ADR-030 — Isolate realtime notification errors from source-document saves
