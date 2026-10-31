@@ -270,7 +270,7 @@ class SahdevSalesCompass {
             '<div class="sahdev-metrics">' + cardHtml + "</div>" +
             '<div class="sahdev-follow-on-note">' +
                 '<strong>' + __("Scope of this slice") + "</strong> " +
-                __("This release covers CRM sales data. Billing realization and service-ticket SLA rollups will be added as separate, connected vertical slices.") +
+                __("This dashboard now combines CRM sales with the first billing realization slice. Service-ticket SLA metrics remain a separate follow-on slice.") +
             "</div>" +
             '<div class="sahdev-panels">' +
                 '<section class="sahdev-panel">' +
@@ -282,6 +282,7 @@ class SahdevSalesCompass {
                     '<div class="sahdev-opportunity-list">' + recentHtml + "</div>" +
                 "</section>" +
             "</div>" +
+            billingHtml +
             '<div class="sahdev-footer">' +
                 __("Pipeline totals are grouped by transaction currency. Terminal statuses are excluded from active counts and pipeline value.") +
             "</div>"
