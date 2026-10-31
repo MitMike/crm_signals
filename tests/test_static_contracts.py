@@ -5,11 +5,30 @@ import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+APP_ROOT = ROOT / "crm_signals"
+
+
+def test_pilot_repository_discovery_contract():
+    project = (ROOT / "pyproject.toml").read_text()
+    hooks = APP_ROOT / "hooks.py"
+    assert 'name = "crm_signals"' in project
+    assert "[tool.bench.frappe-dependencies]" in project
+    assert 'frappe = ">=15.0.0,<17.0.0"' in project
+    assert hooks.is_file()
+
+
+def test_default_module_and_doctype_follow_frappe_layout():
+    modules = (APP_ROOT / "modules.txt").read_text().splitlines()
+    assert "Crm Signals" in modules
+    module_root = APP_ROOT / "crm_signals"
+    assert (module_root / "__init__.py").is_file()
+    assert (module_root / "doctype/crm_signal/crm_signal.json").is_file()
+    assert not (APP_ROOT / "doctype/crm_signal/crm_signal.json").exists()
 
 
 def test_doctype_json_is_valid_and_field_options_are_consistent():
     metadata = json.loads(
-        (ROOT / "crm_signals/doctype/crm_signal/crm_signal.json").read_text()
+        (APP_ROOT / "crm_signals/doctype/crm_signal/crm_signal.json").read_text()
     )
     fields = {field["fieldname"]: field for field in metadata["fields"]}
     assert fields["signal_type"]["reqd"] == 1
@@ -22,12 +41,12 @@ def test_doctype_json_is_valid_and_field_options_are_consistent():
 
 
 def test_python_sources_parse():
-    for path in (ROOT / "crm_signals").rglob("*.py"):
+    for path in APP_ROOT.rglob("*.py"):
         ast.parse(path.read_text(), filename=str(path))
 
 
 def test_webhook_is_not_guest_whitelisted_or_permission_bypassed():
-    source = (ROOT / "crm_signals/api.py").read_text()
+    source = (APP_ROOT / "api.py").read_text()
     tree = ast.parse(source)
     target = next(
         node for node in tree.body
@@ -42,12 +61,12 @@ def test_webhook_is_not_guest_whitelisted_or_permission_bypassed():
 
 
 def test_event_handlers_notify_through_shared_recipient_resolver():
-    source = (ROOT / "crm_signals/events.py").read_text()
+    source = (APP_ROOT / "events.py").read_text()
     assert "notify_signal(signal)" in source
     assert "frappe.publish_realtime(" not in source
 
 
 def test_permission_hooks_are_registered():
-    hooks = (ROOT / "crm_signals/hooks.py").read_text()
+    hooks = (APP_ROOT / "hooks.py").read_text()
     assert '"CRM Signal": "crm_signals.permissions.crm_signal_has_permission"' in hooks
     assert '"CRM Signal": "crm_signals.permissions.crm_signal_query"' in hooks
