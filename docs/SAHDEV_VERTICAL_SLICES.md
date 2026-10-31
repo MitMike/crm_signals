@@ -11,11 +11,14 @@ This roadmap follows the product capabilities described in the Sahdev Signals pr
 - Recent Opportunities with a direct Desk drill-down.
 - Lead and Opportunity reads use Frappe permission-aware list APIs.
 
-### D2. Billing realization
-- Add a billing view using the site's actual ERPNext billing records.
-- Establish the business definition first: invoiced, outstanding, collected, or a combination. Do not label one as another.
-- Group monetary values by currency and apply the same permission checks as the source DocTypes.
-- Add tests for partial payments, cancelled documents, credit notes, and multi-currency data once the definition is agreed.
+### D2. Billing realization (implemented in this branch)
+- Invoiced: submitted, non-return Sales Invoice grand totals posted in the last 30 days, grouped by invoice currency.
+- Outstanding: current positive outstanding amounts on submitted, non-return Sales Invoices, grouped by invoice currency.
+- Customer receipts: submitted Receive Payment Entries for Customer parties in the last 30 days, grouped by receiving-account currency. This includes allocated and advance/unallocated receipts.
+- POS receipts: submitted POS Sales Invoice paid_amount in the last 30 days, grouped by invoice currency. Kept separate from Payment Entry receipts.
+- Overdue: count and top eight submitted, non-return invoices with a positive outstanding amount and a due date before today.
+- Every source uses permission-aware Frappe list APIs. Unlike currencies are never added together.
+- Scope note: Payment Entry receipts are cash received, not necessarily cash allocated to an invoice. POS receipts are presented separately. Refunds, credit notes and advance applications are not re-labelled as customer cash receipts.
 
 ### D3. Service resolution / SLA
 - Add ticket volume and resolution metrics from the installed support-ticket and SLA configuration.
