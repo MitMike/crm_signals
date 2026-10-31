@@ -1,6 +1,6 @@
 # D2 — Billing Realization
 
-**Status:** Implemented in the D2 feature branch; awaiting review and live-site validation.
+**Status:** Merged to `main` on 2026-10-31 in feature commit [`467f12c`](https://github.com/MitMike/crm_signals/commit/467f12cc60c009643b4a8d9c592aae6ca300b501). Quality Checks, Security Scanning and Bench Integration/E2E passed on the subsequent `main` head [`b55cce6`](https://github.com/MitMike/crm_signals/commit/b55cce6469bbe7c1603c49175651eafa7259d879). Target-site financial reconciliation and site-specific permission validation remain outstanding.
 
 ## Problem and user
 
