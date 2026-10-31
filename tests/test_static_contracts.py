@@ -84,6 +84,11 @@ def test_dashboard_page_workspace_and_permission_aware_api():
     page_style = page_root / "crm_signals_dashboard.css"
     assert page_json["page_name"] == "crm-signals-dashboard"
     assert page_json["module"] == "Crm Signals"
+    assert {item["role"] for item in page_json["roles"]} == {
+        "Sales User",
+        "Sales Manager",
+        "System Manager",
+    }
     assert page_style.is_file()
     assert 'frappe.pages["crm-signals-dashboard"]' in page_script
     assert 'method: "crm_signals.api.get_dashboard_data"' in page_script
@@ -127,6 +132,11 @@ def test_sahdev_sales_compass_page_and_workspace_shortcut():
     page_script = (page_root / "sahdev_dashboard.js").read_text()
     assert page_json["page_name"] == "sahdev-dashboard"
     assert page_json["module"] == "Crm Signals"
+    assert {item["role"] for item in page_json["roles"]} == {
+        "Sales User",
+        "Sales Manager",
+        "System Manager",
+    }
     assert (page_root / "sahdev_dashboard.css").is_file()
     assert 'frappe.pages["sahdev-dashboard"]' in page_script
     assert 'method: "crm_signals.api.get_sales_compass_data"' in page_script
