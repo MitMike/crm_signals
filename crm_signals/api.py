@@ -50,13 +50,16 @@ def _read_text(value, fieldname, *, required=False, max_length=None):
 
 @frappe.whitelist(methods=["POST"])
 def ingest_signal():
-    """Create a CRM Signal from an authenticated server-to-server integration.
-
-    Authenticate with Frappe API key/secret as a dedicated integration user.
-    The caller must have permission to create CRM Signal documents.
-    """
+    """Create a CRM Signal from an authenticated, idempotent integration request."""
     if frappe.session.user == "Guest":
         frappe.throw(_("Authentication is required"), frappe.AuthenticationError)
+
+    from crm_signals.events import insert_signal_once
+    from crm_signals.settings import get_signal_settings
+
+    settings = get_signal_settings()
+    if not settings["enabled"] or not settings["enable_external_ingestion"]:
+        frappe.throw(_("External CRM Signal ingestion is disabled"), frappe.PermissionError)
 
     data = frappe.local.form_dict
     signal_type = _read_text(data.get("signal_type"), "signal_type", required=True)
@@ -66,6 +69,9 @@ def ingest_signal():
     lead = _read_text(data.get("lead"), "lead")
     customer = _read_text(data.get("customer"), "customer")
     priority = _read_text(data.get("priority") or "Medium", "priority", required=True)
+    source_event_id = _read_text(data.get("source_event_id"), "source_event_id", max_length=140)
+    source_doctype = _read_text(data.get("source_doctype"), "source_doctype", max_length=140)
+    source_name = _read_text(data.get("source_name"), "source_name", max_length=140)
 
     if signal_type not in ALLOWED_SIGNAL_TYPES:
         frappe.throw(_("Unsupported signal_type"), frappe.ValidationError)
@@ -78,24 +84,33 @@ def ingest_signal():
     if customer and not frappe.db.exists("Customer", customer):
         frappe.throw(_("Customer {0} does not exist").format(customer), frappe.LinkValidationError)
 
-    # Recipient selection is never caller-controlled; the resolver uses related
-    # document ownership and active ToDo assignments only.
-    doc = frappe.get_doc({
-        "doctype": "CRM Signal",
-        "signal_type": signal_type,
-        "lead": lead,
-        "customer": customer,
-        "message": message,
-        "priority": priority,
-        "is_read": 0,
-    })
-    doc.insert()  # Enforces normal Frappe permissions; framework owns transaction.
+    if bool(source_doctype) != bool(source_name):
+        frappe.throw(
+            _("source_doctype and source_name must be supplied together"),
+            frappe.ValidationError,
+        )
+    if (source_doctype or source_name) and not source_event_id:
+        frappe.throw(_("source_event_id is required with source metadata"), frappe.ValidationError)
+    if source_event_id and not source_doctype:
+        source_doctype = "API Integration"
+        source_name = frappe.session.user
 
-    from crm_signals.notifications import notify_signal
-
-    notify_signal(doc)
-    return {"status": "success", "signal": doc.name}
-
+    signal, created = insert_signal_once(
+        signal_type=signal_type,
+        message=message,
+        priority=priority,
+        lead=lead,
+        customer=customer,
+        source_doctype=source_doctype,
+        source_name=source_name,
+        source_event_id=source_event_id,
+        ignore_permissions=False,
+    )
+    return {
+        "status": "success",
+        "signal": signal.name,
+        "deduplicated": not created,
+    }
 
 
 @frappe.whitelist()
