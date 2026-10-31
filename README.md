@@ -50,6 +50,9 @@ curl -X POST 'https://<site>/api/method/crm_signals.api.ingest_signal' \
 - Verify record-level permissions in Desk/list/report/export workflows on both supported versions.
 - Validate exact field/status semantics on the deployed ERPNext v15/v16 site.
 
+## Development quality gates
+See [docs/DEVELOPMENT_QUALITY.md](docs/DEVELOPMENT_QUALITY.md) for the local lint, formatting, static-analysis, dependency-audit and Frappe Bench integration checks. CI runs these gates on pushes and pull requests.
+
 ## Developer checks
 Run:
 ```bash
