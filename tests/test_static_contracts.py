@@ -74,3 +74,41 @@ def test_permission_hooks_are_registered():
     hooks = (APP_ROOT / "hooks.py").read_text()
     assert '"CRM Signal": "crm_signals.permissions.crm_signal_has_permission"' in hooks
     assert '"CRM Signal": "crm_signals.permissions.crm_signal_query"' in hooks
+
+
+
+def test_dashboard_page_workspace_and_permission_aware_api():
+    page_root = APP_ROOT / "crm_signals/page/crm_signals_dashboard"
+    page_json = json.loads((page_root / "crm_signals_dashboard.json").read_text())
+    page_script = (page_root / "crm_signals_dashboard.js").read_text()
+    page_style = page_root / "crm_signals_dashboard.css"
+    assert page_json["page_name"] == "crm-signals-dashboard"
+    assert page_json["module"] == "Crm Signals"
+    assert page_style.is_file()
+    assert 'frappe.pages["crm-signals-dashboard"]' in page_script
+    assert 'method: "crm_signals.api.get_dashboard_data"' in page_script
+
+    workspace = json.loads(
+        (APP_ROOT / "workspace/crm_signals/crm_signals.json").read_text()
+    )
+    assert workspace["title"] == "CRM Signals"
+    assert json.loads(workspace["content"])[0]["type"] == "shortcut"
+    assert workspace["shortcuts"][0]["link_to"] == "crm-signals-dashboard"
+
+    api = (APP_ROOT / "api.py").read_text()
+    assert "def get_dashboard_data():" in api
+    assert 'frappe.get_list("CRM Signal"' in api
+    assert 'frappe.has_permission("CRM Signal", ptype="read")' in api
+    assert "frappe.db.sql(" not in api
+
+
+def test_dashboard_displays_core_metrics_and_activity_navigation():
+    script = (
+        APP_ROOT / "crm_signals/page/crm_signals_dashboard/crm_signals_dashboard.js"
+    ).read_text()
+    for label in ["Total signals", "Unread", "High priority", "Last 7 days",
+                  "Signals by type", "Recent activity"]:
+        assert label in script
+    assert 'frappe.set_route("List", "CRM Signal")' in script
+    assert 'frappe.set_route("Form", "Lead", lead)' in script
+    assert 'frappe.set_route("Form", "Customer", customer)' in script
