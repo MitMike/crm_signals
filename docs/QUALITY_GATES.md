@@ -66,7 +66,8 @@ A line count is a maintainability signal, not a quality score. These limits appl
 |---|---:|---:|
 | Production source file | 500 lines | 800 lines |
 | Test/E2E source file | 800 lines | 1,200 lines |
-| Production Python function/method | 50 lines | 100 lines |\n| Production JavaScript function | — | 100 lines |
+| Production Python function/method | 50 lines | 100 lines |
+| Production JavaScript function | — | 100 lines |
 | Test Python function/method | 80 lines | 150 lines |
 | Python/JavaScript cyclomatic complexity | Review above 10 | 15 |
 
