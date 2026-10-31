@@ -74,7 +74,7 @@ Work:
 Exit criteria:
 - [x] PR #11 merged after all checks passed on its latest head.
 - [x] package-lock.json is committed and npm jobs use npm ci.
-- [x] Quality Checks, Bench Integration/E2E (v15/v16 + Playwright), Security Scanning and Dependency Security Audit passed on the final PR head. Post-merge Quality Checks and Security Scanning also passed on main; the fresh post-merge Bench run was still completing v16 when this plan was updated.
+- [x] Quality Checks, Bench Integration/E2E (v15/v16 + Playwright), Security Scanning and Dependency Security Audit passed on the final PR head. Post-merge Quality Checks, Security Scanning and Bench Integration/E2E also passed on main (runs 41232593555, 41232593543 and 41232593526).
 - [ ] main ruleset is verified to require the checks. [Issue #12](https://github.com/MitMike/crm_signals/issues/12) tracks the administrator action because the connected GitHub integration cannot write/read repository rulesets.
 
 ### Stage 1 — Release readiness and CRM core hardening
