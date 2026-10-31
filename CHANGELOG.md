@@ -2,6 +2,25 @@
 
 This changelog records user-visible and operationally significant changes. It is not a substitute for commit history. Entries do not imply a production release unless explicitly stated.
 
+## 2026-11-01 — Dependency security and CI hardening (merged; not a product release)
+
+### Added
+- Weekly Dependabot updates for Python packages, npm tooling dependencies and GitHub Actions.
+- Automated Python dependency audits with pip-audit and npm dependency audits with moderate-or-higher findings treated as failures.
+
+### Changed
+- Updated Playwright test tooling to 1.64.1 and ESLint to 10.14.0.
+- Pinned the vulnerable transitive minimatch dependency to patched 11.0.1.
+- Added a complete npm lockfile v3 and use npm ci in Quality Checks and Dependency Security Audit.
+- Updated security and engineering quality documentation.
+
+### Validation
+- PR #11 merged as [05ad767](https://github.com/MitMike/crm_signals/commit/05ad767f6b62814cca5b7d0c1e233a2f690baa77).
+- All four PR gates passed on the final PR head: [Quality Checks](https://github.com/MitMike/crm_signals/actions/runs/41232087717), [Bench Integration and E2E](https://github.com/MitMike/crm_signals/actions/runs/41232087747), [Security Scanning](https://github.com/MitMike/crm_signals/actions/runs/41232087776) and [Dependency Security Audit](https://github.com/MitMike/crm_signals/actions/runs/41232087748).
+- Post-merge Quality Checks and Security Scanning passed on main. The fresh post-merge Bench validation was still running when this entry was prepared.
+
+This entry records engineering maintenance, not a formal release or production rollout.
+
 ## 2026-11-01 — Specifications and engineering governance (documentation work)
 
 ### Added
