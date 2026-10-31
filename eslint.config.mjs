@@ -23,7 +23,10 @@ export default [
         },
         rules: {
             "no-undef": "error",
-            "no-unused-vars": ["error", { args: "none", caughtErrors: "none", varsIgnorePattern: "^_" }],
+            "no-unused-vars": [
+                "error",
+                { args: "none", caughtErrors: "none", varsIgnorePattern: "^_" }
+            ],
             "no-unreachable": "error",
             "no-constant-condition": "error",
             "no-dupe-keys": "error",
