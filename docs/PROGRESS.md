@@ -2,21 +2,21 @@
 
 **Last reviewed:** 2026-11-01  
 **Repository:** [MitMike/crm_signals](https://github.com/MitMike/crm_signals)  
-**Main baseline observed:** [05ad767](https://github.com/MitMike/crm_signals/commit/05ad767f6b62814cca5b7d0c1e233a2f690baa77)  
-**Active delivery branches:** fix/stage1-metric-correctness (PR #17 — D1/D2 metric correctness)
+**Main baseline observed:** [fed496f](https://github.com/MitMike/crm_signals/commit/fed496f230f5ca88af25d663bc61fe4d748f5f83)  
+**Active delivery branches:** Stage 1 follow-up work (idempotency, settings and currency-safe events/digest) is next in the delivery plan
 
 This is the operational status record. IMPLEMENTATION_PLAN.md is the delivery roadmap; DECISIONS.md is the durable decision register; specs/ contains the feature contracts.
 
 ## Current status
 
-The mainline baseline contains CRM Signals core, the Signals Console, S.A.H.D.E.V. D1 Sales Compass and D2 Billing Realization. The latest repository-hardening and documentation work is being delivered through pull requests; it is not described as merged until GitHub reports the merge.
+The mainline baseline contains CRM Signals core, the Signals Console, S.A.H.D.E.V. D1 Sales Compass and D2 Billing Realization. The dependency hardening (PR #11), full specifications/roadmap (PR #16) and D1/D2 metric safety correction (PR #17) are merged.
 
 | Workstream | Status | Evidence / next step |
 |---|---|---|
 | CRM Signals core | Implemented baseline | Target-site permissions, deployment controls and idempotency hardening remain |
 | Signals Console | Implemented baseline | Target-site role and workflow smoke tests remain |
-| D1 Sales Compass | Implemented baseline; correctness fix in review | Active count, stages and pipeline now become unavailable when status metadata is missing; target-site status validation remains |
-| D2 Billing Realization | Implemented baseline; return guard in review | Return-sensitive invoice metrics now require `is_return`; target-site financial reconciliation remains |
+| D1 Sales Compass | Implemented; safety correction merged | Active count, stages and pipeline become unavailable when required status metadata is missing; target-site status validation remains |
+| D2 Billing Realization | Implemented; return guard merged | Return-sensitive invoice metrics require `is_return`; target-site financial reconciliation remains |
 | D3 Service Resolution/SLA | Specified; implementation gated | Complete target-site support/SLA discovery before selecting source adapter |
 | H Highlights | Specified; partial quote event exists | Settings, idempotency, verified proposal events and privacy approval remain |
 | E Explorer | Specified; planned | Inventory actual installed integrations and implement source adapters |
@@ -133,7 +133,7 @@ Dependency Security Audit is active and passing on relevant PRs, weekly and manu
 
 Branch: \`fix/stage1-metric-correctness\` (based on the documentation/specification branch so its contracts and decisions are carried forward).
 
-Changes in review:
+Delivered changes:
 - D1 Lead active count is unavailable when Lead.status metadata is missing; Lead creation count remains available.
 - D1 Opportunity active count, stage distribution and active pipeline are unavailable when Opportunity.status is missing. Total count and recent Opportunities remain available.
 - D1 active pipeline additionally requires amount and currency metadata; unlike currencies remain separate.
@@ -142,12 +142,9 @@ Changes in review:
 - The Desk page explains missing metadata rather than rendering false zero/all-active values.
 - Regression tests cover missing Lead status, missing Opportunity status and missing Sales Invoice is_return.
 
-Latest push validation is running on the current code branch:
-- Quality Checks: [41233382583](https://github.com/MitMike/crm_signals/actions/runs/41233382583) — Python 3.10/3.11/3.12/3.14 passed; lint/static job was completing.
-- Security Scanning: [41233382608](https://github.com/MitMike/crm_signals/actions/runs/41233382608) — queued at this snapshot.
-- Bench Integration and E2E: [41233382641](https://github.com/MitMike/crm_signals/actions/runs/41233382641) — v15/v16 in progress at this snapshot.
+Validation on PR #17's final head `efec6cdb` passed all required contexts: Quality (all Python versions and strict Prettier), Security (Semgrep), Bench v15, and Bench v16 with authenticated Playwright E2E. The parallel push-triggered Bench run also passed. Target-site semantics remain separate acceptance gates.
 
-Do not mark Stage 1 code complete until all three workflows pass and the pull request is merged. Target-site semantics remain separate acceptance gates.
+The next Stage 1 items are source-event idempotency, validated settings, currency-safe quote/digest formatting, recipient permission verification and target-site preflight. These are not covered by PR #17.
 
 ## Update protocol
 
