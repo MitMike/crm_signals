@@ -85,8 +85,8 @@ def insert_signal_once(
 def _company_threshold_value(doc, settings):
     """Compare in the Company's base currency, not the Quote's transaction currency."""
     company_currency = get_company_default_currency(getattr(doc, "company", None))
-    threshold_currency = settings.get("threshold_currency") or company_currency
-    if not company_currency or threshold_currency != company_currency:
+    threshold_currency = settings.get("threshold_currency")
+    if not company_currency or not threshold_currency or threshold_currency != company_currency:
         return None
 
     base_total = getattr(doc, "base_grand_total", None)
