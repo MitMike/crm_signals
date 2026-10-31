@@ -1,0 +1,59 @@
+name: Dependency Security Audit
+
+on:
+  pull_request:
+    paths:
+      - "pyproject.toml"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/dependabot.yml"
+      - ".github/workflows/dependency-audit.yml"
+  schedule:
+    - cron: "23 9 * * 0"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dependency-audit-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python-dependencies:
+    name: Python dependency vulnerability audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Install project and audit tool
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install .
+          python -m pip install pip-audit
+      - name: Audit installed Python environment
+        run: pip-audit --local --progress-spinner off
+
+  npm-dependencies:
+    name: npm dependency vulnerability audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+      - name: Verify committed npm lockfile
+        run: |
+          test -s package.json
+          test -s package-lock.json
+          node -e "const lock = require('./package-lock.json'); if (lock.lockfileVersion < 1) process.exit(1); console.log('npm lockfile v' + lock.lockfileVersion)"
+      - name: Install dependencies from the committed lockfile
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Verify patched dependency versions
+        run: npm ls @playwright/test eslint minimatch --all
+      - name: Audit npm dependencies
+        run: npm audit --audit-level=moderate
