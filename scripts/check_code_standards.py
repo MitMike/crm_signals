@@ -12,7 +12,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_ROOTS = ("crm_signals", "tests", "e2e", "scripts")
-CODE_SUFFIXES = {".py", ".js", ".jsx", ".ts", ".tsx", ".vue"}
+CODE_SUFFIXES = {".py", ".js", ".jsx", ".mjs", ".cjs", ".ts", ".tsx", ".vue", ".css", ".scss", ".html", ".htm"}
 IGNORED_PARTS = {
     ".git",
     ".venv",
@@ -23,6 +23,10 @@ IGNORED_PARTS = {
     "build",
     "sites",
     "generated",
+    "vendor",
+    "vendors",
+    "third_party",
+    "third-party",
 }
 FILE_THRESHOLDS = {
     "production": (500, 800),
@@ -96,7 +100,7 @@ def _is_scannable_source(path: Path, relative: Path) -> bool:
         return False
     name = path.name
     return not (
-        name.endswith(".min.js")
+        ".min." in name
         or ".generated." in name
         or name.endswith("_generated.py")
     )
