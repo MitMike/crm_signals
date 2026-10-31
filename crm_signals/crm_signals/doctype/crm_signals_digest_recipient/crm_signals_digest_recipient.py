@@ -1,5 +1,5 @@
 from frappe.model.document import Document
 
 
-class CRM Signals Digest Recipient(Document):
+class CRMSignalsDigestRecipient(Document):
     pass
