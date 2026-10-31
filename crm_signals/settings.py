@@ -5,8 +5,8 @@ Per-company overrides can be added later without changing signal identity.
 """
 from __future__ import annotations
 
-import re
 from datetime import time
+import re
 
 import frappe
 from frappe import _
