@@ -1,37 +1,16 @@
-const crmSignalPresetValues = {
-    Balanced: {
-        enable_quotation_signals: 1,
-        quotation_threshold: 200000,
-        enable_opportunity_signals: 1,
-        opportunity_trigger_statuses: "Replied",
-        enable_daily_digest: 1,
-        lead_stale_days: 3,
-        digest_time: "08:30:00",
-    },
-    "Sales Focused": {
-        enable_quotation_signals: 1,
-        quotation_threshold: 100000,
-        enable_opportunity_signals: 1,
-        opportunity_trigger_statuses: "Replied",
-        enable_daily_digest: 1,
-        lead_stale_days: 2,
-        digest_time: "08:00:00",
-    },
-    Executive: {
-        enable_quotation_signals: 1,
-        quotation_threshold: 500000,
-        enable_opportunity_signals: 1,
-        opportunity_trigger_statuses: "Replied",
-        enable_daily_digest: 1,
-        lead_stale_days: 5,
-        digest_time: "08:30:00",
-    },
-};
-
 frappe.ui.form.on("CRM Signals Settings", {
     async notification_preset(frm) {
-        const values = crmSignalPresetValues[frm.doc.notification_preset];
-        if (!values) return;
+        const selectedPreset = frm.doc.notification_preset;
+        if (!selectedPreset || selectedPreset === "Custom") return;
+
+        const response = await frappe.call({
+            method: "crm_signals.settings.get_preset_values",
+            args: { preset: selectedPreset },
+        });
+        if (frm.doc.notification_preset !== selectedPreset) return;
+
+        const values = response.message || {};
+        if (!Object.keys(values).length) return;
 
         frm.__applying_crm_signal_preset = true;
         try {
