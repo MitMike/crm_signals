@@ -3,7 +3,7 @@
 **Last reviewed:** 2026-11-01  
 **Repository:** [MitMike/crm_signals](https://github.com/MitMike/crm_signals)  
 **Main baseline observed:** [05ad767](https://github.com/MitMike/crm_signals/commit/05ad767f6b62814cca5b7d0c1e233a2f690baa77)  
-**Active delivery branches:** docs/complete-specifications-roadmap (PR #16), fix/stage1-metric-correctness (Stage 1 code hardening)
+**Active delivery branches:** fix/stage1-metric-correctness (PR #17 — D1/D2 metric correctness)
 
 This is the operational status record. IMPLEMENTATION_PLAN.md is the delivery roadmap; DECISIONS.md is the durable decision register; specs/ contains the feature contracts.
 
@@ -23,8 +23,8 @@ The mainline baseline contains CRM Signals core, the Signals Console, S.A.H.D.E.
 | V Vault | Specified; planned | Approve metric registry, source visibility and retention before scheduling |
 | A Analysis | Specified; planned | Build approved metric/query registry; no model-generated SQL |
 | Dependency/security hardening | Merged | PR #11 merged as 05ad767; all four PR checks passed; post-merge Bench verification in progress |
-| Full specifications and roadmap | PR #16 open | Validate Quality, Security and Bench v15/v16, then merge |
-| Main branch ruleset | Required-check enforcement confirmed; other settings unverified | A merge attempt on PR #16 was rejected because 7 of 8 required checks were cancelled. The eight contexts are listed below; direct-push/force-push/deletion/conversation settings cannot be read through the connected integration. [Issue #12](https://github.com/MitMike/crm_signals/issues/12) tracks the remaining audit |
+| Full specifications and roadmap | Merged | PR #16 merged; all CI checks passed on the final head |
+| Main branch ruleset | <badge>Verified active</badge> | Ruleset Protect main (ID 26282133) targets refs/heads/main. Full details are recorded below; issue #12 closed after verification |
 
 ## Repository hardening — PR #11
 
@@ -49,6 +49,8 @@ The first committed lockfile transfer was accidentally truncated to 1,000 lines.
 Post-merge validation on main: Quality Checks [41232593555](https://github.com/MitMike/crm_signals/actions/runs/41232593555) and Security Scanning [41232593543](https://github.com/MitMike/crm_signals/actions/runs/41232593543) passed. The fresh post-merge Bench run [41232593526](https://github.com/MitMike/crm_signals/actions/runs/41232593526) passed both v15 and v16 lanes. The final merged-main validation is green for Quality Checks [41232593555](https://github.com/MitMike/crm_signals/actions/runs/41232593555), Security Scanning [41232593543](https://github.com/MitMike/crm_signals/actions/runs/41232593543) and Bench Integration/E2E [41232593526](https://github.com/MitMike/crm_signals/actions/runs/41232593526). Dependency Security Audit passed on PR #11 [41232087748](https://github.com/MitMike/crm_signals/actions/runs/41232087748).
 
 ## Specifications and plan
+
+The full spec catalogue and delivery roadmap were merged to main in PR #16 (merge commit 7a8ee4354a9d62ffa706c5b77be948186e6a7306 is the PR head; merge commit b4ee3cf).
 
 The documentation branch docs/complete-specifications-roadmap adds full feature specs for:
 - CRM Signals core, ingestion, permissions and Console;
@@ -83,9 +85,30 @@ These are code/CI baselines. They do not prove acceptance on a particular custom
 - [ ] Require Quality Checks, Bench Integration and E2E, Security Scanning and Dependency Security Audit.
 - [ ] Disable ordinary direct pushes to main while retaining an approved emergency path.
 
-GitHub's merge API rejected PR #16 because 7 of 8 required status checks were cancelled, confirming that required-check enforcement is active. The eight required contexts observed are Lint and static checks; Python unit tests (3.10, 3.11, 3.12, 3.14); Semgrep static security analysis; and the Bench v15 and v16 jobs. The linked GitHub integration still cannot read the full ruleset/protection configuration (403), so direct-push, force-push, deletion, conversation-resolution and approval settings remain unverified. [Issue #12](https://github.com/MitMike/crm_signals/issues/12) tracks the remaining audit.
 
-### Target-site and operational acceptance
+
+#### Repository governance — verified 2026-11-01
+
+GitHub API confirms branch \`main\` is protected by active repository ruleset [Protect main](https://github.com/MitMike/crm_signals/rules/26282133), ID \`26282133\`, targeting only \`refs/heads/main\`.
+
+- Pull requests required; direct updates to main are disallowed by the PR rule. No bypass actors are configured.
+- Required status checks use strict/up-to-date enforcement:
+  - Lint and static checks
+  - Python unit tests (3.10), (3.11), (3.12), (3.14)
+  - Semgrep static security analysis
+  - bench-validation (version-15, 3.11, false)
+  - bench-validation (version-16, 3.14, true)
+- Review threads must be resolved. Required approving review count is 0, matching the single-maintainer repository; code-owner and last-push approval are not required.
+- Deletion and non-fast-forward updates (force pushes) are blocked.
+- Allowed merge methods: merge, squash and rebase.
+- No bypass actors; current user cannot bypass. Emergency recovery therefore requires an authorized administrator to edit the ruleset temporarily, with the change documented and reverted.
+
+Dependency Security Audit is active and passing on relevant PRs, weekly and manually, but is not among the eight required status contexts in this ruleset.
+
+[Issue #12](https://github.com/MitMike/crm_signals/issues/12) was closed after this verification.
+
+
+## Target-site and operational acceptance
 
 - [ ] Run Frappe Pilot import on the intended site.
 - [ ] Record installed Frappe/ERPNext versions, apps, Company default currency, site timezone, workflows, DocType metadata and custom fields.
