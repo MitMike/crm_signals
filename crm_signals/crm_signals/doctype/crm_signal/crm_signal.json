@@ -13,7 +13,12 @@
   "lead",
   "customer",
   "section_break_message",
-  "message"
+  "message",
+  "section_break_source",
+  "source_doctype",
+  "source_name",
+  "source_event_id",
+  "source_event_key"
  ],
  "fields": [
   {
@@ -71,6 +76,41 @@
    "fieldtype": "Small Text",
    "label": "Message",
    "reqd": 1
+  },
+  {
+   "fieldname": "section_break_source",
+   "fieldtype": "Section Break",
+   "label": "Source Event Identity",
+   "collapsible": 1
+  },
+  {
+   "fieldname": "source_doctype",
+   "fieldtype": "Data",
+   "label": "Source Type",
+   "hidden": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "source_name",
+   "fieldtype": "Data",
+   "label": "Source Name",
+   "hidden": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "source_event_id",
+   "fieldtype": "Data",
+   "label": "Source Event ID",
+   "hidden": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "source_event_key",
+   "fieldtype": "Data",
+   "label": "Source Event Key",
+   "hidden": 1,
+   "read_only": 1,
+   "unique": 1
   }
  ],
  "index_web_pages_for_search": 1,
