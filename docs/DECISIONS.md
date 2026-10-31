@@ -255,7 +255,7 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Recorded:** 2026-11-01
 - **Decision:** Derive a SHA-256 key from source type, source identity and stable source event ID, and enforce uniqueness on CRM Signal. Check for an existing record for the common retry path and use the database unique constraint as the race-safe boundary. A duplicate returns the original record and emits no second notification.
 - **Rationale:** Webhook/provider retries and repeated document hooks must not create duplicate alerts.
-- **Consequences:** External callers must reuse the same integration user and `source_event_id` for a retry. Requests without an event ID retain legacy non-idempotent behavior. Existing records remain valid with a null source key.
+- **Consequences:** External callers must reuse the same integration user, source namespace and `source_event_id` for a retry. When source metadata is omitted, the authenticated user is used as the namespace; when source DocType/name are supplied, that pair defines the namespace. Requests without an event ID retain legacy non-idempotent behavior. Existing records remain valid with a null source key.
 - **Sources:** [Settings and reliability spec](../specs/2026-11-01-settings-and-core-reliability.md), [Core/access spec](../specs/2026-11-01-crm-signals-core-and-access.md).
 
 ## ADR-029 — Run the digest at a configurable site-local time and mark the queued date transactionally
