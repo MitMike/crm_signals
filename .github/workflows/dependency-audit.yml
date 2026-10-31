@@ -52,7 +52,7 @@ jobs:
           test -s package-lock.json
           node -e "const lock = require('./package-lock.json'); if (lock.lockfileVersion < 1) process.exit(1); console.log('npm lockfile v' + lock.lockfileVersion)"
       - name: Install dependencies from the committed lockfile
-        run: npm install --ignore-scripts --no-audit --no-fund
+        run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Verify patched dependency versions
         run: npm ls @playwright/test eslint minimatch --all
       - name: Audit npm dependencies
