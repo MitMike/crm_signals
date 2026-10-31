@@ -63,8 +63,9 @@ def load_api(monkeypatch, *, user="integration@example.com", settings=None, sour
     }
     monkeypatch.setitem(sys.modules, "crm_signals.settings", settings_module)
 
-    sys.modules.pop("crm_signals.api", None)
-    return importlib.import_module("crm_signals.api"), event_calls, fake
+    monkeypatch.delitem(sys.modules, "crm_signals.api", raising=False)
+    api = importlib.import_module("crm_signals.api")
+    return api, event_calls, fake
 
 
 def test_webhook_event_id_is_scoped_to_integration_user(monkeypatch):
