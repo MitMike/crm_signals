@@ -81,3 +81,23 @@ def test_notification_targets_each_resolved_user(monkeypatch):
     assert all(event["after_commit"] is True for event in published)
     assert all(event["message"]["message"] == "Sample CRM signal message" for event in published)
 
+
+
+def test_notification_failure_for_one_recipient_does_not_block_the_other(monkeypatch):
+    module, published = load_module(
+        monkeypatch,
+        {("Lead", "LEAD-1"): "failed@example.com"},
+        [],
+        ["failed@example.com", "good@example.com"],
+    )
+    fake_frappe = sys.modules["frappe"]
+
+    def publish(**kwargs):
+        if kwargs["user"] == "failed@example.com":
+            raise RuntimeError("simulated realtime outage")
+        published.append(kwargs)
+
+    fake_frappe.publish_realtime = publish
+    result = module.notify_signal(FakeSignal(lead="LEAD-1"))
+    assert result == {"sent": 1, "failed": 1}
+    assert [event["user"] for event in published] == ["good@example.com"]
