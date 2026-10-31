@@ -5,7 +5,7 @@ import sys
 import types
 
 
-def load_sales_api(monkeypatch, *, lead_read=True, opportunity_read=True, user="sales@example.com", version="15.0.0"):
+def load_sales_api(monkeypatch, *, lead_read=True, opportunity_read=True, invoice_read=True, payment_read=True, user="sales@example.com", version="15.0.0"):
     frappe = types.ModuleType("frappe")
     frappe.__path__ = []
     frappe._ = lambda message: message
@@ -24,27 +24,81 @@ def load_sales_api(monkeypatch, *, lead_read=True, opportunity_read=True, user="
 
     class FakeDB:
         def exists(self, doctype, name):
-            return doctype == "DocType" and name in {"Lead", "Opportunity"}
+            return doctype == "DocType" and name in {"Lead", "Opportunity", "Sales Invoice", "Payment Entry"}
 
     frappe.db = FakeDB()
-    frappe.has_permission = lambda doctype, ptype="read": (
-        lead_read if doctype == "Lead" else opportunity_read
-    )
+    frappe.has_permission = lambda doctype, ptype="read": {
+        "Lead": lead_read,
+        "Opportunity": opportunity_read,
+        "Sales Invoice": invoice_read,
+        "Payment Entry": payment_read,
+    }.get(doctype, True)
 
     class FakeMeta:
-        def has_field(self, fieldname):
-            return fieldname in {
+        fields = {
+            "Lead": {"status"},
+            "Opportunity": {
                 "status", "opportunity_amount", "currency", "creation",
                 "opportunity_from", "party_name", "customer_name", "expected_closing",
-            }
+            },
+            "Sales Invoice": {
+                "currency", "posting_date", "grand_total", "outstanding_amount",
+                "is_return", "is_pos", "paid_amount", "due_date", "customer",
+                "customer_name",
+            },
+            "Payment Entry": {
+                "payment_type", "party_type", "posting_date", "received_amount",
+                "paid_to_account_currency",
+            },
+        }
 
-    frappe.get_meta = lambda doctype: FakeMeta()
+        def __init__(self, doctype):
+            self.doctype = doctype
+
+        def has_field(self, fieldname):
+            return fieldname in self.fields.get(self.doctype, set())
+
+    frappe.get_meta = lambda doctype: FakeMeta(doctype)
 
     queries = []
 
     def get_list(doctype, fields=None, filters=None, **kwargs):
         query = {"doctype": doctype, "fields": fields, "filters": filters, **kwargs}
         queries.append(query)
+
+        if doctype == "Sales Invoice":
+            if filters and "due_date" in filters:
+                if "customer" in fields:
+                    return [{
+                        "name": "SINV-OVERDUE-1",
+                        "customer": "CUST-0001",
+                        "customer_name": "Acme Ltd",
+                        "posting_date": "2026-10-01",
+                        "due_date": "2026-10-15",
+                        "currency": "INR",
+                        "outstanding_amount": 45000,
+                    }]
+                return [{"total": 2}]
+            if filters and filters.get("is_pos") == 1:
+                return [
+                    {"currency": "INR", "total_amount": 3000, "record_count": 2}
+                ]
+            if filters and "outstanding_amount" in filters:
+                return [
+                    {"currency": "INR", "total_amount": 75000, "record_count": 2},
+                    {"currency": "USD", "total_amount": 300, "record_count": 1},
+                ]
+            return [
+                {"currency": "INR", "total_amount": 250000, "record_count": 3},
+                {"currency": "USD", "total_amount": 1000, "record_count": 1},
+            ]
+
+        if doctype == "Payment Entry":
+            return [
+                {"paid_to_account_currency": "INR", "total_amount": 55000, "record_count": 2},
+                {"paid_to_account_currency": "USD", "total_amount": 500, "record_count": 1},
+            ]
+
         if doctype == "Lead" and filters and "creation" in filters:
             return [{"total": 5}]
         if doctype == "Lead":
@@ -111,7 +165,30 @@ def test_sales_compass_returns_permission_filtered_lead_and_opportunity_metrics(
     ]
     assert opportunities["recent"][0]["name"] == "OPP-0001"
     assert all("ignore_permissions" not in query for query in queries)
-    assert all(query["doctype"] in {"Lead", "Opportunity"} for query in queries)
+    assert all(query["doctype"] in {"Lead", "Opportunity", "Sales Invoice", "Payment Entry"} for query in queries)
+
+    billing = result["billing"]
+    assert billing["available"] is True
+    assert billing["invoiced_available"] is True
+    assert billing["invoiced_by_currency"] == [
+        {"currency": "INR", "total_amount": 250000.0, "record_count": 3},
+        {"currency": "USD", "total_amount": 1000.0, "record_count": 1},
+    ]
+    assert billing["outstanding_by_currency"] == [
+        {"currency": "INR", "total_amount": 75000.0, "record_count": 2},
+        {"currency": "USD", "total_amount": 300.0, "record_count": 1},
+    ]
+    assert billing["customer_receipts_by_currency"] == [
+        {"currency": "INR", "total_amount": 55000.0, "record_count": 2},
+        {"currency": "USD", "total_amount": 500.0, "record_count": 1},
+    ]
+    assert billing["pos_receipts_by_currency"] == [
+        {"currency": "INR", "total_amount": 3000.0, "record_count": 2},
+    ]
+    assert billing["overdue_count"] == 2
+    assert billing["overdue_invoices"][0]["name"] == "SINV-OVERDUE-1"
+    assert all("ignore_permissions" not in query for query in queries)
+    assert all(query["doctype"] in {"Lead", "Opportunity", "Sales Invoice", "Payment Entry"} for query in queries)
 
 
 def test_sales_compass_marks_unreadable_sources_unavailable(monkeypatch):
@@ -149,5 +226,46 @@ def test_sales_compass_uses_structured_aggregates_on_frappe_v16(monkeypatch):
     assert any(
         isinstance(field, dict) and field.get("SUM") == "opportunity_amount"
         for query in queries
+        for field in query["fields"]
+    )
+
+
+
+def test_billing_marks_sales_invoice_source_unavailable_without_permission(monkeypatch):
+    api, queries, _ = load_sales_api(monkeypatch, invoice_read=False)
+
+    result = api.get_sales_compass_data()["billing"]
+
+    assert result["available"] is False
+    assert result["invoiced_available"] is False
+    assert result["outstanding_available"] is False
+    assert not any(query["doctype"] == "Sales Invoice" for query in queries)
+
+
+def test_billing_marks_payment_entry_receipts_unavailable_without_permission(monkeypatch):
+    api, queries, _ = load_sales_api(monkeypatch, payment_read=False)
+
+    result = api.get_sales_compass_data()["billing"]
+
+    assert result["available"] is True
+    assert result["customer_receipts_available"] is False
+    assert result["customer_receipts_by_currency"] == []
+    assert any(query["doctype"] == "Sales Invoice" for query in queries)
+
+
+def test_billing_uses_structured_aggregate_fields_on_frappe_v16(monkeypatch):
+    api, queries, _ = load_sales_api(monkeypatch, version="16.0.0")
+
+    result = api.get_sales_compass_data()["billing"]
+
+    assert result["invoiced_available"] is True
+    assert any(
+        isinstance(field, dict) and field.get("SUM") == "grand_total"
+        for query in queries if query["doctype"] == "Sales Invoice"
+        for field in query["fields"]
+    )
+    assert any(
+        isinstance(field, dict) and field.get("SUM") == "received_amount"
+        for query in queries if query["doctype"] == "Payment Entry"
         for field in query["fields"]
     )
