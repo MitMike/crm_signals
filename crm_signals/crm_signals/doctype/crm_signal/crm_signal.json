@@ -13,8 +13,7 @@
   "lead",
   "customer",
   "section_break_message",
-  "message",
-  "recipient_tokens"
+  "message"
  ],
  "fields": [
   {
@@ -72,14 +71,6 @@
    "fieldtype": "Small Text",
    "label": "Message",
    "reqd": 1
-  },
-  {
-   "fieldname": "recipient_tokens",
-   "fieldtype": "Small Text",
-   "hidden": 1,
-   "label": "Recipient Tokens",
-   "no_copy": 1,
-   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
