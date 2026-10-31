@@ -26,7 +26,7 @@ jobs:
       - name: Python lint
         run: ruff check crm_signals tests
       - name: Install JavaScript tooling
-        run: npm install --ignore-scripts --no-audit --no-fund
+        run: npm ci --ignore-scripts --no-audit --no-fund
       - name: ESLint and Oxlint
         run: npm run lint:js
       - name: Check formatting of tooling and E2E tests
