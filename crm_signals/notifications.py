@@ -1,13 +1,6 @@
 """Permission-conscious recipient resolution for CRM Signal notifications."""
 
-import hashlib
-
 import frappe
-
-
-def _recipient_token(user):
-    """Stable, non-reversible token for a Frappe username/email."""
-    return hashlib.sha256(user.strip().lower().encode("utf-8")).hexdigest()
 
 
 def get_signal_recipients(signal):
@@ -45,17 +38,8 @@ def get_signal_recipients(signal):
     return sorted(set(enabled))
 
 
-def set_recipient_tokens(signal):
-    """Persist hashed recipients so list permission queries need no SQL subqueries."""
-    recipients = get_signal_recipients(signal)
-    tokens = sorted({_recipient_token(user) for user in recipients})
-    signal.recipient_tokens = "|" + "|".join(tokens) + "|" if tokens else ""
-    return recipients
-
-
-def notify_signal(signal, recipients=None):
+def notify_signal(signal):
     """Publish a minimal signal event only to related enabled users."""
-    recipients = get_signal_recipients(signal) if recipients is None else recipients
     payload = {
         "name": signal.name,
         "signal_type": signal.signal_type,
@@ -64,7 +48,7 @@ def notify_signal(signal, recipients=None):
         "lead": signal.lead,
         "customer": signal.customer,
     }
-    for user in recipients:
+    for user in get_signal_recipients(signal):
         frappe.publish_realtime(
             event="crm_signal_received",
             message=payload,
