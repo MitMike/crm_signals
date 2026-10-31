@@ -176,5 +176,6 @@ def test_sahdev_billing_realization_page_and_permission_aware_api():
     assert '"Payment Entry"' in api
     assert '"Sales Invoice"' in api
     assert '_dashboard_aggregate_field("SUM", amount_field, "total_amount")' in api
+    assert '"party_account_currency",\n                "outstanding_amount"' in api
     assert 'ignore_permissions=True' not in api
     assert 'frappe.db.sql(' not in api
