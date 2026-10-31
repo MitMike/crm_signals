@@ -17,7 +17,7 @@ This changelog records user-visible and operationally significant changes. It is
 - GitHub ruleset API returned the active ruleset and complete rule list.
 - [Issue #12](https://github.com/MitMike/crm_signals/issues/12) closed after verification.
 
-## 2026-11-01 — D1/D2 metric safety corrections (under review)
+## 2026-11-01 — D1/D2 metric safety corrections (merged in PR #17)
 
 ### Changed
 - D1 active Lead/Opportunity metrics, Opportunity stages and active pipeline now report unavailable when required status metadata is absent instead of counting every record as active.
@@ -27,7 +27,7 @@ This changelog records user-visible and operationally significant changes. It is
 
 ### Validation
 - Added regression tests for missing Lead status, Opportunity status and Sales Invoice is_return metadata.
-- Code and documentation are in review on branch fix/stage1-metric-correctness; this entry does not claim the change is merged.
+- Merged as [fed496f](https://github.com/MitMike/crm_signals/commit/fed496f230f5ca88af25d663bc61fe4d748f5f83). Quality, Semgrep, Bench v15 and Bench v16 with authenticated Playwright passed on the final PR head.
 
 ## 2026-11-01 — Dependency security and CI hardening (merged; not a product release)
 
