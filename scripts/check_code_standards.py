@@ -67,8 +67,8 @@ def load_exceptions() -> dict[str, str]:
     return exceptions
 
 
-def discover_files(arguments: list[str]) -> list[Path]:
-    """Resolve passed filenames or scan the standard project source roots."""
+def _candidate_paths(arguments: list[str]) -> list[Path]:
+    """Collect candidate paths from explicit arguments or the default roots."""
     candidates: list[Path] = []
     if arguments:
         for argument in arguments:
@@ -79,29 +79,40 @@ def discover_files(arguments: list[str]) -> list[Path]:
                 candidates.extend(path.rglob("*"))
             elif path.is_file():
                 candidates.append(path)
-    else:
-        for root_name in DEFAULT_ROOTS:
-            root = ROOT / root_name
-            if root.exists():
-                candidates.extend(root.rglob("*"))
+        return candidates
 
-    result = []
-    seen = set()
-    for path in candidates:
+    for root_name in DEFAULT_ROOTS:
+        root = ROOT / root_name
+        if root.exists():
+            candidates.extend(root.rglob("*"))
+    return candidates
+
+
+def _is_scannable_source(path: Path, relative: Path) -> bool:
+    """Filter unsupported, generated, vendored and build-output paths."""
+    if not path.is_file() or path.suffix.lower() not in CODE_SUFFIXES:
+        return False
+    if any(part in IGNORED_PARTS for part in relative.parts):
+        return False
+    name = path.name
+    return not (
+        name.endswith(".min.js")
+        or ".generated." in name
+        or name.endswith("_generated.py")
+    )
+
+
+def discover_files(arguments: list[str]) -> list[Path]:
+    """Resolve passed filenames or scan the standard project source roots."""
+    result: list[Path] = []
+    seen: set[Path] = set()
+    for path in _candidate_paths(arguments):
         try:
             resolved = path.resolve()
             relative = resolved.relative_to(ROOT)
         except (OSError, ValueError):
             continue
-        if (
-            not resolved.is_file()
-            or resolved.suffix.lower() not in CODE_SUFFIXES
-            or any(part in IGNORED_PARTS for part in relative.parts)
-            or resolved.name.endswith(".min.js")
-            or ".generated." in resolved.name
-            or resolved.name.endswith("_generated.py")
-            or resolved in seen
-        ):
+        if not _is_scannable_source(resolved, relative) or resolved in seen:
             continue
         seen.add(resolved)
         result.append(resolved)
