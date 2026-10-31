@@ -45,3 +45,9 @@ def test_event_handlers_notify_through_shared_recipient_resolver():
     source = (ROOT / "crm_signals/events.py").read_text()
     assert "notify_signal(signal)" in source
     assert "frappe.publish_realtime(" not in source
+
+
+def test_permission_hooks_are_registered():
+    hooks = (ROOT / "crm_signals/hooks.py").read_text()
+    assert '"CRM Signal": "crm_signals.permissions.crm_signal_has_permission"' in hooks
+    assert '"CRM Signal": "crm_signals.permissions.crm_signal_query"' in hooks
