@@ -1,6 +1,6 @@
 # D2 — Billing Realization
 
-**Status:** Merged to main on 2026-10-31 in feature commit [467f12c](https://github.com/MitMike/crm_signals/commit/467f12cc60c009643b4a8d9c592aae6ca300b501). Quality Checks, Security Scanning and Bench Integration/E2E passed on the subsequent main head [b55cce6](https://github.com/MitMike/crm_signals/commit/b55cce6469bbe7c1603c49175651eafa7259d879). Target-site financial reconciliation and site-specific permission validation remain outstanding.
+**Status:** Merged to main on 2026-10-31 in feature commit [467f12c](https://github.com/MitMike/crm_signals/commit/467f12cc60c009643b4a8d9c592aae6ca300b501). Quality Checks, Security Scanning and Bench Integration/E2E passed on the subsequent main head [b55cce6](https://github.com/MitMike/crm_signals/commit/b55cce6469bbe7c1603c49175651eafa7259d879). Return-metadata safety is being enforced in Stage 1 branch `fix/stage1-metric-correctness`; target-site financial reconciliation and site-specific permission validation remain outstanding.
 
 ## Problem and user
 
@@ -100,4 +100,4 @@ Display: total overdue count plus the eight oldest due invoices, with a direct l
 - Site-specific role permissions may intentionally hide invoices or payment entries; this must be checked with Sales User and Sales Manager accounts.
 - ERPNext customizations may alter DocType field availability. The API checks metadata and marks unsupported sections unavailable.
 - Live financial totals must be reconciled against Sales Invoice and Payment Entry reports on the target site before managers rely on them.
-- The current implementation adds is_return = 0 only when that field exists. It must be corrected to mark return-sensitive measures unavailable when is_return is absent; otherwise returns could be counted.
+- The Stage 1 correction makes invoiced, POS receipt, outstanding receivable and overdue Sales Invoice measures unavailable when is_return metadata is absent. It does not run a Sales Invoice aggregate without the return exclusion filter. Payment Entry customer receipts remain independently available when their own source and permissions are available.

@@ -61,7 +61,7 @@ The following capabilities are present in the repository. "Implemented" means th
 
 ### Stage 0 — Repository security and reproducible CI
 
-**Status:** Merged in [PR #11](https://github.com/MitMike/crm_signals/pull/11) as [05ad767](https://github.com/MitMike/crm_signals/commit/05ad767f6b62814cca5b7d0c1e233a2f690baa77). All four gates passed on the PR head; post-merge Bench validation is being confirmed on main. The branch ruleset remains an administrator task tracked in [issue #12](https://github.com/MitMike/crm_signals/issues/12).
+**Status:** Merged in [PR #11](https://github.com/MitMike/crm_signals/pull/11) as [05ad767](https://github.com/MitMike/crm_signals/commit/05ad767f6b62814cca5b7d0c1e233a2f690baa77). All four gates passed on the PR head; post-merge Bench validation is being confirmed on main. GitHub ruleset [Protect main](https://github.com/MitMike/crm_signals/rules/26282133) (ID 26282133) is active and has been verified; the required contexts and remaining enforcement details are recorded in docs/PROGRESS.md.
 
 Work:
 - Add weekly Dependabot checks for pip, npm and GitHub Actions.
@@ -69,13 +69,14 @@ Work:
 - Use npm ci in Quality Checks and Dependency Security Audit.
 - Run pip-audit and npm audit --audit-level=moderate on relevant dependency pull requests, weekly and on manual dispatch.
 - Keep Semgrep SARIF scanning and the Frappe v15/v16 Bench + Playwright matrix.
-- Configure a main branch ruleset requiring the agreed CI checks and disabling ordinary direct pushes.
+- Verify the existing main branch policy: required CI checks, PR-only updates, blocked force pushes/deletion and required review-thread resolution. Record allowed merge methods and the no-bypass emergency procedure.
 
 Exit criteria:
 - [x] PR #11 merged after all checks passed on its latest head.
 - [x] package-lock.json is committed and npm jobs use npm ci.
 - [x] Quality Checks, Bench Integration/E2E (v15/v16 + Playwright), Security Scanning and Dependency Security Audit passed on the final PR head. Post-merge Quality Checks, Security Scanning and Bench Integration/E2E also passed on main (runs 41232593555, 41232593543 and 41232593526).
-- [ ] main ruleset is verified to require the checks. [Issue #12](https://github.com/MitMike/crm_signals/issues/12) tracks the administrator action because the connected GitHub integration cannot write/read repository rulesets.
+- [x] Required-check enforcement is confirmed: Lint/static, Python 3.10/3.11/3.12/3.14, Semgrep, and Bench v15/v16. GitHub rejected PR #16 when 7 of 8 required checks were cancelled.
+- [x] Ruleset Protect main verified active on refs/heads/main: PRs required; strict required checks; thread resolution; zero approval requirement; deletion and non-fast-forward blocked; merge/squash/rebase allowed; no bypass actors. An emergency requires an authorized administrator to edit the ruleset temporarily and revert it. [Issue #12](https://github.com/MitMike/crm_signals/issues/12) closed.
 
 ### Stage 1 — Release readiness and CRM core hardening
 
@@ -87,8 +88,8 @@ Work:
 - Configure a dedicated integration user, rotateable API credentials, HTTPS, gateway rate limiting and secret storage.
 - Add source DocType, source document name and source event ID to CRM Signals; enforce idempotent inserts for identifiable events.
 - Add a validated CRM Signals Settings singleton for the quotation threshold, Opportunity trigger statuses, Lead stale window, digest time and escalation recipients.
-- Fix D1 active-count handling when a required status field is missing: mark status-dependent metrics unavailable, never count every row as active.
-- Require is_return metadata for D2 measures whose contract says "exclude returns"; mark the relevant measure unavailable if the filter cannot be safely applied.
+- [x] Fix D1 active-count handling when `status` metadata is missing: active Leads/Opportunities, stage distribution and active pipeline are unavailable; independent counts/recent records remain available. Regression tests are included in `fix/stage1-metric-correctness`; CI/merge is pending.
+- [x] Require `is_return` metadata for every return-sensitive D2 Sales Invoice measure. Invoiced, POS, outstanding and overdue measures are unavailable when the field is missing; no Sales Invoice aggregate runs without the return filter. Payment Entry receipts remain independent. Regression tests are included in `fix/stage1-metric-correctness`; CI/merge is pending.
 - Verify that CRM Signal list, direct-document, API, report and export permissions are equivalent.
 - Verify that the current shared is_read flag is acceptable as a team acknowledgement.
 - Confirm daily digest currency formatting, site timezone, recipients and duplicate-run behavior.

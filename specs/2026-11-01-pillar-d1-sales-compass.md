@@ -1,6 +1,6 @@
 # D1 — Sales Compass
 
-**Status:** Implemented; metric-semantics hardening and target-site validation remain.
+**Status:** Implemented baseline; status-metadata safety fix is in branch `fix/stage1-metric-correctness` and awaiting CI/merge. Target-site workflow/status validation remains.
 
 ## Problem and user
 
@@ -68,4 +68,4 @@ Implementation is in crm_signals.api.get_sales_compass_data and crm_signals/crm_
 
 ## Known correctness hardening
 
-Current code treats every Lead as active when Lead.status is absent and can treat every Opportunity as active when Opportunity.status is absent. This is not semantically safe. The implementation must change to mark status-dependent metrics unavailable in that case. Confirm the terminal-status list with the target site; allow explicit configuration for custom workflows.
+The baseline code treated every Lead/Opportunity as active when the corresponding status field was absent. The Stage 1 correction now marks Lead active count, Opportunity active count, stage distribution and active pipeline unavailable when their required status metadata is missing; total/created counts and recent Opportunity rows remain available where their independent fields/permissions permit. Confirm the terminal-status list with the target site and allow explicit configuration for custom workflows.
