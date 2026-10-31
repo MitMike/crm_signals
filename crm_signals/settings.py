@@ -9,7 +9,6 @@ import re
 
 import frappe
 
-
 PRESETS = {
     "Balanced": {
         "enable_quotation_signals": 1,
