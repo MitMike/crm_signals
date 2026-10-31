@@ -204,14 +204,12 @@ Append a new ADR with the next available identifier. Include status, date record
 
 ## ADR-023 — Enforce CI on main without blocking a solo maintainer
 
-- **Status:** Partially verified; required-check enforcement is active
+- **Status:** Accepted and verified on 2026-11-01
 - **Recorded:** 2026-11-01
-- **Decision:** The required check contexts observed on main are Lint and static checks; Python unit tests on 3.10, 3.11, 3.12 and 3.14; Semgrep static security analysis; Bench v15/Python 3.11; and Bench v16/Python 3.14 with authenticated Playwright E2E. A merge attempt for PR #16 was rejected because 7 of those 8 required checks were cancelled, confirming that merge enforcement is active. Dependency Security Audit passes as a workflow but is not one of the eight required contexts surfaced by this rejection. Keep the required checks as a merge gate. Prefer PR-based changes, block force pushes and deletion, require conversation resolution, and retain a documented administrator emergency path. Do not require a fixed approval count while one maintainer is responsible for the repository; add peer review when another maintainer becomes available.
-- **Rationale:** Green CI must be enforced rather than advisory, but a required second-person approval would make a solo maintainer unable to deliver urgent fixes.
-- **Consequences:** The connected integration cannot read the complete ruleset details (403). An administrator must verify PR requirements, direct-push policy, force-push/deletion restrictions, conversation resolution, approval settings and break-glass access. [Issue #12](https://github.com/MitMike/crm_signals/issues/12) tracks the remaining audit. Do not claim those settings are verified until evidence is recorded in PROGRESS.md.
-- **Sources:** [Quality gates](QUALITY_GATES.md), [Progress](PROGRESS.md), [Issue #12](https://github.com/MitMike/crm_signals/issues/12).
-
-
+- **Decision:** The repository's active ruleset [Protect main](https://github.com/MitMike/crm_signals/rules/26282133) (ID 26282133) targets refs/heads/main. It requires pull requests, strict/up-to-date success for eight contexts (Lint and static checks; Python 3.10, 3.11, 3.12 and 3.14; Semgrep static security analysis; Bench v15/Python 3.11; Bench v16/Python 3.14 with Playwright), and resolved review threads. It blocks branch deletion and non-fast-forward updates (force pushes). Allowed merge methods are merge, squash and rebase. Required approving review count is 0; code-owner and last-push approval are not required. There are no bypass actors, and the current user cannot bypass.
+- **Rationale:** Green CI must be enforced rather than advisory, while a fixed second-person approval requirement would deadlock a solo maintainer. Force-push and deletion protection reduce destructive risk.
+- **Consequences:** Keep the eight required contexts stable and update the ruleset when workflow job names change. Dependency Security Audit passes as a separate workflow but is not currently one of the eight required contexts. No emergency bypass actor is configured; emergency recovery requires an authorized administrator to edit the ruleset temporarily, record the reason and restore enforcement immediately. [Issue #12](https://github.com/MitMike/crm_signals/issues/12) was closed after the ruleset was verified.
+- **Sources:** [Ruleset Protect main](https://github.com/MitMike/crm_signals/rules/26282133), [Quality gates](QUALITY_GATES.md), [Progress](PROGRESS.md), [Issue #12](https://github.com/MitMike/crm_signals/issues/12).
 ## ADR-024 — Status-dependent metrics are unavailable without status metadata
 
 - **Status:** Accepted
