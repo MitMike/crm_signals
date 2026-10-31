@@ -156,7 +156,7 @@ def inspect_file(path: Path, exceptions: dict[str, str]) -> tuple[list[str], lis
         function_warning, function_error = FUNCTION_THRESHOLDS[category]
         lines = source.splitlines()
         for node in ast.walk(tree):
-            if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            if not isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef):
                 continue
             end_line = getattr(node, "end_lineno", node.lineno)
             function_lines = nonblank_line_count(
