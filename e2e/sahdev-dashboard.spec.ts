@@ -271,7 +271,7 @@ test("Status-dependent metrics show unavailable states when status metadata is m
     await expect(
         page.getByText("Opportunity status field is unavailable; stage distribution cannot be calculated.")
     ).toBeVisible();
-    await expect(page.getByText("Status field unavailable")).toBeVisible();
+    await expect(page.getByText("Status field unavailable", { exact: true })).toBeVisible();
 });
 
 test("API permission failures render a helpful message", async ({ page }) => {
