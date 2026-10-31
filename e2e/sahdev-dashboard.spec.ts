@@ -239,9 +239,9 @@ test("Empty ERPNext datasets render empty states", async ({ page }) => {
     ).toBeVisible();
 });
 
-test(
-    "Status-dependent metrics show unavailable states when status metadata is missing",
-    async ({ page }) => {
+test("Status-dependent metrics show unavailable states when status metadata is missing", async ({
+    page
+}) => {
     await loginAsAdministrator(page);
     const payload = dashboardPayload({
         leads: {
@@ -266,22 +266,19 @@ test(
 
     await page.goto("/app/sahdev-dashboard");
 
-        await expect(
-            page.getByText("Lead status field unavailable")
-        ).toBeVisible();
-        await expect(
-            page.getByText("Opportunity status field unavailable")
-        ).toBeVisible();
-        await expect(
-            page.getByText(
-                "Opportunity status field is unavailable; stage distribution cannot be calculated."
-            )
-        ).toBeVisible();
-        await expect(
-            page.getByText("Status field unavailable", { exact: true })
-        ).toBeVisible();
-    }
-);
+    await expect(page.getByText("Lead status field unavailable")).toBeVisible();
+    await expect(
+        page.getByText("Opportunity status field unavailable")
+    ).toBeVisible();
+    await expect(
+        page.getByText(
+            "Opportunity status field is unavailable; stage distribution cannot be calculated."
+        )
+    ).toBeVisible();
+    await expect(
+        page.getByText("Status field unavailable", { exact: true })
+    ).toBeVisible();
+});
 
 test("API permission failures render a helpful message", async ({ page }) => {
     await loginAsAdministrator(page);
