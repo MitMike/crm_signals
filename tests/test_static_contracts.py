@@ -101,6 +101,8 @@ def test_dashboard_page_workspace_and_permission_aware_api():
     assert '"CRM Signal"' in api
     assert 'frappe.has_permission("CRM Signal", ptype="read")' in api
     assert "frappe.db.sql(" not in api
+    assert '_dashboard_aggregate_field("COUNT", "name", "total")' in api
+    assert '"count(name) as total"' not in api
     permissions = (APP_ROOT / "permissions.py").read_text()
     assert "def _get_visible_party_names" in permissions
     assert "frappe.get_list(" in permissions
