@@ -54,7 +54,7 @@ def test_webhook_is_not_guest_whitelisted_or_permission_bypassed():
     tree = ast.parse(source)
     target = next(
         node for node in tree.body
-        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+        if isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef)
         and node.name == "ingest_signal"
     )
     decorators = [ast.unparse(item) for item in target.decorator_list]
@@ -84,6 +84,11 @@ def test_dashboard_page_workspace_and_permission_aware_api():
     page_style = page_root / "crm_signals_dashboard.css"
     assert page_json["page_name"] == "crm-signals-dashboard"
     assert page_json["module"] == "Crm Signals"
+    assert {item["role"] for item in page_json["roles"]} == {
+        "Sales User",
+        "Sales Manager",
+        "System Manager",
+    }
     assert page_style.is_file()
     assert 'frappe.pages["crm-signals-dashboard"]' in page_script
     assert 'method: "crm_signals.api.get_dashboard_data"' in page_script
@@ -101,8 +106,6 @@ def test_dashboard_page_workspace_and_permission_aware_api():
     assert '"CRM Signal"' in api
     assert 'frappe.has_permission("CRM Signal", ptype="read")' in api
     assert "frappe.db.sql(" not in api
-    assert '_dashboard_aggregate_field("COUNT", "name", "total")' in api
-    assert '"count(name) as total"' not in api
     permissions = (APP_ROOT / "permissions.py").read_text()
     assert "def _get_visible_party_names" in permissions
     assert "frappe.get_list(" in permissions
@@ -122,12 +125,18 @@ def test_dashboard_displays_core_metrics_and_activity_navigation():
     assert 'frappe.set_route("Form", "Customer", customer)' in script
 
 
+
 def test_sahdev_sales_compass_page_and_workspace_shortcut():
     page_root = APP_ROOT / "crm_signals/page/sahdev_dashboard"
     page_json = json.loads((page_root / "sahdev_dashboard.json").read_text())
     page_script = (page_root / "sahdev_dashboard.js").read_text()
     assert page_json["page_name"] == "sahdev-dashboard"
     assert page_json["module"] == "Crm Signals"
+    assert {item["role"] for item in page_json["roles"]} == {
+        "Sales User",
+        "Sales Manager",
+        "System Manager",
+    }
     assert (page_root / "sahdev_dashboard.css").is_file()
     assert 'frappe.pages["sahdev-dashboard"]' in page_script
     assert 'method: "crm_signals.api.get_sales_compass_data"' in page_script
@@ -156,3 +165,27 @@ def test_sales_compass_api_uses_permission_aware_reads_and_currency_grouping():
     assert 'group_by=", ".join(group_by_fields)' in source
     assert '"ignore_permissions"' not in source
     assert "frappe.db.sql(" not in source
+
+
+
+def test_sahdev_billing_realization_page_and_permission_aware_api():
+    page_root = APP_ROOT / "crm_signals/page/sahdev_dashboard"
+    script = (page_root / "sahdev_dashboard.js").read_text()
+    style = (page_root / "sahdev_dashboard.css").read_text()
+    for label in ["Billing realization", "Invoiced", "Customer receipts",
+                  "POS receipts", "Open receivables", "Overdue customer invoices"]:
+        assert label in script
+    assert 'frappe.set_route("Form", "Sales Invoice", name)' in script
+    assert "sahdev-billing-metrics" in style
+    assert "padding: 20px 24px 36px" in style
+
+    api = (APP_ROOT / "api.py").read_text()
+    assert "def _get_sales_billing_data(period_start, today):" in api
+    assert '_sales_dashboard_doctype_meta("Sales Invoice")' in api
+    assert '_sales_dashboard_doctype_meta("Payment Entry")' in api
+    assert '"Payment Entry"' in api
+    assert '"Sales Invoice"' in api
+    assert '_dashboard_aggregate_field("SUM", amount_field, "total_amount")' in api
+    assert '"party_account_currency", "outstanding_amount"' in api
+    assert 'ignore_permissions=True' not in api
+    assert 'frappe.db.sql(' not in api

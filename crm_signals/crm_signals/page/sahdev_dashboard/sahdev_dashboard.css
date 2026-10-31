@@ -1,5 +1,6 @@
 .sahdev-sales-compass {
-    padding: 20px 0 36px;
+    padding: 20px 24px 36px;
+    box-sizing: border-box;
 }
 .sahdev-intro {
     margin-bottom: 20px;
@@ -167,11 +168,127 @@
 }
 @media (max-width: 1000px) {
     .sahdev-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .sahdev-billing-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .sahdev-panels { grid-template-columns: 1fr; }
 }
 @media (max-width: 480px) {
+    .sahdev-sales-compass { padding-right: 12px; padding-left: 12px; }
     .sahdev-metrics { gap: 8px; }
+    .sahdev-billing-metrics { gap: 8px; }
     .sahdev-metric-card { padding: 12px; }
     .sahdev-metric-value { font-size: 23px; }
     .sahdev-opportunity-row { padding: 12px; }
+}
+
+
+.sahdev-billing-section {
+    margin-top: 32px;
+}
+.sahdev-section-intro {
+    margin-bottom: 15px;
+}
+.sahdev-section-intro h3 {
+    margin: 3px 0 5px;
+    font-size: 19px;
+    font-weight: 700;
+}
+.sahdev-section-intro p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 12px;
+}
+.sahdev-billing-metrics {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 16px;
+}
+.sahdev-billing-currency-line {
+    display: block;
+    min-width: 0;
+    margin: 0 0 7px;
+}
+.sahdev-billing-currency-line:last-child {
+    margin-bottom: 0;
+}
+.sahdev-billing-currency-line strong {
+    display: block;
+    font-size: 16px;
+    line-height: 1.3;
+}
+.sahdev-billing-currency-line small {
+    display: block;
+    margin-top: 2px;
+    color: var(--text-muted);
+    font-size: 10px;
+    font-weight: 500;
+}
+.sahdev-overdue-panel {
+    margin-top: 2px;
+}
+.sahdev-panel-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+.sahdev-overdue-count {
+    color: var(--text-muted);
+    font-size: 11px;
+}
+.sahdev-invoice-list {
+    display: flex;
+    flex-direction: column;
+}
+.sahdev-invoice-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    padding: 13px 16px;
+    color: var(--text-color);
+    text-align: left;
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--border-color);
+}
+.sahdev-invoice-row:last-child {
+    border-bottom: 0;
+}
+.sahdev-invoice-row:hover {
+    background: var(--bg-light-gray);
+}
+.sahdev-invoice-main,
+.sahdev-invoice-side {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    gap: 4px;
+}
+.sahdev-invoice-main strong,
+.sahdev-invoice-side strong {
+    font-size: 12px;
+}
+.sahdev-invoice-side {
+    flex-shrink: 0;
+    align-items: flex-end;
+}
+.sahdev-invoice-side span {
+    color: var(--text-muted);
+    font-size: 10px;
+}
+.sahdev-billing-note {
+    padding: 10px 0 0;
+    color: var(--text-muted);
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+@media (max-width: 1000px) {
+    .sahdev-billing-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 480px) {
+    .sahdev-billing-metrics { gap: 8px; }
+    .sahdev-invoice-row { padding: 12px; }
 }

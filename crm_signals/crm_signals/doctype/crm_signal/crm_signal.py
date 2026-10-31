@@ -1,7 +1,6 @@
 import frappe
 from frappe.model.document import Document
 
-
 ALLOWED_SIGNAL_TYPES = {
     "Website Visit",
     "Email Opened",

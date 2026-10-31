@@ -68,7 +68,7 @@ class CRMSignalsDashboard {
     }
 
     escape(value) {
-        return frappe.utils.escape_html(String(value == null ? "" : value));
+        return frappe.utils.escape_html(String(value === null || value === undefined ? "" : value));
     }
 
     number(value) {

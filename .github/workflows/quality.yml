@@ -4,10 +4,59 @@ on:
   push:
   pull_request:
 
+concurrency:
+  group: quality-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  static-and-unit:
+  lint:
+    name: Lint and static checks
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+      - name: Install Ruff
+        run: python -m pip install --upgrade pip ruff==0.8.1 pyyaml==6.0.2
+      - name: Python lint
+        run: ruff check crm_signals tests
+      - name: Install JavaScript tooling
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: ESLint and Oxlint
+        run: npm run lint:js
+      - name: Check formatting of tooling and E2E tests
+        run: npm run format:check
+      - name: Compile Python
+        run: python -m compileall -q crm_signals tests
+      - name: Validate JSON, YAML and TOML
+        run: |
+          python - <<'PY'
+          import json
+          import tomllib
+          from pathlib import Path
+          import yaml
+
+          for path in Path(".").rglob("*.json"):
+              if "node_modules" not in path.parts:
+                  json.loads(path.read_text())
+          tomllib.loads(Path("pyproject.toml").read_text())
+          for path in [Path(".github/workflows/quality.yml"), Path(".github/workflows/bench-e2e.yml"), Path(".pre-commit-config.yaml")]:
+              if path.exists():
+                  yaml.safe_load(path.read_text())
+          print("Configuration files are valid")
+          PY
+
+  unit:
+    name: Python unit tests (${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
     strategy:
+      fail-fast: false
       matrix:
         python-version: ["3.10", "3.11", "3.12", "3.14"]
     steps:
@@ -15,18 +64,19 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
-      - uses: actions/setup-node@v6
-        with:
-          node-version: "24"
-      - name: Install test runner
-        run: python -m pip install --upgrade pip pytest
+      - name: Install test dependencies
+        run: python -m pip install --upgrade pip pytest pytest-cov
       - name: Validate editable package install
         run: python -m pip install -e .
       - name: Compile application
-        run: python -m compileall -q crm_signals
-      - name: Check Desk page JavaScript syntax
-        run: |
-          node --check crm_signals/crm_signals/page/crm_signals_dashboard/crm_signals_dashboard.js
-          node --check crm_signals/crm_signals/page/sahdev_dashboard/sahdev_dashboard.js
-      - name: Run tests
-        run: python -m pytest -q
+        run: python -m compileall -q crm_signals tests
+      - name: Run tests with coverage
+        run: python -m pytest -q --cov=crm_signals --cov-report=term-missing --cov-report=xml
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-coverage-${{ matrix.python-version }}
+          path: coverage.xml
+          if-no-files-found: ignore
+          retention-days: 7
