@@ -155,3 +155,26 @@ def test_sales_compass_api_uses_permission_aware_reads_and_currency_grouping():
     assert 'group_by=", ".join(group_by_fields)' in source
     assert '"ignore_permissions"' not in source
     assert "frappe.db.sql(" not in source
+
+
+
+def test_sahdev_billing_realization_page_and_permission_aware_api():
+    page_root = APP_ROOT / "crm_signals/page/sahdev_dashboard"
+    script = (page_root / "sahdev_dashboard.js").read_text()
+    style = (page_root / "sahdev_dashboard.css").read_text()
+    for label in ["Billing realization", "Invoiced", "Customer receipts",
+                  "POS receipts", "Open receivables", "Overdue customer invoices"]:
+        assert label in script
+    assert 'frappe.set_route("Form", "Sales Invoice", name)' in script
+    assert "sahdev-billing-metrics" in style
+    assert "padding: 20px 24px 36px" in style
+
+    api = (APP_ROOT / "api.py").read_text()
+    assert "def _get_sales_billing_data(period_start, today):" in api
+    assert '_sales_dashboard_doctype_meta("Sales Invoice")' in api
+    assert '_sales_dashboard_doctype_meta("Payment Entry")' in api
+    assert '"Payment Entry"' in api
+    assert '"Sales Invoice"' in api
+    assert '_dashboard_aggregate_field("SUM", amount_field, "total_amount")' in api
+    assert 'ignore_permissions=True' not in api
+    assert 'frappe.db.sql(' not in api
