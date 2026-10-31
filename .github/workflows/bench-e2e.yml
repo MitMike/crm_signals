@@ -17,12 +17,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - frappe-branch: version-15
+          - frappe_branch: version-15
             python-version: "3.11"
-            run-e2e: false
-          - frappe-branch: version-16
+            run_e2e: false
+          - frappe_branch: version-16
             python-version: "3.14"
-            run-e2e: true
+            run_e2e: true
 
     services:
       redis-cache:
@@ -75,12 +75,12 @@ jobs:
       - name: Initialize Bench
         run: |
           uv tool install frappe-bench
-          bench init --skip-redis-config-generation --skip-assets --frappe-branch "${{ matrix.frappe-branch }}" --python "$(which python)" ~/frappe-bench
+          bench init --skip-redis-config-generation --skip-assets --frappe-branch "${{ matrix.frappe_branch }}" --python "$(which python)" ~/frappe-bench
 
       - name: Get ERPNext and CRM Signals
         working-directory: /home/runner/frappe-bench
         run: |
-          bench get-app --skip-assets erpnext https://github.com/frappe/erpnext --branch "${{ matrix.frappe-branch }}"
+          bench get-app --skip-assets erpnext https://github.com/frappe/erpnext --branch "${{ matrix.frappe_branch }}"
           bench get-app --skip-assets crm_signals "${{ github.workspace }}"
           bench setup requirements --dev
 
@@ -95,7 +95,7 @@ jobs:
           bench --site test.local set-config allow_tests true
           bench --site test.local set-config host_name "http://test.local:8000"
           bench --site test.local migrate
-          bench build --app crm_signals
+          bench build
 
       - name: Run Python tests in the Bench environment
         working-directory: /home/runner/frappe-bench/apps/crm_signals
@@ -104,14 +104,14 @@ jobs:
           ../../env/bin/python -m pytest -q tests --cov=crm_signals --cov-report=term-missing
 
       - name: Install Playwright browser
-        if: ${{ matrix.run-e2e }}
+        if: ${{ matrix.run_e2e }}
         working-directory: ${{ github.workspace }}
         run: |
           npm install --ignore-scripts --no-audit --no-fund
           npx playwright install --with-deps chromium
 
       - name: Start Frappe for browser tests
-        if: ${{ matrix.run-e2e }}
+        if: ${{ matrix.run_e2e }}
         working-directory: /home/runner/frappe-bench
         run: |
           sed -i 's/^watch:/# watch:/g' Procfile
@@ -123,7 +123,7 @@ jobs:
           echo "Frappe is ready."
 
       - name: Run Playwright E2E
-        if: ${{ matrix.run-e2e }}
+        if: ${{ matrix.run_e2e }}
         working-directory: ${{ github.workspace }}
         env:
           BASE_URL: http://test.local:8000
@@ -133,7 +133,7 @@ jobs:
         run: npm run test:e2e
 
       - name: Upload Playwright report
-        if: always() && ${{ matrix.run-e2e }}
+        if: always() && ${{ matrix.run_e2e }}
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
