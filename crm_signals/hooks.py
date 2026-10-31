@@ -22,3 +22,11 @@ doc_events = {
         "on_update": "crm_signals.events.on_opportunity_update"
     }
 }
+
+# Restrict row-level access to the linked Lead/Customer or active assignee.
+has_permission = {
+    "CRM Signal": "crm_signals.permissions.crm_signal_has_permission",
+}
+permission_query_conditions = {
+    "CRM Signal": "crm_signals.permissions.crm_signal_query",
+}
