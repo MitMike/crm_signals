@@ -4,23 +4,34 @@ const dashboardMethod = "**/api/method/crm_signals.api.get_sales_compass_data*";
 
 async function loginAs(page: Page, username: string, password: string) {
     await page.goto("/login");
+
+    const loginResponsePromise = page.waitForResponse(
+        (response) =>
+            response.url().includes("/api/method/login") &&
+            response.request().method() === "POST",
+        { timeout: 30_000 }
+    );
+
     await page.locator("#login_email").fill(username);
     await page.locator("#login_password").fill(password);
     await page.locator('.form-login button[type="submit"]').click();
 
+    const loginResponse = await loginResponsePromise;
+    expect(loginResponse.ok()).toBeTruthy();
+
     await expect
         .poll(
             async () => {
-                const response = await page.request.get(
-                    "/api/method/frappe.auth.get_logged_user"
+                const sid = (await page.context().cookies()).find(
+                    (cookie) => cookie.name === "sid"
                 );
-                if (!response.ok()) return "";
-                const payload = await response.json();
-                return payload.message || "";
+                return Boolean(sid && sid.value && sid.value !== "Guest");
             },
-            { timeout: 30_000 }
+            { timeout: 15_000 }
         )
-        .toBe(username);
+        .toBe(true);
+
+    await page.goto("/app");
 }
 
 async function loginAsAdministrator(page: Page) {
@@ -35,21 +46,47 @@ async function createRoleUser(
     page: Page,
     email: string,
     firstName: string,
-    role: string,
-    password: string
+    role: string
 ) {
-    const response = await page.request.post("/api/resource/User", {
-        data: {
-            email,
-            first_name: firstName,
-            enabled: 1,
-            user_type: "System User",
-            new_password: password,
-            send_welcome_email: 0,
-            roles: [{ role }]
-        }
+    const result = await page.evaluate(
+        async ({ email, firstName, role }) => {
+            const frappeApp = (window as any).frappe;
+            const csrfToken =
+                frappeApp?.csrf_token || (window as any).csrf_token || "";
+            const response = await fetch("/api/resource/User", {
+                method: "POST",
+                credentials: "same-origin",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-Frappe-CSRF-Token": csrfToken
+                },
+                body: JSON.stringify({
+                    email,
+                    first_name: firstName,
+                    enabled: 1,
+                    user_type: "System User",
+                    send_welcome_email: 0,
+                    roles: [{ role }]
+                })
+            });
+            const payload = await response.json();
+            return { status: response.status, payload };
+        },
+        { email, firstName, role }
+    );
+
+    expect([200, 201]).toContain(result.status);
+}
+
+async function currentUserRoles(page: Page): Promise<string[]> {
+    return page.evaluate(async () => {
+        const response = await fetch(
+            "/api/method/frappe.core.doctype.user.user.get_current_user_roles",
+            { credentials: "same-origin" }
+        );
+        const payload = await response.json();
+        return payload.message || [];
     });
-    expect(response.ok()).toBeTruthy();
 }
 
 function dashboardPayload(overrides: Record<string, unknown> = {}) {
@@ -292,18 +329,16 @@ test("CRM Signals dashboard loads its live API", async ({ page }) => {
 
 test("Sales User can open the Executive Compass", async ({ page }) => {
     await loginAsAdministrator(page);
-    const email = "e2e-sales-user@example.com";
-    const password = "E2E-Sales-User-Password-2026";
-    await createRoleUser(page, email, "E2E Sales User", "Sales User", password);
+    const email = process.env.E2E_SALES_USER || "e2e-sales-user@example.com";
+    const password = process.env.E2E_SALES_PASSWORD;
+    expect(password).toBeTruthy();
+    await createRoleUser(page, email, "E2E Sales User", "Sales User");
 
     await page.context().clearCookies();
-    await loginAs(page, email, password);
+    await loginAs(page, email, password!);
 
-    const rolesResponse = await page.request.get(
-        "/api/method/frappe.core.doctype.user.user.get_current_user_roles"
-    );
-    expect(rolesResponse.ok()).toBeTruthy();
-    expect((await rolesResponse.json()).message).toContain("Sales User");
+    const roles = await currentUserRoles(page);
+    expect(roles).toContain("Sales User");
 
     await page.goto("/app/sahdev-dashboard");
     await expect(
@@ -313,18 +348,15 @@ test("Sales User can open the Executive Compass", async ({ page }) => {
 
 test("Users without a Sales role cannot open the Compass", async ({ page }) => {
     await loginAsAdministrator(page);
-    const email = "e2e-employee@example.com";
-    const password = "E2E-Employee-Password-2026";
-    await createRoleUser(page, email, "E2E Employee", "Employee", password);
+    const email = process.env.E2E_EMPLOYEE_USER || "e2e-employee@example.com";
+    const password = process.env.E2E_EMPLOYEE_PASSWORD;
+    expect(password).toBeTruthy();
+    await createRoleUser(page, email, "E2E Employee", "Employee");
 
     await page.context().clearCookies();
-    await loginAs(page, email, password);
+    await loginAs(page, email, password!);
 
-    const rolesResponse = await page.request.get(
-        "/api/method/frappe.core.doctype.user.user.get_current_user_roles"
-    );
-    expect(rolesResponse.ok()).toBeTruthy();
-    const roles = (await rolesResponse.json()).message;
+    const roles = await currentUserRoles(page);
     expect(roles).toContain("Employee");
     expect(roles).not.toContain("Sales User");
     expect(roles).not.toContain("Sales Manager");
