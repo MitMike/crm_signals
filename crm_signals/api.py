@@ -72,11 +72,11 @@ def ingest_signal():
         "priority": priority,
         "is_read": 0,
     })
+    from crm_signals.notifications import notify_signal, set_recipient_tokens
+
+    recipients = set_recipient_tokens(doc)
     doc.insert()  # Enforces normal Frappe permissions; framework owns transaction.
-
-    from crm_signals.notifications import notify_signal
-
-    notify_signal(doc)
+    notify_signal(doc, recipients=recipients)
     return {"status": "success", "signal": doc.name}
 
 
