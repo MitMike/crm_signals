@@ -61,7 +61,7 @@ The following capabilities are present in the repository. "Implemented" means th
 
 ### Stage 0 — Repository security and reproducible CI
 
-**Status:** In progress in [PR #11](https://github.com/MitMike/crm_signals/pull/11).
+**Status:** Merged in [PR #11](https://github.com/MitMike/crm_signals/pull/11) as [05ad767](https://github.com/MitMike/crm_signals/commit/05ad767f6b62814cca5b7d0c1e233a2f690baa77). All four gates passed on the PR head; post-merge Bench validation is being confirmed on main. The branch ruleset remains an administrator task tracked in [issue #12](https://github.com/MitMike/crm_signals/issues/12).
 
 Work:
 - Add weekly Dependabot checks for pip, npm and GitHub Actions.
@@ -72,10 +72,10 @@ Work:
 - Configure a main branch ruleset requiring the agreed CI checks and disabling ordinary direct pushes.
 
 Exit criteria:
-- [ ] PR #11 merged after all checks pass on its latest head.
-- [ ] package-lock.json is committed and npm jobs use npm ci.
-- [ ] Quality Checks, Bench Integration/E2E, Security Scanning and Dependency Security Audit pass on the merged main head.
-- [ ] main ruleset is verified to require the checks. If the GitHub connection cannot write rulesets, record the exact manual action as a repository blocker.
+- [x] PR #11 merged after all checks passed on its latest head.
+- [x] package-lock.json is committed and npm jobs use npm ci.
+- [x] Quality Checks, Bench Integration/E2E (v15/v16 + Playwright), Security Scanning and Dependency Security Audit passed on the final PR head. Post-merge Quality Checks and Security Scanning also passed on main; the fresh post-merge Bench run was still completing v16 when this plan was updated.
+- [ ] main ruleset is verified to require the checks. [Issue #12](https://github.com/MitMike/crm_signals/issues/12) tracks the administrator action because the connected GitHub integration cannot write/read repository rulesets.
 
 ### Stage 1 — Release readiness and CRM core hardening
 
