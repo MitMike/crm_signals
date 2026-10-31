@@ -15,6 +15,24 @@ ALLOWED_PRIORITIES = {"Low", "Medium", "High", "Urgent"}
 MAX_MESSAGE_LENGTH = 2000
 
 
+def _dashboard_aggregate_field(operation, fieldname, alias):
+    """Use the aggregate field syntax supported by the installed Frappe major version.
+
+    Frappe v16 moved aggregate fields from raw SQL strings to a structured
+    dict representation. Keep the app compatible with both declared versions.
+    """
+    version = str(getattr(frappe, "__version__", "15"))
+    try:
+        major_version = int(version.split(".", 1)[0])
+    except (TypeError, ValueError):
+        major_version = 15
+
+    if major_version >= 16:
+        return {operation.upper(): fieldname, "as": alias}
+    return f"{operation.lower()}({fieldname}) as {alias}"
+
+
+
 def _read_text(value, fieldname, *, required=False, max_length=None):
     if value is None:
         value = ""
@@ -98,7 +116,7 @@ def get_dashboard_data():
     def count_signals(filters=None):
         rows = frappe.get_list(
             "CRM Signal",
-            fields=["count(name) as total"],
+            fields=[_dashboard_aggregate_field("COUNT", "name", "total")],
             filters=filters or {},
             limit_page_length=1,
         )
@@ -113,7 +131,7 @@ def get_dashboard_data():
 
     by_type = frappe.get_list(
         "CRM Signal",
-        fields=["signal_type", "count(name) as total"],
+        fields=["signal_type", _dashboard_aggregate_field("COUNT", "name", "total")],
         group_by="signal_type",
         order_by="signal_type asc",
         limit_page_length=20,
@@ -216,7 +234,7 @@ def get_sales_compass_data():
     try:
         lead_meta = _sales_dashboard_doctype_meta("Lead")
         if lead_meta:
-            lead_group_fields = ["count(name) as total"]
+            lead_group_fields = [_dashboard_aggregate_field("COUNT", "name", "total")]
             lead_group_by = None
             if lead_meta.has_field("status"):
                 lead_group_fields.insert(0, "status")
@@ -240,7 +258,7 @@ def get_sales_compass_data():
             )
             new_lead_rows = frappe.get_list(
                 "Lead",
-                fields=["count(name) as total"],
+                fields=[_dashboard_aggregate_field("COUNT", "name", "total")],
                 filters={"creation": [">=", period_start]},
                 limit_page_length=1,
             )
@@ -261,7 +279,7 @@ def get_sales_compass_data():
             has_amount = opportunity_meta.has_field("opportunity_amount")
             has_currency = opportunity_meta.has_field("currency")
 
-            group_fields = ["count(name) as total"]
+            group_fields = [_dashboard_aggregate_field("COUNT", "name", "total")]
             group_by_fields = []
             if has_status:
                 group_fields.insert(0, "status")
@@ -270,7 +288,7 @@ def get_sales_compass_data():
                 group_fields.append("currency")
                 group_by_fields.append("currency")
             if has_amount:
-                group_fields.append("sum(opportunity_amount) as total_amount")
+                group_fields.append(_dashboard_aggregate_field("SUM", "opportunity_amount", "total_amount"))
 
             group_rows = frappe.get_list(
                 "Opportunity",
