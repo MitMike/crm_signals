@@ -9,6 +9,7 @@ def load_api(monkeypatch, user="sales.user@example.com", allowed=True):
     frappe = types.ModuleType("frappe")
     frappe.__path__ = []
     frappe._ = lambda message: message
+    frappe.whitelist = lambda **kwargs: (lambda function: function)
     frappe.session = types.SimpleNamespace(user=user)
     frappe.has_permission = lambda *args, **kwargs: allowed
 
