@@ -24,6 +24,7 @@ class FakeSignal:
         self.name = name
         self.signal_type = "Website Visit"
         self.priority = "Medium"
+        self.message = "Sample CRM signal message"
 
 
 def load_module(monkeypatch, owner_map, assignments, enabled_users):
@@ -78,3 +79,4 @@ def test_notification_targets_each_resolved_user(monkeypatch):
         "owner@example.com", "rep@example.com"
     }
     assert all(event["after_commit"] is True for event in published)
+    assert all(event["message"]["message"] == "Sample CRM signal message" for event in published)
