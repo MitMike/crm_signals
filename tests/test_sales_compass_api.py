@@ -5,12 +5,13 @@ import sys
 import types
 
 
-def load_sales_api(monkeypatch, *, lead_read=True, opportunity_read=True, user="sales@example.com"):
+def load_sales_api(monkeypatch, *, lead_read=True, opportunity_read=True, user="sales@example.com", version="15.0.0"):
     frappe = types.ModuleType("frappe")
     frappe.__path__ = []
     frappe._ = lambda message: message
     frappe.whitelist = lambda **kwargs: (lambda function: function)
     frappe.session = types.SimpleNamespace(user=user)
+    frappe.__version__ = version
 
     class AuthenticationError(Exception):
         pass
@@ -131,3 +132,22 @@ def test_sales_compass_requires_authenticated_user(monkeypatch):
         assert isinstance(exc, frappe.AuthenticationError)
     else:
         raise AssertionError("Guest must not be able to read the sales compass")
+
+
+
+def test_sales_compass_uses_structured_aggregates_on_frappe_v16(monkeypatch):
+    api, queries, _ = load_sales_api(monkeypatch, version="16.0.0")
+
+    result = api.get_sales_compass_data()
+
+    assert result["opportunities"]["active_count"] == 4
+    assert any(
+        isinstance(field, dict) and field.get("COUNT") == "name"
+        for query in queries
+        for field in query["fields"]
+    )
+    assert any(
+        isinstance(field, dict) and field.get("SUM") == "opportunity_amount"
+        for query in queries
+        for field in query["fields"]
+    )
