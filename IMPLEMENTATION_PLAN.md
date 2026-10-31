@@ -87,8 +87,8 @@ Work:
 - Configure a dedicated integration user, rotateable API credentials, HTTPS, gateway rate limiting and secret storage.
 - Add source DocType, source document name and source event ID to CRM Signals; enforce idempotent inserts for identifiable events.
 - Add a validated CRM Signals Settings singleton for the quotation threshold, Opportunity trigger statuses, Lead stale window, digest time and escalation recipients.
-- Fix D1 active-count handling when a required status field is missing: mark status-dependent metrics unavailable, never count every row as active.
-- Require is_return metadata for D2 measures whose contract says "exclude returns"; mark the relevant measure unavailable if the filter cannot be safely applied.
+- [x] Fix D1 active-count handling when `status` metadata is missing: active Leads/Opportunities, stage distribution and active pipeline are unavailable; independent counts/recent records remain available. Regression tests are included in `fix/stage1-metric-correctness`; CI/merge is pending.
+- [x] Require `is_return` metadata for every return-sensitive D2 Sales Invoice measure. Invoiced, POS, outstanding and overdue measures are unavailable when the field is missing; no Sales Invoice aggregate runs without the return filter. Payment Entry receipts remain independent. Regression tests are included in `fix/stage1-metric-correctness`; CI/merge is pending.
 - Verify that CRM Signal list, direct-document, API, report and export permissions are equivalent.
 - Verify that the current shared is_read flag is acceptable as a team acknowledgement.
 - Confirm daily digest currency formatting, site timezone, recipients and duplicate-run behavior.
