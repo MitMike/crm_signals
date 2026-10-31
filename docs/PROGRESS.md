@@ -11,7 +11,7 @@ This file records the delivery state, validation evidence, open risks and next a
 
 The repository contains the CRM Signals Frappe extension, its Signals Console, the S.A.H.D.E.V. executive dashboard through Pillar D2 (Billing Realization), feature specifications, automated quality checks, Bench integration/E2E workflows and security scanning.
 
-The latest `main` commit checked for this update is `b55cce6`. Its three primary GitHub Actions workflows all completed successfully:
+The implementation/validation baseline for this progress snapshot is `b55cce6`. Its three primary GitHub Actions workflows all completed successfully. The project-record files and links in this snapshot were committed afterward; check their own workflow runs before treating those later documentation commits as green:
 
 | Workflow | Result | Run |
 |---|---|---|
