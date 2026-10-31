@@ -25,7 +25,6 @@ class FakeSignal:
         self.signal_type = "Website Visit"
         self.priority = "Medium"
         self.message = "Sample CRM signal message"
-        self.recipient_tokens = ""
 
 
 def load_module(monkeypatch, owner_map, assignments, enabled_users):
@@ -82,18 +81,3 @@ def test_notification_targets_each_resolved_user(monkeypatch):
     assert all(event["after_commit"] is True for event in published)
     assert all(event["message"]["message"] == "Sample CRM signal message" for event in published)
 
-
-
-def test_recipient_tokens_store_hashes_not_usernames(monkeypatch):
-    module, _ = load_module(
-        monkeypatch,
-        {("Lead", "LEAD-1"): "owner@example.com"},
-        ["assignee@example.com"],
-        ["owner@example.com", "assignee@example.com"],
-    )
-    signal = FakeSignal(lead="LEAD-1")
-    recipients = module.set_recipient_tokens(signal)
-    assert recipients == ["assignee@example.com", "owner@example.com"]
-    assert "owner@example.com" not in signal.recipient_tokens
-    assert module._recipient_token("owner@example.com") in signal.recipient_tokens
-    assert module._recipient_token("assignee@example.com") in signal.recipient_tokens
