@@ -188,7 +188,7 @@ test("Billing cards preserve currencies and drill down", async ({ page }) => {
     await expect(overdueInvoice).toContainText("ACC-SINV-E2E-0001");
 
     await overdueInvoice.click();
-    await expect(page).toHaveURL(/\/app\/sales-invoice\/ACC-SINV-E2E-0001/);
+    await expect(page).toHaveURL(/\/desk\/(?:accounts\/)?sales-invoice\/ACC-SINV-E2E-0001/);
 });
 
 test("Empty ERPNext datasets render empty states", async ({ page }) => {
