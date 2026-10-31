@@ -110,7 +110,7 @@ Production/target-site acceptance is not implied by these CI results. See [Proje
 - System Manager-only CRM Signals Settings singleton with Balanced, Sales Focused and Executive starter presets.
 - Configurable event switches, quotation threshold/currency, Opportunity trigger statuses, digest time/stale window and additional enabled System User recipients.
 - SHA-256 source-event identity with a unique database key; optional webhook event IDs return the original signal on retry.
-- Site-timezone digest scheduling, transactional queued-date marker, transaction-currency amount labels and per-recipient notification failure isolation.
+- Site-timezone digest scheduling, transactional queued-date marker, transaction-currency amount labels, registered enabled-System-User recipient validation and per-recipient notification failure isolation.
 - Administrator guide, settings/reliability spec, tests and recorded ADR-026 through ADR-030.
 
 ### Validation
