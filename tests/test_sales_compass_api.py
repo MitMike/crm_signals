@@ -5,6 +5,86 @@ import sys
 import types
 
 
+def _sales_invoice_rows(fields, filters):
+    if filters and "due_date" in filters:
+        if "customer" in fields:
+            return [{
+                "name": "SINV-OVERDUE-1",
+                "customer": "CUST-0001",
+                "customer_name": "Acme Ltd",
+                "posting_date": "2026-10-01",
+                "due_date": "2026-10-15",
+                "currency": "USD",
+                "party_account_currency": "INR",
+                "outstanding_amount": 45000,
+            }]
+        return [{"total": 2}]
+    if filters and filters.get("is_pos") == 1:
+        return [{"currency": "INR", "total_amount": 3000, "record_count": 2}]
+    if filters and "outstanding_amount" in filters:
+        return [
+            {"party_account_currency": "INR", "total_amount": 75000, "record_count": 2},
+            {"party_account_currency": "EUR", "total_amount": 300, "record_count": 1},
+        ]
+    return [
+        {"currency": "INR", "total_amount": 250000, "record_count": 3},
+        {"currency": "USD", "total_amount": 1000, "record_count": 1},
+    ]
+
+
+def _payment_entry_rows(fields, filters):
+    return [
+        {"paid_to_account_currency": "INR", "total_amount": 55000, "record_count": 2},
+        {"paid_to_account_currency": "USD", "total_amount": 500, "record_count": 1},
+    ]
+
+
+def _lead_rows(fields, filters):
+    if filters and "creation" in filters:
+        return [{"total": 5}]
+    return [
+        {"status": "Open", "total": 7},
+        {"status": "Converted", "total": 2},
+        {"status": "Do Not Contact", "total": 1},
+    ]
+
+
+def _opportunity_rows(fields, filters):
+    if "name" in fields:
+        return [{
+            "name": "OPP-0001",
+            "creation": "2026-10-31 09:00:00",
+            "status": "Open",
+            "opportunity_from": "Customer",
+            "party_name": "Acme Ltd",
+            "opportunity_amount": 120000,
+            "currency": "INR",
+            "expected_closing": "2026-11-15",
+        }]
+    return [
+        {"status": "Open", "currency": "INR", "total": 2, "total_amount": 120000},
+        {"status": "Quotation", "currency": "INR", "total": 1, "total_amount": 60000},
+        {"status": "Lost", "currency": "INR", "total": 1, "total_amount": 25000},
+        {"status": "Open", "currency": "USD", "total": 1, "total_amount": 3000},
+    ]
+
+
+def _fake_get_list(queries):
+    handlers = {
+        "Sales Invoice": _sales_invoice_rows,
+        "Payment Entry": _payment_entry_rows,
+        "Lead": _lead_rows,
+        "Opportunity": _opportunity_rows,
+    }
+
+    def get_list(doctype, fields=None, filters=None, **kwargs):
+        queries.append({"doctype": doctype, "fields": fields, "filters": filters, **kwargs})
+        handler = handlers.get(doctype)
+        return handler(fields, filters) if handler else []
+
+    return get_list
+
+
 def load_sales_api(
     monkeypatch,
     *,
@@ -39,12 +119,13 @@ def load_sales_api(
             return doctype == "DocType" and name in {"Lead", "Opportunity", "Sales Invoice", "Payment Entry"}
 
     frappe.db = FakeDB()
-    frappe.has_permission = lambda doctype, ptype="read": {
+    permissions = {
         "Lead": lead_read,
         "Opportunity": opportunity_read,
         "Sales Invoice": invoice_read,
         "Payment Entry": payment_read,
-    }.get(doctype, True)
+    }
+    frappe.has_permission = lambda doctype, ptype="read": permissions.get(doctype, True)
 
     class FakeMeta:
         fields = {
@@ -68,85 +149,18 @@ def load_sales_api(
             self.doctype = doctype
 
         def has_field(self, fieldname):
-            if self.doctype == "Lead" and fieldname == "status":
-                return lead_has_status
-            if self.doctype == "Opportunity" and fieldname == "status":
-                return opportunity_has_status
-            if self.doctype == "Sales Invoice" and fieldname == "is_return":
-                return invoice_has_is_return
+            configured_fields = {
+                ("Lead", "status"): lead_has_status,
+                ("Opportunity", "status"): opportunity_has_status,
+                ("Sales Invoice", "is_return"): invoice_has_is_return,
+            }
+            if (self.doctype, fieldname) in configured_fields:
+                return configured_fields[(self.doctype, fieldname)]
             return fieldname in self.fields.get(self.doctype, set())
 
     frappe.get_meta = lambda doctype: FakeMeta(doctype)
-
     queries = []
-
-    def get_list(doctype, fields=None, filters=None, **kwargs):
-        query = {"doctype": doctype, "fields": fields, "filters": filters, **kwargs}
-        queries.append(query)
-
-        if doctype == "Sales Invoice":
-            if filters and "due_date" in filters:
-                if "customer" in fields:
-                    return [{
-                        "name": "SINV-OVERDUE-1",
-                        "customer": "CUST-0001",
-                        "customer_name": "Acme Ltd",
-                        "posting_date": "2026-10-01",
-                        "due_date": "2026-10-15",
-                        "currency": "USD",
-                        "party_account_currency": "INR",
-                        "outstanding_amount": 45000,
-                    }]
-                return [{"total": 2}]
-            if filters and filters.get("is_pos") == 1:
-                return [
-                    {"currency": "INR", "total_amount": 3000, "record_count": 2}
-                ]
-            if filters and "outstanding_amount" in filters:
-                return [
-                    {"party_account_currency": "INR", "total_amount": 75000, "record_count": 2},
-                    {"party_account_currency": "EUR", "total_amount": 300, "record_count": 1},
-                ]
-            return [
-                {"currency": "INR", "total_amount": 250000, "record_count": 3},
-                {"currency": "USD", "total_amount": 1000, "record_count": 1},
-            ]
-
-        if doctype == "Payment Entry":
-            return [
-                {"paid_to_account_currency": "INR", "total_amount": 55000, "record_count": 2},
-                {"paid_to_account_currency": "USD", "total_amount": 500, "record_count": 1},
-            ]
-
-        if doctype == "Lead" and filters and "creation" in filters:
-            return [{"total": 5}]
-        if doctype == "Lead":
-            return [
-                {"status": "Open", "total": 7},
-                {"status": "Converted", "total": 2},
-                {"status": "Do Not Contact", "total": 1},
-            ]
-        if doctype == "Opportunity" and "name" in fields:
-            return [
-                {
-                    "name": "OPP-0001",
-                    "creation": "2026-10-31 09:00:00",
-                    "status": "Open",
-                    "opportunity_from": "Customer",
-                    "party_name": "Acme Ltd",
-                    "opportunity_amount": 120000,
-                    "currency": "INR",
-                    "expected_closing": "2026-11-15",
-                }
-            ]
-        return [
-            {"status": "Open", "currency": "INR", "total": 2, "total_amount": 120000},
-            {"status": "Quotation", "currency": "INR", "total": 1, "total_amount": 60000},
-            {"status": "Lost", "currency": "INR", "total": 1, "total_amount": 25000},
-            {"status": "Open", "currency": "USD", "total": 1, "total_amount": 3000},
-        ]
-
-    frappe.get_list = get_list
+    frappe.get_list = _fake_get_list(queries)
     frappe.throw = lambda message, exc=None: (_ for _ in ()).throw((exc or Exception)(message))
 
     utils = types.ModuleType("frappe.utils")
