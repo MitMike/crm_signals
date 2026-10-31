@@ -119,7 +119,7 @@ jobs:
           bench start > bench_start.log 2>&1 &
           echo $! > bench_start.pid
           echo "Waiting for test.local..."
-          timeout 90 bash -c 'until curl -fsS -H "Host: test.local" http://127.0.0.1:8000/api/method/ping >/dev/null; do sleep 2; done'
+          timeout 90 bash -c 'until curl -s -H "Host: test.local" http://127.0.0.1:8000 >/dev/null; do sleep 2; done'
           echo "Frappe is ready."
 
       - name: Run Playwright E2E
