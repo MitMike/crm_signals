@@ -1,75 +1,118 @@
 # Project Progress
 
-**Last reviewed:** 2026-10-31  
+**Last reviewed:** 2026-11-01  
 **Repository:** [MitMike/crm_signals](https://github.com/MitMike/crm_signals)  
-**Branch:** `main`  
-**Baseline commit:** [`b55cce6`](https://github.com/MitMike/crm_signals/commit/b55cce6469bbe7c1603c49175651eafa7259d879)
+**Main baseline observed:** [b8aa7cc](https://github.com/MitMike/crm_signals/commit/b8aa7cc97a0ae2b6d5eef2dd9a074d3bf7dd27f7)  
+**Active delivery branches:** automation/dependency-security-scans (PR #11), docs/full-specifications-and-roadmap (documentation/specification work)
 
-This file records the delivery state, validation evidence, open risks and next actions. It is the operational status document; product scope remains in `IMPLEMENTATION_PLAN.md` and `docs/SAHDEV_VERTICAL_SLICES.md`.
+This is the operational status record. IMPLEMENTATION_PLAN.md is the delivery roadmap; DECISIONS.md is the durable decision register; specs/ contains the feature contracts.
 
 ## Current status
 
-The repository contains the CRM Signals Frappe extension, its Signals Console, the S.A.H.D.E.V. executive dashboard through Pillar D2 (Billing Realization), feature specifications, automated quality checks, Bench integration/E2E workflows and security scanning.
+The mainline baseline contains CRM Signals core, the Signals Console, S.A.H.D.E.V. D1 Sales Compass and D2 Billing Realization. The latest repository-hardening and documentation work is being delivered through pull requests; it is not described as merged until GitHub reports the merge.
 
-The implementation/validation baseline for this progress snapshot is `b55cce6`. Its three primary GitHub Actions workflows all completed successfully. The project-record files and links in this snapshot were committed afterward; check their own workflow runs before treating those later documentation commits as green:
-
-| Workflow | Result | Run |
+| Workstream | Status | Evidence / next step |
 |---|---|---|
-| Quality Checks | Success | [Run 41227467943](https://github.com/MitMike/crm_signals/actions/runs/41227467943) |
-| Bench Integration and E2E | Success | [Run 41227467937](https://github.com/MitMike/crm_signals/actions/runs/41227467937) |
-| Security Scanning | Success | [Run 41227467867](https://github.com/MitMike/crm_signals/actions/runs/41227467867) |
+| CRM Signals core | Implemented baseline | Target-site permissions, deployment controls and idempotency hardening remain |
+| Signals Console | Implemented baseline | Target-site role and workflow smoke tests remain |
+| D1 Sales Compass | Implemented baseline | Fix missing-status fallback and validate target workflow/status meanings |
+| D2 Billing Realization | Implemented baseline | Require return metadata and reconcile values against native reports |
+| D3 Service Resolution/SLA | Specified; implementation gated | Complete target-site support/SLA discovery before selecting source adapter |
+| H Highlights | Specified; partial quote event exists | Settings, idempotency, verified proposal events and privacy approval remain |
+| E Explorer | Specified; planned | Inventory actual installed integrations and implement source adapters |
+| V Vault | Specified; planned | Approve metric registry, source visibility and retention before scheduling |
+| A Analysis | Specified; planned | Build approved metric/query registry; no model-generated SQL |
+| Dependency/security hardening | PR #11 open | Complete all four CI workflows on the latest head, then merge |
+| Full specifications and roadmap | Documentation branch prepared | Open PR after the security PR is merged, validate, then merge |
+| Main branch ruleset | Not verified by current GitHub connection | Prior 2026-10-31 check reported protection disabled; current read endpoint is denied to the connected integration |
 
-The Bench workflow reported successful Frappe/ERPNext v15 validation on Python 3.11 and v16 validation on Python 3.14. The v16 lane includes the authenticated Playwright dashboard E2E run. These are CI results for the recorded commit; they do not prove that the app has been installed and accepted on a particular customer or production site.
+## Repository hardening — PR #11
 
-## Delivered and present on main
+[PR #11 — automated dependency security monitoring](https://github.com/MitMike/crm_signals/pull/11) includes:
+- weekly Dependabot for pip, npm and GitHub Actions;
+- patched JavaScript tooling: Playwright 1.64.1 and ESLint 10.14.0;
+- a direct override to patched minimatch 11.0.1;
+- a complete committed npm lockfile v3;
+- Python pip-audit and npm audit with moderate-or-higher failures;
+- Semgrep SARIF scanning and the existing v15/v16 Bench + Playwright gates;
+- security and quality guide updates.
 
-- **Frappe app packaging:** root project metadata and module/DocType placement now follow the Pilot discovery and Frappe module layout contract. The repository audit documents the fix; running the actual Pilot import remains a separate verification.
-- **CRM Signals core:** CRM Signal DocType, authenticated ingest endpoint, document event hooks, scoped realtime notifications, linked-party permissions and scheduled digest are documented in the README and implementation plan.
-- **Signals Console:** native Desk page with signal KPIs, type breakdown and recent linked records.
-- **S.A.H.D.E.V. D1 — Sales Compass:** Lead and Opportunity metrics, stage breakdown, currency-grouped pipeline and recent Opportunities.
-- **S.A.H.D.E.V. D2 — Billing Realization:** invoiced totals, Payment Entry receipts, separate POS receipts, open receivables and overdue invoices, with explicit currency and permission semantics.
-- **Engineering checks:** Ruff, ESLint, Oxlint, Prettier checks, Python tests/compile checks, pre-commit hooks, Frappe Bench validation and Playwright E2E are configured.
-- **Security checks:** Semgrep workflow, SARIF upload and Dependabot update checks are configured.
-- **Project documentation:** implementation plan, vertical-slice roadmap, D2 specification, quality-gate guide, security-scanning guide and packaging audit are present.
+The first committed lockfile transfer was accidentally truncated to 1,000 lines. That was identified from the failed npm ci run and replaced with the complete runner-generated lockfile (50,138 bytes, 105 packages). The current branch head has a valid parsed lockfile. Latest workflow runs are being checked:
 
-## Outstanding actions
+| Workflow | Run | Status at this snapshot |
+|---|---|---|
+| Quality Checks | [41232087717](https://github.com/MitMike/crm_signals/actions/runs/41232087717) | Queued |
+| Bench Integration and E2E | [41232087747](https://github.com/MitMike/crm_signals/actions/runs/41232087747) | Pending |
+| Security Scanning | [41232087776](https://github.com/MitMike/crm_signals/actions/runs/41232087776) | Pending |
+| Dependency Security Audit | [41232087748](https://github.com/MitMike/crm_signals/actions/runs/41232087748) | In progress |
 
-### Repository protection
+Do not merge PR #11 until all four workflows pass on its latest head.
 
-- [ ] Enable branch protection or a ruleset for `main`.
-- [ ] Require Quality Checks, Bench Integration and E2E, and Security Scanning before merge.
-- [ ] Disable direct pushes to the protected branch, while retaining an appropriate emergency/break-glass process.
+## Specifications and plan
 
-**Observed state on 2026-10-31:** GitHub reported `main` as unprotected, with required status checks disabled and no required contexts configured. The workflows passing does not itself enforce merge policy.
+The documentation branch adds full feature specs for:
+- CRM Signals core, ingestion, permissions and Console;
+- Quotation/Opportunity event routing and realtime notifications;
+- daily sales digest;
+- D1 Sales Compass;
+- D3 Service Resolution/SLA discovery and adapter contract;
+- H Highlights;
+- A Analysis;
+- E Explorer;
+- V Vault.
 
-### Target-site and operational validation
+The existing D2 Billing Realization spec remains the D2 contract. The new specifications catalogue links all ten specs. IMPLEMENTATION_PLAN.md now sequences repository security, core/release hardening, D3, H, E, V and A with dependencies, acceptance criteria and exit gates. These documentation changes are on the separate documentation branch and are not yet on main.
 
-- [ ] Run the Frappe Pilot import flow against this repository; the resolver contract is fixed, but the audit does not claim that Pilot itself was run.
-- [ ] Install/migrate on the intended target site and verify site-specific Frappe/ERPNext customizations.
-- [ ] Validate Sales User, Sales Manager and non-sales access in the actual target site's role configuration.
-- [ ] Reconcile billing totals against the target site's Sales Invoice and Payment Entry reports before operational use.
-- [ ] Confirm the quotation threshold, Opportunity trigger statuses, Lead inactivity semantics and company-currency display policy documented in the README.
-- [ ] Verify webhook credentials, integration-user permissions, TLS and gateway rate limiting in the deployment environment.
-- [ ] Complete production runbook, rollback and release checks.
+## Delivered on the observed main baseline
 
-### Product roadmap
+- Frappe app packaging metadata and the documented Pilot discovery/module layout.
+- CRM Signal DocType, authenticated signal ingestion endpoint, Quotation and Opportunity hooks, recipient-scoped realtime notifications, linked-party permissions and scheduled digest.
+- Native CRM Signals Desk Console.
+- D1 Sales Compass: Lead and Opportunity metrics, stage distribution, currency-grouped pipeline and recent Opportunities.
+- D2 Billing Realization: submitted invoice totals, customer Receive Payment Entry receipts, separate POS receipts, current positive receivables and overdue invoice drill-down.
+- Quality workflows: Ruff, ESLint, Oxlint, Prettier checks, Python unit tests/compile, pre-commit, Frappe Bench compatibility and Playwright E2E.
+- Security workflows: Semgrep scanning and Dependabot configuration.
 
-- [ ] **D3 — Service resolution/SLA:** confirm the installed ticketing DocTypes, SLA configuration and resolution timestamp semantics before defining metrics.
-- [ ] **H — Highlights:** configurable high-value quotation and proposal-link-open alerts with tested recipient routing and duplicate handling.
-- [ ] **A — Analysis:** approved natural-language sales questions backed by a metric/field registry and permission-aware query definitions; no model-generated SQL.
-- [ ] **E — Explorer:** permission-safe customer interaction timeline across only the integrations actually available.
-- [ ] **V — Vault:** versioned historical metric snapshots with retention, correction and audit rules.
+These are code/CI baselines. They do not prove acceptance on a particular customer or production site.
 
-See [the vertical-slice roadmap](SAHDEV_VERTICAL_SLICES.md) and [the implementation plan](../IMPLEMENTATION_PLAN.md) for scope and acceptance details.
+## Outstanding gates
+
+### Repository governance
+
+- [ ] Verify a main ruleset/branch protection exists.
+- [ ] Require Quality Checks, Bench Integration and E2E, Security Scanning and Dependency Security Audit.
+- [ ] Disable ordinary direct pushes to main while retaining an approved emergency path.
+
+The previously observed state on 2026-10-31 was unprotected. The current linked GitHub integration cannot read the protection endpoint (403), so the present state is explicitly unverified rather than assumed unchanged. An administrator must verify/configure it in repository settings.
+
+### Target-site and operational acceptance
+
+- [ ] Run Frappe Pilot import on the intended site.
+- [ ] Record installed Frappe/ERPNext versions, apps, Company default currency, site timezone, workflows, DocType metadata and custom fields.
+- [ ] Validate Sales User, Sales Manager, System Manager and non-sales role behavior in list, direct form, API, report and export paths.
+- [ ] Reconcile D2 invoice, payment receipt and receivable groups against native ERPNext reports.
+- [ ] Confirm the configured high-value quotation threshold and currency; the current source constant is a default only and its message formatting must not assume INR.
+- [ ] Confirm Opportunity signal trigger statuses and Lead digest interpretation.
+- [ ] Configure dedicated integration user, credential rotation, TLS, rate limiting and secret storage.
+- [ ] Complete runbook, backup, rollback, migration and release checks.
+
+### Product delivery
+
+- [ ] Complete Stage 1 CRM core hardening: idempotency, validated settings, permission parity, event failure isolation, D1 missing-status behavior, D2 required return metadata and digest currency/timezone behavior.
+- [ ] Complete D3 support/SLA discovery against the target site before implementation.
+- [ ] Deliver H only after idempotency, recipient access and privacy/consent controls are accepted.
+- [ ] Deliver E only for integrations verified as installed/configured.
+- [ ] Keep Vault scheduling disabled until metric provenance, source visibility and retention are approved.
+- [ ] Deliver Analysis only against an approved metric registry and server-owned permission-aware queries.
 
 ## Update protocol
 
-Update this file when a meaningful feature is merged, a validation gate changes, a rollout/production check is completed, or a material blocker is discovered. Record the commit SHA and link the relevant CI run or issue. Do not mark work complete based only on code existing or mocked unit tests passing.
+Update this file when code is merged, validation changes, a blocker is found or a target-site gate is completed. Record the commit SHA and CI evidence. Never mark work complete based only on source code existing or mocked unit tests passing.
 
-For every new feature:
-1. Add or update a specification in `specs/` before implementation.
-2. Define measurable behavior, source-of-truth fields, permission behavior, unavailable states and acceptance criteria.
-3. Link acceptance criteria to unit, Bench integration and browser E2E tests as applicable.
-4. Update this progress file when the work is merged and its validation evidence is known.
-5. Add consequential architecture, product, data, security or compatibility choices to [DECISIONS.md](DECISIONS.md).
-6. Add user-visible or operational changes to [CHANGELOG.md](../CHANGELOG.md).
+For every feature delivery:
+1. Update the spec before implementation.
+2. Define source fields, metric semantics, permission rules, unavailable states and edge cases.
+3. Map acceptance criteria to unit, Bench integration and browser E2E tests as applicable.
+4. Record consequential choices in DECISIONS.md.
+5. Update CHANGELOG.md for user-visible or operationally significant changes.
+6. Reconcile this status document after merge and validation.
