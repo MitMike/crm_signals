@@ -202,13 +202,13 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Sources:** [D2 Billing Realization spec](../specs/2026-10-31-pillar-d2-billing-realization.md), [Implementation plan](../IMPLEMENTATION_PLAN.md).
 
 
-## ADR-023 — Protect main with CI gates without blocking a solo maintainer
+## ADR-023 — Enforce CI on main without blocking a solo maintainer
 
-- **Status:** Accepted; repository settings implementation pending
+- **Status:** Partially verified; required-check enforcement is active
 - **Recorded:** 2026-11-01
-- **Decision:** Protect main with pull requests and required passing Quality Checks (all Python matrix jobs and static checks), both Bench v15/v16 jobs, Semgrep security scanning, and both Python/npm dependency audit jobs. Block force pushes and branch deletion, require conversation resolution, and retain a documented administrator emergency path. Do not require a fixed approval count while one maintainer is responsible for the repository; add peer review when another maintainer becomes available.
+- **Decision:** The required check contexts observed on main are Lint and static checks; Python unit tests on 3.10, 3.11, 3.12 and 3.14; Semgrep static security analysis; Bench v15/Python 3.11; and Bench v16/Python 3.14 with authenticated Playwright E2E. A merge attempt for PR #16 was rejected because 7 of those 8 required checks were cancelled, confirming that merge enforcement is active. Dependency Security Audit passes as a workflow but is not one of the eight required contexts surfaced by this rejection. Keep the required checks as a merge gate. Prefer PR-based changes, block force pushes and deletion, require conversation resolution, and retain a documented administrator emergency path. Do not require a fixed approval count while one maintainer is responsible for the repository; add peer review when another maintainer becomes available.
 - **Rationale:** Green CI must be enforced rather than advisory, but a required second-person approval would make a solo maintainer unable to deliver urgent fixes.
-- **Consequences:** GitHub administrator must configure and verify the ruleset. [Issue #12](https://github.com/MitMike/crm_signals/issues/12) tracks this external repository-settings task. Record the resulting ruleset in PROGRESS.md after verification.
+- **Consequences:** The connected integration cannot read the complete ruleset details (403). An administrator must verify PR requirements, direct-push policy, force-push/deletion restrictions, conversation resolution, approval settings and break-glass access. [Issue #12](https://github.com/MitMike/crm_signals/issues/12) tracks the remaining audit. Do not claim those settings are verified until evidence is recorded in PROGRESS.md.
 - **Sources:** [Quality gates](QUALITY_GATES.md), [Progress](PROGRESS.md), [Issue #12](https://github.com/MitMike/crm_signals/issues/12).
 
 
