@@ -1,5 +1,6 @@
 .crm-signals-dashboard {
-    padding: 20px 0 32px;
+    padding: 20px 24px 32px;
+    box-sizing: border-box;
 }
 .crm-dashboard-intro {
     display: flex;
@@ -181,6 +182,7 @@
     .crm-dashboard-columns { grid-template-columns: 1fr; }
 }
 @media (max-width: 480px) {
+    .crm-signals-dashboard { padding-right: 12px; padding-left: 12px; }
     .crm-dashboard-cards { grid-template-columns: 1fr 1fr; gap: 8px; }
     .crm-dashboard-card { padding: 13px; }
     .crm-dashboard-card-value { font-size: 24px; }
