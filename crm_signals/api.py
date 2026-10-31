@@ -428,6 +428,7 @@ def _get_sales_billing_data(period_start, today):
         has_posting_date = invoice_meta.has_field("posting_date")
         has_grand_total = invoice_meta.has_field("grand_total")
         has_outstanding = invoice_meta.has_field("outstanding_amount")
+        has_party_currency = invoice_meta.has_field("party_account_currency")
         has_is_return = invoice_meta.has_field("is_return")
         base_filters = {"docstatus": 1}
         if has_is_return:
@@ -444,13 +445,13 @@ def _get_sales_billing_data(period_start, today):
             )
             result["invoiced_available"] = True
 
-        if has_currency and has_outstanding:
+        if has_party_currency and has_outstanding:
             outstanding_filters = dict(base_filters)
             outstanding_filters["outstanding_amount"] = [">", 0]
             result["outstanding_by_currency"] = _sales_billing_group_rows(
                 "Sales Invoice",
                 outstanding_filters,
-                "currency",
+                "party_account_currency",
                 "outstanding_amount",
             )
             result["outstanding_available"] = True
@@ -486,7 +487,11 @@ def _get_sales_billing_data(period_start, today):
                 _sales_dashboard_value(overdue_count_rows[0], "total", 0)
                 if overdue_count_rows else 0
             )
-            overdue_fields = ["name", "customer", "due_date", "currency", "outstanding_amount"]
+            overdue_fields = [
+                "name", "customer", "due_date", "party_account_currency", "outstanding_amount"
+            ]
+            if invoice_meta.has_field("currency"):
+                overdue_fields.append("currency")
             if invoice_meta.has_field("customer_name"):
                 overdue_fields.insert(2, "customer_name")
             if invoice_meta.has_field("posting_date"):
