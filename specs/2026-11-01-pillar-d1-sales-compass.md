@@ -1,6 +1,6 @@
 # D1 — Sales Compass
 
-**Status:** Implemented; status-metadata safety fix merged in PR #17 (commit fed496f). Target-site workflow/status validation remains.
+**Status:** Implemented; status-metadata safety fix merged in PR #17 as commit [fed496f](https://github.com/MitMike/crm_signals/commit/fed496f230f5ca88af25d663bc61fe4d748f5f83). Target-site workflow/status validation remains.
 
 ## Problem and user
 
