@@ -29,17 +29,9 @@ def _insert_signal(signal_type, message, priority, lead=None, customer=None):
         "is_read": 0,
     })
     signal.insert(ignore_permissions=True)  # Trusted document event, not public input.
-    frappe.publish_realtime(
-        event="crm_signal_received",
-        message={
-            "name": signal.name,
-            "signal_type": signal.signal_type,
-            "priority": signal.priority,
-            "lead": signal.lead,
-            "customer": signal.customer,
-        },
-        after_commit=True,
-    )
+    from crm_signals.notifications import notify_signal
+
+    notify_signal(signal)
     return signal
 
 
@@ -51,7 +43,10 @@ def on_quotation_submit(doc, method=None):
     party = doc.party_name or "the selected party"
     _insert_signal(
         signal_type="High-Value Quote",
-        message=f"High-value quotation {doc.name} submitted for {party} (₹{doc.grand_total:,.2f})",
+        message=(
+            f"High-value quotation {doc.name} submitted for {party} "
+            f"(₹{doc.grand_total:,.2f})"
+        ),
         priority="High",
         **links,
     )
