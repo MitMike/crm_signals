@@ -31,7 +31,9 @@ test("Executive Compass loads permission-filtered billing data", async ({ page }
     await expect(page.getByRole("heading", { name: "Executive Compass" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Billing realization" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Overdue customer invoices" })).toBeVisible();
-    await expect(page.getByText("Invoice and POS amounts use invoice currency.", { exact: false })).toBeVisible();
+    await expect(
+        page.getByText("Invoice and POS amounts use invoice currency.", { exact: false })
+    ).toBeVisible();
 
     expect(pageErrors).toEqual([]);
 });
