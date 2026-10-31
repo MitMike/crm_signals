@@ -127,9 +127,9 @@ test("Live Executive Compass loads billing data", async ({ page }) => {
 
     const dashboardResponsePromise = page.waitForResponse(
         (response) =>
-            response.url().includes(
-                "/api/method/crm_signals.api.get_sales_compass_data"
-            ),
+            response
+                .url()
+                .includes("/api/method/crm_signals.api.get_sales_compass_data"),
         { timeout: 30_000 }
     );
 
@@ -187,9 +187,7 @@ test("Billing cards preserve currencies and drill down", async ({ page }) => {
     await expect(overdueInvoice).toContainText("ACC-SINV-E2E-0001");
 
     await overdueInvoice.click();
-    await expect(page).toHaveURL(
-        /\/app\/sales-invoice\/ACC-SINV-E2E-0001/
-    );
+    await expect(page).toHaveURL(/\/app\/sales-invoice\/ACC-SINV-E2E-0001/);
 });
 
 test("Empty ERPNext datasets render empty states", async ({ page }) => {
@@ -225,10 +223,12 @@ test("Empty ERPNext datasets render empty states", async ({ page }) => {
     await page.goto("/app/sahdev-dashboard");
 
     await expect(page.getByText("No overdue open invoices.")).toBeVisible();
+    await expect(page.getByText("No transactions in this period")).toHaveCount(
+        4
+    );
     await expect(
-        page.getByText("No transactions in this period")
-    ).toHaveCount(4);
-    await expect(page.getByText("No active opportunities found.")).toBeVisible();
+        page.getByText("No active opportunities found.")
+    ).toBeVisible();
 });
 
 test("API permission failures render a helpful message", async ({ page }) => {
@@ -252,15 +252,14 @@ test("API permission failures render a helpful message", async ({ page }) => {
     ).toBeVisible();
 });
 
-
 test("CRM Signals dashboard loads its live API", async ({ page }) => {
     await loginAsAdministrator(page);
 
     const responsePromise = page.waitForResponse(
         (response) =>
-            response.url().includes(
-                "/api/method/crm_signals.api.get_dashboard_data"
-            ),
+            response
+                .url()
+                .includes("/api/method/crm_signals.api.get_dashboard_data"),
         { timeout: 30_000 }
     );
     await page.goto("/app/crm-signals-dashboard");
@@ -290,7 +289,6 @@ test("CRM Signals dashboard loads its live API", async ({ page }) => {
         page.getByRole("heading", { name: "Recent activity" })
     ).toBeVisible();
 });
-
 
 test("Sales User can open the Executive Compass", async ({ page }) => {
     await loginAsAdministrator(page);
