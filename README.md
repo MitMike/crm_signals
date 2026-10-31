@@ -15,6 +15,8 @@ A separate executive dashboard is available at `/app/sahdev-dashboard` from the 
 
 This is the CRM-sales foundation of Pillar D, not the complete cross-department dashboard. Billing realization and service-ticket SLA rollups are intentionally deferred until those data sources and metric definitions are implemented. The existing `/app/crm-signals-dashboard` remains the Signals Console.
 
+The planned follow-on slices are tracked in [docs/SAHDEV_VERTICAL_SLICES.md](docs/SAHDEV_VERTICAL_SLICES.md).
+
 ## Implemented scope
 - CRM Signal DocType for signal type, priority, Lead/Customer reference, message, and read state.
 - Authenticated POST endpoint at /api/method/crm_signals.api.ingest_signal.
