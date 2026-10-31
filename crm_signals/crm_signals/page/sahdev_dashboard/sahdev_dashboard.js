@@ -221,7 +221,8 @@ class SahdevSalesCompass {
             : overdue.length
                 ? overdue.map((item) => {
                     const customer = item.customer_name || item.customer || item.name;
-                    const amount = this.amount(item.outstanding_amount, item.currency);
+                    const amountCurrency = item.party_account_currency || item.currency;
+                    const amount = this.amount(item.outstanding_amount, amountCurrency);
                     return '<button type="button" class="sahdev-invoice-row" data-name="' +
                         this.escape(item.name) + '">' +
                         '<span class="sahdev-invoice-main">' +
@@ -231,7 +232,7 @@ class SahdevSalesCompass {
                         "</span>" +
                         '<span class="sahdev-invoice-side">' +
                             '<strong>' + this.escape(amount) + "</strong>" +
-                            '<span>' + this.escape(item.currency || "") + "</span>" +
+                            '<span>' + this.escape(amountCurrency || "") + "</span>" +
                         "</span>" +
                     "</button>";
                 }).join("")
@@ -241,7 +242,7 @@ class SahdevSalesCompass {
             ? this.number(billing.overdue_count) + " " + __("overdue invoices")
             : __("Overdue count unavailable");
 
-        const billingNote = __("Invoice and POS amounts use invoice currency. Payment Entry customer receipts use receiving account currency and include allocated as well as advance/unallocated receipts. POS receipts are shown separately. All transaction groups remain separate by currency.");
+        const billingNote = __("Invoice and POS amounts use invoice currency. Open receivables use the party-account currency. Payment Entry customer receipts use receiving-account currency and include allocated as well as advance/unallocated receipts. POS receipts are shown separately. All transaction groups remain separate by currency.");
 
         const billingHtml =
             '<section class="sahdev-billing-section">' +
