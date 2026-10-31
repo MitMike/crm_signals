@@ -14,7 +14,7 @@ The package is a CRM Signals extension, not a complete CRM. It implements a sign
 ### Critical — Guest can create CRM Signal records
 **Baseline:** api.py used guest whitelist, inserted with permission bypass, and manually committed.  
 **Impact:** Unauthenticated record creation, spam/data pollution, notification abuse, and bypass of role controls.  
-**Remediation:** Guest access and manual commit removed; authenticated session required; input and references validated; normal document permission checks used; realtime publishing deferred until commit. Arbitrary recipient selection removed.  
+**Remediation:** Guest access and manual commit removed; endpoint restricted to POST; authenticated session and typed payload validation enforced; normal document permission checks used; realtime publishing deferred until commit. Arbitrary recipient selection removed.  
 **Remaining:** Verify authentication and permissions on real v15/v16 sites; configure gateway rate limits.
 
 ### High — Quotation party link may target the wrong DocType
@@ -26,7 +26,7 @@ The package is a CRM Signals extension, not a complete CRM. It implements a sign
 ### High — Digest Lead status filter is unverified
 **Baseline:** Filtered Lead status to Open and Lead without evidence these are valid site statuses.  
 **Impact:** Incorrect count or query failure.  
-**Remediation:** Removed guessed status values and labelled metric “Leads not modified in more than 3 days.” This remains a proxy, not proof of stalled sales activity.  
+**Remediation:** Removed guessed status values and labelled metric “Leads not modified in more than 3 days.” This remains a proxy, not proof of stalled sales activity. Enabled System User recipient filtering added.  
 **Remaining:** Confirm business semantics and test against target schema.
 
 ### High — Opportunity signal mapping/status semantics are not verified
