@@ -24,6 +24,7 @@
   "digest_extra_recipients",
   "section_break_operations",
   "last_digest_queued_date",
+  "last_digest_queued_recipients",
   "last_digest_status"
  ],
  "fields": [
@@ -148,6 +149,13 @@
    "fieldname": "last_digest_status",
    "fieldtype": "Data",
    "label": "Last digest status",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_digest_queued_recipients",
+   "fieldtype": "Long Text",
+   "label": "Last digest queued recipients",
+   "hidden": 1,
    "read_only": 1
   }
  ],
