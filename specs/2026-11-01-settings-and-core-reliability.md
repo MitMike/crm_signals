@@ -41,7 +41,7 @@ Notification delivery to one recipient is isolated from other recipients and the
 
 ## Acceptance criteria
 
-- Settings are System Manager-only; configuration validates ranges, time, currencies, statuses and recipient addresses.
+- Settings are System Manager-only; configuration validates ranges, time, currencies, statuses and recipient addresses. Additional addresses must resolve to registered, enabled System Users (not Website Users).
 - Preset selection fills values; manual changes switch the profile indicator to Custom.
 - The event handler uses configured thresholds/statuses and no hard-coded currency symbol.
 - The API requires Guest rejection, honors the ingestion switch, validates optional source identity and deduplicates stable IDs.
