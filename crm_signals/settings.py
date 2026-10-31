@@ -98,8 +98,22 @@ def get_signal_settings() -> dict:
         doc = frappe.get_single("CRM Signals Settings")
     except Exception as error:
         # Keep app upgrades safe when hooks run before the singleton is migrated.
-        if error.__class__.__name__ in {"DoesNotExistError", "DoesNotExistError"}:
+        if error.__class__.__name__ == "DoesNotExistError":
             values["threshold_currency"] = get_company_default_currency()
+            values["opportunity_trigger_statuses"] = parse_statuses(
+                values["opportunity_trigger_statuses"]
+            )
+            values["digest_extra_recipients"] = parse_recipients(
+                values["digest_extra_recipients"]
+            )
+            for fieldname in (
+                "enabled",
+                "enable_external_ingestion",
+                "enable_quotation_signals",
+                "enable_opportunity_signals",
+                "enable_daily_digest",
+            ):
+                values[fieldname] = bool(values[fieldname])
             return values
         raise
 
