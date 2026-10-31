@@ -23,5 +23,5 @@ repos:
     rev: v3.1.0
     hooks:
       - id: prettier
-        files: ^(eslint\.config\.mjs|playwright\.config\.ts|e2e/.*\.ts)$
+        files: ^(eslint\\.config\\.mjs|playwright\\.config\\.ts|e2e/.*\\.ts|crm_signals/(crm_signals/page|public/js)/.*\\.(js|css)$)
         additional_dependencies: [prettier@3.2.5]
