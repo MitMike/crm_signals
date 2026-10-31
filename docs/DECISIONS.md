@@ -229,3 +229,49 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Rationale:** File size alone is a weak proxy for maintainability. Graduated limits identify outliers without forcing arbitrary decomposition; complexity and function size target difficult-to-test logic more directly.
 - **Consequences:** Add a standard-library checker, automated tests, Ruff/ESLint rules, pre-commit integration and a dedicated exception register. Warnings are visible but do not block CI; hard-limit violations fail the Quality Checks gate. Revisit thresholds against actual code review and warning volume after adoption.
 - **Sources:** [Quality Gates](QUALITY_GATES.md), [Frappe Semgrep rules](https://github.com/frappe/semgrep-rules), [Frappe Insights custom rules](https://github.com/frappe/insights/blob/develop/.semgrep/insights.yml).
+
+
+## ADR-026 — Configure CRM Signals through one validated site Settings singleton
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-01
+- **Decision:** Use a System Manager-only `CRM Signals Settings` singleton for the site-wide master switch, external ingestion, Quotation threshold, Opportunity trigger statuses, digest window/time and additional recipients. Provide Balanced, Sales Focused and Executive starter presets; choosing a preset applies values but does not prevent subsequent customisation.
+- **Rationale:** Business policy must be changed by an administrator without editing application source. Starter profiles reduce setup work without pretending that one set of values fits every site.
+- **Consequences:** Validate inputs server-side. Keep the source defaults as bootstrap values only. Do not expose settings to Sales Users.
+- **Sources:** [Settings and reliability spec](../specs/2026-11-01-settings-and-core-reliability.md), [Administrator guide](ADMIN_GUIDE.md).
+
+## ADR-027 — The first release has one site-wide quotation threshold currency
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-01
+- **Decision:** Interpret the quotation threshold in the default Company's currency and compare against Quotation `base_grand_total`. Display the Quotation's own transaction currency. If the Quotation Company's base currency does not match the configured threshold currency, do not emit a threshold alert.
+- **Rationale:** Comparing a transaction-currency amount directly to a threshold in another currency is incorrect. A conversion policy would need an explicit rate date/source and audit semantics.
+- **Consequences:** Multi-company sites using different base currencies require per-company settings before quotation alerts can be enabled across those companies. Do not assume INR.
+- **Sources:** [Settings and reliability spec](../specs/2026-11-01-settings-and-core-reliability.md), [Administrator guide](ADMIN_GUIDE.md).
+
+## ADR-028 — Enforce idempotency with a unique source-event hash
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-01
+- **Decision:** Derive a SHA-256 key from source type, source identity and stable source event ID, and enforce uniqueness on CRM Signal. Check for an existing record for the common retry path and use the database unique constraint as the race-safe boundary. A duplicate returns the original record and emits no second notification.
+- **Rationale:** Webhook/provider retries and repeated document hooks must not create duplicate alerts.
+- **Consequences:** External callers must reuse the same integration user and `source_event_id` for a retry. Requests without an event ID retain legacy non-idempotent behavior. Existing records remain valid with a null source key.
+- **Sources:** [Settings and reliability spec](../specs/2026-11-01-settings-and-core-reliability.md), [Core/access spec](../specs/2026-11-01-crm-signals-core-and-access.md).
+
+## ADR-029 — Run the digest at a configurable site-local time and mark the queued date transactionally
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-01
+- **Decision:** Check the digest every minute, compare against the timezone configured in System Settings, and store the site-local queued date only after `frappe.sendmail` has queued the message. The email queue write and Settings marker are expected to commit in the same Frappe transaction.
+- **Rationale:** A source-code cron expression cannot reflect runtime administrator settings, and a retry must not enqueue the same daily digest twice.
+- **Consequences:** Actual delivery can be delayed by scheduler/worker/mail-queue load. Failures before successful queueing leave the date marker untouched. Validate timezone behavior on the target site.
+- **Sources:** [Daily digest spec](../specs/2026-11-01-crm-signals-daily-digest.md), [Settings and reliability spec](../specs/2026-11-01-settings-and-core-reliability.md).
+
+## ADR-030 — Isolate realtime notification errors from source-document saves
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-01
+- **Decision:** Attempt realtime delivery after the CRM Signal is saved, catch and log failures per recipient, and continue to the next recipient. A notification failure must not roll back the Quotation/Opportunity or CRM Signal transaction.
+- **Rationale:** Realtime notification is ancillary to the ERPNext source transaction; a transient socket or broker failure must not prevent a quotation from being submitted.
+- **Consequences:** This is failure isolation, not a durable retry queue. Automatic retry/reconciliation of failed signal creation or notification delivery remains a tracked follow-up.
+- **Sources:** [Settings and reliability spec](../specs/2026-11-01-settings-and-core-reliability.md), [Notification implementation](../crm_signals/notifications.py).
