@@ -110,8 +110,8 @@ def test_unlinked_signal_is_not_visible_to_unrelated_sales_user(monkeypatch):
 def test_sales_user_list_query_uses_permission_aware_flat_in_lists(monkeypatch):
     permissions = load_permissions(monkeypatch)
     condition = permissions.crm_signal_query("rep@example.com")
-    assert "tabLead" in condition
-    assert "tabCustomer" in condition
+    assert "`lead` IN" in condition
+    assert "`customer` IN" in condition
     assert "LEAD-OWNED" in condition
     assert "LEAD-ASSIGNED" in condition
     assert "CUST-OWNED" in condition
