@@ -24,7 +24,7 @@ The mainline baseline contains CRM Signals core, the Signals Console, S.A.H.D.E.
 | A Analysis | Specified; planned | Build approved metric/query registry; no model-generated SQL |
 | Dependency/security hardening | Merged | PR #11 merged as 05ad767; all four PR checks passed; post-merge Bench verification in progress |
 | Full specifications and roadmap | PR #16 open | Validate Quality, Security and Bench v15/v16, then merge |
-| Main branch ruleset | Not verified by current GitHub connection | Prior 2026-10-31 check reported protection disabled; current read endpoint is denied to the connected integration |
+| Main branch ruleset | Required-check enforcement confirmed; other settings unverified | A merge attempt on PR #16 was rejected because 7 of 8 required checks were cancelled. The eight contexts are listed below; direct-push/force-push/deletion/conversation settings cannot be read through the connected integration. [Issue #12](https://github.com/MitMike/crm_signals/issues/12) tracks the remaining audit |
 
 ## Repository hardening — PR #11
 
@@ -83,7 +83,7 @@ These are code/CI baselines. They do not prove acceptance on a particular custom
 - [ ] Require Quality Checks, Bench Integration and E2E, Security Scanning and Dependency Security Audit.
 - [ ] Disable ordinary direct pushes to main while retaining an approved emergency path.
 
-The previously observed state on 2026-10-31 was unprotected. The current linked GitHub integration cannot read or write the protection endpoint (403), so the present state is explicitly unverified rather than assumed unchanged. [Issue #12](https://github.com/MitMike/crm_signals/issues/12) tracks the administrator action and exact required checks.
+GitHub's merge API rejected PR #16 because 7 of 8 required status checks were cancelled, confirming that required-check enforcement is active. The eight required contexts observed are Lint and static checks; Python unit tests (3.10, 3.11, 3.12, 3.14); Semgrep static security analysis; and the Bench v15 and v16 jobs. The linked GitHub integration still cannot read the full ruleset/protection configuration (403), so direct-push, force-push, deletion, conversation-resolution and approval settings remain unverified. [Issue #12](https://github.com/MitMike/crm_signals/issues/12) tracks the remaining audit.
 
 ### Target-site and operational acceptance
 
