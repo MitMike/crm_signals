@@ -150,7 +150,8 @@ def test_sales_compass_api_uses_permission_aware_reads_and_currency_grouping():
     assert '_sales_dashboard_doctype_meta("Lead")' in source
     assert '_sales_dashboard_doctype_meta("Opportunity")' in source
     assert 'frappe.get_list(' in source
-    assert 'sum(opportunity_amount) as total_amount' in source
+    assert '_dashboard_aggregate_field("SUM", "opportunity_amount", "total_amount")' in source
+    assert '_dashboard_aggregate_field("COUNT", "name", "total")' in source
     assert 'group_by=", ".join(group_by_fields)' in source
     assert '"ignore_permissions"' not in source
     assert "frappe.db.sql(" not in source
