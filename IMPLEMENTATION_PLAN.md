@@ -9,22 +9,22 @@ This is a source review, not a live-site validation. No Frappe/ERPNext v15 or v1
 
 | Slice | Goal | Main work | Exit criteria | Priority |
 |---|---|---|---|---|
-| 0. Reproducible baseline | Make app installable/testable | Package metadata, install docs, CI matrix, smoke tests | App imports; DocType JSON validates; CI on v15/v16 | P0 |
-| 1. Webhook security & validation | Remove anonymous write path | Authenticated integration user; strict payload validation; remove permission bypass/manual commit; safe response | Guest rejected; authorized call succeeds; invalid payload rejected | P0 |
-| 2. Event correctness | Generate accurate signals | Resolve Quotation party using `quotation_to`; correct Lead/Customer links; confirm Opportunity statuses; prevent duplicates | Fixtures prove correct links and intended transitions | P0 |
-| 3. Signal data model & permissions | Govern records | Validate required fields and party exclusivity; role permissions; safe read-state mutation; idempotency metadata | Permission tests for Sales User/Manager/System Manager | P1 |
-| 4. Real-time delivery | Reliable, scoped notifications | Resolve recipients from assignment/owner/roles; minimal payload; publish after commit | Only intended users receive notification after insert commits | P1 |
-| 5. Daily digest | Correct manager summary | Verify Lead status/inactivity semantics; quote expiry window; escape HTML; enabled manager recipients; configurable settings | Tests cover counts, expiry, escaping, recipients | P1 |
-| 6. UX & operations | Make signals actionable | Related-document links, unread count, filters, mark-read workflow, runbook | Desk smoke test and workflow documented | P2 |
-| 7. Observability & release | Ship safely | Logs, failure isolation, migration/rollback, compatibility matrix, tagged release | Clean install/upgrade/uninstall on pinned v15/v16 | P2 |
+| 0. Reproducible baseline | Make app installable/testable | Package metadata, CI matrix, smoke tests | App imports; DocType JSON validates; CI runs static/unit tests for supported Python |
+| 1. Webhook security & validation | Remove anonymous write path | Authenticated integration user; strict payload validation; remove permission bypass/manual commit; safe response | Guest rejected; authorized call succeeds; invalid payload rejected |
+| 2. Event correctness | Generate accurate signals | Resolve Quotation party using `quotation_to`; correct Lead/Customer links; confirm Opportunity statuses; prevent duplicates | Fixtures prove correct links and intended transitions |
+| 3. Signal data model & permissions | Govern records | Validate required fields and party exclusivity; role permissions; safe read-state mutation; idempotency metadata | Permission tests for Sales User/Manager/System Manager |
+| 4. Real-time delivery | Reliable, scoped notifications | Resolve recipients from related document owner and active ToDo assignments; minimal payload; publish after commit | Only related enabled users receive notification; record read permissions verified |
+| 5. Daily digest | Correct manager summary | Verify Lead status/inactivity semantics; quote expiry window; escape HTML; enabled manager recipients; configurable settings | Tests cover counts, expiry, escaping, recipients |
+| 6. UX & operations | Make signals actionable | Related-document links, unread count, filters, mark-read workflow, runbook | Desk smoke test and workflow documented |
+| 7. Observability & release | Ship safely | Logs, failure isolation, migration/rollback, compatibility matrix, tagged release | Clean install/upgrade/uninstall on pinned v15/v16 |
 
 ## Detailed implementation tasks
 
 ### Slice 0 — baseline
-- Add app packaging metadata consistent with bench conventions.
 - Validate DocType JSON and Python syntax in CI.
 - Add pytest tests and a Frappe test harness for database behavior.
-- Define GitHub Actions matrix for supported Python/Frappe versions. Do not claim tested versions until jobs pass.
+- Define GitHub Actions checks for supported Python versions. Framework compatibility remains a separate bench-based integration job.
+- Do not claim tested Frappe/ERPNext versions until jobs pass.
 
 ### Slice 1 — webhook security
 - Do not allow Guest access. Use a dedicated integration user with minimum role/permission.
@@ -45,11 +45,12 @@ This is a source review, not a live-site validation. No Frappe/ERPNext v15 or v1
 - Explicitly decide whether unassociated system signals are allowed.
 - Review Sales User, Sales Manager, and System Manager permissions.
 - Prevent untrusted callers from setting owner/read state/recipient fields.
+- Verify document-level read access for users receiving signal alerts.
 
 ### Slice 4 — realtime delivery
-- Define recipient resolution from assignment, document ownership, or configured teams.
-- Avoid global broadcasts of customer-sensitive content.
-- Fetch full signal detail through permission-checked APIs.
+- Resolve users from the related Lead/Customer owner and active ToDo assignments.
+- Publish to per-user rooms only; do not broadcast customer-related content to all Desk users.
+- Fetch full signal detail through permission-checked APIs and verify recipients can read the signal.
 
 ### Slice 5 — digest
 - Verify Lead statuses and define whether inactivity means no modification or no communication.
@@ -79,6 +80,7 @@ This is a source review, not a live-site validation. No Frappe/ERPNext v15 or v1
 | Validation | Invalid Lead/Customer | Validation error; no row |
 | Validation | Both Lead and Customer set | Rejected |
 | Notification | Caller attempts arbitrary recipient | No caller-controlled recipient honored |
+| Notification | Related owner/active assignment | Only enabled related users receive alert |
 | Quotation | Submitted high-value quote to Customer | Customer only |
 | Quotation | Submitted high-value quote to Lead | Lead only |
 | Quotation | Below threshold/draft quote | No signal |
@@ -96,7 +98,7 @@ This is a source review, not a live-site validation. No Frappe/ERPNext v15 or v1
 - [x] Initial webhook hardening (live permission/rate-limit tests open)
 - [x] Initial Quotation/Opportunity party-link improvements (fixtures and status decision open)
 - [ ] Complete model/permission hardening
-- [ ] Explicit realtime recipient resolution
+- [x] Per-user realtime targeting via related document owner and active ToDo assignees (record permission verification open)
 - [x] Digest HTML safety and removal of guessed Lead status filter (live semantics open)
-- [x] Security and implementation documentation
-- [ ] Automated CI and live v15/v16 acceptance
+- [x] Security docs, unit tests, and Python CI workflow
+- [ ] Live v15/v16 acceptance and release
