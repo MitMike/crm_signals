@@ -5,16 +5,6 @@ import sys
 import types
 
 
-class FakeSignal:
-    def __init__(self, values, inserted):
-        self.values = values
-        self.name = "SIG-0001"
-        self.inserted = inserted
-
-    def insert(self, ignore_permissions=False):
-        self.inserted.append(ignore_permissions)
-
-
 def load_events(monkeypatch, *, existing_name=None, duplicate_on_insert=False):
     fake = types.ModuleType("frappe")
     lookups = []
@@ -29,9 +19,19 @@ def load_events(monkeypatch, *, existing_name=None, duplicate_on_insert=False):
     inserted = []
     loaded = []
 
+    class FakeSignal:
+        def __init__(self, values):
+            self.values = values
+            self.name = "SIG-0001"
+
+        def insert(self, ignore_permissions=False):
+            inserted.append(ignore_permissions)
+            if duplicate_on_insert:
+                raise DuplicateEntryError("unique key already exists")
+
     def get_doc(values, name=None):
         if isinstance(values, dict):
-            signal = FakeSignal(values, inserted)
+            signal = FakeSignal(values)
             loaded.append(signal)
             return signal
         return types.SimpleNamespace(name=name, loaded=True)
@@ -43,15 +43,20 @@ def load_events(monkeypatch, *, existing_name=None, duplicate_on_insert=False):
     notifications.sent = []
     notifications.notify_signal = lambda signal: notifications.sent.append(signal.name)
     monkeypatch.setitem(sys.modules, "crm_signals.notifications", notifications)
-    sys.modules.pop("crm_signals.events", None)
+
+    settings = types.ModuleType("crm_signals.settings")
+    settings.get_company_default_currency = lambda company=None: "USD"
+    settings.get_signal_settings = lambda: {
+        "enabled": True,
+        "enable_quotation_signals": True,
+        "enable_opportunity_signals": True,
+        "opportunity_trigger_statuses": ["Replied"],
+        "quotation_threshold": 200000,
+        "threshold_currency": "USD",
+    }
+    monkeypatch.setitem(sys.modules, "crm_signals.settings", settings)
+    monkeypatch.delitem(sys.modules, "crm_signals.events", raising=False)
     module = importlib.import_module("crm_signals.events")
-
-    if duplicate_on_insert:
-        def insert_with_duplicate(signal, ignore_permissions=False):
-            inserted.append(ignore_permissions)
-            raise DuplicateEntryError("unique key already exists")
-        FakeSignal.insert = insert_with_duplicate
-
     return module, notifications, inserted, lookups, loaded, fake
 
 
