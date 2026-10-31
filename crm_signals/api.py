@@ -47,8 +47,8 @@ def ingest_signal():
     if customer and not frappe.db.exists("Customer", customer):
         frappe.throw(_("Customer {0} does not exist").format(customer), frappe.LinkValidationError)
 
-    # Recipient selection is intentionally not caller-controlled. Realtime
-    # delivery will be scoped after a recipient policy is configured.
+    # Recipient selection is never caller-controlled; the resolver uses related
+    # document ownership and active ToDo assignments only.
     doc = frappe.get_doc({
         "doctype": "CRM Signal",
         "signal_type": signal_type,
@@ -58,18 +58,9 @@ def ingest_signal():
         "priority": priority,
         "is_read": 0,
     })
-    doc.insert()
-    payload = {
-        "name": doc.name,
-        "signal_type": doc.signal_type,
-        "message": doc.message,
-        "priority": doc.priority,
-        "lead": doc.lead,
-        "customer": doc.customer,
-    }
-    frappe.publish_realtime(
-        event="crm_signal_received",
-        message=payload,
-        after_commit=True,
-    )
+    doc.insert()  # Enforces normal Frappe permissions; framework owns transaction.
+
+    from crm_signals.notifications import notify_signal
+
+    notify_signal(doc)
     return {"status": "success", "signal": doc.name}
