@@ -15,6 +15,24 @@ ALLOWED_PRIORITIES = {"Low", "Medium", "High", "Urgent"}
 MAX_MESSAGE_LENGTH = 2000
 
 
+def _dashboard_aggregate_field(operation, fieldname, alias):
+    """Use aggregate syntax supported by both Frappe v15 and v16.
+
+    Frappe v16 rejects SQL functions embedded in fields strings. Its get_list
+    API accepts structured aggregate field descriptors instead.
+    """
+    version = str(getattr(frappe, "__version__", "15"))
+    try:
+        major_version = int(version.split(".", 1)[0])
+    except (TypeError, ValueError):
+        major_version = 15
+
+    if major_version >= 16:
+        return {operation.upper(): fieldname, "as": alias}
+    return f"{operation.lower()}({fieldname}) as {alias}"
+
+
+
 def _read_text(value, fieldname, *, required=False, max_length=None):
     if value is None:
         value = ""
@@ -98,7 +116,7 @@ def get_dashboard_data():
     def count_signals(filters=None):
         rows = frappe.get_list(
             "CRM Signal",
-            fields=["count(name) as total"],
+            fields=[_dashboard_aggregate_field("COUNT", "name", "total")],
             filters=filters or {},
             limit_page_length=1,
         )
@@ -113,7 +131,7 @@ def get_dashboard_data():
 
     by_type = frappe.get_list(
         "CRM Signal",
-        fields=["signal_type", "count(name) as total"],
+        fields=["signal_type", _dashboard_aggregate_field("COUNT", "name", "total")],
         group_by="signal_type",
         order_by="signal_type asc",
         limit_page_length=20,
