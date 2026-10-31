@@ -340,6 +340,7 @@ def test_billing_marks_return_sensitive_invoice_metrics_unavailable_without_is_r
 
     assert result["available"] is True
     assert result["invoiced_available"] is False
+    assert "is_return" in result["sales_invoice_unavailable_reason"]
     assert result["invoiced_by_currency"] == []
     assert result["outstanding_available"] is False
     assert result["outstanding_by_currency"] == []
