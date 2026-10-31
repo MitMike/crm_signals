@@ -358,4 +358,175 @@ def get_sales_compass_data():
     except frappe.PermissionError:
         pass
 
+    result["billing"] = _get_sales_billing_data(period_start, nowdate())
+    return result
+
+
+
+# ---------------------------------------------------------------------------
+# S.A.H.D.E.V. Pillar D2 — Billing realization
+# ---------------------------------------------------------------------------
+
+def _sales_billing_group_rows(doctype, filters, currency_field, amount_field):
+    """Aggregate one amount only within its source currency."""
+    rows = frappe.get_list(
+        doctype,
+        fields=[
+            currency_field,
+            _dashboard_aggregate_field("SUM", amount_field, "total_amount"),
+            _dashboard_aggregate_field("COUNT", "name", "record_count"),
+        ],
+        filters=filters,
+        group_by=currency_field,
+        order_by=f"{currency_field} asc",
+        limit_page_length=100,
+    )
+    return [
+        {
+            "currency": str(_sales_dashboard_value(row, currency_field) or _("Unspecified currency")),
+            "total_amount": float(_sales_dashboard_value(row, "total_amount", 0) or 0),
+            "record_count": int(_sales_dashboard_value(row, "record_count", 0) or 0),
+        }
+        for row in rows
+    ]
+
+
+def _get_sales_billing_data(period_start, today):
+    """Return permission-filtered billing metrics with explicit source semantics.
+
+    - Invoiced: submitted, non-return Sales Invoice grand totals posted in period.
+    - Outstanding: current positive outstanding on submitted, non-return invoices.
+    - Customer receipts: submitted Receive Payment Entries, shown in receiving
+      account currency. This includes allocated and unallocated/advance receipts.
+    - POS receipts: paid_amount on submitted POS Sales Invoices, shown in invoice
+      currency. Kept separate from Payment Entry receipts to avoid mixed currencies
+      and double counting.
+    """
+    result = {
+        "available": False,
+        "period_days": 30,
+        "invoiced_available": False,
+        "invoiced_by_currency": [],
+        "outstanding_available": False,
+        "outstanding_by_currency": [],
+        "customer_receipts_available": False,
+        "customer_receipts_by_currency": [],
+        "pos_receipts_available": False,
+        "pos_receipts_by_currency": [],
+        "overdue_available": False,
+        "overdue_count": None,
+        "overdue_invoices": [],
+    }
+
+    try:
+        invoice_meta = _sales_dashboard_doctype_meta("Sales Invoice")
+        if not invoice_meta:
+            return result
+
+        result["available"] = True
+        has_currency = invoice_meta.has_field("currency")
+        has_posting_date = invoice_meta.has_field("posting_date")
+        has_grand_total = invoice_meta.has_field("grand_total")
+        has_outstanding = invoice_meta.has_field("outstanding_amount")
+        has_is_return = invoice_meta.has_field("is_return")
+        base_filters = {"docstatus": 1}
+        if has_is_return:
+            base_filters["is_return"] = 0
+
+        if has_currency and has_grand_total and has_posting_date:
+            invoiced_filters = dict(base_filters)
+            invoiced_filters["posting_date"] = [">=", period_start]
+            result["invoiced_by_currency"] = _sales_billing_group_rows(
+                "Sales Invoice",
+                invoiced_filters,
+                "currency",
+                "grand_total",
+            )
+            result["invoiced_available"] = True
+
+        if has_currency and has_outstanding:
+            outstanding_filters = dict(base_filters)
+            outstanding_filters["outstanding_amount"] = [">", 0]
+            result["outstanding_by_currency"] = _sales_billing_group_rows(
+                "Sales Invoice",
+                outstanding_filters,
+                "currency",
+                "outstanding_amount",
+            )
+            result["outstanding_available"] = True
+
+        if has_currency and invoice_meta.has_field("is_pos") and invoice_meta.has_field("paid_amount") and has_posting_date:
+            pos_filters = dict(base_filters)
+            pos_filters.update({
+                "is_pos": 1,
+                "paid_amount": [">", 0],
+                "posting_date": [">=", period_start],
+            })
+            result["pos_receipts_by_currency"] = _sales_billing_group_rows(
+                "Sales Invoice",
+                pos_filters,
+                "currency",
+                "paid_amount",
+            )
+            result["pos_receipts_available"] = True
+
+        if has_outstanding and invoice_meta.has_field("due_date"):
+            overdue_filters = dict(base_filters)
+            overdue_filters.update({
+                "outstanding_amount": [">", 0],
+                "due_date": ["<", today],
+            })
+            overdue_count_rows = frappe.get_list(
+                "Sales Invoice",
+                fields=[_dashboard_aggregate_field("COUNT", "name", "total")],
+                filters=overdue_filters,
+                limit_page_length=1,
+            )
+            result["overdue_count"] = int(
+                _sales_dashboard_value(overdue_count_rows[0], "total", 0)
+                if overdue_count_rows else 0
+            )
+            overdue_fields = ["name", "customer", "due_date", "currency", "outstanding_amount"]
+            if invoice_meta.has_field("customer_name"):
+                overdue_fields.insert(2, "customer_name")
+            if invoice_meta.has_field("posting_date"):
+                overdue_fields.insert(2, "posting_date")
+            result["overdue_invoices"] = frappe.get_list(
+                "Sales Invoice",
+                fields=overdue_fields,
+                filters=overdue_filters,
+                order_by="due_date asc",
+                limit_page_length=8,
+            )
+            result["overdue_available"] = True
+    except frappe.PermissionError:
+        return result
+
+    # Standard customer receipts. Payment Entry rows are first filtered through
+    # the parent's permission-aware get_list before any aggregate is returned.
+    try:
+        payment_meta = _sales_dashboard_doctype_meta("Payment Entry")
+        if (
+            payment_meta
+            and payment_meta.has_field("payment_type")
+            and payment_meta.has_field("party_type")
+            and payment_meta.has_field("posting_date")
+            and payment_meta.has_field("received_amount")
+            and payment_meta.has_field("paid_to_account_currency")
+        ):
+            result["customer_receipts_by_currency"] = _sales_billing_group_rows(
+                "Payment Entry",
+                {
+                    "docstatus": 1,
+                    "payment_type": "Receive",
+                    "party_type": "Customer",
+                    "posting_date": [">=", period_start],
+                },
+                "paid_to_account_currency",
+                "received_amount",
+            )
+            result["customer_receipts_available"] = True
+    except frappe.PermissionError:
+        pass
+
     return result
