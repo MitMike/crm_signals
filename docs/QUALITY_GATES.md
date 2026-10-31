@@ -24,8 +24,9 @@ Python:
 
 JavaScript and browser E2E:
 
-    npm install
+    npm ci
     npm run lint:js
+    # Use npm install only when intentionally changing dependency versions.
     npm run format:check
     npm audit --audit-level=moderate
     npx playwright install chromium
