@@ -78,3 +78,62 @@ def ingest_signal():
 
     notify_signal(doc)
     return {"status": "success", "signal": doc.name}
+
+
+
+@frappe.whitelist()
+def get_dashboard_data():
+    """Return permission-filtered CRM Signal metrics for the Desk dashboard.
+
+    All reads use frappe.get_list so DocType permissions and the app's
+    permission_query_conditions hook are applied to the requesting user.
+    """
+    if frappe.session.user == "Guest":
+        frappe.throw(_("Authentication is required"), frappe.AuthenticationError)
+    if not frappe.has_permission("CRM Signal", ptype="read"):
+        frappe.throw(_("You do not have permission to view CRM Signals"), frappe.PermissionError)
+
+    from frappe.utils import add_days, nowdate
+
+    def count_signals(filters=None):
+        rows = frappe.get_list(
+            "CRM Signal",
+            fields=["count(name) as total"],
+            filters=filters or {},
+            limit_page_length=1,
+        )
+        return int((rows[0].get("total") if rows else 0) or 0)
+
+    stats = {
+        "total": count_signals(),
+        "unread": count_signals({"is_read": 0}),
+        "high_priority": count_signals({"priority": ["in", ["High", "Urgent"]]}),
+        "last_7_days": count_signals({"creation": [">=", add_days(nowdate(), -7)]}),
+    }
+
+    by_type = frappe.get_list(
+        "CRM Signal",
+        fields=["signal_type", "count(name) as total"],
+        group_by="signal_type",
+        order_by="total desc",
+        limit_page_length=20,
+    )
+
+    recent = frappe.get_list(
+        "CRM Signal",
+        fields=[
+            "name", "creation", "signal_type", "priority",
+            "message", "lead", "customer", "is_read",
+        ],
+        order_by="creation desc",
+        limit_page_length=12,
+    )
+
+    return {
+        "stats": stats,
+        "by_type": [
+            {"signal_type": row.signal_type, "total": int(row.total or 0)}
+            for row in by_type
+        ],
+        "recent": recent,
+    }
