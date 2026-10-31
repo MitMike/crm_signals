@@ -25,3 +25,11 @@ repos:
       - id: prettier
         files: ^(eslint\.config\.mjs|playwright\.config\.ts|e2e/.*\.ts)$
         additional_dependencies: [prettier@3.2.5]
+
+  - repo: local
+    hooks:
+      - id: code-standards
+        name: Source file and Python function size standards
+        entry: python scripts/check_code_standards.py
+        language: system
+        types: [file]
