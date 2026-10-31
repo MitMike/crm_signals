@@ -121,8 +121,9 @@ def get_signal_settings() -> dict:
         value = doc.get(fieldname)
         if value is not None and value != "":
             values[fieldname] = value
-    if not values["threshold_currency"]:
-        values["threshold_currency"] = get_company_default_currency()
+    company_currency = get_company_default_currency()
+    if company_currency:
+        values["threshold_currency"] = company_currency
     values["opportunity_trigger_statuses"] = parse_statuses(
         values["opportunity_trigger_statuses"]
     )
@@ -151,8 +152,9 @@ def validate_settings_document(doc) -> None:
     if doc.quotation_threshold is None or float(doc.quotation_threshold) < 0:
         frappe.throw(_("Quotation threshold must be zero or greater."), frappe.ValidationError)
 
-    if not doc.threshold_currency:
-        doc.threshold_currency = get_company_default_currency()
+    company_currency = get_company_default_currency()
+    if company_currency:
+        doc.threshold_currency = company_currency
     if doc.enable_quotation_signals and not doc.threshold_currency:
         frappe.throw(
             _("Set a default Company currency before enabling quotation threshold alerts."),
