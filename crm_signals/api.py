@@ -471,7 +471,7 @@ def _get_sales_billing_data(period_start, today):
             )
             result["pos_receipts_available"] = True
 
-        if has_outstanding and invoice_meta.has_field("due_date"):
+        if has_outstanding and has_party_currency and invoice_meta.has_field("due_date"):
             overdue_filters = dict(base_filters)
             overdue_filters.update({
                 "outstanding_amount": [">", 0],
