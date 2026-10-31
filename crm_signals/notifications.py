@@ -39,7 +39,7 @@ def get_signal_recipients(signal):
 
 
 def notify_signal(signal):
-    """Publish a minimal signal event only to related enabled users."""
+    """Publish to each related user; isolate one failed recipient from all others."""
     payload = {
         "name": signal.name,
         "signal_type": signal.signal_type,
@@ -48,10 +48,24 @@ def notify_signal(signal):
         "lead": signal.lead,
         "customer": signal.customer,
     }
+    sent = 0
+    failed = 0
     for user in get_signal_recipients(signal):
-        frappe.publish_realtime(
-            event="crm_signal_received",
-            message=payload,
-            user=user,
-            after_commit=True,
-        )
+        try:
+            frappe.publish_realtime(
+                event="crm_signal_received",
+                message=payload,
+                user=user,
+                after_commit=True,
+            )
+            sent += 1
+        except Exception:
+            failed += 1
+            try:
+                frappe.log_error(
+                    message=frappe.get_traceback(),
+                    title=f"CRM Signal notification failed for {user}",
+                )
+            except Exception:
+                pass
+    return {"sent": sent, "failed": failed}
