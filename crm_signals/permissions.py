@@ -96,7 +96,7 @@ def _get_visible_party_names(doctype, user):
 def crm_signal_query(user=None):
     """Build a simple list filter from currently readable owned/assigned records.
 
-    The resulting SQL contains only literal IN lists, not nested selects or set operations,
+    The resulting SQL contains only literal IN lists, not nested query constructs,
     and party name lookup uses permission-aware get_list calls.
     """
     user = user or frappe.session.user
