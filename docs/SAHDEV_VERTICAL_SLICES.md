@@ -1,54 +1,94 @@
 # S.A.H.D.E.V. vertical-slice roadmap
 
-This roadmap follows the product capabilities described in the Sahdev Signals presentation. Each slice should be independently usable, permission-aware, tested, and deployable. Avoid implementing a dashboard card or UI shell before its underlying metric and source are real.
+This roadmap tracks capability status and dependencies. The complete project delivery sequence, exit criteria and release gates are in [IMPLEMENTATION_PLAN.md](../IMPLEMENTATION_PLAN.md). Feature contracts are indexed in [specs/README.md](../specs/README.md).
 
 ## D — Dashboard: Executive Compass
 
-### D1. Sales Compass (implemented in this branch)
-- Lead inflow for the last 30 days and active Lead count.
+### D1. Sales Compass — implemented
+
+- Lead creation in the rolling last-30-day window.
+- Active Lead count using an explicit terminal-status policy.
 - Active Opportunity count and stage distribution.
 - Pipeline amount grouped by transaction currency; never sum unlike currencies.
 - Recent Opportunities with a direct Desk drill-down.
-- Lead and Opportunity reads use Frappe permission-aware list APIs.
+- Lead and Opportunity reads use permission-aware Frappe list APIs.
 
-### D2. Billing realization (implemented in this branch)
+**Remaining:** Remove fallback behavior that counts all Leads/Opportunities as active when status metadata is missing. Confirm terminal statuses and custom workflows on the target site. Validate role and data visibility with real Sales User and Sales Manager accounts.
+
+Specification: [D1 Sales Compass](../specs/2026-11-01-pillar-d1-sales-compass.md).
+
+### D2. Billing Realization — implemented
+
 - Invoiced: submitted, non-return Sales Invoice grand totals posted in the last 30 days, grouped by invoice currency.
-- Outstanding: current positive outstanding amounts on submitted, non-return Sales Invoices, grouped by the Sales Invoice party-account currency (the currency used by ERPNext's outstanding_amount field).
-- Customer receipts: submitted Receive Payment Entries for Customer parties in the last 30 days, grouped by receiving-account currency. This includes allocated and advance/unallocated receipts.
+- Outstanding: current positive outstanding amounts on submitted, non-return Sales Invoices, grouped by party-account currency.
+- Customer receipts: submitted Receive Payment Entries for Customer parties in the last 30 days, grouped by receiving-account currency. Includes allocated and advance/unallocated receipts.
 - POS receipts: submitted POS Sales Invoice paid_amount in the last 30 days, grouped by invoice currency. Kept separate from Payment Entry receipts.
-- Overdue: count and top eight submitted, non-return invoices with a positive outstanding amount and a due date before today.
+- Overdue: count and oldest eight submitted, non-return invoices with a positive outstanding amount and a due date before today.
 - Every source uses permission-aware Frappe list APIs. Unlike currencies are never added together.
-- Scope note: Payment Entry receipts are cash received, not necessarily cash allocated to an invoice. POS receipts are presented separately. Refunds, credit notes and advance applications are not re-labelled as customer cash receipts.
 
-### D3. Service resolution / SLA
-- Add ticket volume and resolution metrics from the installed support-ticket and SLA configuration.
-- Confirm what constitutes an SLA breach and which timestamp represents resolution on the target site.
-- Keep unavailable or unconfigured SLA data visibly unavailable; do not substitute generic ticket counts.
+**Remaining:** Require return metadata to guarantee exclusion semantics. Reconcile values against native Sales Invoice and Payment Entry reports on the target site. Validate invoice, party-account and receiving-account currency behavior.
+
+Specification: [D2 Billing Realization](../specs/2026-10-31-pillar-d2-billing-realization.md).
+
+### D3. Service Resolution/SLA — discovery spec ready, implementation gated
+
+- Discover the installed support application and authoritative ticket DocType.
+- Map ticket lifecycle, resolution timestamp, SLA policy/deadline/outcome, pause behavior, business calendar, timezone and permissions.
+- Provide ticket volume, open backlog, resolved volume, resolution time and SLA compliance only when the source semantics are verified.
+- Keep unconfigured or inaccessible data visibly unavailable; do not substitute generic ticket counts.
+
+**Gate:** Do not assume ERPNext Issue, Frappe Helpdesk HD Ticket or a custom DocType. Complete the discovery map against the intended site before implementing the adapter.
+
+Specification: [D3 Service Resolution/SLA](../specs/2026-11-01-pillar-d3-service-resolution-sla.md).
 
 ## H — Highlights: event-driven alerts
-- Add real-time event triggers for high-value submitted quotations and VIP proposal-link opens.
-- Deliver WebSocket alerts to the configured escalation recipients, not every logged-in user.
-- Make threshold and escalation routing configurable; record why a recipient received an alert.
-- Test duplicate events, retries, recipient permissions, and alert fatigue controls.
 
-## A — Analysis: natural-language questions
-- Start with a small set of approved sales questions and a metric/field registry.
-- Support questions such as quotations above a configured threshold with no recorded interaction during a chosen period.
-- Return the computed answer, filters, period, and source links so results can be checked.
-- Do not execute model-generated SQL. Resolve prompts through approved query definitions and permission-aware Frappe queries.
+**Status:** Design specified; implementation planned after CRM Signals settings, recipient permissions and event idempotency.
+
+- High-value submitted Quotations using Company currency and an admin-configured threshold.
+- VIP proposal-link opens only from first-party tracked links or a provider with stable event IDs.
+- Escalation to enabled, related users with source-record read permission.
+- Idempotency, bot/scanner exclusion, alert cooldown and privacy/consent controls.
+- No site-wide broadcast and no invasive browser fingerprinting.
+
+Specification: [H Highlights](../specs/2026-11-01-pillar-h-highlights.md).
 
 ## E — Explorer: customer interaction timeline
-- Provide a chronological, customer-scoped activity stream opened from a Signal, Highlight, Lead, Customer, or Opportunity.
-- Normalize activity references from calls, WhatsApp, emails, quotations, and CRM records.
-- Show a source-specific detail link only where the integration actually provides one.
-- Respect permissions for every source record; missing integrations should not create fake timeline entries.
+
+**Status:** Design specified; target-site integration inventory required.
+
+- Chronological Lead/Customer activity view from Signals, Highlights and the verified source integrations.
+- Adapter contract for source identity, event ID, timestamp, party relationship, permission and route.
+- Stable pagination and deduplication.
+- No copying of full email bodies, recordings, WhatsApp messages or attachments.
+- Missing integration, empty result and permission denial remain distinct.
+
+Specification: [E Explorer](../specs/2026-11-01-pillar-e-explorer.md).
 
 ## V — Vault: historical intelligence
-- Store versioned daily snapshots of approved signal and operating metrics.
-- Define retention, correction, and audit rules before persisting snapshots.
-- Support trend comparisons such as response-latency improvement only when the underlying timestamps are available and validated.
-- Keep historical snapshots attributable to their source and calculation version.
+
+**Status:** Design specified; metric registry and retention policy required.
+
+- Daily snapshots of approved aggregate metrics with dimensions, source counts, provenance and definition versions.
+- Append-only revisions; never silently rewrite historical values.
+- No raw party names, source record identifiers or free-text content in snapshot rows.
+- Snapshot scheduling disabled until an explicit retention period and source-visibility policy are approved.
+- Bounded, admin-only audited backfills and dry-run pruning.
+
+Specification: [V Vault](../specs/2026-11-01-pillar-v-vault.md).
+
+## A — Analysis: natural-language sales questions
+
+**Status:** Design specified; metric registry required.
+
+- Start with deterministic, approved questions mapped to versioned metrics.
+- Optionally classify natural language to a constrained metric/filter/grouping intent.
+- Execute server-owned definitions with permission-aware Frappe reads.
+- Never execute model-generated SQL, Python or arbitrary field/DocType requests.
+- Return period, filters, metric version, units/currency and authorized source links.
+
+Specification: [A Analysis](../specs/2026-11-01-pillar-a-analysis.md).
 
 ## Delivery rule
 
-A vertical slice is complete only when its data contract, permission behavior, UI, tests, operational configuration, and documentation are all present. A visible metric must be backed by real source data and a stated calculation. Cross-department dashboard cards are added only after their source slices (D2 and D3) are complete.
+A vertical slice is complete only when its data contract, permission behavior, UI, tests, operational configuration and documentation are all present. A visible metric must be backed by real source data and a stated calculation. Cross-slice dependencies are enforced by the [implementation plan](../IMPLEMENTATION_PLAN.md).
