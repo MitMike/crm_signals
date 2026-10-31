@@ -25,7 +25,7 @@ The threshold is interpreted in one site-wide threshold currency. Quotation even
 
 A source event is identified by source DocType/type, source document/integration identity and a stable source event ID. CRM Signal DocType validation normalizes those values and derives the SHA-256 key itself; it never trusts a caller-supplied hash. A unique field enforces the key. A repeated event returns the existing signal and does not publish another notification. Partial identities are rejected; a key without identity is cleared.
 
-External API callers may provide a source event ID. The integration user is part of the source namespace; retries must use the same integration identity and the same ID. Without an ID, the endpoint retains legacy non-idempotent behavior.
+External API callers may provide a source event ID. When source metadata is omitted, the server namespaces the event by the authenticated integration user. When callers supply source DocType and source name, those caller-provided values form the namespace and must be stable and unique across integrations. Retries must reuse the same integration identity, source namespace and event ID. Without an ID, the endpoint retains legacy non-idempotent behavior.
 
 Quotation submit identity includes the source document and its submission modification timestamp. Opportunity transition identity includes source document, previous/next status and modification timestamp.
 
