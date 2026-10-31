@@ -7,6 +7,9 @@ The repository root contains a `pyproject.toml` with a `[project].name` of `crm_
 
 See [FRAPPE_PILOT_IMPORT.md](FRAPPE_PILOT_IMPORT.md) for the import fix and [pyproject.toml](pyproject.toml) for supported framework ranges.
 
+## CRM Signals Desk dashboard
+A native Desk dashboard is available at `/app/crm-signals-dashboard` and from the **CRM Signals** workspace. It shows total, unread, high-priority and last-7-day signal counts, a signal-type breakdown, and the 12 most recent signals. Selecting a linked item opens its Lead or Customer. Dashboard queries use permission-aware Frappe list APIs.
+
 ## Implemented scope
 - CRM Signal DocType for signal type, priority, Lead/Customer reference, message, and read state.
 - Authenticated POST endpoint at /api/method/crm_signals.api.ingest_signal.
