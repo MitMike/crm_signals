@@ -24,6 +24,11 @@ This changelog records user-visible and operationally significant changes. It is
 - A follow-up field-level permission guard is in review because standard Helpdesk lifecycle/SLA fields use permlevels 7 and 8. Target-site app-version, field-permission and active SLA calendar acceptance remain open.
 
 
+
+### Realtime source-document authorization — in PR #41
+
+- Require read access to the originating Quotation/Opportunity as well as the linked Lead/Customer and CRM Signal before queuing a notification that may contain source-derived values.
+- Fail closed for partially populated source DocType/name pairs; regression tests prove a Lead reader without Quotation access receives no source-derived notification.
 ## 2026-11-01 — Concurrent API idempotency and digest delivery hardening (merged in PR #23)
 
 ### Changed
