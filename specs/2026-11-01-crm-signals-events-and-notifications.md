@@ -1,6 +1,6 @@
 # CRM Signals — Document events and recipient routing
 
-**Status:** Implemented baseline; idempotency and site configuration hardening remain.
+**Status:** Baseline implemented; PR #19 adds settings, idempotency and parent-read permission enforcement for realtime recipients.
 
 ## Problem and users
 
@@ -83,7 +83,7 @@ Realtime delivery happens after the signal transaction commits. A failed notific
 
 ## Validation mapping
 
-- Extend tests/test_notifications.py for dedupe, disabled users, parent read checks and delivery failures.
+- Extend tests/test_notifications.py for dedupe, disabled users, parent read checks and delivery failures. The current implementation branch now fails closed when an owner/assignee cannot read the linked Lead/Customer.
 - Add tests/test_events.py for quotation threshold, party mapping, Opportunity transitions and retry behavior.
 - Add Bench-backed tests invoking actual Frappe document hooks.
 - Keep the existing Playwright E2E focused on the user-visible alert and Console state; test transaction and recipient rules on the server.
