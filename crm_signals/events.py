@@ -32,7 +32,15 @@ def _party_links(doctype, party_name):
 def _existing_signal_name(event_key, *, locking_read=False):
     """Find the persisted signal; use a locking read after a unique-key race."""
     if locking_read:
-        rows = frappe.db.sql(
+        # The production MariaDB backend supports locking reads. Keep simple
+        # test doubles and alternate adapters compatible with their lookup
+        # contract; the Bench race test exercises the real SQL path.
+        sql = getattr(frappe.db, "sql", None)
+        if not sql:
+            return frappe.db.get_value(
+                "CRM Signal", {"source_event_key": event_key}, "name"
+            )
+        rows = sql(
             """
             SELECT name
             FROM `tabCRM Signal`
