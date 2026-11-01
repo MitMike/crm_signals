@@ -259,6 +259,74 @@ class TestSignalOutbox(FrappeTestCase):
         self.assertEqual(processed, [due.name])
         self.assertNotIn(future.name, processed)
 
+
+    def test_two_workers_enqueue_the_same_source_event_once(self):
+        suffix = frappe.generate_hash(length=8)
+        source_name = f"OUTBOX-ENQUEUE-RACE-{suffix}"
+        source_event_id = f"submit:{suffix}"
+        event_key = build_source_event_key("Quotation", source_name, source_event_id)
+        payload = {
+            "signal_type": "High-Value Quote",
+            "message": f"Outbox enqueue race test {suffix}",
+            "priority": "High",
+            "source_doctype": "Quotation",
+            "source_name": source_name,
+            "source_event_id": source_event_id,
+        }
+        site = frappe.local.site
+        both_reads_complete = threading.Barrier(2)
+        database_class = type(frappe.db)
+        original_get_value = database_class.get_value
+
+        def synchronized_get_value(db, doctype, filters=None, fieldname=None, *args, **kwargs):
+            value = original_get_value(db, doctype, filters, fieldname, *args, **kwargs)
+            if (
+                doctype == "CRM Signal Outbox"
+                and filters == {"source_event_key": event_key}
+                and fieldname == "name"
+            ):
+                both_reads_complete.wait(timeout=20)
+            return value
+
+        def enqueue_in_worker():
+            frappe.init(site=site)
+            frappe.connect(site=site)
+            frappe.set_user("Administrator")
+            try:
+                name = enqueue_signal_event(**payload)
+                frappe.db.commit()
+                return name
+            finally:
+                frappe.destroy()
+
+        with (
+            patch.object(database_class, "get_value", synchronized_get_value),
+            patch("crm_signals.notifications.notify_signal") as notify_signal,
+            ThreadPoolExecutor(max_workers=2) as executor,
+        ):
+            futures = [executor.submit(enqueue_in_worker) for _ in range(2)]
+            outbox_names = [future.result(timeout=60) for future in futures]
+
+        self.assertEqual(outbox_names[0], outbox_names[1])
+        self.assertEqual(notify_signal.call_count, 1)
+        signal_names = frappe.get_all(
+            "CRM Signal",
+            filters={"source_event_key": event_key},
+            pluck="name",
+        )
+        self.assertEqual(len(signal_names), 1)
+        self.assertEqual(
+            frappe.db.get_value("CRM Signal Outbox", outbox_names[0], "signal"),
+            signal_names[0],
+        )
+        frappe.delete_doc(
+            "CRM Signal Outbox", outbox_names[0], ignore_permissions=True, force=True
+        )
+        frappe.delete_doc(
+            "CRM Signal", signal_names[0], ignore_permissions=True, force=True
+        )
+        frappe.db.commit()
+
     def test_two_workers_process_one_outbox_event_once(self):
         suffix = frappe.generate_hash(length=8)
         source_name = f"OUTBOX-RACE-{suffix}"
