@@ -2,6 +2,14 @@
 
 This changelog records user-visible and operationally significant changes. It is not a substitute for commit history. Entries do not imply a production release unless explicitly stated.
 
+## Unreleased — Audited terminal outbox replay
+
+### Added
+- Add a System Manager-only replay action for terminal Failed signal outbox rows, with replay count, timestamp, actor and a document comment. Existing attempt count and last error are retained; the idempotent worker is queued after commit and the scheduler remains the fallback.
+
+### Operational note
+- Replay does not retry realtime notifications. Validation is pending Frappe v15/v16 CI.
+
 ## Unreleased — Transactional signal outbox (PR #26)
 
 ### Added
