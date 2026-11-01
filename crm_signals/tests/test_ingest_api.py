@@ -76,10 +76,12 @@ class TestCRMSignalWebhookIntegration(FrappeTestCase):
                 "lead": lead.name,
                 "source_event_id": "event-42",
             }
-            with patch("frappe.publish_realtime") as publish:
+            with patch("crm_signals.notifications.notify_signal") as notify:
                 first = ingest_signal()
                 duplicate = ingest_signal()
-                self.assertEqual(publish.call_count, 1)
+                # Realtime fan-out is per permitted recipient; idempotency
+                # must invoke the dispatcher only for the first insert.
+                self.assertEqual(notify.call_count, 1)
 
             frappe.set_user(second_user.name)
             frappe.local.form_dict = {
@@ -89,7 +91,7 @@ class TestCRMSignalWebhookIntegration(FrappeTestCase):
                 "lead": lead.name,
                 "source_event_id": "event-42",
             }
-            with patch("frappe.publish_realtime"):
+            with patch("crm_signals.notifications.notify_signal"):
                 other_source = ingest_signal()
         finally:
             frappe.local.form_dict = previous_form_dict
