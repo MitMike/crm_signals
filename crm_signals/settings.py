@@ -1,7 +1,8 @@
 """Validated, site-configurable CRM Signals behavior.
 
-Settings are a singleton so the first release has one coherent site policy.
-Per-company overrides can be added later without changing signal identity.
+Settings are a singleton with optional per-company quotation thresholds. Each
+company threshold is evaluated in that Company's base currency without FX
+conversion; the legacy site-wide threshold is a currency-matched fallback.
 """
 
 import datetime
