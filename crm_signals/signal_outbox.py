@@ -178,9 +178,15 @@ def enqueue_signal_event(
 
 def process_pending_signal_outbox(limit=SIGNAL_OUTBOX_BATCH_SIZE):
     """Retry due events in small committed batches; failed events remain visible to System Managers."""
+    from frappe.utils import now_datetime
+
     names = frappe.get_all(
         "CRM Signal Outbox",
         filters={"status": "Pending"},
+        or_filters=[
+            ["next_retry_at", "is", "not set"],
+            ["next_retry_at", "<=", now_datetime()],
+        ],
         fields=["name"],
         order_by="creation asc",
         limit_page_length=max(1, min(int(limit), SIGNAL_OUTBOX_BATCH_SIZE)),
