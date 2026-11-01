@@ -115,6 +115,7 @@ Production/target-site acceptance is not implied by these CI results. See [Proje
 - Realtime alerts now require both linked-party and CRM Signal read permission; unit and Bench-backed tests cover the authorization boundary (ADR-034).
 - Align CRM Signal list and direct-document permissions so linked-signal ownership cannot bypass parent User Permissions; add unit and Bench regression coverage (ADR-035).
 - Add a deployment/rollback runbook covering preflight, backups, migration, smoke tests, rollback and target-site evidence.
+- Default the master switch and external ingestion to off until System Manager explicitly enables the reviewed configuration (ADR-036).
 
 ### Validation
 - Changes are on `feat/settings-and-core-reliability`. CI and target-site validation are not yet complete.
