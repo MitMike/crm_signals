@@ -221,12 +221,32 @@ def verify_helpdesk_schema():
             f"expected {sorted(expected_sla_roles)}, found {sorted(actual_sla_roles)}"
         )
 
+    # Exercise the real D3 aggregate path on the pinned Frappe/Helpdesk stack.
+    # The API returns only aggregate metrics; no ticket rows or identifiers are emitted.
+    from crm_signals.api import get_sales_compass_data
+
+    service_metrics = get_sales_compass_data().get("service", {})
+    required_metrics = (
+        "available",
+        "backlog_available",
+        "resolved_available",
+        "resolution_time_available",
+        "sla_available",
+    )
+    unavailable = [key for key in required_metrics if not service_metrics.get(key)]
+    if unavailable:
+        frappe.throw(
+            "CRM Signals D3 aggregate smoke test failed; unavailable metrics: "
+            + ", ".join(unavailable)
+        )
+
     return {
         "status": "passed",
         "ticket_fields": sorted(required_fields),
         "field_permlevels": required_fields,
         "ticket_read_roles": {level: sorted(roles) for level, roles in expected_ticket_roles.items()},
         "sla_read_roles": sorted(expected_sla_roles),
+        "aggregate_smoke_test": "passed",
         "sla_doctype": "HD Service Level Agreement",
     }
 
