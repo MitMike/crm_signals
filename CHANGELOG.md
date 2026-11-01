@@ -21,7 +21,7 @@ This changelog records user-visible and operationally significant changes. It is
 - Install the real Helpdesk app in Bench and verify HD Ticket / HD Service Level Agreement DocTypes, required fields, permlevels and the Frappe permitted-field API.
 - Keep moving v15/v16 coverage and the v16 Playwright E2E lane.
 
-### Per-company quotation thresholds — in PR #45 review
+### Per-company quotation thresholds — merged in PR #45
 
 - Add optional Company-specific threshold rows with an explicitly approved non-negative amount and currency derived from Company metadata.
 - Use the legacy site-wide threshold only when its currency exactly matches the Company's base currency; never perform implicit FX conversion.
