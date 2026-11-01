@@ -57,6 +57,43 @@ class TestSignalOutbox(FrappeTestCase):
         ):
             self.assertTrue(meta.get_field(fieldname).read_only, fieldname)
 
+    def test_manual_replay_requires_system_manager_and_preserves_attempt_history(self):
+        suffix = frappe.generate_hash(length=8)
+        outbox = frappe.get_doc({
+            "doctype": "CRM Signal Outbox",
+            "signal_type": "High-Value Quote",
+            "message": f"Manual replay test {suffix}",
+            "priority": "High",
+            "source_doctype": "Quotation",
+            "source_name": f"OUTBOX-MANUAL-{suffix}",
+            "source_event_id": f"manual:{suffix}",
+            "source_event_key": build_source_event_key("Quotation", f"OUTBOX-MANUAL-{suffix}", f"manual:{suffix}"),
+            "status": "Failed",
+            "attempt_count": 10,
+            "last_error": "RuntimeError",
+        }).insert(ignore_permissions=True)
+        frappe.db.commit()
+        original_user = frappe.session.user
+        try:
+            frappe.set_user("Administrator")
+            with patch("frappe.enqueue") as enqueue_job:
+                from crm_signals.crm_signals.doctype.crm_signal_outbox.crm_signal_outbox import replay_failed_signal_outbox
+                result = replay_failed_signal_outbox(outbox.name)
+            saved = frappe.get_doc("CRM Signal Outbox", outbox.name)
+            self.assertEqual(result["status"], "Pending")
+            self.assertEqual(saved.status, "Pending")
+            self.assertEqual(saved.attempt_count, 10)
+            self.assertEqual(saved.last_error, "RuntimeError")
+            self.assertEqual(saved.replay_count, 1)
+            self.assertEqual(saved.last_replayed_by, "Administrator")
+            enqueue_job.assert_called_once()
+            self.assertTrue(enqueue_job.call_args.kwargs["enqueue_after_commit"])
+            self.assertTrue(saved.get_comments())
+        finally:
+            frappe.set_user(original_user)
+            frappe.delete_doc("CRM Signal Outbox", outbox.name, ignore_permissions=True, force=True)
+            frappe.db.commit()
+
     def test_outbox_persistence_failure_is_distinct_from_delivery_failure(self):
         payload = {
             "signal_type": "High-Value Quote",
