@@ -136,3 +136,34 @@ def test_digest_queue_tracker_only_skips_recipients_for_the_same_date(monkeypatc
     settings = Settings("2026-11-01", '["manager@example.com"]')
     assert tasks._queued_recipients_for_date(settings, today) == {"manager@example.com"}
     assert tasks._queued_recipients_for_date(Settings("2026-10-31", '["manager@example.com"]'), today) == set()
+
+def test_expiring_quotation_query_has_a_hard_result_cap(monkeypatch):
+    tasks = load_tasks(monkeypatch)
+    fake = sys.modules["frappe"]
+    query = {}
+    fake.get_list = lambda doctype, **kwargs: query.update(kwargs) or []
+
+    tasks._get_expiring_quotations("2026-11-01")
+
+    assert query["limit_page_length"] == tasks.MAX_EXPIRING_QUOTATIONS + 1
+
+
+def test_digest_truncates_large_quotation_lists_with_an_explicit_notice(monkeypatch):
+    tasks = load_tasks(monkeypatch)
+    quotations = [
+        types.SimpleNamespace(
+            party_name=f"Customer {index}",
+            grand_total=1000,
+            currency="USD",
+            name=f"QTN-{index:03}",
+        )
+        for index in range(tasks.MAX_EXPIRING_QUOTATIONS + 1)
+    ]
+
+    content = tasks._render_digest(0, 3, quotations)
+
+    assert f"{tasks.MAX_EXPIRING_QUOTATIONS}+" in content
+    assert "QTN-099" in content
+    assert "QTN-100" not in content
+    assert "Additional quotations are not shown" in content
+
