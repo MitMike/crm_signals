@@ -478,7 +478,7 @@ def _get_helpdesk_service_metrics(period_start):
                 "open_backlog": categories.get("Open", 0),
                 "paused_backlog": categories.get("Paused", 0),
             })
-        if ticket_meta.has_field("resolution_date") and "resolution_date" in permitted_fields:
+        if ticket_meta.has_field("resolution_date") and {"resolution_date", "status_category"}.issubset(permitted_fields):
             metrics["resolved_available"] = True
             resolved_filters = {"resolution_date": [">=", period_start], "status_category": "Resolved"}
             metrics["resolved_last_30_days"] = _helpdesk_count(resolved_filters)
