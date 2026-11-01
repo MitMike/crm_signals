@@ -30,6 +30,13 @@ async function loginAs(page: Page, username: string, password: string) {
             { timeout: 15_000 }
         )
         .toBe(true);
+
+    // Frappe sets the session cookie before completing its client-side
+    // redirect. Do not let the next test action race that navigation.
+    await page.waitForURL(
+        (url) => url.pathname === "/app" || url.pathname.startsWith("/app/"),
+        { waitUntil: "domcontentloaded", timeout: 30_000 }
+    );
 }
 
 async function loginAsAdministrator(page: Page) {
@@ -420,5 +427,7 @@ test("CRM Signals Settings presets can be applied and customised", async ({
         .toBe(100000);
 
     await staleDays.fill("4");
+    // Frappe's Int control commits its model value on change/blur.
+    await staleDays.blur();
     await expect(preset).toHaveValue("Custom");
 });
