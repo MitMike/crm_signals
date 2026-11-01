@@ -29,6 +29,8 @@ def load_permissions(monkeypatch, roles=None, parent_access=True, assigned=False
     fake.PermissionError = type("PermissionError", (Exception,), {})
 
     def get_list(doctype, filters=None, pluck=None, **kwargs):
+        if not parent_access:
+            return []
         if doctype == "Lead" and filters == {"owner": "rep@example.com"}:
             return ["LEAD-OWNED"]
         if doctype == "Customer" and filters == {"owner": "rep@example.com"}:
@@ -59,9 +61,14 @@ class Signal:
     customer = None
 
 
-def test_manager_permission_falls_back_to_doc_type_permissions(monkeypatch):
+def test_manager_permission_explicitly_allows_doc_type_permission(monkeypatch):
     permissions = load_permissions(monkeypatch, roles=["Sales Manager"])
-    assert permissions.crm_signal_has_permission(Signal(), "manager@example.com", "read") is None
+    assert (
+        permissions.crm_signal_has_permission(
+            Signal(), "manager@example.com", "read"
+        )
+        is True
+    )
 
 
 def test_sales_user_read_requires_parent_read_permission(monkeypatch):
@@ -117,3 +124,13 @@ def test_sales_user_list_query_uses_permission_aware_flat_in_lists(monkeypatch):
     assert "CUST-OWNED" in condition
     assert "SELECT" not in condition.upper()
     assert "UNION" not in condition.upper()
+
+def test_list_query_owner_clause_is_limited_to_unlinked_signals(monkeypatch):
+    permissions = load_permissions(monkeypatch, parent_access=False)
+    condition = permissions.crm_signal_query("rep@example.com")
+
+    assert "`tabCRM Signal`.owner" in condition
+    assert "`tabCRM Signal`.lead IS NULL" in condition
+    assert "`tabCRM Signal`.customer IS NULL" in condition
+    assert "`lead` IN" not in condition
+    assert "`customer` IN" not in condition

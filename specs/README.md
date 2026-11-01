@@ -6,11 +6,12 @@ Product and engineering changes start with a spec before implementation. The spe
 
 | File | Area | State |
 |---|---|---|
-| [2026-10-31-pillar-d2-billing-realization.md](2026-10-31-pillar-d2-billing-realization.md) | D2 Billing Realization | Implemented; target-site reconciliation and role validation remain |
-| [2026-11-01-crm-signals-core-and-access.md](2026-11-01-crm-signals-core-and-access.md) | CRM Signal model, ingestion, permissions and Console | Baseline implemented; hardening and target-site acceptance remain |
-| [2026-11-01-crm-signals-events-and-notifications.md](2026-11-01-crm-signals-events-and-notifications.md) | Quotation/Opportunity events and realtime routing | Baseline implemented; settings and idempotency remain |
-| [2026-11-01-crm-signals-daily-digest.md](2026-11-01-crm-signals-daily-digest.md) | Scheduled Sales Manager digest | Baseline implemented; site semantics and retry safety remain |
-| [2026-11-01-pillar-d1-sales-compass.md](2026-11-01-pillar-d1-sales-compass.md) | D1 Sales Compass | Implemented; missing-status semantics and target-site validation remain |
+| [2026-10-31-pillar-d2-billing-realization.md](2026-10-31-pillar-d2-billing-realization.md) | D2 Billing Realization | Return-metadata guard merged in PR #17; target-site reconciliation remains |
+| [2026-11-01-crm-signals-core-and-access.md](2026-11-01-crm-signals-core-and-access.md) | CRM Signal model, ingestion, permissions and Console | Baseline implemented; release hardening and target-site acceptance remain |
+| [2026-11-01-settings-and-core-reliability.md](2026-11-01-settings-and-core-reliability.md) | Settings singleton, starter presets, event identity and digest reliability | Implementation in PR #19; CI and merge pending |
+| [2026-11-01-crm-signals-events-and-notifications.md](2026-11-01-crm-signals-events-and-notifications.md) | Quotation/Opportunity events and realtime routing | Baseline implemented; settings/idempotency implementation in PR #19 |
+| [2026-11-01-crm-signals-daily-digest.md](2026-11-01-crm-signals-daily-digest.md) | Scheduled Sales Manager digest | Baseline implemented; configurable schedule and date idempotency in PR #19 |
+| [2026-11-01-pillar-d1-sales-compass.md](2026-11-01-pillar-d1-sales-compass.md) | D1 Sales Compass | Missing-status correctness merged in PR #17; target-site validation remains |
 | [2026-11-01-pillar-d3-service-resolution-sla.md](2026-11-01-pillar-d3-service-resolution-sla.md) | D3 Service Resolution/SLA | Discovery contract ready; source mapping must be completed on the target site |
 | [2026-11-01-pillar-h-highlights.md](2026-11-01-pillar-h-highlights.md) | H Highlights | Design specified; implementation planned |
 | [2026-11-01-pillar-e-explorer.md](2026-11-01-pillar-e-explorer.md) | E Explorer | Design specified; integration inventory required |

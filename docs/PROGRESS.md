@@ -2,178 +2,107 @@
 
 **Last reviewed:** 2026-11-01  
 **Repository:** [MitMike/crm_signals](https://github.com/MitMike/crm_signals)  
-**Main baseline observed:** [05ad767](https://github.com/MitMike/crm_signals/commit/05ad767f6b62814cca5b7d0c1e233a2f690baa77)  
-**Active delivery branches:** fix/stage1-metric-correctness (PR #17 — D1/D2 metric correctness)
+**Main baseline:** [f51fbce](https://github.com/MitMike/crm_signals/commit/f51fbce19b7d1e84cfa6f3ab26118f2977a8fe40)  
+**Active delivery branch:** `feat/settings-and-core-reliability` — configurable settings, presets, source-event idempotency and digest safety. Changes are not merged until GitHub reports the PR merged.
 
-This is the operational status record. IMPLEMENTATION_PLAN.md is the delivery roadmap; DECISIONS.md is the durable decision register; specs/ contains the feature contracts.
+This file is the operational source of truth. [IMPLEMENTATION_PLAN.md](../IMPLEMENTATION_PLAN.md) is the roadmap, [DECISIONS.md](DECISIONS.md) is the durable decision register, [FOLLOW_UPS.md](FOLLOW_UPS.md) tracks deferred issues, and [specs/](../specs/) holds feature contracts.
 
 ## Current status
 
-The mainline baseline contains CRM Signals core, the Signals Console, S.A.H.D.E.V. D1 Sales Compass and D2 Billing Realization. The latest repository-hardening and documentation work is being delivered through pull requests; it is not described as merged until GitHub reports the merge.
-
-| Workstream | Status | Evidence / next step |
+| Workstream | Status | Evidence / next action |
 |---|---|---|
-| CRM Signals core | Implemented baseline | Target-site permissions, deployment controls and idempotency hardening remain |
-| Signals Console | Implemented baseline | Target-site role and workflow smoke tests remain |
-| D1 Sales Compass | Implemented baseline; correctness fix in review | Active count, stages and pipeline now become unavailable when status metadata is missing; target-site status validation remains |
-| D2 Billing Realization | Implemented baseline; return guard in review | Return-sensitive invoice metrics now require `is_return`; target-site financial reconciliation remains |
-| D3 Service Resolution/SLA | Specified; implementation gated | Complete target-site support/SLA discovery before selecting source adapter |
-| H Highlights | Specified; partial quote event exists | Settings, idempotency, verified proposal events and privacy approval remain |
-| E Explorer | Specified; planned | Inventory actual installed integrations and implement source adapters |
-| V Vault | Specified; planned | Approve metric registry, source visibility and retention before scheduling |
-| A Analysis | Specified; planned | Build approved metric/query registry; no model-generated SQL |
-| Dependency/security hardening | Merged | PR #11 merged as 05ad767; all four PR checks passed; post-merge Bench verification in progress |
-| Full specifications and roadmap | Merged | PR #16 merged; all CI checks passed on the final head |
-| Main branch ruleset | Verified active | Ruleset Protect main (ID 26282133) targets refs/heads/main. Full details are recorded below; issue #12 closed after verification |
+| CRM Signals core | Baseline implemented | Settings and reliability hardening in active branch; target-site permission/deployment checks remain |
+| Signals Console | Implemented | Validate actual target-site roles and list/form/report/export/API behavior |
+| D1 Sales Compass | Implemented; correctness fix merged | PR #17 merged as `fed496f`; target-site workflow/status validation remains |
+| D2 Billing Realization | Implemented; safety fix merged | PR #17 requires `is_return` for return-sensitive measures; target-site financial reconciliation remains |
+| File/function standards | Merged | PR #18 merged as `f51fbce`; limits, checker, pre-commit and CI enforcement are on main |
+| Settings + presets | Implemented on active branch | Settings singleton, validation, Balanced/Sales Focused/Executive presets and guide; CI/merge pending |
+| Event identity/idempotency | Implemented on active branch | Unique SHA-256 source-event key, API event ID support and duplicate-safe notification; CI/merge pending |
+| Digest hardening | Implemented on active branch | Site-timezone schedule, per-recipient permission-aware emails, recipient queue tracking, configurable stale window/time/recipients and currency-code formatting; CI/merge pending |
+| Notification failure isolation | Implemented on active branch | Recipient failures are logged and do not block other recipients or source-document saves; automated retry/outbox remains deferred |
+| D3 Service Resolution/SLA | Specified; not implemented | Discover target-site support/SLA application and source semantics before adapter implementation |
+| H Highlights | Partial/planned | Finish idempotent events, recipient controls, verified proposal tracking and privacy approval |
+| E Explorer | Planned | Inventory installed activity integrations and implement only verified source adapters |
+| V Vault | Planned | Approve metric registry, source visibility and retention before enabling snapshots |
+| A Analysis | Planned | Approved metric registry and constrained server-owned queries; no model-generated SQL |
+| Repository security/CI | Merged | PR #11 security/dependency hardening; PR #18 maintainability guardrails; main ruleset active |
 
-## Repository hardening — PR #11
+## Merged repository foundation
 
-[PR #11 — automated dependency security monitoring](https://github.com/MitMike/crm_signals/pull/11) merged as [05ad767](https://github.com/MitMike/crm_signals/commit/05ad767f6b62814cca5b7d0c1e233a2f690baa77). It includes:
-- weekly Dependabot for pip, npm and GitHub Actions;
-- patched JavaScript tooling: Playwright 1.64.1 and ESLint 10.14.0;
-- a direct override to patched minimatch 11.0.1;
-- a complete committed npm lockfile v3;
-- Python pip-audit and npm audit with moderate-or-higher failures;
-- Semgrep SARIF scanning and the existing v15/v16 Bench + Playwright gates;
-- security and quality guide updates.
+- [PR #11](https://github.com/MitMike/crm_signals/pull/11) — dependency security monitoring, lockfile, pip/npm audits, Dependabot and tooling remediation.
+- [PR #16](https://github.com/MitMike/crm_signals/pull/16) — complete specifications, decision register, delivery plan and feature roadmap.
+- [PR #17](https://github.com/MitMike/crm_signals/pull/17) — D1/D2 correctness safeguards for missing Lead/Opportunity status metadata and Sales Invoice return metadata. Merge commit: [fed496f](https://github.com/MitMike/crm_signals/commit/fed496f230f5ca88af25d663bc61fe4d748f5f83).
+- [PR #18](https://github.com/MitMike/crm_signals/pull/18) — graduated file/function size and complexity rules. Merge commit: [f51fbce](https://github.com/MitMike/crm_signals/commit/f51fbce19b7d1e84cfa6f3ab26118f2977a8fe40).
 
-The first committed lockfile transfer was accidentally truncated to 1,000 lines. That was identified from the failed npm ci run and replaced with the complete runner-generated lockfile (50,138 bytes, 105 packages). The complete lockfile is committed on main. The final PR-head checks all passed:
+## Repository governance
 
-| Workflow | Run | Status at this snapshot |
-|---|---|---|
-| Quality Checks | [41232087717](https://github.com/MitMike/crm_signals/actions/runs/41232087717) | Passed |
-| Bench Integration and E2E | [41232087747](https://github.com/MitMike/crm_signals/actions/runs/41232087747) | Passed (v15 and v16 + Playwright) |
-| Security Scanning | [41232087776](https://github.com/MitMike/crm_signals/actions/runs/41232087776) | Passed |
-| Dependency Security Audit | [41232087748](https://github.com/MitMike/crm_signals/actions/runs/41232087748) | Passed (npm and Python) |
+GitHub ruleset [Protect main](https://github.com/MitMike/crm_signals/rules/26282133) is active on `refs/heads/main`.
 
-Post-merge validation on main: Quality Checks [41232593555](https://github.com/MitMike/crm_signals/actions/runs/41232593555) and Security Scanning [41232593543](https://github.com/MitMike/crm_signals/actions/runs/41232593543) passed. The fresh post-merge Bench run [41232593526](https://github.com/MitMike/crm_signals/actions/runs/41232593526) passed both v15 and v16 lanes. The final merged-main validation is green for Quality Checks [41232593555](https://github.com/MitMike/crm_signals/actions/runs/41232593555), Security Scanning [41232593543](https://github.com/MitMike/crm_signals/actions/runs/41232593543) and Bench Integration/E2E [41232593526](https://github.com/MitMike/crm_signals/actions/runs/41232593526). Dependency Security Audit passed on PR #11 [41232087748](https://github.com/MitMike/crm_signals/actions/runs/41232087748).
+- Pull requests required; direct main updates, deletion and force pushes are blocked.
+- Eight strict required contexts cover lint/static checks, Python 3.10/3.11/3.12/3.14, Semgrep and Bench v15/v16.
+- Review threads must be resolved. Required approving review count is zero to avoid deadlocking a single-maintainer repository.
+- No bypass actors are configured. Emergency recovery requires an authorized administrator to temporarily edit and then restore the ruleset.
+- Dependency Security Audit is active, but is not one of the eight required branch contexts.
 
-## Specifications and plan
+[Issue #12](https://github.com/MitMike/crm_signals/issues/12) was closed after ruleset verification.
 
-The full spec catalogue and delivery roadmap were merged to main in PR #16 (merge commit 7a8ee4354a9d62ffa706c5b77be948186e6a7306 is the PR head; merge commit b4ee3cf).
+## Stage 1 — release readiness and core hardening
 
-The documentation branch docs/complete-specifications-roadmap adds full feature specs for:
-- CRM Signals core, ingestion, permissions and Console;
-- Quotation/Opportunity event routing and realtime notifications;
-- daily sales digest;
-- D1 Sales Compass;
-- D3 Service Resolution/SLA discovery and adapter contract;
-- H Highlights;
-- A Analysis;
-- E Explorer;
-- V Vault.
+### Completed in merged code
+- D1 active Lead/Opportunity counts, stages and active pipeline become unavailable when status metadata is missing rather than incorrectly counting all rows as active.
+- D2 Sales Invoice metrics that exclude returns require `is_return`; no return-sensitive aggregation runs without that filter.
+- Payment Entry receipt metrics remain independent of Sales Invoice return metadata.
+- Branch protection and file/function size standards are merged.
 
-The existing D2 Billing Realization spec remains the D2 contract. The new specifications catalogue links all ten specs. IMPLEMENTATION_PLAN.md now sequences repository security, core/release hardening, D3, H, E, V and A with dependencies, acceptance criteria and exit gates. These documentation changes are on docs/complete-specifications-roadmap and are not yet on main.
+### On the active implementation branch; not yet merged
+- Add System Manager-only CRM Signals Settings singleton and editable Balanced, Sales Focused and Executive presets.
+- Configure master/external-ingestion/Quotation/Opportunity/digest switches, Company-currency threshold, Opportunity status list, stale-day window, digest time and extra recipients validated against registered enabled System Users.
+- Add source-event metadata and a unique hash-based identity for CRM Signals.
+- Make webhook retries idempotent when the caller supplies a stable `source_event_id`.
+- Schedule the digest at the configured System Settings timezone, query CRM rows under each recipient's user context, send separate permission-filtered emails and record each queued recipient in the same transaction as that email-queue request.
+- Remove hard-coded INR formatting and isolate realtime notification errors by recipient.
+- Filter realtime recipients by the linked Lead/Customer read permission before sending signal content; denied/failed permission checks are excluded (ADR-034).
+- Also require CRM Signal document read permission; add a real FrappeTestCase for both checks and run it with `bench run-tests --app crm_signals` on v15 and v16.
+- Align list-query access with direct-document access: owner-only visibility is restricted to unlinked signals; linked signals require a permission-readable owned/assigned parent (ADR-035).
+- Add a generic deployment/rollback runbook; actual target-site backup/restore rehearsal remains a P0 acceptance gate.
+- Record a production-readiness audit with fixed findings, outstanding P0/P1 risks and an explicit not-ready-for-sign-off decision in docs/PRODUCTION_READINESS_AUDIT.md.
+- Default the master switch and external ingestion to disabled, including missing-settings fallback, until System Manager explicitly activates the reviewed configuration (ADR-036).
+- Bound daily digest quotation output to 100 rows with an explicit truncation notice to prevent unbounded email payloads (ADR-037).
+- Add Bench-backed webhook and database tests for same-user duplicate POSTs, one notification per event, per-user namespaces, unique-key enforcement and multiple legacy null keys; concurrent insert and true pre-feature upgrade migration remain open.
+- CI follow-up (2026-11-01): Bench v15/v16 exposed an invalid CRM Signal autoname expression that persisted the literal `SIG-.YYYY.-.#####`; corrected to Frappe's brace-delimited `format:SIG-{YYYY}-{#####}` (ADR-038). The API integration test now sets request form data after switching users because the user-context switch clears the local request form.
+- CI follow-up (2026-11-01): Bench v16 exposed the changed document-permission hook contract: it passes `ptype` and requires an explicit boolean. Updated the hook to accept both v15/v16 argument names and preserve role-level DocType permissions before row-level restrictions (ADR-039). Corrected duplicate-key recovery to handle Frappe's `UniqueValidationError` using a locking read, added a race-recovery regression test, and changed notification idempotency coverage to count one dispatch rather than assume one realtime recipient. Prettier formatting was corrected and its temporary diagnostic step removed. Both Bench matrices and required CI checks must pass on the final head before merge.
+- CI follow-up (2026-11-01): The v15/v16 Bench integration suites passed. The first v16 Playwright run then exposed a login race: the session cookie existed before Frappe completed the redirect, causing subsequent API/navigation actions to overlap with that redirect and trigger aborted requests and CSRF errors. The shared login helper now waits for the Desk URL; the settings custom-preset handler awaits its form-model update and the E2E test blurs the integer field before asserting. See ADR-040. Re-run the complete v15/v16 Bench and browser matrix on the final head before merge.
+- Add an admin guide, settings/reliability spec and configuration/identity/digest tests.
 
-## Delivered on the observed main baseline
+### Target-site acceptance — still required
+- [ ] Run Frappe Pilot import on the intended site and record installed Frappe/ERPNext versions and applications.
+- [ ] Confirm Company default currency and verify quotation threshold behavior for every enabled Company.
+- [ ] Confirm Opportunity status values and terminal Lead statuses from actual workflows.
+- [ ] Confirm site timezone, digest time and recipients.
+- [ ] Validate Sales User, Sales Manager, System Manager and non-sales roles in list, direct form, API, report, export and print paths.
+- [ ] Reconcile D2 invoice, Payment Entry receipt, POS receipt and receivable figures against native ERPNext reports, by currency.
+- [ ] Configure a dedicated integration user, API credentials, TLS, gateway rate limiting, monitoring and secret rotation.
+- [ ] Exercise scheduler, mail queue, realtime notifications, migration, backup and rollback on the intended site.
 
-- Frappe app packaging metadata and the documented Pilot discovery/module layout.
-- CRM Signal DocType, authenticated signal ingestion endpoint, Quotation and Opportunity hooks, recipient-scoped realtime notifications, linked-party permissions and scheduled digest.
-- Native CRM Signals Desk Console.
-- D1 Sales Compass: Lead and Opportunity metrics, stage distribution, currency-grouped pipeline and recent Opportunities.
-- D2 Billing Realization: submitted invoice totals, customer Receive Payment Entry receipts, separate POS receipts, current positive receivables and overdue invoice drill-down.
-- Quality workflows: Ruff, ESLint, Oxlint, Prettier checks, Python unit tests/compile, pre-commit, Frappe Bench compatibility and Playwright E2E.
-- Security workflows: Semgrep scanning and Dependabot configuration.
+## Explicitly deferred
 
-These are code/CI baselines. They do not prove acceptance on a particular customer or production site.
+See [FOLLOW_UPS.md](FOLLOW_UPS.md) for issues that should not be silently treated as complete:
+- Retryable outbox/reconciliation for signal-creation failures. Current hooks log failures and preserve the source transaction; they do not yet guarantee automatic retry after a transient database failure.
+- Per-company quotation thresholds for multi-company sites with different base currencies.
+- D3 source discovery, H privacy/consent decisions, E integration inventory, V retention and A metric-registry work.
 
-## Outstanding gates
+## CI and release evidence
 
-### Repository governance
+The merged baseline has passed the existing Quality Checks, Bench Integration/E2E (Frappe/ERPNext v15 and v16), Security Scanning and Dependency Security Audit workflows on the corresponding PR heads. The active settings/reliability branch must pass current CI on its final head and be merged before this code is treated as delivered.
 
-- [ ] Verify a main ruleset/branch protection exists.
-- [ ] Require Quality Checks, Bench Integration and E2E, Security Scanning and Dependency Security Audit.
-- [ ] Disable ordinary direct pushes to main while retaining an approved emergency path.
-
-
-
-#### Repository governance — verified 2026-11-01
-
-GitHub API confirms branch \`main\` is protected by active repository ruleset [Protect main](https://github.com/MitMike/crm_signals/rules/26282133), ID \`26282133\`, targeting only \`refs/heads/main\`.
-
-- Pull requests required; direct updates to main are disallowed by the PR rule. No bypass actors are configured.
-- Required status checks use strict/up-to-date enforcement:
-  - Lint and static checks
-  - Python unit tests (3.10), (3.11), (3.12), (3.14)
-  - Semgrep static security analysis
-  - bench-validation (version-15, 3.11, false)
-  - bench-validation (version-16, 3.14, true)
-- Review threads must be resolved. Required approving review count is 0, matching the single-maintainer repository; code-owner and last-push approval are not required.
-- Deletion and non-fast-forward updates (force pushes) are blocked.
-- Allowed merge methods: merge, squash and rebase.
-- No bypass actors; current user cannot bypass. Emergency recovery therefore requires an authorized administrator to edit the ruleset temporarily, with the change documented and reverted.
-
-Dependency Security Audit is active and passing on relevant PRs, weekly and manually, but is not among the eight required status contexts in this ruleset.
-
-[Issue #12](https://github.com/MitMike/crm_signals/issues/12) was closed after this verification.
-
-
-## Target-site and operational acceptance
-
-- [ ] Run Frappe Pilot import on the intended site.
-- [ ] Record installed Frappe/ERPNext versions, apps, Company default currency, site timezone, workflows, DocType metadata and custom fields.
-- [ ] Validate Sales User, Sales Manager, System Manager and non-sales role behavior in list, direct form, API, report and export paths.
-- [ ] Reconcile D2 invoice, payment receipt and receivable groups against native ERPNext reports.
-- [ ] Confirm the configured high-value quotation threshold and currency; the current source constant is a default only and its message formatting must not assume INR.
-- [ ] Confirm Opportunity signal trigger statuses and Lead digest interpretation.
-- [ ] Configure dedicated integration user, credential rotation, TLS, rate limiting and secret storage.
-- [ ] Complete runbook, backup, rollback, migration and release checks.
-
-### Product delivery
-
-- [ ] Complete Stage 1 CRM core hardening: idempotency, validated settings, permission parity, event failure isolation, D1 missing-status behavior, D2 required return metadata and digest currency/timezone behavior.
-- [ ] Complete D3 support/SLA discovery against the target site before implementation.
-- [ ] Deliver H only after idempotency, recipient access and privacy/consent controls are accepted.
-- [ ] Deliver E only for integrations verified as installed/configured.
-- [ ] Keep Vault scheduling disabled until metric provenance, source visibility and retention are approved.
-- [ ] Deliver Analysis only against an approved metric registry and server-owned permission-aware queries.
-
-
-## Stage 1 metric correctness — PR #17
-
-Branch: \`fix/stage1-metric-correctness\` (based on the documentation/specification branch so its contracts and decisions are carried forward).
-
-Changes in review:
-- D1 Lead active count is unavailable when Lead.status metadata is missing; Lead creation count remains available.
-- D1 Opportunity active count, stage distribution and active pipeline are unavailable when Opportunity.status is missing. Total count and recent Opportunities remain available.
-- D1 active pipeline additionally requires amount and currency metadata; unlike currencies remain separate.
-- D2 invoiced, POS receipt, current outstanding and overdue Sales Invoice metrics do not run without is_return. Each remains unavailable rather than dropping the safety filter.
-- Payment Entry customer receipts continue independently of Sales Invoice return metadata.
-- The Desk page explains missing metadata rather than rendering false zero/all-active values.
-- Regression tests cover missing Lead status, missing Opportunity status and missing Sales Invoice is_return.
-
-Latest push validation is running on the current code branch:
-- Quality Checks: [41233382583](https://github.com/MitMike/crm_signals/actions/runs/41233382583) — Python 3.10/3.11/3.12/3.14 passed; lint/static job was completing.
-- Security Scanning: [41233382608](https://github.com/MitMike/crm_signals/actions/runs/41233382608) — queued at this snapshot.
-- Bench Integration and E2E: [41233382641](https://github.com/MitMike/crm_signals/actions/runs/41233382641) — v15/v16 in progress at this snapshot.
-
-Do not mark Stage 1 code complete until all three workflows pass and the pull request is merged. Target-site semantics remain separate acceptance gates.
+CI is necessary, not production acceptance. Never mark a target-site gate complete based only on a mocked unit test or the existence of source code.
 
 ## Update protocol
 
-Update this file when code is merged, validation changes, a blocker is found or a target-site gate is completed. Record the commit SHA and CI evidence. Never mark work complete based only on source code existing or mocked unit tests passing.
-
-For every feature delivery:
-1. Update the spec before implementation.
-2. Define source fields, metric semantics, permission rules, unavailable states and edge cases.
-3. Map acceptance criteria to unit, Bench integration and browser E2E tests as applicable.
-4. Record consequential choices in DECISIONS.md.
-5. Update CHANGELOG.md for user-visible or operationally significant changes.
-6. Reconcile this status document after merge and validation.
-
-
-## Repository source standards — branch chore/file-standards
-
-**Status:** Implemented on branch; automated CI validation and pull-request review pending.
-
-- [x] Calibrate the file policy: production 500-line warning / 800-line hard limit; tests 800 / 1,200.
-- [x] Add Python function-size warnings and hard limits, with more generous test thresholds.
-- [x] Enable Ruff C901 and ESLint complexity/function-size rules.
-- [x] Add a dependency-free checker, exact-path exception registry and unit tests.
-- [x] Integrate the checker into pre-commit and Quality Checks CI.
-- [x] Record the rationale and usage in the decision register and quality guide.
-- [ ] Run the full checker, unit suite and all CI workflows on the branch; address any existing hard-limit violations.
-- [ ] Review warnings from the existing source tree and decide which merit refactoring rather than suppressing them.
-- [ ] Open and merge a PR only after CI and the full source audit are green.
-
-The policy intentionally does not impose an arbitrary 400-line ceiling. Current file-length warnings are review signals, not build failures. No file exceptions are pre-approved; any later exception requires an exact path and a written reason.
+For each change:
+1. Update the relevant spec before or alongside implementation.
+2. Record material data, security, compatibility and delivery choices in [DECISIONS.md](DECISIONS.md).
+3. Add tests for the acceptance criteria.
+4. Update [CHANGELOG.md](../CHANGELOG.md) for user-visible or operationally significant changes.
+5. Reconcile this file after merge and attach commit/CI evidence.
+6. Put blocked or intentionally deferred work in [FOLLOW_UPS.md](FOLLOW_UPS.md), with an owner/trigger and reason.

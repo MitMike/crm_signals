@@ -69,6 +69,8 @@ For backward compatibility, an idempotency key is optional for existing callers.
 - An unlinked signal is visible only to its owner and users otherwise granted DocType-level access.
 - Write access for Sales Users requires a readable relationship plus ownership of the signal, ownership of the parent party or an active assignment.
 - List-query conditions and direct-document checks must enforce equivalent rules.
+- An owner-only list condition applies only to unlinked signals; linked signals require an owned/assigned, permission-readable parent relationship.
+- Realtime alerts are sent only when the recipient can read both the CRM Signal and its linked Lead/Customer; a notification is not an authorization grant.
 - Report, export, print, API and Desk list access must be tested; hiding a page link is not an authorization control.
 
 An active assignment is a ToDo referencing the Lead/Customer where status is neither Cancelled nor Closed. Disabled users are never notification recipients.

@@ -32,16 +32,17 @@ The following capabilities are present in the repository. "Implemented" means th
 |---|---|---|
 | Frappe app packaging and Pilot discovery metadata | Implemented | Run the actual Pilot import flow on the intended site |
 | CRM Signal DocType and validation | Implemented | Validate installed schema, roles and customizations |
-| Authenticated POST ingestion | Implemented | Test with a dedicated integration user and deployment rate limits |
-| Quotation and Opportunity event hooks | Implemented | Confirm thresholds/statuses and add durable idempotency |
+| Authenticated POST ingestion | Implemented baseline; event-ID idempotency in PR #19 | Test with a dedicated integration user and deployment rate limits |
+| Quotation and Opportunity event hooks | Implemented baseline; settings/idempotency in PR #19 | Confirm target-site status and threshold policy; durable outbox remains deferred |
 | Record-level Signal permissions | Implemented | Verify list, direct form, report, export and API on target roles |
 | Recipient-scoped realtime notifications | Implemented | Validate target-site assignments/permissions and failure isolation |
-| Daily CRM digest | Implemented | Confirm semantics, currency, timezone, recipients and retry safety |
+| Daily CRM digest | Implemented baseline; configurable schedule/retry marker in PR #19 | Verify target-site semantics, timezone, recipient policy and scheduler concurrency |
+| CRM Signals Settings | In PR #19 | Pass CI, migrate singleton on v15/v16, validate the default Company currency and preset behavior |
 | CRM Signals Desk Console | Implemented | Target-site permission and usability smoke test |
-| D1 Sales Compass | Implemented | Harden missing-status handling and verify target-site status semantics |
-| D2 Billing Realization | Implemented | Reconcile totals and currency basis against target-site reports |
+| D1 Sales Compass | Implemented; missing-status fix merged in PR #17 | Verify target-site status semantics and role visibility |
+| D2 Billing Realization | Implemented; return-metadata guard merged in PR #17 | Reconcile totals and currency basis against target-site reports |
 | D3 Service Resolution/SLA | Not implemented | Discover and map the installed support/SLA source first |
-| H Highlights | Partially present for quote events | Settings, source-event idempotency, VIP link tracking/privacy review |
+| H Highlights | Partially present for quote events | Finish settings/idempotency foundation; VIP link tracking still needs privacy review |
 | E Explorer | Not implemented | Verify installed activity integrations and source adapters |
 | V Vault | Not implemented | Metric registry, retention and source-visibility policy |
 | A Analysis | Not implemented | Approved metric/query registry and constrained intent mapping |
@@ -61,7 +62,7 @@ The following capabilities are present in the repository. "Implemented" means th
 
 ### Stage 0 — Repository security and reproducible CI
 
-**Status:** Merged in [PR #11](https://github.com/MitMike/crm_signals/pull/11) as [05ad767](https://github.com/MitMike/crm_signals/commit/05ad767f6b62814cca5b7d0c1e233a2f690baa77). All four gates passed on the PR head; post-merge Bench validation is being confirmed on main. GitHub ruleset [Protect main](https://github.com/MitMike/crm_signals/rules/26282133) (ID 26282133) is active and has been verified; the required contexts and remaining enforcement details are recorded in docs/PROGRESS.md.
+**Status:** Complete. PR #11 dependency/security hardening and PR #18 source-size/complexity guardrails are merged. Main ruleset [Protect main](https://github.com/MitMike/crm_signals/rules/26282133) is active and verified. PR #18 merged as [f51fbce](https://github.com/MitMike/crm_signals/commit/f51fbce19b7d1e84cfa6f3ab26118f2977a8fe40).
 
 Work:
 - Add weekly Dependabot checks for pip, npm and GitHub Actions.
@@ -88,8 +89,10 @@ Work:
 - Configure a dedicated integration user, rotateable API credentials, HTTPS, gateway rate limiting and secret storage.
 - Add source DocType, source document name and source event ID to CRM Signals; enforce idempotent inserts for identifiable events.
 - Add a validated CRM Signals Settings singleton for the quotation threshold, Opportunity trigger statuses, Lead stale window, digest time and escalation recipients.
-- [x] Fix D1 active-count handling when `status` metadata is missing: active Leads/Opportunities, stage distribution and active pipeline are unavailable; independent counts/recent records remain available. Regression tests are included in `fix/stage1-metric-correctness`; CI/merge is pending.
-- [x] Require `is_return` metadata for every return-sensitive D2 Sales Invoice measure. Invoiced, POS, outstanding and overdue measures are unavailable when the field is missing; no Sales Invoice aggregate runs without the return filter. Payment Entry receipts remain independent. Regression tests are included in `fix/stage1-metric-correctness`; CI/merge is pending.
+- [x] Fix D1 active-count handling when `status` metadata is missing. Implemented and merged in PR #17 as `fed496f`; regression tests and browser unavailable-state coverage are included.
+- [x] Require `is_return` metadata for every return-sensitive D2 Sales Invoice measure. Implemented and merged in PR #17 as `fed496f`; no Sales Invoice aggregation runs without the return filter. Payment Entry receipts remain independent.
+- [x] Add calibrated source file/function size standards, checker, pre-commit and CI integration. Implemented and merged in PR #18 as `f51fbce`.
+- [ ] Finish the current settings/reliability branch and merge only after all required checks pass.
 - Verify that CRM Signal list, direct-document, API, report and export permissions are equivalent.
 - Verify that the current shared is_read flag is acceptable as a team acknowledgement.
 - Confirm daily digest currency formatting, site timezone, recipients and duplicate-run behavior.
@@ -103,6 +106,19 @@ Exit criteria:
 - [ ] D1/D2 metrics match documented definitions and the target site's source reports.
 - [ ] Settings are validated and defaults are confirmed/overridden for the site.
 - [ ] Install, migrate, scheduler, notification, dashboard and rollback smoke tests pass on the selected site version(s).
+
+
+### Current Stage 1 implementation branch
+
+The active branch `feat/settings-and-core-reliability` implements the following items; they remain **in review** until the PR is merged and its latest checks pass:
+
+- System Manager-only CRM Signals Settings singleton with Balanced, Sales Focused and Executive starter presets.
+- Configurable master/ingestion/Quotation/Opportunity/digest switches, threshold currency/amount, Opportunity statuses, stale window, site-local digest time and additional enabled System User recipients.
+- SHA-256 source-event identity and a unique CRM Signal key; optional webhook `source_event_id` deduplicates retries.
+- Recipient-level realtime failure isolation and a digest queued-date marker.
+- Administrator guide, reliability spec and unit tests.
+
+The first release uses one site-wide threshold currency. Multi-company overrides and a durable retry/outbox are explicitly tracked in docs/FOLLOW_UPS.md. Target-site values and production security remain external acceptance gates.
 
 ### Stage 2 — D3 Service Resolution/SLA
 
@@ -234,11 +250,12 @@ A slice is done only when all applicable items are complete:
 
 | Area | Specification | State |
 |---|---|---|
-| CRM Signals data, ingestion and access | [Core and access](specs/2026-11-01-crm-signals-core-and-access.md) | Baseline implemented; hardening open |
-| Document events and realtime routing | [Events and notifications](specs/2026-11-01-crm-signals-events-and-notifications.md) | Baseline implemented; idempotency/config open |
-| Daily digest | [Digest](specs/2026-11-01-crm-signals-daily-digest.md) | Baseline implemented; site semantics open |
-| D1 | [Sales Compass](specs/2026-11-01-pillar-d1-sales-compass.md) | Implemented; semantic hardening open |
-| D2 | [Billing Realization](specs/2026-10-31-pillar-d2-billing-realization.md) | Implemented; target-site reconciliation open |
+| CRM Signals data, ingestion and access | [Core and access](specs/2026-11-01-crm-signals-core-and-access.md) | Baseline implemented; release hardening open |
+| Settings and core reliability | [Settings, presets and idempotency](specs/2026-11-01-settings-and-core-reliability.md) | PR #19 in review; CI/merge pending |
+| Document events and realtime routing | [Events and notifications](specs/2026-11-01-crm-signals-events-and-notifications.md) | Baseline implemented; settings/idempotency in PR #19 |
+| Daily digest | [Digest](specs/2026-11-01-crm-signals-daily-digest.md) | Configurable schedule/date marker in PR #19; target-site policy open |
+| D1 | [Sales Compass](specs/2026-11-01-pillar-d1-sales-compass.md) | Missing-status correction merged; target-site validation open |
+| D2 | [Billing Realization](specs/2026-10-31-pillar-d2-billing-realization.md) | Return-metadata guard merged; target-site reconciliation open |
 | D3 | [Service Resolution/SLA](specs/2026-11-01-pillar-d3-service-resolution-sla.md) | Discovery spec ready; source mapping gated |
 | H | [Highlights](specs/2026-11-01-pillar-h-highlights.md) | Planned |
 | A | [Analysis](specs/2026-11-01-pillar-a-analysis.md) | Planned |

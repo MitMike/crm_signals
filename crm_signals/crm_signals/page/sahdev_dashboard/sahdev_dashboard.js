@@ -54,7 +54,7 @@ class SahdevSalesCompass {
                 currency: code,
                 maximumFractionDigits: 0
             }).format(Number(value || 0));
-        } catch (error) {
+        } catch {
             return code + " " + this.number(value);
         }
     }

@@ -17,7 +17,7 @@ This changelog records user-visible and operationally significant changes. It is
 - GitHub ruleset API returned the active ruleset and complete rule list.
 - [Issue #12](https://github.com/MitMike/crm_signals/issues/12) closed after verification.
 
-## 2026-11-01 — D1/D2 metric safety corrections (under review)
+## 2026-11-01 — D1/D2 metric safety corrections (merged in PR #17 as fed496f)
 
 ### Changed
 - D1 active Lead/Opportunity metrics, Opportunity stages and active pipeline now report unavailable when required status metadata is absent instead of counting every record as active.
@@ -27,7 +27,7 @@ This changelog records user-visible and operationally significant changes. It is
 
 ### Validation
 - Added regression tests for missing Lead status, Opportunity status and Sales Invoice is_return metadata.
-- Code and documentation are in review on branch fix/stage1-metric-correctness; this entry does not claim the change is merged.
+- PR #17 merged as [fed496f](https://github.com/MitMike/crm_signals/commit/fed496f230f5ca88af25d663bc61fe4d748f5f83). CI passed on the merged head; target-site semantics and financial reconciliation remain separate acceptance gates.
 
 ## 2026-11-01 — Dependency security and CI hardening (merged; not a product release)
 
@@ -91,7 +91,7 @@ On the baseline commit, GitHub Actions reported success for [Quality Checks](htt
 Production/target-site acceptance is not implied by these CI results. See [Project Progress](docs/PROGRESS.md) for outstanding validation and repository-protection actions.
 
 
-## 2026-11-01 — Source size and complexity guardrails (under review)
+## 2026-11-01 — Source size and complexity guardrails (merged in PR #18)
 
 ### Added
 - Graduated file-size thresholds: production source warns above 500 non-blank lines and fails above 800; test/E2E source warns above 800 and fails above 1,200.
@@ -99,4 +99,45 @@ Production/target-site acceptance is not implied by these CI results. See [Proje
 - A standard-library checker, unit tests, pre-commit integration and a narrow exact-path exception registry.
 
 ### Validation
-- Changes are on branch `chore/file-standards`; CI and pull-request review are pending. This entry does not claim that the policy has been merged or deployed.
+- PR #18 merged as [f51fbce](https://github.com/MitMike/crm_signals/commit/f51fbce19b7d1e84cfa6f3ab26118f2977a8fe40).
+- Quality Checks [41242229437](https://github.com/MitMike/crm_signals/actions/runs/41242229437), Bench Integration/E2E [41242229451](https://github.com/MitMike/crm_signals/actions/runs/41242229451), Security Scanning [41242229463](https://github.com/MitMike/crm_signals/actions/runs/41242229463) and Dependency Security Audit [41242229456](https://github.com/MitMike/crm_signals/actions/runs/41242229456) passed on the PR head.
+- This is engineering governance, not a product release.
+
+
+## 2026-11-01 — Configurable Settings and core reliability (implementation branch; not yet a release)
+
+### Added
+- System Manager-only CRM Signals Settings singleton with Balanced, Sales Focused and Executive starter presets.
+- Configurable event switches, quotation threshold/currency, Opportunity trigger statuses, digest time/stale window and additional enabled System User recipients.
+- SHA-256 source-event identity with a unique database key; DocType validation derives the hash server-side, and optional webhook event IDs return the original signal on retry.
+- Site-timezone digest scheduling, separate permission-filtered emails per recipient, transactional per-recipient queue tracking, transaction-currency amount labels, registered enabled-System-User recipient validation and per-recipient notification failure isolation.
+- Administrator guide, settings/reliability spec, regression tests, Settings preset Playwright coverage and recorded ADR-026 through ADR-033.
+- Realtime alerts now require both linked-party and CRM Signal read permission; unit and Bench-backed tests cover the authorization boundary (ADR-034).
+- Align CRM Signal list and direct-document permissions so linked-signal ownership cannot bypass parent User Permissions; add unit and Bench regression coverage (ADR-035).
+- Add a deployment/rollback runbook covering preflight, backups, migration, smoke tests, rollback and target-site evidence.
+- Default the master switch and external ingestion to off until System Manager explicitly enables the reviewed configuration (ADR-036).
+- Bound daily digest output to 100 Quotations and report truncation rather than creating unbounded email payloads (ADR-037).
+- Add Bench-backed API idempotency and source-key tests for duplicate requests, notification dedupe, per-user namespaces and legacy null-key compatibility.
+- Add a production-readiness audit with explicit P0/P1/P2 gates and follow-up ownership.
+
+### Validation
+- Changes are on `feat/settings-and-core-reliability`. CI and target-site validation are not yet complete.
+- This entry does not claim a production rollout or a formal product release.
+
+
+### 2026-11-01 — CI compatibility and idempotency corrections (PR #19, unmerged)
+
+- Correct the CRM Signal document-permission hook for Frappe v15/v16 argument and return-value differences without bypassing role-level DocType permissions.
+- Recover from database unique-key races by reading the winning source-event row under a lock; cover the race path in a Bench-backed regression test.
+- Verify authenticated API users have the minimum CRM Signal create permission; test idempotency at notification-dispatch level so recipient fan-out is not mistaken for duplicate dispatch.
+- Correct the dashboard E2E Prettier formatting and remove the temporary CI diagnostic step.
+
+These corrections remain on the active PR branch until its required checks pass and the PR is merged.
+
+
+### 2026-11-01 — E2E navigation and settings synchronization (PR #19, unmerged)
+
+- Wait for Frappe Desk navigation after the session cookie is established, preventing subsequent test requests from racing the login redirect.
+- Await the settings form's custom-preset model update and commit the integer field before asserting the preset change.
+
+These changes remain on the active PR branch pending final CI and merge.

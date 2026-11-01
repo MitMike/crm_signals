@@ -229,3 +229,147 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Rationale:** File size alone is a weak proxy for maintainability. Graduated limits identify outliers without forcing arbitrary decomposition; complexity and function size target difficult-to-test logic more directly.
 - **Consequences:** Add a standard-library checker, automated tests, Ruff/ESLint rules, pre-commit integration and a dedicated exception register. Warnings are visible but do not block CI; hard-limit violations fail the Quality Checks gate. Revisit thresholds against actual code review and warning volume after adoption.
 - **Sources:** [Quality Gates](QUALITY_GATES.md), [Frappe Semgrep rules](https://github.com/frappe/semgrep-rules), [Frappe Insights custom rules](https://github.com/frappe/insights/blob/develop/.semgrep/insights.yml).
+
+
+## ADR-026 — Configure CRM Signals through one validated site Settings singleton
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-01
+- **Decision:** Use a System Manager-only `CRM Signals Settings` singleton for the site-wide master switch, external ingestion, Quotation threshold, Opportunity trigger statuses, digest window/time and additional recipients. Provide Balanced, Sales Focused and Executive starter presets; choosing a preset applies values but does not prevent subsequent customisation.
+- **Rationale:** Business policy must be changed by an administrator without editing application source. Starter profiles reduce setup work without pretending that one set of values fits every site.
+- **Consequences:** Validate inputs server-side. Keep the source defaults as bootstrap values only. Do not expose settings to Sales Users.
+- **Sources:** [Settings and reliability spec](../specs/2026-11-01-settings-and-core-reliability.md), [Administrator guide](ADMIN_GUIDE.md).
+
+## ADR-027 — The first release has one site-wide quotation threshold currency
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-01
+- **Decision:** Interpret the quotation threshold in the default Company's currency and compare against Quotation `base_grand_total`. Display the Quotation's own transaction currency. If the Quotation Company's base currency does not match the configured threshold currency, do not emit a threshold alert.
+- **Rationale:** Comparing a transaction-currency amount directly to a threshold in another currency is incorrect. A conversion policy would need an explicit rate date/source and audit semantics.
+- **Consequences:** Multi-company sites using different base currencies require per-company settings before quotation alerts can be enabled across those companies. Do not assume INR.
+- **Sources:** [Settings and reliability spec](../specs/2026-11-01-settings-and-core-reliability.md), [Administrator guide](ADMIN_GUIDE.md).
+
+## ADR-028 — Enforce idempotency with a unique source-event hash
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-01
+- **Decision:** Derive a SHA-256 key from source type, source identity and stable source event ID, and enforce uniqueness on CRM Signal. Check for an existing record for the common retry path and use the database unique constraint as the race-safe boundary. A duplicate returns the original record and emits no second notification.
+- **Rationale:** Webhook/provider retries and repeated document hooks must not create duplicate alerts.
+- **Consequences:** External callers must reuse the same integration user, source namespace and `source_event_id` for a retry. When source metadata is omitted, the authenticated user is used as the namespace; when source DocType/name are supplied, that pair defines the namespace. Requests without an event ID retain legacy non-idempotent behavior. Existing records remain valid with a null source key.
+- **Sources:** [Settings and reliability spec](../specs/2026-11-01-settings-and-core-reliability.md), [Core/access spec](../specs/2026-11-01-crm-signals-core-and-access.md).
+
+## ADR-029 — Run the digest at a configurable site-local time and mark the queued date transactionally
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-01
+- **Decision:** Check the digest every minute, compare against the timezone configured in System Settings, and queue a separate permission-filtered email for each recipient. Track the recipients queued for the site-local date in Settings only after each `frappe.sendmail` call succeeds; save the email-queue request and recipient marker in the same transaction.
+- **Rationale:** A source-code cron expression cannot reflect runtime administrator settings, and each recipient must only receive source rows their ERPNext account can read. Per-recipient tracking lets a later scheduler run retry a failed recipient without resending to those already queued.
+- **Consequences:** Actual delivery can be delayed by scheduler/worker/mail-queue load. Concurrent scheduler executions can still race before the recipient marker commits; a per-recipient lock/unique delivery record remains a follow-up. Validate timezone and queue transaction behavior on the target site.
+- **Sources:** [Daily digest spec](../specs/2026-11-01-crm-signals-daily-digest.md), [Settings and reliability spec](../specs/2026-11-01-settings-and-core-reliability.md).
+
+## ADR-030 — Isolate realtime notification errors from source-document saves
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-01
+- **Decision:** Attempt realtime delivery after the CRM Signal is saved, catch and log failures per recipient, and continue to the next recipient. A notification failure must not roll back the Quotation/Opportunity or CRM Signal transaction.
+- **Rationale:** Realtime notification is ancillary to the ERPNext source transaction; a transient socket or broker failure must not prevent a quotation from being submitted.
+- **Consequences:** This is failure isolation, not a durable retry queue. Automatic retry/reconciliation of failed signal creation or notification delivery remains a tracked follow-up.
+- **Sources:** [Settings and reliability spec](../specs/2026-11-01-settings-and-core-reliability.md), [Notification implementation](../crm_signals/notifications.py).
+
+
+## ADR-031 — Additional digest recipients must be registered enabled System Users
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-01
+- **Decision:** Accept additional digest recipients only when the supplied email resolves to a registered, enabled Frappe System User. Validate this when Settings is saved and filter again when the digest is queued.
+- **Rationale:** Avoid silently accepting an address that the scheduler later ignores, and prevent arbitrary external email delivery from a trusted scheduler context.
+- **Consequences:** Guest, disabled users, Website Users, unknown addresses and arbitrary external recipients are rejected. Sales Manager role recipients remain automatically resolved from enabled System Users.
+- **Sources:** [Settings and reliability spec](../specs/2026-11-01-settings-and-core-reliability.md), [Administrator guide](ADMIN_GUIDE.md).
+
+
+## ADR-032 — CRM Signal source-event hashes are server-derived
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-01
+- **Decision:** Derive `source_event_key` in CRM Signal DocType validation from the normalized source type, source name and source event ID. Ignore/replace caller-supplied hashes; clear the hash when no complete source identity is provided; reject partial source identities.
+- **Rationale:** A unique index is only a trustworthy idempotency boundary when callers cannot forge a different key for the same source identity or attach arbitrary keys to unrelated records.
+- **Consequences:** All writes, including Desk/API writes outside the ingestion endpoint, use the same canonical identity. The source-event fields remain hidden/read-only in Desk, but the server remains authoritative.
+- **Sources:** [CRM Signal controller](../crm_signals/crm_signals/doctype/crm_signal/crm_signal.py), [Settings and reliability spec](../specs/2026-11-01-settings-and-core-reliability.md).
+
+
+## ADR-033 — Generate scheduled digests under each recipient's permissions
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-01
+- **Decision:** Never compute one privileged, site-wide digest and send it to multiple users. Generate each digest while running source queries under that recipient's Frappe user context, use permission-aware `frappe.get_list` calls, and send a separate message per user. Missing read access/source configuration is shown as unavailable, not as zero.
+- **Rationale:** Scheduled tasks run with elevated context; sending `frappe.get_all` / `frappe.db.count` results to all Sales Managers can reveal rows outside an individual's role or User Permission scope.
+- **Consequences:** Track queued recipients by site-local date so a failed recipient can be retried without resending to users whose emails were already queued. Concurrent scheduler execution still needs an explicit lock/unique delivery record and remains a tracked follow-up.
+- **Sources:** [Daily digest spec](../specs/2026-11-01-crm-signals-daily-digest.md), [Digest implementation](../crm_signals/tasks.py), [Deferred follow-ups](FOLLOW_UPS.md).
+
+## ADR-034 — Realtime recipients must be able to read the linked party
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-01
+- **Decision:** Before publishing a CRM Signal notification, verify that each resolved owner or active assignee has Frappe read permission on the linked Lead/Customer and on the CRM Signal document itself. If either permission check fails or errors, exclude that recipient. Do not send the message or party reference merely because a user owns or is assigned to the parent record.
+- **Rationale:** A realtime message contains the signal message and linked party references. A notification is not an authorization grant; sending it to a user who cannot read either the parent or the CRM Signal can disclose business information before the user opens the record.
+- **Consequences:** Recipient resolution fails closed and is tested for denied and allowed users. Signal creation remains independent of whether any recipient qualifies.
+- **Sources:** [Events and notifications specification](../specs/2026-11-01-crm-signals-events-and-notifications.md), [Notification implementation](../crm_signals/notifications.py), [Notification tests](../tests/test_notifications.py).
+
+## ADR-035 — Linked signal list access must match parent and document read permissions
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-01
+- **Decision:** The CRM Signal list query may include an owner-based clause only for unlinked signals. Linked signals are included only through owned/assigned Lead or Customer names returned by permission-aware `frappe.get_list`. The direct-document permission hook remains authoritative for each record.
+- **Rationale:** An unconditional `owner = current_user` list clause can expose a linked signal even when User Permissions prevent its owner from reading the linked Lead/Customer. Hiding the form after the list query is too late; list and direct access must agree.
+- **Consequences:** Linked-signal visibility requires a readable relationship, while an unlinked signal remains visible to its owner. Unit and Bench-backed tests cover a Sales User with a User Permission that excludes the linked Lead.
+- **Sources:** [Core/access specification](../specs/2026-11-01-crm-signals-core-and-access.md), [Permission implementation](../crm_signals/permissions.py), [Bench permission tests](../crm_signals/tests/test_notification_permissions.py).
+
+## ADR-036 — CRM Signals and external ingestion are disabled on fresh installation
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-01
+- **Decision:** Default the CRM Signals master switch and external ingestion switch to off, including the safe fallback used when the Settings singleton is not yet available. A System Manager must review site-specific configuration and explicitly enable the feature. External ingestion remains a separate opt-in.
+- **Rationale:** Installing an app must not silently start business notifications, scheduled digests or an authenticated write endpoint before the site owner confirms currency, workflows, timezone, recipients and integration access.
+- **Consequences:** Starter presets configure business rules but do not activate the app. The administrator guide and deployment runbook require an explicit activation step after preflight.
+- **Sources:** [Settings implementation](../crm_signals/settings.py), [Settings DocType](../crm_signals/crm_signals/doctype/crm_signals_settings/crm_signals_settings.json), [Administrator guide](ADMIN_GUIDE.md).
+
+## ADR-037 — Bound the daily digest quotation list
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-01
+- **Decision:** Fetch at most 101 expiring Quotations, display at most 100, and render `100+` with an explicit notice when additional rows exist.
+- **Rationale:** An unlimited query can produce an unbounded email body and impose avoidable database, worker and mail-queue load on sites with many Quotations expiring on one date.
+- **Consequences:** The digest remains concise and honest about truncation; users must open ERPNext for the full list. The count is a lower-bound indicator only when the cap is reached.
+- **Sources:** [Daily digest specification](../specs/2026-11-01-crm-signals-daily-digest.md), [Digest implementation](../crm_signals/tasks.py), [Digest tests](../tests/test_digest_rendering.py).
+
+
+## ADR-038 — Use Frappe's supported formatted naming expression for CRM Signals
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-01
+- **Decision:** Define CRM Signal autoname as `format:SIG-{YYYY}-{#####}`, using Frappe's brace-delimited format tokens.
+- **Rationale:** The previous dotted expression was persisted literally as `SIG-.YYYY.-.#####` in Bench v15/v16, causing every inserted CRM Signal to collide on the same primary key. This is a real installation/runtime defect, not a test-only issue.
+- **Consequences:** Fresh installs and schema syncs use a date-prefixed sequence. Validate upgrade/sync behavior on existing sites and ensure the naming series advances correctly after deployment.
+- **Sources:** [CRM Signal DocType](../crm_signals/crm_signals/doctype/crm_signal/crm_signal.json), [Bench CI failure](https://github.com/MitMike/crm_signals/actions).
+
+
+## ADR-039 — Keep CRM Signal row permissions compatible with Frappe v15 and v16
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-01
+- **Context:** Bench v16 exposed that the row-level permission hook used the v15 `permission_type` argument and returned `None` for manager/create and other paths. Frappe v16 passes `ptype` and requires an explicit boolean result. That made valid Sales User create/read permissions fail in the integration and recipient paths.
+- **Decision:** Accept both `permission_type` and `ptype` hook arguments. For every operation, first enforce the CRM Signal DocType's role-level permission; then apply row/relationship restrictions to read, write and delete. Return an explicit boolean for all hook calls. Keep the endpoint's normal permission check enabled; do not bypass DocType permissions.
+- **Rationale:** Framework compatibility must not weaken the security model. Role-level permissions remain the baseline, while linked records still require a readable owned/assigned parent and unlinked records remain owner-scoped.
+- **Consequences:** Bench tests exercise both hook signatures, Sales User create permission, parent/signal read restrictions and recipient routing on v15/v16.
+- **Sources:** [Frappe v16 migration guide](https://github.com/frappe/frappe/wiki/Migrating-to-version-16), [Permission implementation](../crm_signals/permissions.py), [Permission integration tests](../crm_signals/tests/test_notification_permissions.py).
+
+
+## ADR-040 — Synchronize browser login and settings-control changes in E2E
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-01
+- **Context:** Frappe v16 E2E demonstrated that the session cookie becomes available before the login page's redirect to Desk has completed. The tests started further API calls/navigation during that redirect, producing aborted navigations, destroyed execution contexts and CSRF token errors. The settings preset E2E also changed an integer input without committing the control's blur/change event, while the custom-preset handler did not await the resulting model update.
+- **Decision:** Make the shared Playwright login helper wait for a Desk URL after the authenticated session is established. Commit the settings input before asserting custom-preset state, and await the preset change in the DocType field handler.
+- **Rationale:** The test must synchronize on the application state that subsequent actions depend on, not merely on the existence of a session cookie. The UI handler should expose completion of the form-model update.
+- **Consequences:** Browser coverage now tests the post-login Desk state and the form-model transition rather than racing navigation and browser input events.
+- **Evidence:** `e2e/sahdev-dashboard.spec.ts`; `crm_signals/public/js/crm_signals_settings.js`.

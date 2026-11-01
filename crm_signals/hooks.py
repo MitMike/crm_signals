@@ -6,9 +6,13 @@ app_license = "mit"
 
 app_include_js = "/assets/crm_signals/js/crm_signals_desk.js"
 
+doctype_js = {
+    "CRM Signals Settings": "public/js/crm_signals_settings.js",
+}
+
 scheduler_events = {
     "cron": {
-        "30 8 * * *": [
+        "* * * * *": [
             "crm_signals.tasks.send_daily_signals_digest"
         ]
     }

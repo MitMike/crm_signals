@@ -31,7 +31,16 @@ async function loginAs(page: Page, username: string, password: string) {
         )
         .toBe(true);
 
-    await page.goto("/app");
+    // Frappe sets the session cookie before completing its client-side
+    // redirect. Do not let the next test action race that navigation.
+    await page.waitForURL(
+        (url) =>
+            ["/app", "/desk"].some(
+                (root) =>
+                    url.pathname === root || url.pathname.startsWith(`${root}/`)
+            ),
+        { waitUntil: "domcontentloaded", timeout: 30_000 }
+    );
 }
 
 async function loginAsAdministrator(page: Page) {
@@ -393,4 +402,36 @@ test("Guest access is rejected", async ({ page, request }) => {
 
     await page.goto("/app/sahdev-dashboard");
     await expect(page).toHaveURL(/\/login(?:\?|$)/);
+});
+
+test("CRM Signals Settings presets can be applied and customised", async ({
+    page
+}) => {
+    await loginAsAdministrator(page);
+    await page.goto("/app/crm-signals-settings");
+
+    const preset = page.locator(
+        '.frappe-control[data-fieldname="notification_preset"] select'
+    );
+    const staleDays = page.locator(
+        '.frappe-control[data-fieldname="lead_stale_days"] input'
+    );
+    const quotationThreshold = page.locator(
+        '.frappe-control[data-fieldname="quotation_threshold"] input'
+    );
+
+    await expect(preset).toBeVisible();
+    await preset.selectOption({ label: "Sales Focused" });
+
+    await expect(staleDays).toHaveValue("2");
+    await expect
+        .poll(async () =>
+            Number((await quotationThreshold.inputValue()).replace(/,/g, ""))
+        )
+        .toBe(100000);
+
+    await staleDays.fill("4");
+    // Frappe's Int control commits its model value on change/blur.
+    await staleDays.blur();
+    await expect(preset).toHaveValue("Custom");
 });

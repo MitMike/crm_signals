@@ -1,0 +1,185 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-11-01 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_profile",
+  "notification_preset",
+  "enabled",
+  "column_break_master",
+  "enable_external_ingestion",
+  "section_break_quotes",
+  "enable_quotation_signals",
+  "quotation_threshold",
+  "threshold_currency",
+  "section_break_opportunities",
+  "enable_opportunity_signals",
+  "opportunity_trigger_statuses",
+  "section_break_digest",
+  "enable_daily_digest",
+  "digest_time",
+  "lead_stale_days",
+  "digest_extra_recipients",
+  "section_break_operations",
+  "last_digest_queued_date",
+  "last_digest_queued_recipients",
+  "last_digest_status"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_profile",
+   "fieldtype": "Section Break",
+   "label": "Configuration profile"
+  },
+  {
+   "fieldname": "notification_preset",
+   "fieldtype": "Select",
+   "label": "Starter preset",
+   "options": "Balanced\nSales Focused\nExecutive\nCustom",
+   "default": "Balanced",
+   "description": "A starter configuration only. Changing a preset applies its values; you can then customise every field."
+  },
+  {
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Enable CRM Signals",
+   "default": "0",
+   "description": "Master switch for event-generated signals and external ingestion. Off until an administrator completes preflight."
+  },
+  {
+   "fieldname": "column_break_master",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "enable_external_ingestion",
+   "fieldtype": "Check",
+   "label": "Enable authenticated external ingestion",
+   "default": "0"
+  },
+  {
+   "fieldname": "section_break_quotes",
+   "fieldtype": "Section Break",
+   "label": "High-value Quotation alerts"
+  },
+  {
+   "fieldname": "enable_quotation_signals",
+   "fieldtype": "Check",
+   "label": "Enable high-value Quotation signals",
+   "default": "1"
+  },
+  {
+   "fieldname": "quotation_threshold",
+   "fieldtype": "Currency",
+   "label": "High-value threshold",
+   "options": "threshold_currency",
+   "default": "200000",
+   "reqd": 1
+  },
+  {
+   "fieldname": "threshold_currency",
+   "fieldtype": "Link",
+   "label": "Threshold currency",
+   "options": "Currency",
+   "read_only": 1,
+   "description": "Automatically follows the default Company's currency. This first release uses one site-wide threshold currency."
+  },
+  {
+   "fieldname": "section_break_opportunities",
+   "fieldtype": "Section Break",
+   "label": "Opportunity signals"
+  },
+  {
+   "fieldname": "enable_opportunity_signals",
+   "fieldtype": "Check",
+   "label": "Enable Opportunity status signals",
+   "default": "1"
+  },
+  {
+   "fieldname": "opportunity_trigger_statuses",
+   "fieldtype": "Small Text",
+   "label": "Trigger statuses",
+   "default": "Replied",
+   "description": "One status per line. Match the status names configured in your ERPNext site."
+  },
+  {
+   "fieldname": "section_break_digest",
+   "fieldtype": "Section Break",
+   "label": "Daily digest"
+  },
+  {
+   "fieldname": "enable_daily_digest",
+   "fieldtype": "Check",
+   "label": "Enable daily digest",
+   "default": "1"
+  },
+  {
+   "fieldname": "digest_time",
+   "fieldtype": "Time",
+   "label": "Site-local digest time",
+   "default": "08:30:00",
+   "reqd": 1
+  },
+  {
+   "fieldname": "lead_stale_days",
+   "fieldtype": "Int",
+   "label": "Lead not-modified window (days)",
+   "default": "3",
+   "reqd": 1
+  },
+  {
+   "fieldname": "digest_extra_recipients",
+   "fieldtype": "Small Text",
+   "label": "Additional enabled System User emails",
+   "description": "Optional. One email per line. Disabled and non-System Users are never included."
+  },
+  {
+   "fieldname": "section_break_operations",
+   "fieldtype": "Section Break",
+   "label": "Delivery diagnostics"
+  },
+  {
+   "fieldname": "last_digest_queued_date",
+   "fieldtype": "Date",
+   "label": "Last digest queued date",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_digest_status",
+   "fieldtype": "Data",
+   "label": "Last digest status",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_digest_queued_recipients",
+   "fieldtype": "Long Text",
+   "label": "Last digest queued recipients",
+   "hidden": 1,
+   "read_only": 1
+  }
+ ],
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-11-01 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Crm Signals",
+ "name": "CRM Signals Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 0,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "share": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}
