@@ -147,7 +147,9 @@ def on_quotation_submit(doc, method=None):
         currency = getattr(doc, "currency", None)
         value = float(doc.grand_total or 0)
         formatted_amount = f"{currency} {value:,.2f}" if currency else f"{value:,.2f}"
-        insert_signal_once(
+        from crm_signals.signal_outbox import enqueue_signal_event
+
+        enqueue_signal_event(
             signal_type="High-Value Quote",
             message=f"High-value quotation {doc.name} submitted for {party} ({formatted_amount})",
             priority="High",
@@ -177,7 +179,9 @@ def on_opportunity_update(doc, method=None):
         previous_status = str(getattr(before, "status", "") or "") if before else ""
         lead = getattr(doc, "party_name", None) if getattr(doc, "opportunity_from", None) == "Lead" else None
         customer = getattr(doc, "party_name", None) if getattr(doc, "opportunity_from", None) == "Customer" else None
-        insert_signal_once(
+        from crm_signals.signal_outbox import enqueue_signal_event
+
+        enqueue_signal_event(
             signal_type="Opportunity Activity",
             message=f"Opportunity {doc.name} status updated to {current_status}",
             priority="Medium",
