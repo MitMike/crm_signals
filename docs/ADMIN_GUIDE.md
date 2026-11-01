@@ -6,6 +6,10 @@ CRM Signals is an extension to ERPNext CRM. It creates contextual signal records
 
 For release, backup, migration, smoke-test and rollback procedures, follow the [Deployment and rollback runbook](DEPLOYMENT_RUNBOOK.md).
 
+## Target version
+
+The deployment owner confirmed **Frappe v16.5** as the target baseline. Before installation, capture the exact patch/build from `bench version`, plus the installed ERPNext and Helpdesk app versions from `bench --site <site-name> list-apps`. The repository retains Frappe/ERPNext v15 and v16 CI coverage; a green major-version matrix does not prove the exact target site's patches, permissions or configuration.
+
 ## Installation and upgrade
 
 Install from the app repository using the site's normal Bench/Pilot process:
@@ -26,7 +30,7 @@ For an existing installation, deploy the approved app revision and run `bench --
 2. Open **CRM Signals Settings** from the Desk search/awesome bar.
 3. Select a starter preset: **Balanced**, **Sales Focused** or **Executive**.
 4. Review every value. Presets are starting points, not recommended policy for every company.
-5. Confirm the threshold currency matches the default Company's currency.
+5. Configure a threshold for each enabled Company: add a Company-specific row where needed, or use the legacy site-wide threshold only when its currency exactly matches that Company's base currency.
 6. Replace Opportunity trigger statuses with exact values used by the site's workflow.
 7. Set the Lead not-modified window and site-local digest time.
 8. Add optional additional recipients using enabled System User email addresses, one per line.
@@ -43,7 +47,7 @@ The master switch and external ingestion are off by default. Complete the site p
 | Lead not-modified window | 3 days | 2 days | 5 days |
 | Digest time | 08:30 | 08:00 | 08:30 |
 
-The amount is interpreted in the threshold currency shown in Settings. The starter values do not imply INR or any other currency. The first release uses one site-wide threshold currency; multi-company sites with different base currencies need a separate per-company policy before enabling threshold alerts for all companies.
+The amount is interpreted in the Company's base currency. Optional Company-specific rows in CRM Signals Settings take precedence and derive their currency from the selected Company's default currency. If a Company has no override, the legacy site-wide threshold is used only when its currency exactly matches that Company's base currency. There is no implicit FX conversion; a currency mismatch safely suppresses the quotation signal. The starter values do not imply INR or any other currency.
 
 Selecting a preset applies its starting values. You can edit any field afterwards; the preset indicator changes to **Custom**. Selecting another preset again replaces the preset-controlled fields.
 
@@ -51,7 +55,7 @@ Selecting a preset applies its starting values. You can edit any field afterward
 
 - **Enable CRM Signals:** master switch for event-generated signals.
 - **Enable authenticated external ingestion:** enables the POST endpoint for approved integrations.
-- **High-value Quotation threshold:** compares a submitted Quotation's base total with the configured Company-currency threshold. The message displays the Quotation's own transaction currency.
+- **High-value Quotation threshold:** compares a submitted Quotation's base total with the matching Company's base-currency threshold. A Company-specific row takes precedence; the legacy threshold is a fallback only for an exact currency match. The message displays the Quotation's own transaction currency.
 - **Opportunity trigger statuses:** exact status names that generate an event when an Opportunity transitions into one of them.
 - **Lead not-modified window:** reports Leads whose modified timestamp is older than the configured number of days. It does not prove there was no call, email or meeting.
 - **Digest time:** evaluated against the timezone in System Settings. The scheduler checks each minute; delivery can be delayed by worker/scheduler load.
@@ -68,7 +72,23 @@ The `is_read` flag is a shared team acknowledgement in this release, not an indi
 
 Open **S.A.H.D.E.V. Executive Compass** (route `/app/sahdev-dashboard`). D1 shows Lead and Opportunity indicators. D2 shows invoice, customer receipt, POS receipt, receivable and overdue measures. Monetary values remain grouped by their source currency. Missing schema or permissions must show as unavailable rather than zero.
 
-D3 Service Resolution/SLA is not enabled until the installed support application's DocTypes, SLA lifecycle and permissions are discovered and verified.
+D3 Service Resolution/SLA is implemented for the standard Frappe Helpdesk schema. It reads aggregate-only metrics from `HD Ticket` and checks `HD Service Level Agreement` read access. It requires ticket DocType read permission and field-level read permission for the fields used by each measure: `status_category`, `resolution_date`, `resolution_time`, `sla` (standard permlevel 7) and `agreement_status` (standard permlevel 8). Do not grant permlevels automatically; review the complete Helpdesk field set with the security owner. A measure whose fields are not readable is shown as unavailable, not zero. The active Helpdesk SLA policy's working hours, holiday list and timezone remain authoritative; Monday–Saturday is the agreed initial working-week assumption to verify against the site.
+
+## Pilot validation checklist
+
+Run these tests on staging with synthetic records before enabling the app on production:
+
+1. **Settings:** save a reviewed preset, confirm the master and external-ingestion switches remain off until explicitly enabled, and verify the saved values after reload.
+2. **Quotation thresholds:** create test Quotations above and below the configured threshold for each enabled Company. Include two Companies with different base currencies. Verify the matching Company override is used and that a currency mismatch without an override creates no signal; do not expect FX conversion.
+3. **Opportunity signals:** move a test Opportunity into one configured trigger status and confirm one signal. Move it between unconfigured statuses and confirm no signal. Repeat a transition/retry with the same source event and confirm no duplicate.
+4. **D1/D2 dashboard:** verify Lead/Opportunity counts against the site's workflow values. Reconcile invoice totals, Payment Entry receipts, separate POS receipts and open receivables against native ERPNext reports by Company and currency. Never add unlike currencies.
+5. **Permissions:** test Sales User, Sales Manager, System Manager and a non-sales user in list, direct form, dashboard/API, report, export and print. A notification is not permission to read a record.
+6. **Digest:** verify site timezone, scheduled time, recipient list, per-recipient content and duplicate-run behavior. Check the scheduler, workers and mail queue.
+7. **D3 Helpdesk:** use the [Support & SLA setup guide](CRM_SIGNALS_SUPPORT_CONFIGURATION_GUIDE.html). Test Open, Paused, Resolved, no-SLA, Fulfilled and Failed fixtures; verify the SLA denominator excludes due/paused states and that field-level permission gaps display as unavailable.
+8. **External ingestion:** use a dedicated integration System User over HTTPS, test authentication failure, rate limiting and duplicate `source_event_id`, and prove credential rotation rejects the old secret.
+9. **Operations:** rehearse migrate, scheduler, mail, realtime, backup, restore and rollback using the [Target-Site Acceptance Kit](TARGET_SITE_ACCEPTANCE.md) and [Deployment runbook](DEPLOYMENT_RUNBOOK.md).
+
+Record exact app versions, the tested commit, test user roles, date/timezone, expected and observed values, and evidence links. Do not copy customer or ticket content into the evidence record. CI success is not pilot acceptance.
 
 ## External signal ingestion
 
