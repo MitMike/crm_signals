@@ -17,6 +17,8 @@
 
 The singleton is `CRM Signals Settings`. It includes a master switch, external ingestion switch, Quotation signal switch and threshold/currency, Opportunity signal switch and exact trigger statuses, digest switch/time/stale window, optional additional enabled System User recipients, and last-queued diagnostics.
 
+The master switch and external ingestion switch default to disabled on fresh installation and when the singleton is unavailable. Administrators must complete site preflight and explicitly enable the feature; enabling the master switch does not enable external ingestion.
+
 The preset profiles are Balanced, Sales Focused and Executive. They populate a defined set of starter values only. Selecting a preset does not override later edits unless an administrator selects another preset. Any manual change sets the visible preset label to Custom.
 
 The threshold is interpreted in one site-wide threshold currency. Quotation events compare the Quotation's base total against that threshold and display the Quotation transaction currency. Multi-company sites with different base currencies are not considered supported for a single global threshold; this must be solved with per-company settings before enabling those events across such companies.
