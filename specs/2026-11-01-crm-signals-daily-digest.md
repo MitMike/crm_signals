@@ -27,6 +27,7 @@ The Lead metric is exactly "Leads not modified in more than 3 days". It is not p
 - Not-recently-modified Leads: count of Lead records with modified strictly earlier than current date minus configured stale_days. The default stale_days is 3.
 - Expiring Quotations: docstatus = 1, status = Open and valid_till = digest date.
 - Displayed amount: grand_total plus source/company currency. Do not prepend INR or any currency symbol unless the currency is actually known.
+- Fetch at most 101 expiring Quotations, display at most 100, and show `100+` plus an explicit truncation notice when more records exist. Do not create unbounded digest emails.
 - Missing DocType, field or permission/configuration: report that section as unavailable in diagnostics; never pretend it is a successful zero.
 
 ## Recipient and delivery contract
