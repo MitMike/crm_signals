@@ -447,3 +447,12 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Calendar rule:** Monday–Saturday is the agreed initial business-week assumption, but do not overwrite Helpdesk configuration or recalculate deadlines. The active SLA's configured working-hours rows, holiday list and timezone are authoritative. A target-site mismatch must be recorded and resolved during acceptance.
 - **Rationale:** This delivers a useful adapter without fabricating SLA results or bypassing Helpdesk's own calendar and lifecycle engine.
 - **Consequences:** Sites without the Helpdesk DocTypes or required fields receive unavailable metrics. Tickets without an applicable SLA are counted separately and excluded from compliance. Paused, First Response Due and Resolution Due are excluded from the fulfilled/failed denominator. Target-site version, permissions and calendar validation remain mandatory.
+
+## ADR-049 — Treat Frappe v16.5 as the target-site compatibility baseline
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-02
+- **Context:** The deployment owner confirmed the target instance runs Frappe v16.5. The repository's automated compatibility matrix covers Frappe v15 and v16, but generic v16 coverage does not by itself prove the exact target site's installed apps, patches, customizations, permissions or configuration.
+- **Decision:** Use Frappe v16.5 as the primary target for configuration guidance, API/schema compatibility review and acceptance instructions. Retain v15 coverage as a supported compatibility matrix unless a separate product decision removes it. Do not claim live-site acceptance from CI; capture the observed Frappe, ERPNext and Helpdesk app versions before configuration and explicitly label every site-dependent check.
+- **Rationale:** A confirmed target version is stronger evidence than a generic supported-major assumption. Targeting the exact v16.5 baseline reduces ambiguity in the operator guide while preserving the existing cross-version support commitment.
+- **Consequences:** The operator guide will identify Frappe v16.5 as the expected target, request the exact patch build and ERPNext/Helpdesk app versions, and distinguish framework compatibility from site-specific acceptance. No production sign-off is implied.
