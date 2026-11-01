@@ -146,6 +146,61 @@ def prepare_upgrade_site():
     }
 
 
+def verify_helpdesk_schema():
+    """Verify the pinned Helpdesk metric contract without reading ticket records."""
+    required_fields = {
+        "status_category": 7,
+        "resolution_date": 7,
+        "resolution_time": 7,
+        "sla": 7,
+        "agreement_status": 8,
+    }
+    for doctype in ("HD Ticket", "HD Service Level Agreement"):
+        if not frappe.db.exists("DocType", doctype):
+            frappe.throw(f"Pinned Helpdesk app did not install required DocType: {doctype}")
+
+    ticket_meta = frappe.get_meta("HD Ticket")
+    if not ticket_meta.has_field("creation"):
+        frappe.throw("HD Ticket is missing the standard creation timestamp")
+
+    mismatches = []
+    for fieldname, expected_permlevel in required_fields.items():
+        field = ticket_meta.get_field(fieldname)
+        if not field:
+            mismatches.append(f"{fieldname}: missing")
+            continue
+        actual_permlevel = int(field.permlevel or 0)
+        if actual_permlevel != expected_permlevel:
+            mismatches.append(
+                f"{fieldname}: expected permlevel {expected_permlevel}, found {actual_permlevel}"
+            )
+    if mismatches:
+        frappe.throw("Pinned Helpdesk field contract changed: " + "; ".join(mismatches))
+
+    permitted_fields = set(
+        ticket_meta.get_permitted_fieldnames(
+            user="Administrator",
+            permission_type="read",
+        )
+    )
+    missing_permitted = sorted(set(required_fields) - permitted_fields)
+    if missing_permitted:
+        frappe.throw(
+            "Administrator cannot read required HD Ticket fields: " + ", ".join(missing_permitted)
+        )
+
+    sla_meta = frappe.get_meta("HD Service Level Agreement")
+    if not sla_meta.has_field("service_level"):
+        frappe.throw("HD Service Level Agreement is missing service_level")
+
+    return {
+        "status": "passed",
+        "ticket_fields": sorted(required_fields),
+        "field_permlevels": required_fields,
+        "sla_doctype": "HD Service Level Agreement",
+    }
+
+
 def verify_upgrade_site():
     """Assert migrate restored new fields without losing legacy signal rows."""
     missing = [
