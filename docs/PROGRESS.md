@@ -23,7 +23,7 @@ This file is the operational source of truth. [IMPLEMENTATION_PLAN.md](../IMPLEM
 | Settings + presets | Merged in PR #19 | Settings singleton, validation, Balanced/Sales Focused/Executive presets and administrator guide; confirm target-site defaults before activation |
 | Event identity/idempotency | Runtime merged in PR #19; migration rehearsal merged in PR #21; concurrent recovery merged in PR #23 | Unique SHA-256 source-event key; legacy-schema migration passed on Frappe v15/v16; final two-connection API race test passed on both supported versions. One created response, one deduplicated response and one notification dispatch. |
 | Digest hardening | Core merged in PR #19; cross-worker serialization merged in PR #23 | Site-timezone schedule, permission-aware per-user email and per-recipient queue markers; Settings row lock plus recheck prevents overlapping workers queuing the same recipient/date; v15/v16 Bench tests passed. Target-site scheduler/mail acceptance remains open. |
-| Notification failure isolation | Merged in PR #19 | Recipient failures are logged and do not block other recipients or source-document saves; automated retry/outbox remains deferred |
+| Realtime notification delivery | Partial | Recipient selection is permission-filtered and queue-call exceptions are isolated. Frappe v16 `publish_realtime(after_commit=True)` defers Redis emission; its emitter suppresses `redis.ConnectionError`, so the current try/except cannot confirm publication or provide durable retry |
 | D3 Service Resolution/SLA | Initial adapter merged in PR #32; CI verified | Standard HD Ticket/HD Service Level Agreement aggregate adapter; target-site versions, DocType/field-level permissions and active SLA calendar remain. Field-level fail-closed hardening is in review |
 | H Highlights | Partial | High-value Quotation signals exist; per-company currency thresholds are in PR #34 review. VIP proposal-link tracking remains blocked on privacy/consent and retention approval |
 | E Explorer | Planned | Inventory installed activity integrations and implement only verified source adapters |
@@ -72,7 +72,7 @@ GitHub ruleset [Protect main](https://github.com/MitMike/crm_signals/rules/26282
 - Final synchronized head: `222e70ec71164dab4448f7319525042323a357b4` (based on main after PR #28).
 - Quality Checks, Security Scanning and Bench Integration/E2E all passed on that exact head; Bench covered Frappe v15/v16 and the concurrent enqueue/process idempotency cases.
 - Source events and outbox rows commit atomically; delivery is queued after commit, with the scheduled pending-event worker retained as recovery. Retry is bounded and terminal failures are visible to System Managers.
-- **Still open:** audited operator replay for terminal Failed rows and durable realtime notification retry. These are not included in the merged outbox scope.
+- **Still open:** audited operator replay for terminal Failed rows (PR #38 in review) and durable realtime notification retry. These are not included in the merged outbox scope.
 
 ## Stage 1 — release readiness and core hardening
 
@@ -115,7 +115,7 @@ GitHub ruleset [Protect main](https://github.com/MitMike/crm_signals/rules/26282
 ## Explicitly deferred
 
 See [FOLLOW_UPS.md](FOLLOW_UPS.md) for issues that should not be silently treated as complete:
-- Audited operator replay for terminal Failed outbox rows (PR #33 in review) and durable realtime notification retry.
+- Audited operator replay for terminal Failed outbox rows (PR #38 in review) and durable realtime notification retry.
 - Multi-company quotation thresholds (PR #34 in review); no implicit FX conversion.
 - D3 field-level permission hardening and target-site acceptance; H privacy/consent decisions, E integration inventory, V retention and A metric-registry work.
 
