@@ -3,7 +3,7 @@
 **Audit date:** 2026-11-01  
 **Repository:** MitMike/crm_signals  
 **Base:** `main` at `d75b7f3591d2a863b0af6b8f88ad2a91e9bfd25f` (PR #23 merged)  
-**Implementation under audit:** [PR #19](https://github.com/MitMike/crm_signals/pull/19), validated head a90315be7ef37e2dceeacb9b4e9b77d5d31df131, merged as a49591947a89b011cc1770be176c1f11571b131b  
+**Implementation under audit:** [PR #19](https://github.com/MitMike/crm_signals/pull/19) and [PR #23](https://github.com/MitMike/crm_signals/pull/23), merged as `a495919` and `d75b7f3` respectively  
 **Decision:** **Not approved for production sign-off.** PR #19, PR #21 and PR #23 are merged; supported-version CI passes. Target-site acceptance, durable outbox/realtime retry and the roadmap's external discovery/policy inputs remain outstanding.
 
 ## Scope reviewed
@@ -15,7 +15,7 @@
 - Python/JavaScript quality gates, unit tests, Bench workflow, Playwright E2E workflow and security scan.
 - Administrator guide, implementation specifications, ADR register, progress record and deferred follow-ups.
 
-## Findings fixed in PR #19
+## Findings fixed in PR #19 and PR #23
 
 | Finding | Change | Evidence expected |
 |---|---|---|
@@ -27,6 +27,7 @@
 | Dashboard JavaScript contained an unused catch binding. | Remove the unused binding. | ESLint. |
 | Frappe v15/v16 call document permission hooks with different keyword names; v16 requires explicit boolean decisions. | Accept both `permission_type` and `ptype`, enforce DocType role permission first, and return explicit decisions before applying row restrictions (ADR-039). | Bench integration tests passed on v15 and v16. |
 | Duplicate event insertion can lose a read-before-insert race and Frappe wraps a unique-key collision as `UniqueValidationError`. | PR #23 reloads the winner with a current locking document read and adds a deterministic two-connection API-handler Bench test (ADR-043). | Passed on Frappe v15 and v16 in PR #23; one created response, one deduplicated response and one notification dispatch. |
+| Concurrent digest workers could both queue the same recipient/date before either updated the marker. | PR #23 locks the Settings singleton, rechecks each recipient/date marker and writes system-owned status through `db_set` in the Email Queue transaction (ADR-044). | Two-worker Bench test passed on Frappe v15/v16; target-site scheduler and mail-provider acceptance remains open. |
 | Browser login can expose the session cookie before redirecting to Desk, and v16 Int input commits its model value on change. | Wait for the version-appropriate `/app` or `/desk` route, commit the field change, and await the preset transition (ADR-040). | Final v16 Playwright suite passed. |
 | Release procedure was spread across guidance and assumptions. | Add a deployment/rollback runbook and link it from the administrator guide. | Target-site rehearsal remains outstanding. |
 
