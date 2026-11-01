@@ -146,6 +146,91 @@ def prepare_upgrade_site():
     }
 
 
+def verify_helpdesk_schema():
+    """Verify the pinned Helpdesk metric contract without reading ticket records."""
+    required_fields = {
+        "status_category": 7,
+        "resolution_date": 7,
+        "resolution_time": 7,
+        "sla": 7,
+        "agreement_status": 8,
+    }
+    for doctype in ("HD Ticket", "HD Service Level Agreement"):
+        if not frappe.db.exists("DocType", doctype):
+            frappe.throw(f"Pinned Helpdesk app did not install required DocType: {doctype}")
+
+    ticket_meta = frappe.get_meta("HD Ticket")
+    if not ticket_meta.has_field("creation"):
+        frappe.throw("HD Ticket is missing the standard creation timestamp")
+
+    mismatches = []
+    for fieldname, expected_permlevel in required_fields.items():
+        field = ticket_meta.get_field(fieldname)
+        if not field:
+            mismatches.append(f"{fieldname}: missing")
+            continue
+        actual_permlevel = int(field.permlevel or 0)
+        if actual_permlevel != expected_permlevel:
+            mismatches.append(
+                f"{fieldname}: expected permlevel {expected_permlevel}, found {actual_permlevel}"
+            )
+    if mismatches:
+        frappe.throw("Pinned Helpdesk field contract changed: " + "; ".join(mismatches))
+
+    permitted_fields = set(
+        ticket_meta.get_permitted_fieldnames(
+            user="Administrator",
+            permission_type="read",
+        )
+    )
+    missing_permitted = sorted(set(required_fields) - permitted_fields)
+    if missing_permitted:
+        frappe.throw(
+            "Administrator cannot read required HD Ticket fields: " + ", ".join(missing_permitted)
+        )
+
+    sla_meta = frappe.get_meta("HD Service Level Agreement")
+    if not sla_meta.has_field("service_level"):
+        frappe.throw("HD Service Level Agreement is missing service_level")
+
+    def read_roles(meta, permlevel):
+        return {
+            permission.role
+            for permission in meta.permissions
+            if permission.read and int(permission.permlevel or 0) == permlevel
+        }
+
+    expected_ticket_roles = {
+        0: {"System Manager", "Agent", "Agent Manager", "HD Customer", "HD Customer Manager"},
+        7: {"System Manager", "Agent", "Agent Manager", "HD Customer", "HD Customer Manager"},
+        8: {"System Manager", "Agent", "Agent Manager"},
+    }
+    for permlevel, expected_roles in expected_ticket_roles.items():
+        actual_roles = read_roles(ticket_meta, permlevel)
+        if actual_roles != expected_roles:
+            frappe.throw(
+                f"HD Ticket read roles changed at permlevel {permlevel}: "
+                f"expected {sorted(expected_roles)}, found {sorted(actual_roles)}"
+            )
+
+    expected_sla_roles = {"System Manager", "Agent Manager"}
+    actual_sla_roles = read_roles(sla_meta, 0)
+    if actual_sla_roles != expected_sla_roles:
+        frappe.throw(
+            "HD Service Level Agreement read roles changed: "
+            f"expected {sorted(expected_sla_roles)}, found {sorted(actual_sla_roles)}"
+        )
+
+    return {
+        "status": "passed",
+        "ticket_fields": sorted(required_fields),
+        "field_permlevels": required_fields,
+        "ticket_read_roles": {level: sorted(roles) for level, roles in expected_ticket_roles.items()},
+        "sla_read_roles": sorted(expected_sla_roles),
+        "sla_doctype": "HD Service Level Agreement",
+    }
+
+
 def verify_upgrade_site():
     """Assert migrate restored new fields without losing legacy signal rows."""
     missing = [
