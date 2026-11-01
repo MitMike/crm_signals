@@ -55,6 +55,7 @@ Selecting a preset applies its starting values. You can edit any field afterward
 - **Opportunity trigger statuses:** exact status names that generate an event when an Opportunity transitions into one of them.
 - **Lead not-modified window:** reports Leads whose modified timestamp is older than the configured number of days. It does not prove there was no call, email or meeting.
 - **Digest time:** evaluated against the timezone in System Settings. The scheduler checks each minute; delivery can be delayed by worker/scheduler load.
+- **Digest quotation list:** at most 100 Quotations are shown. If more are due, the digest displays `100+` and a notice to review the full list in ERPNext.
 - **Additional digest recipients:** additional email addresses are resolved to enabled System Users. Arbitrary external email addresses, Guest users and disabled users are not accepted.
 
 ## Using the Signals Console
