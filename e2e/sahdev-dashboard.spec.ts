@@ -414,10 +414,11 @@ test(
 
         await expect(staleDays).toHaveValue("2");
         await expect
-            .poll(async () => {
-                const value = await quotationThreshold.inputValue();
-                return Number(value.replace(/,/g, ""));
-            })
+            .poll(async () =>
+                Number(
+                    (await quotationThreshold.inputValue()).replace(/,/g, "")
+                )
+            )
             .toBe(100000);
 
         await staleDays.fill("4");
