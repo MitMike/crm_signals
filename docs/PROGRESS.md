@@ -2,7 +2,7 @@
 
 **Last reviewed:** 2026-11-01  
 **Repository:** [MitMike/crm_signals](https://github.com/MitMike/crm_signals)  
-**Main baseline:** [a495919](https://github.com/MitMike/crm_signals/commit/a49591947a89b011cc1770be176c1f11571b131b)  
+**Main baseline:** [72833cd](https://github.com/MitMike/crm_signals/commit/72833cd383811d7c9be591206647b2e0b1f3fbd9)  
 **Completed implementation:** [PR #19](https://github.com/MitMike/crm_signals/pull/19) merged as [a495919](https://github.com/MitMike/crm_signals/commit/a49591947a89b011cc1770be176c1f11571b131b): configurable settings, presets, permission parity, event idempotency and digest safety are on `main`.  
 **Next acceptance:** target-site validation and the explicitly deferred reliability work remain open; the merge and CI results do not constitute production sign-off.
 
@@ -18,7 +18,7 @@ This file is the operational source of truth. [IMPLEMENTATION_PLAN.md](../IMPLEM
 | D2 Billing Realization | Implemented; safety fix merged | PR #17 requires `is_return` for return-sensitive measures; target-site financial reconciliation remains |
 | File/function standards | Merged | PR #18 merged as `f51fbce`; limits, checker, pre-commit and CI enforcement are on main |
 | Settings + presets | Merged in PR #19 | Settings singleton, validation, Balanced/Sales Focused/Executive presets and administrator guide; confirm target-site defaults before activation |
-| Event identity/idempotency | Runtime merged in PR #19; upgrade rehearsal in PR #21 | Unique SHA-256 source-event key and API event ID support; legacy-schema migration rehearsal is now under CI validation, while concurrent duplicate-request proof remains open |
+| Event identity/idempotency | Runtime merged in PR #19; upgrade rehearsal in PR #21 | Unique SHA-256 source-event key and API event ID support; legacy-schema migration rehearsal passed on Frappe v15 and v16 in PR #21; concurrent duplicate-request proof remains open |
 | Digest hardening | Merged in PR #19 | Site-timezone schedule, per-recipient permission-aware emails, recipient queue tracking, configurable stale window/time/recipients and currency-code formatting; overlapping-worker proof remains open |
 | Notification failure isolation | Merged in PR #19 | Recipient failures are logged and do not block other recipients or source-document saves; automated retry/outbox remains deferred |
 | D3 Service Resolution/SLA | Specified; not implemented | Discover target-site support/SLA application and source semantics before adapter implementation |
@@ -28,11 +28,11 @@ This file is the operational source of truth. [IMPLEMENTATION_PLAN.md](../IMPLEM
 | A Analysis | Planned | Approved metric registry and constrained server-owned queries; no model-generated SQL |
 | Repository security/CI | Merged | PR #11 security/dependency hardening; PR #18 maintainability guardrails; main ruleset active |
 
-## Current engineering task — legacy schema upgrade rehearsal
+## Completed engineering task — legacy schema upgrade rehearsal
 
 - PR #21 adds a disposable Bench scenario to both Frappe v15 and v16 lanes: create two historical CRM Signal rows, remove the newer source-event identity columns and DocField metadata, run the real `bench migrate`, then verify the current schema returns and both legacy rows remain intact with null event keys.
 - The test deliberately exercises Frappe DocType synchronization. An empty `crm_signals/patches.txt` is not treated as a defect; a custom patch will be added only if migration evidence requires one.
-- Status: implementation submitted; CI result pending. This does not replace target-site upgrade, backup and restore rehearsal.
+- Status: **passed** on Frappe v15 and v16 in PR #21. The final head `3578dd566683d2dff4c9f663b733e838b6627e25` passed Quality Checks, Bench Integration and E2E, and Security Scanning. The merge commit is `72833cd383811d7c9be591206647b2e0b1f3fbd9`. This does not replace target-site upgrade, backup, restore and rollback rehearsal.
 
 ## Merged repository foundation
 
@@ -99,14 +99,16 @@ See [FOLLOW_UPS.md](FOLLOW_UPS.md) for issues that should not be silently treate
 - Per-company quotation thresholds for multi-company sites with different base currencies.
 - D3 source discovery, H privacy/consent decisions, E integration inventory, V retention and A metric-registry work.
 
-## Current branch work — PR #21
+## Completed branch work — PR #21
 
 - PR #21 adds a disposable Frappe v15/v16 rehearsal for upgrading historical CRM Signal rows from the pre-source-event-identity schema.
 - First rehearsal attempts failed because Frappe's stored DocType `migration_hash` still matched the current JSON, so the importer skipped the schema import even after the timestamp rewind.
-- The fixture now clears that hash and rewinds the DocType timestamp before `bench migrate` (ADR-042). This is a CI fixture correction, not yet a passing migration result.
-- Latest fix commit: `acc096879841286afa61073571fbe40eea473fd4`. Awaiting its v15/v16 Bench results; PR #21 is not merged.
+- The fixture now clears that hash and rewinds the DocType timestamp before `bench migrate` (ADR-042). This is a CI fixture correction; the final migration rehearsal passed on both supported Frappe versions.
+- Latest fix commit: `acc096879841286afa61073571fbe40eea473fd4`. PR #21 is merged as `72833cd383811d7c9be591206647b2e0b1f3fbd9`.
 
 ## CI and release evidence
+
+PR #21 was merged after all required checks passed on final head `3578dd566683d2dff4c9f663b733e838b6627e25`. Quality Checks, Bench Integration and E2E (Frappe v15/v16), and Security Scanning passed. The legacy-schema upgrade rehearsal is complete at CI level; target-site upgrade/restore/rollback remains open.
 
 PR #19 was validated on head `a90315be7ef37e2dceeacb9b4e9b77d5d31df131` and merged as `a49591947a89b011cc1770be176c1f11571b131b`. [Quality Checks](https://github.com/MitMike/crm_signals/actions/runs/41274491111), [Bench Integration and E2E](https://github.com/MitMike/crm_signals/actions/runs/41274491113) and [Security Scanning](https://github.com/MitMike/crm_signals/actions/runs/41274491117) passed; all 16 check-runs on that head reported success, including Frappe/ERPNext v15 and v16 and the v16 Playwright suite.
 
