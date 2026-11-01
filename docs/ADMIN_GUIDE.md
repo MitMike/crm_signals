@@ -102,6 +102,14 @@ A stable `source_event_id` is strongly recommended. When `source_doctype` and `s
 - **Signal not visible:** check CRM Signal role permissions and linked-party ownership/assignment. A notification is not an authorization grant.
 - **Duplicate external event:** send a stable source event ID and use the same integration user for retries.
 
+## Signal outbox and failed events
+
+Quotation and Opportunity events are recorded in the CRM Signal Outbox as part of the source document transaction. If CRM Signal creation fails after that record is saved, the app retries automatically from the minute scheduler. Retries use bounded exponential backoff: 1, 2, 4, 8, 16, 32 and then at most 60 minutes. The worker processes at most 100 due events per run. After ten failed attempts, the event is marked **Failed**.
+
+The **CRM Signal Outbox** DocType is restricted to System Managers. Review its status, source document, attempt count, last-attempt time and last error type. The detailed exception is recorded in Error Log. A Failed row is not automatically retried, and this version does not yet provide a self-service replay button; preserve the row and escalate it to the CRM Signals maintainer. Do not edit outbox rows or database tables manually to force a retry.
+
+Outbox persistence is part of the source transaction. If the app cannot persist the outbox row, the Quotation submit or Opportunity update is rejected rather than silently losing the event. A failure to create the downstream CRM Signal after the outbox row exists does not block the source document; it is retried asynchronously. Realtime notification dispatch is separate and is logged but not automatically retried by the outbox.
+
 ## Production acceptance checklist
 
 Before enabling this app on a live site, record the installed Frappe/ERPNext versions and apps; confirm Company currencies, timezone, Opportunity workflows, terminal Lead statuses, and role assignments; test list/form/API/report/export access for Sales User, Sales Manager, System Manager and non-sales users; reconcile D2 results against native ERPNext reports; exercise webhook authentication/rate limiting; and rehearse backup, migration and rollback. CI is not a substitute for these target-site checks.
