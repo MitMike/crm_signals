@@ -19,8 +19,8 @@ if frappe is not None:
     from crm_signals.signal_outbox import (
         _retry_delay_minutes,
         enqueue_signal_event,
-        process_signal_outbox_event,
         process_pending_signal_outbox,
+        process_signal_outbox_event,
     )
 
 
