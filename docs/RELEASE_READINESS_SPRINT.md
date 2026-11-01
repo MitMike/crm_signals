@@ -70,7 +70,7 @@
 
 ## Current blockers and known evidence
 
-- `main` baseline is `ff434bdf407d1d61842d81fae16e04b4b9b483d5`; PR #32 D3, PR #38 replay, PR #42 field guard, PR #44 source permission and PR #45 thresholds and PR #49 currency auto-fetch/display correction are merged and CI-verified.
+- `main` baseline is `24a9b8d3d178682a68df418f5cd29582644056c8`; PR #32 D3, PR #38 replay, PR #42 field guard, PR #44 source permission, PR #45 thresholds, PR #49 currency auto-fetch/display correction and PR #50 exact Frappe v16.5.0 reference CI are merged and CI-verified.
 - PR #38 replay is merged after both Frappe v15/v16 Bench jobs passed.
 - PR #45 threshold implementation merged as `ff434bdf`; Quality, Security and Bench v15/v16 passed on final head `84783d15`.
 - PR #50 merged as `24a9b8d`; the pinned Helpdesk v1.28.0 exact-target lane passed. Pilot-site versions and permissions remain unverified.
