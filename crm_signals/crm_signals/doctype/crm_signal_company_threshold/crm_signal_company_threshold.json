@@ -23,6 +23,7 @@
    "fieldname": "quotation_threshold",
    "fieldtype": "Currency",
    "label": "High-value threshold",
+   "options": "currency",
    "reqd": 1,
    "description": "Enter an approved amount in this Company\u0027s base currency. No currency conversion is performed.",
    "in_list_view": 1
