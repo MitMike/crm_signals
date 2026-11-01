@@ -43,7 +43,7 @@ CRM Signals Settings provides starter presets and administrator-editable busines
 
 - [Administrator guide](docs/ADMIN_GUIDE.md) — settings, starter presets, integrations, daily use and troubleshooting.
 - [Standalone Frappe v16.5 support configuration guide](docs/CRM_SIGNALS_SUPPORT_CONFIGURATION_GUIDE.html) — download and open locally in a browser for step-by-step target-site preflight, least-privilege Helpdesk role setup, configuration and test scenarios (GitHub's file viewer shows the HTML source).
-- [D3 Support & SLA discovery guide](docs/D3_SUPPORT_SLA_DISCOVERY_GUIDE.html) — beginner-friendly worksheet and read-only metadata script for identifying the installed ticket lifecycle, SLA fields, business calendar, permissions and retention policy before configuration.
+- [D3 Support & SLA discovery guide](docs/D3_SUPPORT_SLA_DISCOVERY_GUIDE.html) — download and open locally in a browser for the beginner-friendly worksheet and read-only metadata script covering ticket lifecycle, SLA fields, business calendar, permissions and retention before configuration (GitHub's file viewer shows the HTML source).
 - [Target-site acceptance checklist](docs/TARGET_SITE_ACCEPTANCE.md) — required live evidence for roles, financial reconciliation, scheduler/mail, Helpdesk SLA and backup/restore.
 - [Production-readiness audit](docs/PRODUCTION_READINESS_AUDIT.md) — current release decision, remaining P0/P1 work and CI-vs-pilot boundaries.
 - [Implementation plan](IMPLEMENTATION_PLAN.md) — delivery order, dependencies, milestones, acceptance gates and exit criteria.
