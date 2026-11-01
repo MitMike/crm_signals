@@ -94,7 +94,18 @@ class TestSignalOutbox(FrappeTestCase):
             self.assertEqual(saved.last_replayed_by, "Administrator")
             enqueue_job.assert_called_once()
             self.assertTrue(enqueue_job.call_args.kwargs["enqueue_after_commit"])
-            self.assertTrue(saved.get_comments())
+            comments = frappe.get_all(
+                "Comment",
+                filters={
+                    "reference_doctype": "CRM Signal Outbox",
+                    "reference_name": outbox.name,
+                    "comment_type": "Info",
+                },
+                fields=["content"],
+            )
+            self.assertTrue(
+                any("Manual replay requested by Administrator" in row.content for row in comments)
+            )
         finally:
             frappe.set_user(original_user)
             frappe.delete_doc("CRM Signal Outbox", outbox.name, ignore_permissions=True, force=True)
