@@ -87,9 +87,9 @@ Acceptance criteria:
 - [ ] Digest content is generated under each recipient's user context.
 - [ ] Realtime delivery excludes users without read access to the CRM Signal, linked Lead/Customer and originating source DocType (e.g. Quotation/Opportunity); test that parent access without source access suppresses the notification.
 - [ ] Export and print do not expose rows unavailable in the corresponding report/list.
-- [ ] Helpdesk HD Ticket field-level read access is checked independently for `status_category`, `resolution_date`, `resolution_time`, `sla` and `agreement_status` using the installed version's actual permlevels (all are permlevel 0 in the v1.30.2 reference).
-- [ ] If Helpdesk v1.31.1 is installed, verify the exact Frappe build contains the `Notification Type` DocType/controller before installation; stop if absent.
-- [ ] Compare installed Helpdesk permission metadata with the v1.30.2 reference: Sales User/Manager are not default HD Ticket or SLA readers. Do not assign Agent/Agent Manager solely for dashboard visibility; use an approved custom read-only role with base HD Ticket read, plus HD Service Level Agreement read only if SLA metrics are approved. For later versions, add only the exact approved higher field permlevels.
+- [ ] Helpdesk HD Ticket field-level read access is checked independently for `status_category`, `resolution_date`, `resolution_time`, `sla` and `agreement_status` using the installed version's actual permlevels (all are permlevel 0 in the v1.28.0 reference).
+- [ ] If Helpdesk v1.29.0 or newer is installed, verify the exact Frappe build contains the `frappe/ui` package required by `@framework/ui`; if v1.31.1, also verify the `Notification Type` DocType/controller. Stop if absent.
+- [ ] Compare installed Helpdesk permission metadata with the v1.28.0 reference: Sales User/Manager are not default HD Ticket or SLA readers. Do not assign Agent/Agent Manager solely for dashboard visibility; use an approved custom read-only role with base HD Ticket read, plus HD Service Level Agreement read only if SLA metrics are approved. For later versions, add only the exact approved higher field permlevels.
 - [ ] Confirm ticket metrics become unavailable without HD Ticket read/required fields, and SLA metrics become unavailable without SLA DocType read or `agreement_status` field access.
 - [ ] Disabled or unapproved recipients receive no digest or realtime content.
 
@@ -180,7 +180,7 @@ The initial adapter is implemented for standard Frappe Helpdesk. Verify the inst
 | Native pause/resume and Fulfilled/Failed behavior | |
 | Retention/deletion policy and business-approved KPI interpretation | |
 
-The v1.30.2 reference fields are all permlevel 0. For later Helpdesk versions, do not automatically grant permlevel 7 or 8; review all fields at those levels with the security owner. A field-level permission gap should make the affected metric unavailable, not zero. Helpdesk v1.31.1 calls `Notification Type` during installation, but the unmodified Frappe v16.5.0 tag lacks that DocType; verify the exact Frappe build before using that pair.
+The v1.28.0 reference fields are all permlevel 0. For later Helpdesk versions, do not automatically grant permlevel 7 or 8; review all fields at those levels with the security owner. A field-level permission gap should make the affected metric unavailable, not zero. Helpdesk v1.31.1 calls `Notification Type` during installation, but the unmodified Frappe v16.5.0 tag lacks that DocType; verify the exact Frappe build before using that pair.
 
 ### D3 staging test matrix
 
