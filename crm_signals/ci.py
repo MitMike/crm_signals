@@ -131,7 +131,10 @@ def prepare_upgrade_site():
     )
     frappe.clear_cache(doctype="CRM Signal")
     frappe.db.commit()
-    return {\n        "legacy_records": len(LEGACY_SIGNAL_MESSAGES),\n        "schema": "pre-source-event-identity",\n    }
+    return {
+        "legacy_records": len(LEGACY_SIGNAL_MESSAGES),
+        "schema": "pre-source-event-identity",
+    }
 
 
 def verify_upgrade_site():
