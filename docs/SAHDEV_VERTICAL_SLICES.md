@@ -30,22 +30,23 @@ Specification: [D1 Sales Compass](../specs/2026-11-01-pillar-d1-sales-compass.md
 
 Specification: [D2 Billing Realization](../specs/2026-10-31-pillar-d2-billing-realization.md).
 
-### D3. Service Resolution/SLA — discovery spec ready, implementation gated
+### D3. Service Resolution/SLA — initial adapter merged; target-site acceptance open
 
-- Discover the installed support application and authoritative ticket DocType.
-- Map ticket lifecycle, resolution timestamp, SLA policy/deadline/outcome, pause behavior, business calendar, timezone and permissions.
-- Provide ticket volume, open backlog, resolved volume, resolution time and SLA compliance only when the source semantics are verified.
-- Keep unconfigured or inaccessible data visibly unavailable; do not substitute generic ticket counts.
+- PR #32 adds the standard Frappe Helpdesk adapter using HD Ticket and HD Service Level Agreement metadata.
+- Dashboard aggregates ticket creation, current Open/Paused backlog, resolved cohort, native resolution_time and Fulfilled/Failed SLA outcomes.
+- SLA outcomes/no-SLA counts use the rolling 30-day created-ticket cohort; only Fulfilled/Failed are eligible for compliance. Due/paused states are excluded.
+- Ticket/SLA DocType permissions are checked independently; the payload contains aggregates only.
+- Monday–Saturday is the agreed initial assumption, but the active Helpdesk SLA's working hours, holiday list and timezone remain authoritative.
 
-**Gate:** Do not assume ERPNext Issue, Frappe Helpdesk HD Ticket or a custom DocType. Complete the discovery map against the intended site before implementing the adapter.
+**Remaining:** confirm the exact Frappe v16.5 patch and installed ERPNext/Helpdesk versions; verify Sales User/Manager field-level read access for Helpdesk permlevels 7/8; validate each active SLA calendar on the target site. A fail-closed field-level permission correction is in review; do not treat CI as pilot acceptance.
 
 Specification: [D3 Service Resolution/SLA](../specs/2026-11-01-pillar-d3-service-resolution-sla.md).
 
 ## H — Highlights: event-driven alerts
 
-**Status:** Design specified; implementation planned after CRM Signals settings, recipient permissions and event idempotency.
+**Status:** High-value Quotation signals are implemented; per-company threshold policy is in review. VIP proposal-link tracking remains gated on privacy/consent and retention approval.
 
-- High-value submitted Quotations using Company currency and an admin-configured threshold.
+- High-value submitted Quotations using Company base currency and an admin-configured threshold; per-company overrides are in PR #34 review.
 - VIP proposal-link opens only from first-party tracked links or a provider with stable event IDs.
 - Escalation to enabled, related users with source-record read permission.
 - Idempotency, bot/scanner exclusion, alert cooldown and privacy/consent controls.
