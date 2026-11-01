@@ -2,7 +2,7 @@
 
 **Last reviewed:** 2026-11-01  
 **Repository:** [MitMike/crm_signals](https://github.com/MitMike/crm_signals)  
-**Main baseline:** [72833cd](https://github.com/MitMike/crm_signals/commit/72833cd383811d7c9be591206647b2e0b1f3fbd9)  
+**Main baseline:** [69140a2](https://github.com/MitMike/crm_signals/commit/69140a243ed2bf6b49f24a8265948a21899f2bb4)  
 **Completed implementation:** [PR #19](https://github.com/MitMike/crm_signals/pull/19) merged as [a495919](https://github.com/MitMike/crm_signals/commit/a49591947a89b011cc1770be176c1f11571b131b): configurable settings, presets, permission parity, event idempotency and digest safety are on `main`.  
 **Next acceptance:** target-site validation and the explicitly deferred reliability work remain open; the merge and CI results do not constitute production sign-off.
 
@@ -18,7 +18,7 @@ This file is the operational source of truth. [IMPLEMENTATION_PLAN.md](../IMPLEM
 | D2 Billing Realization | Implemented; safety fix merged | PR #17 requires `is_return` for return-sensitive measures; target-site financial reconciliation remains |
 | File/function standards | Merged | PR #18 merged as `f51fbce`; limits, checker, pre-commit and CI enforcement are on main |
 | Settings + presets | Merged in PR #19 | Settings singleton, validation, Balanced/Sales Focused/Executive presets and administrator guide; confirm target-site defaults before activation |
-| Event identity/idempotency | Runtime merged in PR #19; upgrade rehearsal in PR #21 | Unique SHA-256 source-event key and API event ID support; legacy-schema migration rehearsal passed on Frappe v15 and v16 in PR #21; concurrent duplicate-request proof remains open |
+| Event identity/idempotency | Runtime merged in PR #19; upgrade rehearsal in PR #21 | Unique SHA-256 source-event key and API event ID support; legacy-schema migration rehearsal passed on Frappe v15 and v16 in PR #21; deterministic two-connection API-handler race test is in review |
 | Digest hardening | Merged in PR #19 | Site-timezone schedule, per-recipient permission-aware emails, recipient queue tracking, configurable stale window/time/recipients and currency-code formatting; overlapping-worker proof remains open |
 | Notification failure isolation | Merged in PR #19 | Recipient failures are logged and do not block other recipients or source-document saves; automated retry/outbox remains deferred |
 | D3 Service Resolution/SLA | Specified; not implemented | Discover target-site support/SLA application and source semantics before adapter implementation |
