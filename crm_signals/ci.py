@@ -193,10 +193,40 @@ def verify_helpdesk_schema():
     if not sla_meta.has_field("service_level"):
         frappe.throw("HD Service Level Agreement is missing service_level")
 
+    def read_roles(meta, permlevel):
+        return {
+            permission.role
+            for permission in meta.permissions
+            if permission.read and int(permission.permlevel or 0) == permlevel
+        }
+
+    expected_ticket_roles = {
+        0: {"System Manager", "Agent", "Agent Manager", "HD Customer", "HD Customer Manager"},
+        7: {"System Manager", "Agent", "Agent Manager", "HD Customer", "HD Customer Manager"},
+        8: {"System Manager", "Agent", "Agent Manager"},
+    }
+    for permlevel, expected_roles in expected_ticket_roles.items():
+        actual_roles = read_roles(ticket_meta, permlevel)
+        if actual_roles != expected_roles:
+            frappe.throw(
+                f"HD Ticket read roles changed at permlevel {permlevel}: "
+                f"expected {sorted(expected_roles)}, found {sorted(actual_roles)}"
+            )
+
+    expected_sla_roles = {"System Manager", "Agent Manager"}
+    actual_sla_roles = read_roles(sla_meta, 0)
+    if actual_sla_roles != expected_sla_roles:
+        frappe.throw(
+            "HD Service Level Agreement read roles changed: "
+            f"expected {sorted(expected_sla_roles)}, found {sorted(actual_sla_roles)}"
+        )
+
     return {
         "status": "passed",
         "ticket_fields": sorted(required_fields),
         "field_permlevels": required_fields,
+        "ticket_read_roles": {level: sorted(roles) for level, roles in expected_ticket_roles.items()},
+        "sla_read_roles": sorted(expected_sla_roles),
         "sla_doctype": "HD Service Level Agreement",
     }
 
