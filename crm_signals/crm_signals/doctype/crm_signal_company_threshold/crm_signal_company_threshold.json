@@ -1,0 +1,40 @@
+{
+ "doctype": "DocType",
+ "name": "CRM Signal Company Threshold",
+ "module": "Crm Signals",
+ "istable": 1,
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "company",
+  "quotation_threshold",
+  "currency"
+ ],
+ "fields": [
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "quotation_threshold",
+   "fieldtype": "Currency",
+   "label": "High-value threshold",
+   "reqd": 1,
+   "description": "Enter an approved amount in this Company\u0027s base currency. No currency conversion is performed.",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "currency",
+   "fieldtype": "Link",
+   "label": "Company currency",
+   "options": "Currency",
+   "read_only": 1,
+   "in_list_view": 1
+  }
+ ],
+ "permissions": []
+}
