@@ -40,6 +40,11 @@ jobs:
         run: npm run lint:js
       - name: Check formatting of tooling and E2E tests
         run: npm run format:check
+      - name: Diagnostic Prettier diff
+        if: always()
+        run: |
+          npx prettier --write e2e/sahdev-dashboard.spec.ts
+          git diff -- e2e/sahdev-dashboard.spec.ts
       - name: Compile Python
         run: python -m compileall -q crm_signals tests scripts
       - name: Validate JSON, YAML and TOML
