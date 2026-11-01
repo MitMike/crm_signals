@@ -45,6 +45,7 @@ DEFAULTS = {
     "enable_quotation_signals": 1,
     "quotation_threshold": 200000,
     "threshold_currency": None,
+    "company_thresholds": [],
     "enable_opportunity_signals": 1,
     "opportunity_trigger_statuses": "Replied",
     "enable_daily_digest": 1,
@@ -134,6 +135,10 @@ def get_signal_settings() -> dict:
         value = doc.get(fieldname)
         if value is not None and value != "":
             values[fieldname] = value
+    values["company_thresholds"] = [
+        {"company": row.company, "quotation_threshold": float(row.quotation_threshold or 0), "currency": row.currency}
+        for row in (doc.get("company_thresholds") or [])
+    ]
     company_currency = get_company_default_currency()
     if company_currency:
         values["threshold_currency"] = company_currency
@@ -173,6 +178,19 @@ def validate_settings_document(doc) -> None:
             frappe._("Set a default Company currency before enabling quotation threshold alerts."),
             frappe.ValidationError,
         )
+
+    seen_companies = set()
+    for row in (doc.get("company_thresholds") or []):
+        company = str(row.company or "").strip()
+        if not company or company in seen_companies:
+            frappe.throw(frappe._("Each company can have only one quotation threshold."), frappe.ValidationError)
+        seen_companies.add(company)
+        currency = get_company_default_currency(company)
+        if not currency:
+            frappe.throw(frappe._("Company {0} has no default currency.").format(company), frappe.ValidationError)
+        if row.quotation_threshold is None or float(row.quotation_threshold) < 0:
+            frappe.throw(frappe._("Company quotation thresholds must be zero or greater."), frappe.ValidationError)
+        row.currency = currency
 
     statuses = parse_statuses(doc.opportunity_trigger_statuses)
     if doc.enable_opportunity_signals and not statuses:
