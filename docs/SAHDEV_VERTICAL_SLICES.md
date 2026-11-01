@@ -13,7 +13,7 @@ This roadmap tracks capability status and dependencies. The complete project del
 - Recent Opportunities with a direct Desk drill-down.
 - Lead and Opportunity reads use permission-aware Frappe list APIs.
 
-**Remaining:** Remove fallback behavior that counts all Leads/Opportunities as active when status metadata is missing. Confirm terminal statuses and custom workflows on the target site. Validate role and data visibility with real Sales User and Sales Manager accounts.
+**Remaining:** The missing-status fallback was removed in PR #17. Confirm terminal statuses and custom workflows on the target site, then validate role and data visibility with real Sales User and Sales Manager accounts.
 
 Specification: [D1 Sales Compass](../specs/2026-11-01-pillar-d1-sales-compass.md).
 
@@ -26,7 +26,7 @@ Specification: [D1 Sales Compass](../specs/2026-11-01-pillar-d1-sales-compass.md
 - Overdue: count and oldest eight submitted, non-return invoices with a positive outstanding amount and a due date before today.
 - Every source uses permission-aware Frappe list APIs. Unlike currencies are never added together.
 
-**Remaining:** Require return metadata to guarantee exclusion semantics. Reconcile values against native Sales Invoice and Payment Entry reports on the target site. Validate invoice, party-account and receiving-account currency behavior.
+**Remaining:** The return-metadata guard was merged in PR #17. Reconcile values against native Sales Invoice and Payment Entry reports on the target site. Validate invoice, party-account and receiving-account currency behavior.
 
 Specification: [D2 Billing Realization](../specs/2026-10-31-pillar-d2-billing-realization.md).
 
