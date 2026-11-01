@@ -32,6 +32,8 @@ For an existing installation, deploy the approved app revision and run `bench --
 8. Add optional additional recipients using enabled System User email addresses, one per line.
 9. Save and verify the resulting settings before enabling the feature.
 
+The master switch and external ingestion are off by default. Complete the site preflight and save the reviewed settings before explicitly enabling CRM Signals. External ingestion remains separately disabled until an administrator turns it on for a provisioned integration user.
+
 ### Preset starting values
 
 | Setting | Balanced | Sales Focused | Executive |
