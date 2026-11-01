@@ -129,6 +129,12 @@ def prepare_upgrade_site():
         "WHERE parent = %s AND fieldname IN (%s, %s, %s, %s)",
         ("CRM Signal", *legacy_fields),
     )
+    # Frappe skips unchanged DocType JSON when its stored modified timestamp
+    # is newer than the file. Rewind it so migrate performs the real JSON sync.
+    frappe.db.sql(
+        "UPDATE `tabDocType` SET modified = %s WHERE name = %s",
+        ("2000-01-01 00:00:00", "CRM Signal"),
+    )
     frappe.clear_cache(doctype="CRM Signal")
     frappe.db.commit()
     return {
