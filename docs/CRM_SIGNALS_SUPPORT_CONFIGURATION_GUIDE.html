@@ -13,10 +13,10 @@
 <span class="tag">ELI5 · Administrator checklist</span>
 <h1>CRM Signals: Support & SLA setup</h1>
 <p><strong>What is this?</strong> This guide helps your Frappe/ERPNext administrator tell CRM Signals which support tickets to count and how to measure service response and resolution.</p>
-<p class="muted">This is a discovery guide. It does not install an app, change settings, edit tickets, or modify your database.</p>
+<p class="muted">Target baseline: Frappe v16.5. PR #46 is validating Frappe v16.5.0 + ERPNext v16.5.0 + Helpdesk v1.30.2 (with Telephony). The first v1.31.1 attempt failed during Helpdesk post-install because its Notification Type setup expects a controller absent from exact Frappe v16.5.0; ADR-056 records this compatibility finding. Confirm the exact patch build and installed ERPNext/Helpdesk versions on your pilot site. This guide is read-only until its staging test steps explicitly ask you to create synthetic tickets.</p>
 <div class="actions"><button onclick="window.print()">Print / Save as PDF</button></div>
 </section>
-<section class="note warning"><strong>One important rule:</strong> do not guess the ticket system. Your site may use ERPNext Issue, Frappe Helpdesk, another app, or a custom DocType. We must inspect the real site before writing the integration.</section>
+<section class="note warning"><strong>One important rule:</strong> the standard Frappe Helpdesk adapter is already implemented for <code>HD Ticket</code> and <code>HD Service Level Agreement</code>. Do not assume the pilot site uses the standard schema: inspect its installed app/version, DocTypes, fields and permissions first. If the metadata matches, proceed with configuration and acceptance. If it differs, record the exact delta and decide whether a narrow adapter change is needed before enabling D3.</section>
 <section class="step"><h2>Before you start</h2>
 <ul class="check"><li><label><input type="checkbox"> I am a Frappe/ERPNext administrator or have one helping me.</label></li><li><label><input type="checkbox"> I know which site/environment I am inspecting (prefer staging first).</label></li><li><label><input type="checkbox"> I will share configuration names only, not customer or ticket data, passwords, API keys, or private comments.</label></li></ul>
 </section>
@@ -24,6 +24,16 @@
 <p>Think of an app as the toolbox that contains your support desk. In the server terminal, run:</p><pre>bench --site your-site-name list-apps</pre>
 <p>Write down every support/helpdesk-related app and its version. Also record the Frappe and ERPNext versions:</p><pre>bench version</pre>
 <p><strong>Record:</strong> site/environment, Frappe version, ERPNext version, support app name(s), support app version(s).</p>
+</section>
+<section class="step"><h2>Step 1A — Confirm the v16.5 target</h2>
+<p>The expected framework baseline is <strong>Frappe v16.5</strong>. Do not record only “v16”: capture the exact patch build from <code>bench version</code>, plus the installed ERPNext and Helpdesk versions. The CI v15/v16 matrix is compatibility evidence, not proof of this site's patch level or configuration.</p>
+<ul class="check">
+<li><label><input type="checkbox"> Frappe reports v16.5.x; exact patch/build is recorded.</label></li>
+<li><label><input type="checkbox"> ERPNext exact version is recorded.</label></li>
+<li><label><input type="checkbox"> Helpdesk exact version is recorded.</label></li>
+<li><label><input type="checkbox"> CRM Signals commit/tag to be tested is recorded.</label></li>
+</ul>
+<div class="warning"><strong>Stop if versions are unexpected.</strong> Do not install a new support app to make the dashboard appear. Record the mismatch and validate the installed version/source before enabling D3.</div>
 </section>
 <section class="step"><h2>Step 2 — Find the ticket record type</h2>
 <p>A DocType is like a spreadsheet template: it defines what a ticket record looks like. We need its exact name, not a guess.</p>
@@ -58,6 +68,42 @@ for row in rows:
 <p class="muted">If the app-version expression errors on your Frappe version, skip that version line and use <code>bench version</code> from Step 1. The DocType and field metadata portion is read-only.</p>
 <div class="good"><strong>Good:</strong> this inspects configuration and schema. It does not fetch ticket rows, customer names, email addresses, comments, or attachments.</div>
 </section>
+<section class="step"><h2>Step 2A — Check the standard Helpdesk fields and permissions</h2>
+<p>The initial adapter reads aggregate values from <code>HD Ticket</code> and checks the <code>HD Service Level Agreement</code> DocType. It does not read ticket subjects, comments, contacts or ticket identifiers. Confirm the following fields exist in the installed version:</p>
+<table><thead><tr><th>Field</th><th>Used for</th><th>Standard Helpdesk permission level</th></tr></thead><tbody>
+<tr><td><code>status_category</code></td><td>Current Open / Paused backlog</td><td>7</td></tr>
+<tr><td><code>resolution_date</code></td><td>Resolved ticket cohort</td><td>7</td></tr>
+<tr><td><code>resolution_time</code></td><td>Average SLA business-hours resolution duration</td><td>7</td></tr>
+<tr><td><code>sla</code></td><td>Applied SLA / no-SLA cohort</td><td>7</td></tr>
+<tr><td><code>agreement_status</code></td><td>Fulfilled / Failed SLA outcome</td><td>8</td></tr>
+</tbody></table>
+<p>Run this read-only check in <code>bench --site your-site-name console</code>. Replace the two example user IDs with the actual Sales User and Sales Manager accounts. It reports permission names only; it does not read ticket rows.</p>
+<pre>import frappe
+from frappe.model import get_permitted_fields
+
+required = (
+    "status_category",
+    "resolution_date",
+    "resolution_time",
+    "sla",
+    "agreement_status",
+)
+for user in ("sales.user@example.com", "sales.manager@example.com"):
+    allowed = set(get_permitted_fields(
+        "HD Ticket", user=user, permission_type="read"
+    ))
+    print(user, {
+        "ticket_read": frappe.has_permission("HD Ticket", ptype="read", user=user),
+        "sla_read": frappe.has_permission(
+            "HD Service Level Agreement", ptype="read", user=user
+        ),
+        "fields": {field: field in allowed for field in required},
+    })</pre>
+<div class="warning"><strong>Do not grant elevated Helpdesk field access automatically.</strong> Field permlevels vary by Helpdesk release: the v1.30.2 reference fields are all permlevel 0, while later releases may define elevated levels. Have the Helpdesk/security owner inspect the full field set and approve the narrowest safe policy. CRM Signals marks an affected metric unavailable rather than misreporting zero when a field is not readable.</div>
+<p><strong>Reference role map for Helpdesk v1.30.2 on Frappe v16.5.0:</strong> the D3 fields <code>status_category</code>, <code>resolution_date</code>, <code>resolution_time</code>, <code>sla</code> and <code>agreement_status</code> are all at permlevel 0. HD Ticket read is granted to System Manager, Agent, Agent Manager, HD Customer and HD Customer Manager. The <code>HD Service Level Agreement</code> DocType grants read to System Manager and Agent Manager. ERPNext Sales User and Sales Manager are not default Helpdesk readers. For any other installed Helpdesk release, inspect its actual field permlevels and DocType read roles before applying a permission map.</p>
+<p>Do not assign <code>Agent</code> or <code>Agent Manager</code> to Sales users just to show this dashboard; those roles also grant ticket create/write privileges; Agent Manager additionally has delete permission. If Sales needs D3, create a dedicated read-only role with only the required <code>HD Ticket</code> field access at the installed version's actual permlevels; grant <code>HD Service Level Agreement</code> read only if SLA metrics are required. Add this role to the approved Sales users/managers. Re-run the metadata preflight after every Helpdesk upgrade.</p>
+<p>Ticket DocType read permission is required for ticket metrics. SLA DocType read permission plus the required ticket fields is required for SLA metrics. Missing SLA access does not have to disable ticket creation/backlog metrics.</p>
+</section>
 <section class="step"><h2>Step 3 — Tell us how a ticket works</h2>
 <p>For the ticket DocType you found, identify these fields from the metadata and the support team's normal process:</p>
 <ul><li><strong>Ticket ID:</strong> the unique record name.</li><li><strong>Customer link:</strong> field linking the ticket to a Customer or Lead, if present.</li><li><strong>Status:</strong> field and all its possible values (Open, Working, Resolved, Closed, Reopened, etc.).</li><li><strong>Resolved at:</strong> the field that records the actual resolution date/time.</li><li><strong>Reopened:</strong> what happens to the resolution timestamp and status when a customer replies?</li></ul>
@@ -82,8 +128,29 @@ for row in rows:
 </tbody></table>
 <ul class="check"><li><label><input type="checkbox"> I have checked the answers with the support team.</label></li><li><label><input type="checkbox"> A site/business owner has approved the definitions.</label></li><li><label><input type="checkbox"> I have removed secrets and customer/ticket data from the handover.</label></li></ul>
 </section>
+<section class="step"><h2>Step 8 — Configure and test D3 on staging</h2>
+<p>No separate field-mapping screen is required for the standard Helpdesk adapter. After confirming the installed app and schema, configure CRM Signals Settings with a System Manager account. Keep the master switch off until the site preflight and permissions review are complete.</p>
+<ul class="check">
+<li><label><input type="checkbox"> Confirm the active Helpdesk SLA policy uses the agreed Monday–Saturday working week.</label></li>
+<li><label><input type="checkbox"> Record each active SLA's daily working-hour rows, holiday list and timezone. The Helpdesk policy is authoritative; CRM Signals does not rewrite it.</label></li>
+<li><label><input type="checkbox"> Create synthetic tickets in staging only: at least one Open, one Paused, one Resolved, one without an SLA, and tickets with native Fulfilled and Failed outcomes.</label></li>
+<li><label><input type="checkbox"> Allow the Helpdesk SLA engine/scheduler to update native outcomes; do not manually fake SLA status fields in production.</label></li>
+<li><label><input type="checkbox"> Open the S.A.H.D.E.V. dashboard as Sales User, Sales Manager and System Manager; compare values with the synthetic fixture counts.</label></li>
+<li><label><input type="checkbox"> Repeat with a user who lacks ticket access and with a user who lacks one required field-level permission. Confirm affected metrics show unavailable, not zero.</label></li>
+<li><label><input type="checkbox"> Inspect the <code>get_sales_compass_data</code> response in the browser Network panel. Confirm the service section contains aggregate values only and no ticket name, subject, customer/contact, email or comment fields.</label></li>
+</ul>
+<table><thead><tr><th>Dashboard measure</th><th>Expected rule</th></tr></thead><tbody>
+<tr><td>Tickets created · 30 days</td><td>HD Ticket creation count in the rolling 30-day window</td></tr>
+<tr><td>Open / Paused backlog</td><td>Current status_category counts; not limited to 30 days</td></tr>
+<tr><td>Resolved · 30 days</td><td>resolution_date in the 30-day window and status_category = Resolved</td></tr>
+<tr><td>Average SLA resolution</td><td>Average positive resolution_time, converted from seconds to business hours</td></tr>
+<tr><td>SLA compliance</td><td>Fulfilled ÷ (Fulfilled + Failed); paused/due states excluded</td></tr>
+<tr><td>Tickets without SLA</td><td>Counted separately; excluded from compliance denominator</td></tr>
+</tbody></table>
+<p class="muted">If there are no eligible SLA outcomes, compliance is unavailable (—), not 0%. A user may see ticket counts while SLA or resolution measures remain unavailable because of field-level permissions.</p>
+</section>
 <section class="step"><h2>What happens after you return this?</h2>
-<ol><li>We map the real ticket and SLA fields.</li><li>We confirm the KPI definitions and permission rules.</li><li>We build a small adapter for the support app actually installed.</li><li>We test status changes, reopened tickets, SLA pauses, holidays, and access restrictions.</li><li>Only then do we enable the D3 Service Resolution/SLA metrics.</li></ol>
+<ol><li>Compare the installed Helpdesk metadata with the existing standard adapter contract.</li><li>Confirm the KPI definitions and least-privilege field access for the intended Sales roles.</li><li>If the standard schema matches, no new adapter is required; configure the app and run the staging scenarios. If the site is customized, record the exact differences and decide on a narrowly scoped change.</li><li>Test status changes, reopened tickets, SLA pauses, holidays, timezone and access restrictions.</li><li>Only after live role permissions, the active SLA calendar and metric results pass should D3 be treated as pilot-verified.</li></ol>
 <p class="warning"><strong>Do not install a new support app just for this task.</strong> First discover what the site already uses. If no support/SLA system exists, we will record that as a business decision rather than silently inventing one.</p>
 </section>
 <footer class="muted"><p>CRM Signals · D3 Service Resolution & SLA · Read-only discovery guide</p></footer>

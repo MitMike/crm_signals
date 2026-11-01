@@ -6,6 +6,16 @@
 **Implementation under audit:** [PR #19](https://github.com/MitMike/crm_signals/pull/19) and [PR #23](https://github.com/MitMike/crm_signals/pull/23), merged as `a495919` and `d75b7f3` respectively  
 **Decision:** **Not approved for production sign-off.** PR #19, PR #21 and PR #23 are merged; supported-version CI passes. Target-site acceptance, durable outbox/realtime retry and the roadmap's external discovery/policy inputs remain outstanding.
 
+## 2026-11-02 follow-up status
+
+This is a historical audit of the earlier PR #19/#23 baseline. The following later changes supersede the affected open findings:
+
+- **Signal outbox:** transactional source-event outbox merged in PR #26; audited System Manager replay for terminal Failed rows merged in PR #38. The old P1 replay gap is closed; target-site backup/restore and operational monitoring remain P0 acceptance.
+- **Realtime authorization:** source-document read checks merged in PR #44. Durable retry remains intentionally deferred under ADR-053 because Frappe v16.5.0 queues after-commit Redis publication without a reliable delivery confirmation; retries require a stable delivery ID, per-recipient ledger, permission recheck and client deduplication/acknowledgement.
+- **Multi-company quotation thresholds:** Company-specific explicit threshold rows merged in PR #45 as `ff434bdf`; all 16 required checks passed on head `84783d15`. No implicit FX conversion; each enabled Company still needs an approved amount or explicit approval of the exact-currency legacy fallback.
+- **D3 Helpdesk:** standard adapter merged in PR #32 and field-level fail-closed guard merged in PR #42. Target-site versions, Sales-role read-only permissions and active SLA calendar remain unverified.
+- **Exact target compatibility:** PR #46 adds a pinned Frappe v16.5.0 / ERPNext v16.5.0 / Helpdesk v1.30.2 reference CI lane. The first v1.31.1 attempt failed during Helpdesk post-install because the Notification Type controller is absent from exact Frappe v16.5.0; ADR-056 records the correction. The v1.30.2 rerun is pending and is not evidence of the pilot site's exact installed versions.
+
 ## Scope reviewed
 
 - Frappe app hooks, scheduler registration, DocType metadata and Settings singleton.
@@ -45,13 +55,13 @@ Decisions are recorded in ADR-034 through ADR-040, in addition to the earlier se
 
 ### P1 — reliability work intentionally deferred
 
-1. **Signal outbox/reconciliation:** Source hook failures are logged without blocking the source business transaction. A transient CRM Signal write failure can still lose an event; guaranteed delivery requires a durable outbox or reconciliation process.
-2. **Realtime retry:** Per-recipient failures are isolated and logged but not automatically retried.
-3. **Multi-company threshold:** One site-wide Company-currency threshold is supported. Sites with different Company base currencies need an approved per-company threshold or conversion policy before enabling signals for all companies.
+1. **Signal outbox/reconciliation:** The transactional outbox and audited Failed-row replay are implemented in PRs #26/#38 and CI-verified. Verify scheduler operation, failure monitoring and backup/restore on the target site.
+2. **Realtime retry:** PR #44 now enforces source-document read permissions. Durable retry remains deferred under ADR-053 until an idempotent per-recipient delivery ledger and client-side dedupe/acknowledgement are implemented.
+3. **Multi-company threshold:** Implementation is merged in PR #45. Each enabled Company still needs a business-approved amount in its base currency or explicit approval of the exact-currency legacy fallback; there is no implicit FX conversion.
 
 ### P2 — roadmap dependencies
 
-- D3 Service Resolution/SLA remains disabled until the installed support app, ticket lifecycle, SLA pause rules, business calendar and permissions are verified.
+- D3 Service Resolution/SLA implementation and field-level guard are merged; pilot acceptance still requires the installed Helpdesk schema, ticket lifecycle, SLA pause rules, business calendar and permissions to be verified.
 - H/E/V/A roadmap slices remain gated by verified source adapters, retention/privacy decisions and a server-owned metric registry. Arbitrary generated SQL remains prohibited.
 
 ## Validation status
