@@ -61,7 +61,7 @@ Default recipients:
 2. active ToDo assignees for that linked record;
 3. optional recipients explicitly configured for the relevant signal type.
 
-Only enabled System Users are eligible. Recipients are deduplicated. Do not include Guest, disabled users, arbitrary caller-supplied addresses or every user with a Sales role by default. Before delivery, verify that each resolved recipient can read the linked party under Frappe permissions. If no eligible recipients remain, create the signal without a realtime broadcast and record a non-sensitive diagnostic.
+Only enabled System Users are eligible. Recipients are deduplicated. Do not include Guest, disabled users, arbitrary caller-supplied addresses or every user with a Sales role by default. Before delivery, verify that each resolved recipient can read both the linked party and the CRM Signal document under Frappe permissions. If either permission check fails or errors, exclude the recipient. If no eligible recipients remain, create the signal without a realtime broadcast and record a non-sensitive diagnostic.
 
 Realtime delivery happens after the signal transaction commits. A failed notification must not roll back the business document event or signal record. Notification failures must be logged with the source event key and without secrets.
 
