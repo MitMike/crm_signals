@@ -12,6 +12,10 @@ This file records known work that is intentionally not represented as complete. 
 - [ ] **Webhook operations.** Provision a dedicated integration System User, least-privilege create access, TLS, gateway rate limiting, monitoring, secret rotation and secure secret storage.
 - [ ] **Target-site deployment rehearsal.** The generic backup, migration, smoke-test and rollback procedure is documented in [Deployment Runbook](DEPLOYMENT_RUNBOOK.md); execute it with the intended site's actual backup, restore, app revision and process manager before sign-off.
 
+## Repository maintenance
+
+- [ ] Review the open Dependabot PRs #5–#15 individually. They include major GitHub Actions v7 and development-tool/dependency updates. Do not batch-merge or auto-merge them; validate each against the current Python/Node/Bench matrix and required workflows. These are repository-maintenance items, separate from CRM Signals feature acceptance.
+
 ## P1 — engineering reliability improvements
 
 - [x] **Exact target CI (PR #50 merged):** the pinned lane installs Frappe `v16.5.0`, ERPNext `v16.5.0`, Telephony commit `9447577500a25d242088398157b72c654fa34b20` and Helpdesk `v1.28.0`, then verifies HD Ticket/HD Service Level Agreement schema and permlevels, runs the real D3 aggregate API smoke test, and exercises CRM Signals install/upgrade. Trigger it for app/test changes, not docs-only changes; retain the existing v15 and moving v16 matrix. PR #50 merged as `24a9b8d3d178682a68df418f5cd29582644056c8` after the final-head exact target lane passed Helpdesk install/schema/role, D3 aggregate smoke, CRM Signals upgrade, full asset build and Bench tests, and the required v15/v16 matrix passed. Pilot-site app versions and live acceptance remain. Helpdesk v1.30.2 fails its after-migrate asset build on the unmodified Frappe v16.5.0 tag because `@framework/ui` links to the absent `frappe/ui` package; v1.31.1 additionally expects the absent `Notification Type` DocType. Use v1.28.0 as the reference unless the exact Frappe build supplies these dependencies.
