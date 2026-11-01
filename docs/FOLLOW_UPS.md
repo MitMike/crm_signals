@@ -14,7 +14,7 @@ This file records known work that is intentionally not represented as complete. 
 
 ## Repository maintenance
 
-- [ ] Review the open Dependabot PRs #5–#15 individually. They include major GitHub Actions v7 and development-tool/dependency updates. Do not batch-merge or auto-merge them; validate each against the current Python/Node/Bench matrix and required workflows. These are repository-maintenance items, separate from CRM Signals feature acceptance.
+- [ ] Review the open Dependabot PRs #5–#10 and #13–#15 individually. They include major GitHub Actions v7 and development-tool/dependency updates. All currently target the older base `9c0ecb1`, behind main `24a9b8d`; rebase/refresh and validate each against the current Python/Node/Bench matrix before merging. Do not batch-merge or auto-merge them. These are repository-maintenance items, separate from CRM Signals feature acceptance.
 
 ## P1 — engineering reliability improvements
 
