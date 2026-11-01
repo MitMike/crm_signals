@@ -27,7 +27,7 @@ This file records known work that is intentionally not represented as complete. 
 
 ## P2 — S.A.H.D.E.V. roadmap
 
-- [ ] **D3 Service Resolution/SLA:** discover the installed support app, ticket DocType, lifecycle, SLA deadlines, pause rules, business calendar and permissions before implementing an adapter.
+- [ ] **D3 target-site acceptance:** initial Frappe Helpdesk adapter is implemented on feat/d3-frappe-helpdesk-adapter; after merge, record installed Helpdesk/Frappe versions, verify Sales User/Manager ticket and SLA read permissions, and confirm each active SLA uses the agreed Monday–Saturday work week with correct hours, holiday list and timezone. CI is not site acceptance.
 - [ ] **H Highlights:** VIP alert rules and first-party proposal link tracking only after stable event IDs, scanner exclusion, retention and privacy/consent approval.
 - [ ] **E Explorer:** inventory configured integrations and implement source adapters only for verified sources.
 - [ ] **V Vault:** approve metric definitions, source visibility and retention before enabling aggregate snapshot scheduling.
