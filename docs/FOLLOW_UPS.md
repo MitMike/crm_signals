@@ -21,7 +21,7 @@ This file records known work that is intentionally not represented as complete. 
 
 ## P1 — site-specific configuration decisions
 
-- [ ] **Multi-company threshold policy.** The first version uses one site-wide threshold currency. Companies with different base currencies need a per-company threshold table or an explicitly approved conversion policy before enabling all company events.
+- [ ] **Multi-company threshold rollout.** Per-company threshold rows are implemented in PR #34. Configure and verify each enabled Company threshold against its base currency; the legacy site-wide threshold is used only when currencies match, and no FX conversion is performed.
 - [ ] **Opportunity and Lead semantics.** Confirm the exact trigger statuses and terminal Lead statuses from the live site's workflows. Confirm the Lead modified timestamp is an acceptable proxy for attention.
 - [ ] **Digest policy.** Confirm timezone, delivery time, additional recipients, mail-queue behavior and stale window with the Sales Manager/business owner.
 
