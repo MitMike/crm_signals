@@ -30,7 +30,7 @@ Specification: [D1 Sales Compass](../specs/2026-11-01-pillar-d1-sales-compass.md
 
 Specification: [D2 Billing Realization](../specs/2026-10-31-pillar-d2-billing-realization.md).
 
-### D3. Service Resolution/SLA — initial adapter merged; target-site acceptance open
+### D3. Service Resolution/SLA — adapter and exact reference CI verified; pilot acceptance open
 
 - PR #32 adds the standard Frappe Helpdesk adapter using HD Ticket and HD Service Level Agreement metadata.
 - Dashboard aggregates ticket creation, current Open/Paused backlog, resolved cohort, native resolution_time and Fulfilled/Failed SLA outcomes.
@@ -38,13 +38,13 @@ Specification: [D2 Billing Realization](../specs/2026-10-31-pillar-d2-billing-re
 - Ticket/SLA DocType permissions are checked independently; the payload contains aggregates only.
 - Monday–Saturday is the agreed initial assumption, but the active Helpdesk SLA's working hours, holiday list and timezone remain authoritative.
 
-**Remaining:** confirm the exact Frappe v16.5 patch and installed ERPNext/Helpdesk versions; verify Sales User/Manager field-level read access for Helpdesk permlevels 7/8; validate each active SLA calendar on the target site. A fail-closed field-level permission correction merged in PR #42; target-site version, read-only role and active SLA calendar acceptance remain. Do not treat CI as pilot acceptance.
+**Remaining:** confirm the pilot's exact Frappe v16.5 patch and installed ERPNext/Helpdesk versions; verify the Sales User/Manager read-only role on HD Ticket and HD Service Level Agreement, inspecting actual field permlevels for that Helpdesk release (the v1.28.0 reference fields are all permlevel 0); validate each active SLA calendar on the target site. The fail-closed field-level permission correction merged in PR #42, and the exact v16.5.0/Helpdesk v1.28.0 reference lane passed in PR #50. Do not treat CI as pilot acceptance.
 
 Specification: [D3 Service Resolution/SLA](../specs/2026-11-01-pillar-d3-service-resolution-sla.md).
 
 ## H — Highlights: event-driven alerts
 
-**Status:** High-value Quotation signals and per-company threshold implementation are merged in PR #45; target-site Company amounts/fallback policy still require explicit approval. VIP proposal-link tracking remains gated on privacy/consent and retention approval.
+**Status:** High-value Quotation signals and per-company threshold implementation are merged in PR #45; PR #49 fixes Company-currency display/fetch. Target-site Company amounts/fallback policy still require explicit approval. VIP proposal-link tracking remains gated on privacy/consent and retention approval.
 
 - High-value submitted Quotations use the Company's base currency and an admin-configured threshold; per-company overrides merged in PR #45. Each enabled Company requires an explicitly approved amount.
 - VIP proposal-link opens only from first-party tracked links or a provider with stable event IDs.
