@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 0,
- "autoname": "format:OUT-{YYYY}-{#####}",
+ "autoname": "field:source_event_key",
  "creation": "2026-11-01 00:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
