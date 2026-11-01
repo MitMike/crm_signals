@@ -206,6 +206,16 @@ def _sales_dashboard_doctype_meta(doctype):
     return frappe.get_meta(doctype)
 
 
+def _sales_dashboard_permitted_fields(meta):
+    """Return field names readable by the current user at the DocType's permlevels."""
+    return set(
+        meta.get_permitted_fieldnames(
+            user=frappe.session.user,
+            permission_type="read",
+        )
+    )
+
+
 def _sales_dashboard_count(rows):
     return sum(int(_sales_dashboard_value(row, "total", 0) or 0) for row in rows)
 
@@ -448,29 +458,31 @@ def _get_helpdesk_service_metrics(period_start):
     metrics = _helpdesk_empty_metrics()
     try:
         ticket_meta = _sales_dashboard_doctype_meta("HD Ticket")
-        if not ticket_meta or not all(ticket_meta.has_field(f) for f in ("creation", "status_category")):
+        if not ticket_meta or not ticket_meta.has_field("creation"):
             return metrics
+        permitted_fields = _sales_dashboard_permitted_fields(ticket_meta)
         metrics["available"] = True
         metrics["created_last_30_days"] = _helpdesk_count({"creation": [">=", period_start]})
-        category_rows = frappe.get_list(
-            "HD Ticket",
-            fields=["status_category", _dashboard_aggregate_field("COUNT", "name", "total")],
-            group_by="status_category", order_by="status_category asc", limit_page_length=10,
-        )
-        categories = {
-            str(_sales_dashboard_value(row, "status_category", "") or ""):
-            int(_sales_dashboard_value(row, "total", 0) or 0) for row in category_rows
-        }
-        metrics.update({
-            "backlog_available": True,
-            "open_backlog": categories.get("Open", 0),
-            "paused_backlog": categories.get("Paused", 0),
-        })
-        if ticket_meta.has_field("resolution_date"):
+        if ticket_meta.has_field("status_category") and "status_category" in permitted_fields:
+            category_rows = frappe.get_list(
+                "HD Ticket",
+                fields=["status_category", _dashboard_aggregate_field("COUNT", "name", "total")],
+                group_by="status_category", order_by="status_category asc", limit_page_length=10,
+            )
+            categories = {
+                str(_sales_dashboard_value(row, "status_category", "") or ""):
+                int(_sales_dashboard_value(row, "total", 0) or 0) for row in category_rows
+            }
+            metrics.update({
+                "backlog_available": True,
+                "open_backlog": categories.get("Open", 0),
+                "paused_backlog": categories.get("Paused", 0),
+            })
+        if ticket_meta.has_field("resolution_date") and "resolution_date" in permitted_fields:
             metrics["resolved_available"] = True
             resolved_filters = {"resolution_date": [">=", period_start], "status_category": "Resolved"}
             metrics["resolved_last_30_days"] = _helpdesk_count(resolved_filters)
-            if ticket_meta.has_field("resolution_time"):
+            if ticket_meta.has_field("resolution_time") and "resolution_time" in permitted_fields:
                 average_rows = frappe.get_list(
                     "HD Ticket",
                     fields=[_dashboard_aggregate_field("AVG", "resolution_time", "average_resolution_seconds")],
@@ -483,7 +495,11 @@ def _get_helpdesk_service_metrics(period_start):
                 metrics["average_resolution_hours"] = (
                     round(float(raw_average) / 3600, 2) if raw_average is not None else None
                 )
-        if ticket_meta.has_field("sla") and ticket_meta.has_field("agreement_status"):
+        if (
+            ticket_meta.has_field("sla")
+            and ticket_meta.has_field("agreement_status")
+            and {"sla", "agreement_status"}.issubset(permitted_fields)
+        ):
             if not frappe.has_permission("HD Service Level Agreement", ptype="read"):
                 return metrics
             if not _sales_dashboard_doctype_meta("HD Service Level Agreement"):
