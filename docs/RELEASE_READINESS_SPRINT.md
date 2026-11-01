@@ -2,7 +2,7 @@
 
 **Started:** 2026-11-01  
 **Last reviewed:** 2026-11-02  
-**Baseline:** `main` at `2e9eb89b8ed5618ca3e50e6bc0b2c867c516e17b`  
+**Baseline:** `main` at `24a9b8d3d178682a68df418f5cd29582644056c8`  
 **Decision register:** [ADR-046](DECISIONS.md#adr-046--run-release-readiness-as-an-evidence-gated-sprint)  
 **Operating rule:** no item is complete without the evidence listed here. CI evidence and target-site evidence are separate.
 
@@ -12,7 +12,7 @@
 
 - [x] Merge [PR #32](https://github.com/MitMike/crm_signals/pull/32) for D3 standard Frappe Helpdesk metrics. Final head `93b536abef331d8b34b5b7b570fbb280a996bfb2` passed Python 3.10/3.11/3.12/3.14, lint/static, Semgrep and Bench v15/v16; merge commit `43fddfbbc46cac277a48c840251a7a2c963a8eb5`.
 - [x] [PR #38](https://github.com/MitMike/crm_signals/pull/38) audited Failed-row replay merged as `1640bdd496706a7f297b0984f1fd1d9695307147`; Quality, Security and Bench v15/v16 passed. The action is POST-only, requires System Manager plus outbox read access, preserves attempt history and audit Comment, and confirms before replay.
-- [ ] Complete [PR #48](https://github.com/MitMike/crm_signals/pull/48) exact Frappe v16.5.0/ERPNext v16.5.0/Helpdesk v1.30.2 Bench lane; the first v1.31.1 attempt failed on the missing Notification Type controller and ADR-057 records the corrected pin.
+- [x] Complete [PR #50](https://github.com/MitMike/crm_signals/pull/50) exact Frappe v16.5.0/ERPNext v16.5.0/Helpdesk v1.28.0 Bench lane; merged as `24a9b8d` after Quality, Security, Bench v15/v16 and the exact target-stack workflow all passed. ADR-057 records the v1.31.1 post-install and v1.30.2 asset-build incompatibilities.
 - [x] Complete [PR #45](https://github.com/MitMike/crm_signals/pull/45) per-company quotation thresholds. Final head `84783d15` passed all 16 required checks and merged as `ff434bdf`. Pilot approval/configuration for each Company remains.
 - [x] [PR #44](https://github.com/MitMike/crm_signals/pull/44) source-document notification permission check merged as `48622c08700032566051978076f49bc807c381e7` after Quality, Security and Bench v15/v16 passed.
 - [x] [PR #36](https://github.com/MitMike/crm_signals/pull/36) merged as `e57d94ea`; ADR-049 sets Frappe v16.5 as the primary target while retaining v15/v16 CI coverage.
@@ -73,7 +73,7 @@
 - `main` baseline is `ff434bdf407d1d61842d81fae16e04b4b9b483d5`; PR #32 D3, PR #38 replay, PR #42 field guard, PR #44 source permission and PR #45 thresholds and PR #49 currency auto-fetch/display correction are merged and CI-verified.
 - PR #38 replay is merged after both Frappe v15/v16 Bench jobs passed.
 - PR #45 threshold implementation merged as `ff434bdf`; Quality, Security and Bench v15/v16 passed on final head `84783d15`.
-- PR #48 first failed at Helpdesk v1.31.1 post-install; ADR-057 pins v1.30.2 for Frappe v16.5.0 and the rerun is pending.
+- PR #50 merged as `24a9b8d`; the pinned Helpdesk v1.28.0 exact-target lane passed. Pilot-site versions and permissions remain unverified.
 - PR #36 ADR-049 is merged; its final required checks passed.
 - D3 field-level guard PR #42 is merged; target-site Sales role and SLA-calendar acceptance remain open.
 - No target Frappe site is connected to this work. Pilot evidence for versions, Company policy, role/field permissions, finance reconciliation, SLA calendar and operations remains outstanding.
@@ -86,6 +86,6 @@
 | 2026-11-02 | PR #38 replay implementation | Final head `8e4c58dc` passed Quality, Security and Bench v15/v16; merged as `1640bdd4` | Complete — CI verified |
 | 2026-11-02 | PR #45 threshold implementation | Final head `84783d15` passed all 16 required checks; merged as `ff434bdf` | Complete — CI verified |
 | 2026-11-02 | PR #49 currency display | Company currency auto-fetch + amount field binding; v15/v16 Bench, unit, lint and security passed; merged as `2e9eb89` | Complete — CI verified |
-| 2026-11-02 | PR #48 exact target CI | Helpdesk v1.31.1 failed at post-install Notification Type controller; ADR-056 pins v1.30.2 for exact v16.5.0 lane | Validation pending |
+| 2026-11-02 | PR #50 exact target CI | Frappe v16.5.0 + ERPNext v16.5.0 + Helpdesk v1.28.0 + pinned Telephony; schema/roles, D3 aggregate, upgrade, assets and tests passed; merged as `24a9b8d` | Complete — CI verified |
 | 2026-11-02 | ADR-049 target baseline | Frappe v16.5 confirmed; v15/v16 matrix retained | Complete — merged |
 | 2026-11-02 | D3 field-level permissions | Fail-closed field permission guard merged in PR #42 and passed v15/v16 CI | Complete — CI verified |
