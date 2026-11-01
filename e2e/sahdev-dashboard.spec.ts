@@ -34,7 +34,11 @@ async function loginAs(page: Page, username: string, password: string) {
     // Frappe sets the session cookie before completing its client-side
     // redirect. Do not let the next test action race that navigation.
     await page.waitForURL(
-        (url) => url.pathname === "/app" || url.pathname.startsWith("/app/"),
+        (url) =>
+            ["/app", "/desk"].some(
+                (root) =>
+                    url.pathname === root || url.pathname.startsWith(`${root}/`)
+            ),
         { waitUntil: "domcontentloaded", timeout: 30_000 }
     );
 }
