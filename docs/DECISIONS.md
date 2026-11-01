@@ -415,3 +415,14 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Rationale:** Use the database as the serialization point across processes and workers. An in-process mutex would not protect multiple Frappe workers or hosts.
 - **Consequences:** The two-connection Bench test synchronizes two workers before the lock and proves a single queue request for the same recipient/date. This does not prove delivery after the Email Queue is created or replace target-site scheduler/mail testing.
 - **Evidence:** Merged in PR #23 as `d75b7f3`; [Bench v15/v16 + Playwright](https://github.com/MitMike/crm_signals/actions/runs/41300667892), [Quality](https://github.com/MitMike/crm_signals/actions/runs/41300667996) and [Security](https://github.com/MitMike/crm_signals/actions/runs/41300667997) passed.
+
+
+## ADR-046 — Run release readiness as an evidence-gated sprint
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-01
+- **Context:** The core feature set and concurrency hardening are merged, while target-site acceptance and reliability/roadmap work remain open. A transactional outbox implementation is already under review in PR #26 and has failed its latest Frappe v15/v16 Bench validation.
+- **Decision:** Sequence work by release risk: (1) repair and validate PR #26 before merge; (2) prepare a target-site acceptance kit and execute all source-independent release checks; (3) collect target-site evidence for configuration, permissions, financial reconciliation, scheduler/mail, integration credentials and backup/restore; (4) then implement D3 and complete H under their documented source/privacy gates; (5) defer E, V and A until their dependencies are approved. Do not duplicate work already present in an open PR.
+- **Rationale:** Durable event persistence and correct retry behavior are more important to release confidence than starting additional dashboard surfaces. Site-specific values and policies must be observed, not guessed.
+- **Consequences:** PR #26 remains unmergeable until Frappe v15 and v16 Bench suites pass. Target-site sign-off remains blocked until actual installation and business evidence is recorded. Realtime notification retry is tracked separately from the source-event outbox.
+- **Evidence:** PR #26 check runs on head `a63b3b60f909ebc0e62d5bfde383aa6224ba36b2`; latest failures include `test_two_workers_enqueue_the_same_source_event_once` (MariaDB lock wait timeout), `test_two_workers_process_one_outbox_event_once` (missing source-event key in fixture), and `test_worker_filters_future_retries_before_applying_batch_limit` (missing source-event key in fixture).

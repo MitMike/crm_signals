@@ -2,13 +2,16 @@
 
 **Last reviewed:** 2026-11-01  
 **Repository:** [MitMike/crm_signals](https://github.com/MitMike/crm_signals)  
-**Main baseline:** [d75b7f3](https://github.com/MitMike/crm_signals/commit/d75b7f3591d2a863b0af6b8f88ad2a91e9bfd25f)  
+**Main baseline:** [9c0ecb1](https://github.com/MitMike/crm_signals/commit/9c0ecb1013311909041aebb687fef850ea084869)  
 **Completed implementation:** PR #19 delivered settings/presets and core idempotency; PR #21 validated the legacy-schema migration; [PR #23](https://github.com/MitMike/crm_signals/pull/23) merged as [d75b7f3](https://github.com/MitMike/crm_signals/commit/d75b7f3591d2a863b0af6b8f88ad2a91e9bfd25f), closing concurrent API-idempotency and digest-queue races.  
-**Next acceptance:** target-site validation and the explicitly deferred reliability/roadmap work remain open; green CI does not constitute production sign-off.
+**Next acceptance:** PR #26 transactional outbox validation is blocked by three Bench regression failures; target-site acceptance and the explicitly deferred roadmap work remain open. Green CI does not constitute production sign-off.
 
 This file is the operational source of truth. [IMPLEMENTATION_PLAN.md](../IMPLEMENTATION_PLAN.md) is the roadmap, [DECISIONS.md](DECISIONS.md) is the durable decision register, [FOLLOW_UPS.md](FOLLOW_UPS.md) tracks deferred issues, and [specs/](../specs/) holds feature contracts.
 
 ## Current status
+
+**Sprint update — 2026-11-01:** Release-readiness sprint started on branch `docs/release-readiness-sprint-2026-11-01`. Latest `main` is `9c0ecb1`; PR #26 (`feature/durable-signal-outbox-validation`) is the active engineering dependency. Its Python/lint/Semgrep checks passed, but Frappe v15/v16 Bench checks failed in three outbox tests: concurrent enqueue lock-wait timeout, and two fixtures rejected because `source_event_key` was not supplied. Do not merge PR #26 until the failure is fixed and both supported Bench lanes pass. See `docs/RELEASE_READINESS_SPRINT.md` for ordered work and evidence.
+
 
 | Workstream | Status | Evidence / next action |
 |---|---|---|
