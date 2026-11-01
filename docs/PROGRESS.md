@@ -10,6 +10,8 @@ This file is the operational source of truth. [IMPLEMENTATION_PLAN.md](../IMPLEM
 
 ## Current status
 
+**Engineering update — 2026-11-02:** An audited System Manager-only replay action for terminal Failed outbox rows is implemented on branch `feat/audited-outbox-replay`. It preserves attempt count/error history, records replay count/time/actor and a document comment, and reuses the existing after-commit worker plus scheduled fallback. Bench v15/v16 CI is pending; do not mark merged or validated until the exact PR head passes.
+
 **Sprint update — 2026-11-02:** PR #26 merged as `b0364a74`; its synchronized final head `222e70ec71164dab4448f7319525042323a357b4` passed Quality Checks, Security Scanning and Bench Integration/E2E on Frappe v15/v16. ADR-047 is accepted. PR #28's target-site acceptance kit is merged, but no target-site execution has been recorded. PR #29 updates the decision/progress/follow-up records for the outbox merge. Next roadmap slice is D3 Service Resolution/SLA; implementation remains gated on the actual site's installed support app, ticket/SLA DocTypes, lifecycle fields, calendar and permissions. Do not infer these from framework defaults.
 
 
