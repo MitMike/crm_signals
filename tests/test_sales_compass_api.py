@@ -492,6 +492,7 @@ def test_helpdesk_metrics_are_independently_available_for_permitted_fields(monke
         for query in queries
     )
 
+
 def test_helpdesk_metrics_require_physical_creation_column(monkeypatch):
     api, queries, _ = load_sales_api(
         monkeypatch,
