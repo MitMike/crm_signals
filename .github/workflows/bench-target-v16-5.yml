@@ -69,7 +69,14 @@ jobs:
       - name: Configure MariaDB client defaults
         run: |
           sudo mkdir -p /etc/mysql/mariadb.conf.d
-          printf '[client]\\nskip-ssl\\n[mysql]\\nskip-ssl\\n[mariadb]\\nskip-ssl\\n' | sudo tee /etc/mysql/mariadb.conf.d/99-ci-client.cnf
+          sudo tee /etc/mysql/mariadb.conf.d/99-ci-client.cnf > /dev/null <<'EOF'
+          [client]
+          skip-ssl
+          [mysql]
+          skip-ssl
+          [mariadb]
+          skip-ssl
+          EOF
           mariadb --skip-ssl --host 127.0.0.1 --port 3306 -u root -proot -e "SET GLOBAL character_set_server = 'utf8mb4'"
           mariadb --skip-ssl --host 127.0.0.1 --port 3306 -u root -proot -e "SET GLOBAL collation_server = 'utf8mb4_unicode_ci'"
 
