@@ -1,6 +1,6 @@
 # CRM Signals — Daily sales digest
 
-**Status:** Core implementation merged in PR #19; overlapping-worker serialization and Bench proof are in PR #23 pending Frappe v15/v16 CI. Target-site semantics and mail behavior still require acceptance.
+**Status:** Core implementation and overlapping-worker serialization merged in PR #19/#23. The two-worker Bench proof passed on Frappe v15/v16 and v16 Playwright passed. Target-site semantics and live mail behavior still require acceptance.
 
 ## Problem and user
 
@@ -38,7 +38,7 @@ The Lead metric is exactly "Leads not modified in more than 3 days". It is not p
 - Generate each digest while impersonating the individual recipient. Use permission-aware `frappe.get_list` calls for Leads and Quotations; never send one privileged site-wide result to every recipient.
 - Show a source as unavailable when the recipient lacks read permission or required metadata; do not convert a permission failure into zero.
 - Track the recipients queued for the site-local digest date in CRM Signals Settings. Each email queue request and its recipient marker are saved in the same transaction. A later scheduler run skips already queued recipients and retries only those still pending.
-- PR #23 serializes concurrent workers by taking a `FOR UPDATE` lock on the CRM Signals Settings singleton before reading the queue marker, then re-locking and rechecking before each recipient claim after per-recipient commits. The two-worker Bench regression test must pass on Frappe v15 and v16 before this is considered verified.
+- PR #23 serializes concurrent workers by taking a `FOR UPDATE` lock on the CRM Signals Settings singleton before reading the queue marker, then re-locking and rechecking before each recipient claim after per-recipient commits. System-owned marker fields are written with `Document.db_set`, avoiding unrelated Settings validation while preserving the same transaction as the Email Queue insert. The two-worker Bench regression test passed on Frappe v15 and v16.
 - Do not log secrets or full sensitive document contents.
 
 ## Content and security
@@ -58,7 +58,7 @@ Escape every party name, document name and other user-controlled HTML value. Pre
 | DIG-AC7 | Retry of same digest date does not duplicate delivery | Idempotency/retry test |
 | DIG-AC8 | Missing schema/permissions are visible as unavailable diagnostics | Bench permission/configuration fixture |
 | DIG-AC9 | Scheduler runs at the configured site-local time | Scheduler integration test on supported versions |
-| DIG-AC10 | Simultaneous scheduler workers queue at most one digest per recipient/date | Two-connection Bench test on Frappe v15 and v16 (PR #23) |
+| DIG-AC10 | Simultaneous scheduler workers queue at most one digest per recipient/date | Passed: two-connection Bench test on Frappe v15 and v16 (PR #23) |
 
 ## Validation mapping
 
