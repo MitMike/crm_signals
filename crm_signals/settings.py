@@ -180,7 +180,7 @@ def validate_settings_document(doc) -> None:
         )
 
     seen_companies = set()
-    for row in (doc.get("company_thresholds") or []):
+    for row in (getattr(doc, "company_thresholds", None) or []):
         company = str(row.company or "").strip()
         if not company or company in seen_companies:
             frappe.throw(frappe._("Each company can have only one quotation threshold."), frappe.ValidationError)
