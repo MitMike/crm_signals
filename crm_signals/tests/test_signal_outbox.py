@@ -1,6 +1,9 @@
 """Bench-backed retry tests for the transactional CRM Signal event outbox."""
 
+import threading
 import unittest
+from concurrent.futures import ThreadPoolExecutor
+from datetime import timedelta
 from unittest.mock import patch
 
 try:
@@ -166,3 +169,128 @@ class TestSignalOutbox(FrappeTestCase):
         self.assertEqual(worker_result["not_due"], 0)
         self.assertEqual(outbox.attempt_count, attempts)
         self.assertEqual(outbox.status, "Pending")
+
+    def test_worker_filters_future_retries_before_applying_batch_limit(self):
+        suffix = frappe.generate_hash(length=8)
+        common = {
+            "doctype": "CRM Signal Outbox",
+            "signal_type": "High-Value Quote",
+            "message": f"Outbox fairness test {suffix}",
+            "priority": "High",
+            "source_doctype": "Quotation",
+            "status": "Pending",
+            "attempt_count": 1,
+        }
+        future = frappe.get_doc({
+            **common,
+            "source_name": f"OUTBOX-FUTURE-{suffix}",
+            "source_event_id": f"future:{suffix}",
+            "next_retry_at": frappe.utils.now_datetime() + timedelta(minutes=30),
+        }).insert(ignore_permissions=True)
+        due = frappe.get_doc({
+            **common,
+            "source_name": f"OUTBOX-DUE-{suffix}",
+            "source_event_id": f"due:{suffix}",
+            "next_retry_at": None,
+        }).insert(ignore_permissions=True)
+
+        processed = []
+        with (
+            patch(
+                "crm_signals.signal_outbox.process_signal_outbox_event",
+                side_effect=lambda name: processed.append(name) or {"status": "completed"},
+            ),
+            patch("frappe.db.commit"),
+        ):
+            process_pending_signal_outbox(limit=1)
+
+        self.assertEqual(processed, [due.name])
+        self.assertNotIn(future.name, processed)
+
+    def test_two_workers_process_one_outbox_event_once(self):
+        suffix = frappe.generate_hash(length=8)
+        source_name = f"OUTBOX-RACE-{suffix}"
+        source_event_id = f"submit:{suffix}"
+        outbox = frappe.get_doc({
+            "doctype": "CRM Signal Outbox",
+            "signal_type": "High-Value Quote",
+            "message": f"Outbox concurrency test {suffix}",
+            "priority": "High",
+            "source_doctype": "Quotation",
+            "source_name": source_name,
+            "source_event_id": source_event_id,
+            "status": "Pending",
+            "attempt_count": 0,
+        }).insert(ignore_permissions=True)
+        outbox_name = outbox.name
+        frappe.db.commit()
+
+        site = frappe.local.site
+        start_together = threading.Barrier(2)
+        worker_errors = []
+
+        def run_worker():
+            try:
+                frappe.init(site=site)
+                frappe.connect(site=site)
+                frappe.set_user("Administrator")
+                start_together.wait(timeout=20)
+                result = process_signal_outbox_event(outbox_name)
+                frappe.db.commit()
+                return result
+            except Exception as error:
+                worker_errors.append(repr(error))
+                try:
+                    frappe.db.rollback()
+                except Exception:
+                    pass
+                raise
+            finally:
+                frappe.destroy()
+
+        signal_name = None
+        try:
+            with patch("crm_signals.notifications.notify_signal") as notify_signal:
+                with ThreadPoolExecutor(max_workers=2) as executor:
+                    futures = [executor.submit(run_worker) for _ in range(2)]
+                    results = [future.result(timeout=60) for future in futures]
+
+            self.assertEqual(worker_errors, [])
+            self.assertEqual(
+                sorted(result["status"] for result in results),
+                ["completed", "skipped"],
+            )
+            self.assertEqual(notify_signal.call_count, 1)
+
+            saved_outbox = frappe.get_doc("CRM Signal Outbox", outbox_name)
+            signal_name = saved_outbox.signal
+            self.assertTrue(signal_name)
+            event_key = build_source_event_key("Quotation", source_name, source_event_id)
+            self.assertEqual(
+                frappe.get_all(
+                    "CRM Signal",
+                    filters={"source_event_key": event_key},
+                    pluck="name",
+                ),
+                [signal_name],
+            )
+        finally:
+            if not signal_name:
+                signal_name = frappe.db.get_value(
+                    "CRM Signal Outbox", outbox_name, "signal"
+                )
+            if frappe.db.exists("CRM Signal Outbox", outbox_name):
+                frappe.delete_doc(
+                    "CRM Signal Outbox",
+                    outbox_name,
+                    ignore_permissions=True,
+                    force=True,
+                )
+            if signal_name and frappe.db.exists("CRM Signal", signal_name):
+                frappe.delete_doc(
+                    "CRM Signal",
+                    signal_name,
+                    ignore_permissions=True,
+                    force=True,
+                )
+            frappe.db.commit()
