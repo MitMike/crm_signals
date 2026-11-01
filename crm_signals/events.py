@@ -102,7 +102,7 @@ def insert_signal_once(
             # transaction isolation.
             existing_name = _existing_signal_name(event_key, locking_read=True)
             if existing_name:
-                return frappe.get_doc("CRM Signal", existing_name), False
+                return frappe.get_doc("CRM Signal", existing_name, for_update=True), False
         raise
 
     try:

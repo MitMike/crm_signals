@@ -2,7 +2,7 @@
 
 **Last reviewed:** 2026-11-01  
 **Repository:** [MitMike/crm_signals](https://github.com/MitMike/crm_signals)  
-**Main baseline:** [72833cd](https://github.com/MitMike/crm_signals/commit/72833cd383811d7c9be591206647b2e0b1f3fbd9)  
+**Main baseline:** [69140a2](https://github.com/MitMike/crm_signals/commit/69140a243ed2bf6b49f24a8265948a21899f2bb4)  
 **Completed implementation:** [PR #19](https://github.com/MitMike/crm_signals/pull/19) merged as [a495919](https://github.com/MitMike/crm_signals/commit/a49591947a89b011cc1770be176c1f11571b131b): configurable settings, presets, permission parity, event idempotency and digest safety are on `main`.  
 **Next acceptance:** target-site validation and the explicitly deferred reliability work remain open; the merge and CI results do not constitute production sign-off.
 
@@ -18,8 +18,8 @@ This file is the operational source of truth. [IMPLEMENTATION_PLAN.md](../IMPLEM
 | D2 Billing Realization | Implemented; safety fix merged | PR #17 requires `is_return` for return-sensitive measures; target-site financial reconciliation remains |
 | File/function standards | Merged | PR #18 merged as `f51fbce`; limits, checker, pre-commit and CI enforcement are on main |
 | Settings + presets | Merged in PR #19 | Settings singleton, validation, Balanced/Sales Focused/Executive presets and administrator guide; confirm target-site defaults before activation |
-| Event identity/idempotency | Runtime merged in PR #19; upgrade rehearsal in PR #21 | Unique SHA-256 source-event key and API event ID support; legacy-schema migration rehearsal passed on Frappe v15 and v16 in PR #21; concurrent duplicate-request proof remains open |
-| Digest hardening | Merged in PR #19 | Site-timezone schedule, per-recipient permission-aware emails, recipient queue tracking, configurable stale window/time/recipients and currency-code formatting; overlapping-worker proof remains open |
+| Event identity/idempotency | Runtime merged in PR #19; migration rehearsal merged in PR #21; race fix/test in PR #23 | Unique SHA-256 source-event key; legacy-schema migration passed on Frappe v15/v16; PR #23 fixes the post-collision stale-snapshot read and adds a deterministic two-connection API-handler test; CI pending |
+| Digest hardening | Core merged in PR #19; overlapping-worker fix/test in PR #23 | Site-timezone schedule, permission-aware per-user email and queue tracking; PR #23 serializes recipient claims with a Settings row lock and adds a two-worker Bench test; v15/v16 CI pending |
 | Notification failure isolation | Merged in PR #19 | Recipient failures are logged and do not block other recipients or source-document saves; automated retry/outbox remains deferred |
 | D3 Service Resolution/SLA | Specified; not implemented | Discover target-site support/SLA application and source semantics before adapter implementation |
 | H Highlights | Partial/planned | Finish idempotent events, recipient controls, verified proposal tracking and privacy approval |
@@ -27,6 +27,14 @@ This file is the operational source of truth. [IMPLEMENTATION_PLAN.md](../IMPLEM
 | V Vault | Planned | Approve metric registry, source visibility and retention before enabling snapshots |
 | A Analysis | Planned | Approved metric registry and constrained server-owned queries; no model-generated SQL |
 | Repository security/CI | Merged | PR #11 security/dependency hardening; PR #18 maintainability guardrails; main ruleset active |
+
+## Current reliability follow-up — PR #23
+
+- Fixes the real unique-key race: after both API requests observe an event key as absent, the losing insert now reloads the winning CRM Signal with `for_update=True` so MariaDB repeatable-read cannot hide the row behind an older snapshot.
+- Adds a deterministic Bench test using two independent database connections. The expected result is one CRM Signal, one created response, one deduplicated response and one notification dispatch.
+- Serializes digest recipient claims by locking the CRM Signals Settings singleton and rechecking the queued-recipient marker before each email queue request. The lock and marker update share the same transaction as that recipient's Email Queue write.
+- Adds a two-worker Bench test asserting one queue request for a recipient/date.
+- **Status:** implementation and tests are in PR #23; the latest Frappe v15/v16 Bench, Python quality and security results are still required before merge. No target-site mail/scheduler acceptance is implied.
 
 ## Completed engineering task — legacy schema upgrade rehearsal
 

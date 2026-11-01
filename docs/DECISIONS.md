@@ -394,3 +394,24 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Rationale:** The fixture must represent an older installed DocType definition, not merely a damaged table paired with a current-schema migration hash. Clearing the hash makes Frappe re-import the current JSON through its normal migration path.
 - **Consequences:** Keep the upgrade rehearsal failing until both supported Frappe versions demonstrate restoration of the fields and preservation of historical rows. Do not replace the rehearsal with a direct `reload_doc` call, which would bypass the migration path being tested.
 - **Evidence:** Frappe v15 and v16 `frappe/modules/import_file.py`; CI jobs [v15](https://github.com/MitMike/crm_signals/actions/runs/41291789841/job/124804365910) and [v16](https://github.com/MitMike/crm_signals/actions/runs/41291789841/job/124804366016).
+
+## ADR-043 — Test API idempotency with independent concurrent database connections
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-01
+- **Context:** Existing webhook integration coverage proved sequential retries and a mocked unique-key collision, but neither exercised two real transactions that both observe the event key as absent before attempting insertion.
+- **Decision:** Add a Bench-backed concurrency regression test that invokes the authenticated API handler from two worker threads, each with its own Frappe database connection and user context. Synchronize the initial identity reads so both transactions reach the insert race, then assert one persisted CRM Signal, one non-deduplicated response, one deduplicated response and exactly one notification dispatch.
+- **Rationale:** A deterministic race test is more reliable than timing-dependent load tests for proving the exact read-before-insert failure mode. Running against the Bench MariaDB database exercises the unique constraint and locking-read recovery used in production.
+- **Consequences:** The test must pass on both supported Frappe v15 and v16 Bench lanes before the API concurrency follow-up can be closed. This test covers the handler and database race, not HTTP gateway throughput or production webhook rate limiting.
+- **Evidence:** Branch `test/concurrent-api-idempotency`; CI result pending.
+
+
+## ADR-044 — Serialize digest recipient claims across scheduler workers
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-01
+- **Context:** The digest previously read the queued-recipient marker without locking, then queued mail and updated the marker. Two scheduler workers could both observe a recipient/date as pending and enqueue duplicate messages before either transaction committed.
+- **Decision:** Acquire a row lock on the CRM Signals Settings singleton before reading the marker. Re-acquire the lock and re-read the marker before each recipient queue operation because per-recipient commits release the lock and allow another worker to make progress. Save the Email Queue request and the corresponding recipient marker in the same transaction.
+- **Rationale:** Use the database as the serialization point across processes and workers. An in-process mutex would not protect multiple Frappe workers or hosts.
+- **Consequences:** Add a two-connection Bench test that synchronizes two workers before the lock and proves a single queue request for the same recipient/date. The test must pass on Frappe v15 and v16. This does not prove delivery after the Email Queue is created or replace target-site scheduler/mail testing.
+- **Evidence:** PR #23, `crm_signals/tasks.py` and `crm_signals/tests/test_digest_delivery.py`; CI pending.
