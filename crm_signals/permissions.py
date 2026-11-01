@@ -103,7 +103,11 @@ def crm_signal_query(user=None):
     if _has_manager_role(user):
         return ""
 
-    clauses = [f"(`tabCRM Signal`.owner = {frappe.db.escape(user)})"]
+    escaped_user = frappe.db.escape(user)
+    clauses = [
+        f"(`tabCRM Signal`.owner = {escaped_user} AND "
+        "`tabCRM Signal`.lead IS NULL AND `tabCRM Signal`.customer IS NULL)"
+    ]
     for doctype, fieldname in (("Lead", "lead"), ("Customer", "customer")):
         try:
             names = _get_visible_party_names(doctype, user)
