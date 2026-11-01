@@ -1,10 +1,21 @@
 # CRM Signals — Production-readiness audit
 
-**Audit date:** 2026-11-01  
+**Audit date:** 2026-11-02  
 **Repository:** MitMike/crm_signals  
-**Base:** `main` at `d75b7f3591d2a863b0af6b8f88ad2a91e9bfd25f` (PR #23 merged)  
-**Implementation under audit:** [PR #19](https://github.com/MitMike/crm_signals/pull/19) and [PR #23](https://github.com/MitMike/crm_signals/pull/23), merged as `a495919` and `d75b7f3` respectively  
-**Decision:** **Not approved for production sign-off.** PR #19, PR #21 and PR #23 are merged; supported-version CI passes. Target-site acceptance, durable outbox/realtime retry and the roadmap's external discovery/policy inputs remain outstanding.
+**Base:** `main` at `24a9b8d3d178682a68df418f5cd29582644056c8` (PR #50 merged)  
+**Implementation under audit:** PRs #19/#21/#23/#26/#32/#38/#42/#44/#45/#49/#50, all merged; latest main baseline `24a9b8d`  
+**Decision:** **Not approved for production sign-off.** PR #19, PR #21 and PR #23 are merged; supported-version CI passes. Target-site acceptance, durable realtime notification retry and the roadmap's external discovery/policy inputs remain outstanding. The transactional outbox and audited Failed-row replay are already implemented.
+
+## 2026-11-02 follow-up status
+
+This is a historical audit of the earlier PR #19/#23 baseline. The following later changes supersede the affected open findings:
+
+- **Signal outbox:** transactional source-event outbox merged in PR #26; audited System Manager replay for terminal Failed rows merged in PR #38. The old P1 replay gap is closed; target-site backup/restore and operational monitoring remain P0 acceptance.
+- **Realtime authorization:** source-document read checks merged in PR #44. Durable retry remains intentionally deferred under ADR-053 because Frappe v16.5.0 queues after-commit Redis publication without a reliable delivery confirmation; retries require a stable delivery ID, per-recipient ledger, permission recheck and client deduplication/acknowledgement.
+- **Multi-company quotation thresholds:** Company-specific explicit threshold rows merged in PR #45 as `ff434bdf`; all 16 required checks passed on head `84783d15`. No implicit FX conversion; each enabled Company still needs an approved amount or explicit approval of the exact-currency legacy fallback.
+- **D3 Helpdesk:** standard adapter merged in PR #32 and field-level fail-closed guard merged in PR #42. Target-site versions, Sales-role read-only permissions and active SLA calendar remain unverified.
+- **Operator kit:** added a beginner-friendly D3 Support & SLA discovery worksheet, a Frappe v16.5.0 support configuration guide, and the target-site acceptance checklist. The discovery script is metadata-only; the pilot operator still needs to run it and record the site's exact app versions and policy.
+- **Exact target compatibility:** PR #50 merged the path-filtered Frappe v16.5.0 / ERPNext v16.5.0 / Helpdesk v1.28.0 reference CI lane. The first v1.31.1 attempt failed during Helpdesk post-install because the Notification Type controller is absent from exact Frappe v16.5.0; ADR-055/056 were superseded by ADR-057, which records the final v1.28.0 pin. The Helpdesk v1.30.2 installed but its after-migrate asset build failed because @framework/ui links to frappe/ui, absent from the Frappe v16.5.0 tag. The v1.31.1 tag additionally expects Notification Type. ADR-057 pins v1.28.0, whose required D3 fields remain at permlevel 0 and whose desk build does not import @framework/ui. The v1.30.2 D3 aggregate smoke exposed an app bug: the adapter treated the system `creation` audit column as a DocType field. PR #50 now checks `frappe.db.has_column` and adds a regression test that models the system column correctly; the first v1.28.0 target lane passed Helpdesk installation, schema/role checks, the real D3 aggregate smoke test, CRM Signals schema-upgrade, full application asset build and Bench tests on the code head. A documentation-only ADR evidence wording correction triggered final-head revalidation, which has passed Helpdesk install/schema/role, D3 aggregate smoke, CRM Signals upgrade, full asset build and Bench tests; standard v15/v16 checks passed and PR #50 is merged. This is not evidence of the pilot site's exact installed versions.
 
 ## Scope reviewed
 
@@ -45,13 +56,13 @@ Decisions are recorded in ADR-034 through ADR-040, in addition to the earlier se
 
 ### P1 — reliability work intentionally deferred
 
-1. **Signal outbox/reconciliation:** Source hook failures are logged without blocking the source business transaction. A transient CRM Signal write failure can still lose an event; guaranteed delivery requires a durable outbox or reconciliation process.
-2. **Realtime retry:** Per-recipient failures are isolated and logged but not automatically retried.
-3. **Multi-company threshold:** One site-wide Company-currency threshold is supported. Sites with different Company base currencies need an approved per-company threshold or conversion policy before enabling signals for all companies.
+1. **Signal outbox/reconciliation:** The transactional outbox and audited Failed-row replay are implemented in PRs #26/#38 and CI-verified. Verify scheduler operation, failure monitoring and backup/restore on the target site.
+2. **Realtime retry:** PR #44 now enforces source-document read permissions. Durable retry remains deferred under ADR-053 until an idempotent per-recipient delivery ledger and client-side dedupe/acknowledgement are implemented.
+3. **Multi-company threshold:** Implementation is merged in PR #45. Each enabled Company still needs a business-approved amount in its base currency or explicit approval of the exact-currency legacy fallback; there is no implicit FX conversion.
 
 ### P2 — roadmap dependencies
 
-- D3 Service Resolution/SLA remains disabled until the installed support app, ticket lifecycle, SLA pause rules, business calendar and permissions are verified.
+- D3 Service Resolution/SLA implementation and field-level guard are merged; pilot acceptance still requires the installed Helpdesk schema, ticket lifecycle, SLA pause rules, business calendar and permissions to be verified.
 - H/E/V/A roadmap slices remain gated by verified source adapters, retention/privacy decisions and a server-owned metric registry. Arbitrary generated SQL remains prohibited.
 
 ## Validation status
