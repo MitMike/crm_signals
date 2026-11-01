@@ -482,10 +482,10 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Status:** Accepted
 - **Recorded:** 2026-11-02
 - **Context:** The existing CI matrix tests the moving `version-16` branch. That proves major-version compatibility but not the confirmed Frappe v16.5.0 pilot baseline. The upstream Frappe and ERPNext `v16.5.0` tags exist; Helpdesk `v1.31.1` supports Frappe `>=15.123.1,<17.0.0` and depends on Telephony, whose `develop` branch supports the v16 line.
-- **Decision:** Add a targeted CI workflow for Frappe `v16.5.0`, ERPNext `v16.5.0`, Telephony `develop` and Helpdesk `v1.31.1`, while retaining the existing Frappe v15 and moving v16 matrix. Run the pinned job for application/test changes, not docs-only changes. Add an integration schema check for the pinned Helpdesk DocTypes/fields/permlevels.
+- **Decision:** Add a targeted CI workflow for Frappe `v16.5.0`, ERPNext `v16.5.0`, Telephony commit `9447577500a25d242088398157b72c654fa34b20` and Helpdesk `v1.31.1`, while retaining the existing Frappe v15 and moving v16 matrix. Run the pinned job for application/test changes, not docs-only changes. Add an integration schema check for the pinned Helpdesk DocTypes/fields/permlevels.
 - **Rationale:** A moving branch can change after the pilot target; exact-tag CI makes the compatibility claim reproducible without adding the Helpdesk install cost to docs-only changes.
 - **Consequences:** The pinned job validates this reference stack, not the user's live site. The operator must still capture exact installed patch/app versions; older/newer Helpdesk builds may have different schemas and permissions.
-- **Evidence:** [Frappe v16.5.0](https://github.com/frappe/frappe/tree/v16.5.0), [ERPNext v16.5.0](https://github.com/frappe/erpnext/tree/v16.5.0), [Helpdesk v1.31.1](https://github.com/frappe/helpdesk/tree/v1.31.1), [Telephony develop](https://github.com/frappe/telephony/tree/develop).
+- **Evidence:** [Frappe v16.5.0](https://github.com/frappe/frappe/tree/v16.5.0), [ERPNext v16.5.0](https://github.com/frappe/erpnext/tree/v16.5.0), [Helpdesk v1.31.1](https://github.com/frappe/helpdesk/tree/v1.31.1), [Pinned Telephony commit](https://github.com/frappe/telephony/commit/9447577500a25d242088398157b72c654fa34b20).
 
 
 ## ADR-056 — Preserve Helpdesk read-only permission boundaries for D3
