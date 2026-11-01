@@ -456,3 +456,13 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Decision:** Use Frappe v16.5 as the primary target for configuration guidance, API/schema compatibility review and acceptance instructions. Retain v15 coverage as a supported compatibility matrix unless a separate product decision removes it. Do not claim live-site acceptance from CI; capture the observed Frappe, ERPNext and Helpdesk app versions before configuration and explicitly label every site-dependent check.
 - **Rationale:** A confirmed target version is stronger evidence than a generic supported-major assumption. Targeting the exact v16.5 baseline reduces ambiguity in the operator guide while preserving the existing cross-version support commitment.
 - **Consequences:** The operator guide will identify Frappe v16.5 as the expected target, request the exact patch/build string printed by `bench version` and the ERPNext/Helpdesk app versions, and distinguish framework compatibility from site-specific acceptance. No production sign-off is implied.
+
+## ADR-050 — Provide an audited System Manager replay for terminal outbox failures
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-02
+- **Context:** The transactional signal outbox retries transient delivery failures with bounded backoff, but exhausted events remain in a terminal Failed state. Operators could inspect those rows but could not safely replay them without direct database intervention.
+- **Decision:** Add a POST-only System Manager form action that also requires read permission on CRM Signal Outbox. Lock the row and allow replay only from Failed. Atomically return it to Pending, clear the retry gate, preserve the original attempt count and last error, increment replay count, record the latest actor/time, add a document Comment for each replay, and enqueue the existing idempotent worker after commit. Require explicit UI confirmation; do not expose direct status editing.
+- **Rationale:** Manual recovery must be explicit, attributable and use the same idempotent delivery path as automatic retries. It must not erase evidence or permit a second replay while the row is Pending/Completed.
+- **Consequences:** A failed enqueue leaves a durable Pending row for the scheduled worker. The stable source-event key prevents duplicate CRM Signals. Realtime notification delivery remains a separate reliability concern.
+- **Validation:** Bench tests cover non-System-Manager denial, missing outbox read permission, replay state, preserved attempt history, audit metadata/comment and after-commit enqueue. Required Frappe v15/v16 CI remains the merge gate.
