@@ -7,9 +7,12 @@ try:
     import frappe
     from frappe.tests.utils import FrappeTestCase
 except ModuleNotFoundError as error:
-    if error.name == "frappe":
-        raise unittest.SkipTest("Requires the Frappe Bench integration environment")
-    raise
+    if error.name != "frappe":
+        raise
+    frappe = None
+
+    class FrappeTestCase(unittest.TestCase):
+        pass
 
 from crm_signals.notifications import notify_signal
 
@@ -50,6 +53,7 @@ def _make_signal(lead=None):
     ).insert(ignore_permissions=True)
 
 
+@unittest.skipIf(frappe is None, "Requires the Frappe Bench integration environment")
 class TestCRMSignalNotificationPermissions(FrappeTestCase):
     def test_recipient_must_be_able_to_read_linked_lead(self):
         suffix = frappe.generate_hash(length=8)
