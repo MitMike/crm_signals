@@ -7,7 +7,7 @@ This file records known work that is intentionally not represented as complete. 
 ## P0 — required before production sign-off
 
 - [ ] **Target-site preflight and acceptance.** Use the evidence template in [Target-Site Acceptance Kit](TARGET_SITE_ACCEPTANCE.md). Record the exact Frappe v16.5 patch/build, ERPNext and Helpdesk app versions, installed apps, Company currencies, timezone, workflows, custom fields and role matrix. Run Pilot import, migrate, scheduler, email, realtime, dashboard and rollback smoke tests.
-- [ ] **Permission parity.** Verify Sales User, Sales Manager, System Manager and non-sales users across list, direct form, API, report, export and print. Notifications are not an authorization grant. PR #43 requires read access to the CRM Signal, linked Lead/Customer and originating source DocType before realtime content is queued. The scheduled digest queries Leads and Quotations separately under each recipient's user context; confirm both paths with the target site's actual permissions.
+- [ ] **Permission parity.** Verify Sales User, Sales Manager, System Manager and non-sales users across list, direct form, API, report, export and print. Notifications are not an authorization grant. PR #44 requires read access to the CRM Signal, linked Lead/Customer and originating source DocType before realtime content is queued. The scheduled digest queries Leads and Quotations separately under each recipient's user context; confirm both paths with the target site's actual permissions.
 - [ ] **D2 financial reconciliation.** Compare invoices, Payment Entry receipts, separate POS receipts and party-account-currency receivables to native ERPNext reports, by currency.
 - [ ] **Webhook operations.** Provision a dedicated integration System User, least-privilege create access, TLS, gateway rate limiting, monitoring, secret rotation and secure secret storage.
 - [ ] **Target-site deployment rehearsal.** The generic backup, migration, smoke-test and rollback procedure is documented in [Deployment Runbook](DEPLOYMENT_RUNBOOK.md); execute it with the intended site's actual backup, restore, app revision and process manager before sign-off.
@@ -24,7 +24,7 @@ This file records known work that is intentionally not represented as complete. 
 
 ## P1 — site-specific configuration decisions
 
-- [ ] **Multi-company threshold policy.** PR #44 adds Company-specific threshold rows with currencies derived from Company metadata. The legacy site-wide threshold is used only when it exactly matches the Quotation Company's base currency; no implicit FX conversion. Prior branch Quality, Security and Bench v15/v16 passed; current-main CI/merge and target-site approval for each enabled Company remain.
+- [ ] **Multi-company threshold policy.** PR #45 adds Company-specific threshold rows with currencies derived from Company metadata. The legacy site-wide threshold is used only when it exactly matches the Quotation Company's base currency; no implicit FX conversion. Prior branch Quality, Security and Bench v15/v16 passed; current-main CI/merge and target-site approval for each enabled Company remain.
 - [ ] **Opportunity and Lead semantics.** Confirm the exact trigger statuses and terminal Lead statuses from the live site's workflows. Confirm the Lead modified timestamp is an acceptable proxy for attention.
 - [ ] **Digest policy.** Confirm timezone, delivery time, additional recipients, mail-queue behavior and stale window with the Sales Manager/business owner.
 
