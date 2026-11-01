@@ -362,3 +362,14 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Rationale:** Framework compatibility must not weaken the security model. Role-level permissions remain the baseline, while linked records still require a readable owned/assigned parent and unlinked records remain owner-scoped.
 - **Consequences:** Bench tests exercise both hook signatures, Sales User create permission, parent/signal read restrictions and recipient routing on v15/v16.
 - **Sources:** [Frappe v16 migration guide](https://github.com/frappe/frappe/wiki/Migrating-to-version-16), [Permission implementation](../crm_signals/permissions.py), [Permission integration tests](../crm_signals/tests/test_notification_permissions.py).
+
+
+## ADR-040 — Synchronize browser login and settings-control changes in E2E
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-01
+- **Context:** Frappe v16 E2E demonstrated that the session cookie becomes available before the login page's redirect to Desk has completed. The tests started further API calls/navigation during that redirect, producing aborted navigations, destroyed execution contexts and CSRF token errors. The settings preset E2E also changed an integer input without committing the control's blur/change event, while the custom-preset handler did not await the resulting model update.
+- **Decision:** Make the shared Playwright login helper wait for a Desk URL after the authenticated session is established. Commit the settings input before asserting custom-preset state, and await the preset change in the DocType field handler.
+- **Rationale:** The test must synchronize on the application state that subsequent actions depend on, not merely on the existence of a session cookie. The UI handler should expose completion of the form-model update.
+- **Consequences:** Browser coverage now tests the post-login Desk state and the form-model transition rather than racing navigation and browser input events.
+- **Evidence:** `e2e/sahdev-dashboard.spec.ts`; `crm_signals/public/js/crm_signals_settings.js`.
