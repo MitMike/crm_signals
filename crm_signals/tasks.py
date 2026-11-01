@@ -255,12 +255,16 @@ def send_daily_signals_digest():
                 delayed=True,
             )
             next_queued = queued_recipients | {recipient}
-            settings_doc.last_digest_queued_date = today.isoformat()
-            settings_doc.last_digest_queued_recipients = json.dumps(sorted(next_queued))
-            settings_doc.last_digest_status = (
-                f"Queued to {len(next_queued)} of {len(recipients)} enabled System User(s)"
+            settings_doc.db_set(
+                {
+                    "last_digest_queued_date": today.isoformat(),
+                    "last_digest_queued_recipients": json.dumps(sorted(next_queued)),
+                    "last_digest_status": (
+                        f"Queued to {len(next_queued)} of {len(recipients)} enabled System User(s)"
+                    ),
+                },
+                update_modified=True,
             )
-            settings_doc.save(ignore_permissions=True)
             frappe.db.commit()
             queued_recipients = next_queued
         except Exception:
