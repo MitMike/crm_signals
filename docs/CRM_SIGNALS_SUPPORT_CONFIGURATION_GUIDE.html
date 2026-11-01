@@ -79,7 +79,6 @@ for row in rows:
 </tbody></table>
 <p>Run this read-only check in <code>bench --site your-site-name console</code>. Replace the two example user IDs with the actual Sales User and Sales Manager accounts. It reports permission names only; it does not read ticket rows.</p>
 <pre>import frappe
-from frappe.model import get_permitted_fields
 
 required = (
     "status_category",
@@ -89,8 +88,9 @@ required = (
     "agreement_status",
 )
 for user in ("sales.user@example.com", "sales.manager@example.com"):
-    allowed = set(get_permitted_fields(
-        "HD Ticket", user=user, permission_type="read"
+    meta = frappe.get_meta("HD Ticket")
+    allowed = set(meta.get_permitted_fieldnames(
+        user=user, permission_type="read"
     ))
     print(user, {
         "ticket_read": frappe.has_permission("HD Ticket", ptype="read", user=user),
