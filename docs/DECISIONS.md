@@ -147,7 +147,6 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Sources:** [D3 specification](../specs/2026-11-01-pillar-d3-service-resolution-sla.md).
 
 ## ADR-017 — Highlights require first-party or verifiable proposal-link events
-
 - **Status:** Accepted
 - **Recorded:** 2026-11-01
 - **Decision:** High-value quotation alerts use Company currency and a configurable threshold. VIP proposal opens are accepted only from first-party tracked links or a provider callback with a stable event ID. Store token hashes rather than bearer tokens; do not fingerprint browsers or retain full IP addresses. Known scanners do not trigger human-engagement alerts; ambiguous traffic is not escalated. Tracking remains disabled until privacy/consent requirements are approved.
@@ -298,7 +297,6 @@ Append a new ADR with the next available identifier. Include status, date record
 
 
 ## ADR-033 — Generate scheduled digests under each recipient's permissions
-
 - **Status:** Accepted
 - **Recorded:** 2026-11-01
 - **Decision:** Never compute one privileged, site-wide digest and send it to multiple users. Generate each digest while running source queries under that recipient's Frappe user context, use permission-aware `frappe.get_list` calls, and send a separate message per user. Missing read access/source configuration is shown as unavailable, not as zero.
@@ -415,3 +413,13 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Rationale:** Use the database as the serialization point across processes and workers. An in-process mutex would not protect multiple Frappe workers or hosts.
 - **Consequences:** Add a two-connection Bench test that synchronizes two workers before the lock and proves a single queue request for the same recipient/date. The test must pass on Frappe v15 and v16. This does not prove delivery after the Email Queue is created or replace target-site scheduler/mail testing.
 - **Evidence:** PR #23, `crm_signals/tasks.py` and `crm_signals/tests/test_digest_delivery.py`; CI pending.
+
+## ADR-045 — Outbox persistence is part of the source transaction
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-01
+- **Context:** A transactional outbox only prevents event loss when its row is committed atomically with the source Quotation or Opportunity. Swallowing an outbox insert failure would allow the source document to commit without either a CRM Signal or a retry record.
+- **Decision:** Persist the outbox row in the source document transaction. If the outbox row cannot be created or safely recovered after a duplicate-key race, raise a dedicated persistence error and abort the source document transaction. Once the outbox row exists, CRM Signal materialization failures are isolated with a savepoint, recorded as Pending and retried with bounded exponential backoff (1, 2, 4, 8, 16, 32, then at most 60 minutes). After ten failed attempts the row becomes Failed and requires operator review.
+- **Rationale:** This preserves the source transaction when downstream signal materialization fails while avoiding a false guarantee when the durable event record itself could not be written.
+- **Consequences:** A Quotation submit or Opportunity update can fail if the outbox cannot be persisted. Realtime notification dispatch remains a separate concern: notification failures are logged but are not retried by this outbox. Terminal Failed rows are inspectable by System Managers; a self-service replay action is not yet included.
+- **Sources:** [Outbox implementation](../crm_signals/signal_outbox.py), [Event hooks](../crm_signals/events.py), [Outbox tests](../crm_signals/tests/test_signal_outbox.py), [Deferred follow-ups](FOLLOW_UPS.md).
