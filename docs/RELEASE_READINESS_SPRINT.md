@@ -12,7 +12,7 @@
 
 - [x] Merge [PR #32](https://github.com/MitMike/crm_signals/pull/32) for D3 standard Frappe Helpdesk metrics. Final head `93b536abef331d8b34b5b7b570fbb280a996bfb2` passed Python 3.10/3.11/3.12/3.14, lint/static, Semgrep and Bench v15/v16; merge commit `43fddfbbc46cac277a48c840251a7a2c963a8eb5`.
 - [x] [PR #38](https://github.com/MitMike/crm_signals/pull/38) audited Failed-row replay merged as `1640bdd496706a7f297b0984f1fd1d9695307147`; Quality, Security and Bench v15/v16 passed. The action is POST-only, requires System Manager plus outbox read access, preserves attempt history and audit Comment, and confirms before replay.
-- [ ] Complete [PR #50](https://github.com/MitMike/crm_signals/pull/50) exact Frappe v16.5.0/Helpdesk v1.28.0 Bench lane; target install/schema job must pass.
+- [ ] Complete [PR #50](https://github.com/MitMike/crm_signals/pull/50) exact Frappe v16.5.0/Helpdesk v1.28.0 Bench lane; target Helpdesk install/schema, D3 aggregate smoke and CRM Signals upgrade job must pass.
 - [x] [PR #45](https://github.com/MitMike/crm_signals/pull/45) per-company quotation thresholds merged as `ff434bdf407d1d61842d81fae16e04b4b9b483d5`; all 16 required checks passed, including Bench v15/v16. The child-table controller and currency-mismatch regression coverage are included.
 - [x] [PR #49](https://github.com/MitMike/crm_signals/pull/49) fixes the child-row Currency field's Company-base-currency fetch/display binding; all required checks passed and the change is merged as `2e9eb89b8ed5618ca3e50e6bc0b2c867c516e17b`.
 - [x] [PR #44](https://github.com/MitMike/crm_signals/pull/44) source-document notification permission check merged as `48622c08700032566051978076f49bc807c381e7` after Quality, Security and Bench v15/v16 passed.
