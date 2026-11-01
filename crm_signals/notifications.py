@@ -5,7 +5,7 @@ import frappe
 
 def get_signal_recipients(signal):
     """Return enabled document owners and active assignees for a signal."""
-    recipients = set()
+    candidate_links = {}
     linked = []
     if signal.lead:
         linked.append(("Lead", signal.lead))
@@ -15,7 +15,7 @@ def get_signal_recipients(signal):
     for doctype, name in linked:
         owner = frappe.db.get_value(doctype, name, "owner")
         if owner:
-            recipients.add(owner)
+            candidate_links.setdefault(owner, set()).add((doctype, name))
         assignments = frappe.get_all(
             "ToDo",
             filters={
@@ -25,17 +25,35 @@ def get_signal_recipients(signal):
             },
             pluck="allocated_to",
         )
-        recipients.update(user for user in assignments if user)
+        for user in assignments:
+            if user:
+                candidate_links.setdefault(user, set()).add((doctype, name))
 
-    if not recipients:
+    if not candidate_links:
         return []
 
     enabled = frappe.get_all(
         "User",
-        filters={"name": ["in", sorted(recipients)], "enabled": 1, "user_type": "System User"},
+        filters={
+            "name": ["in", sorted(candidate_links)],
+            "enabled": 1,
+            "user_type": "System User",
+        },
         pluck="name",
     )
-    return sorted(set(enabled))
+    eligible = []
+    for user in sorted(set(enabled)):
+        for doctype, name in candidate_links.get(user, set()):
+            try:
+                can_read_party = frappe.has_permission(
+                    doctype, ptype="read", doc=name, user=user
+                )
+            except Exception:
+                can_read_party = False
+            if can_read_party:
+                eligible.append(user)
+                break
+    return eligible
 
 
 def notify_signal(signal):
