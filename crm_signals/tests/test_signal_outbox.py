@@ -76,6 +76,10 @@ class TestSignalOutbox(FrappeTestCase):
         frappe.db.commit()
         original_user = frappe.session.user
         try:
+            frappe.set_user("Guest")
+            with self.assertRaises(frappe.PermissionError):
+                replay_failed_signal_outbox(outbox.name)
+
             frappe.set_user("Administrator")
             with patch("frappe.enqueue") as enqueue_job:
                 result = replay_failed_signal_outbox(outbox.name)
