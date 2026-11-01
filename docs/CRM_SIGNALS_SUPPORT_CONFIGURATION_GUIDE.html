@@ -13,7 +13,7 @@
 <span class="tag">ELI5 · Administrator checklist</span>
 <h1>CRM Signals: Support & SLA setup</h1>
 <p><strong>What is this?</strong> This guide helps your Frappe/ERPNext administrator tell CRM Signals which support tickets to count and how to measure service response and resolution.</p>
-<p class="muted">Target baseline: Frappe v16.5. The pinned CI reference stack is Frappe v16.5.0 + ERPNext v16.5.0 + Helpdesk v1.31.1 (with Telephony). Confirm the exact patch build and installed ERPNext/Helpdesk versions on your pilot site because its Helpdesk release may differ. This guide is read-only until its staging test steps explicitly ask you to create synthetic tickets.</p>
+<p class="muted">Target baseline: Frappe v16.5. The pinned CI reference stack is Frappe v16.5.0 + ERPNext v16.5.0 + Helpdesk v1.30.0 (with the pinned Telephony dependency). Confirm the exact patch build and installed ERPNext/Helpdesk versions on your pilot site because its Helpdesk release may differ. This guide is read-only until its staging test steps explicitly ask you to create synthetic tickets.</p>
 <div class="actions"><button onclick="window.print()">Print / Save as PDF</button></div>
 </section>
 <section class="note warning"><strong>One important rule:</strong> do not guess the ticket system. Your site may use ERPNext Issue, Frappe Helpdesk, another app, or a custom DocType. We must inspect the real site before writing the integration.</section>
@@ -71,11 +71,11 @@ for row in rows:
 <section class="step"><h2>Step 2A — Check the standard Helpdesk fields and permissions</h2>
 <p>The initial adapter reads aggregate values from <code>HD Ticket</code> and checks the <code>HD Service Level Agreement</code> DocType. It does not read ticket subjects, comments, contacts or ticket identifiers. Confirm the following fields exist in the installed version:</p>
 <table><thead><tr><th>Field</th><th>Used for</th><th>Standard Helpdesk permission level</th></tr></thead><tbody>
-<tr><td><code>status_category</code></td><td>Current Open / Paused backlog</td><td>7</td></tr>
-<tr><td><code>resolution_date</code></td><td>Resolved ticket cohort</td><td>7</td></tr>
-<tr><td><code>resolution_time</code></td><td>Average SLA business-hours resolution duration</td><td>7</td></tr>
-<tr><td><code>sla</code></td><td>Applied SLA / no-SLA cohort</td><td>7</td></tr>
-<tr><td><code>agreement_status</code></td><td>Fulfilled / Failed SLA outcome</td><td>8</td></tr>
+<tr><td><code>status_category</code></td><td>Current Open / Paused backlog</td><td> 0</td></tr>
+<tr><td><code>resolution_date</code></td><td>Resolved ticket cohort</td><td> 0</td></tr>
+<tr><td><code>resolution_time</code></td><td>Average SLA business-hours resolution duration</td><td> 0</td></tr>
+<tr><td><code>sla</code></td><td>Applied SLA / no-SLA cohort</td><td> 0</td></tr>
+<tr><td><code>agreement_status</code></td><td>Fulfilled / Failed SLA outcome</td><td> 0</td></tr>
 </tbody></table>
 <p>Run this read-only check in <code>bench --site your-site-name console</code>. Replace the two example user IDs with the actual Sales User and Sales Manager accounts. It reports permission names only; it does not read ticket rows.</p>
 <pre>import frappe
@@ -99,12 +99,13 @@ for user in ("sales.user@example.com", "sales.manager@example.com"):
         ),
         "fields": {field: field in allowed for field in required},
     })</pre>
-<div class="warning"><strong>Do not grant permlevel 7 or 8 automatically.</strong> These levels can cover other Helpdesk fields beyond the dashboard metrics. Have the Helpdesk/security owner review the full field set and approve the narrowest safe policy. CRM Signals will mark an affected metric unavailable rather than misreporting zero when a field is not readable.</div>
-<p><strong>Reference role map for Helpdesk v1.31.1:</strong> HD Ticket base and permlevel 7 read are granted to System Manager, Agent, Agent Manager, HD Customer and HD Customer Manager. Permlevel 8 read is granted to System Manager, Agent and Agent Manager. The <code>HD Service Level Agreement</code> DocType grants read to System Manager and Agent Manager. ERPNext Sales User and Sales Manager are not default Helpdesk readers.</p>
-<p>Do not assign <code>Agent</code> or <code>Agent Manager</code> to Sales users just to show this dashboard; those roles also grant ticket create/write privileges; Agent Manager additionally has delete permission. If Sales needs D3, create a dedicated read-only role (for example, <code>CRM Signals Helpdesk Read</code>) with base <code>HD Ticket</code> read and permlevel 7 read; add permlevel 8 read only if SLA outcome visibility is approved. Grant <code>HD Service Level Agreement</code> read only if SLA metrics are required. Add this role to the approved Sales users/managers. Verify the installed Helpdesk version's permission metadata before applying this reference map.
+<div class="warning"><strong>Do not grant permlevel 7 or 8 automatically.</strong> The Helpdesk v1.30.0 reference fields are all permlevel 0. Later Helpdesk releases may move lifecycle/SLA fields to higher levels; inspect the installed metadata and review the complete field set before granting any additional level. CRM Signals will mark an affected metric unavailable rather than misreporting zero when a field is not readable.</div>
+<p><strong>Reference role map for Helpdesk v1.30.0:</strong> HD Ticket base read is granted to System Manager, Agent, Agent Manager, HD Customer and HD Customer Manager. The required D3 fields are all permlevel 0. The <code>HD Service Level Agreement</code> DocType grants read to System Manager and Agent Manager. ERPNext Sales User and Sales Manager are not default Helpdesk readers.</p>
+<p><strong>Version compatibility warning:</strong> Helpdesk v1.31.1 calls the <code>Notification Type</code> DocType during installation, but the unmodified Frappe v16.5.0 tag does not contain that DocType. Use the v1.30.0 reference stack for Frappe v16.5.0, or confirm your exact Frappe build includes <code>Notification Type</code> before installing v1.31.1. Do not patch around a missing upstream DocType in production.</p>
+<p>Do not assign <code>Agent</code> or <code>Agent Manager</code> to Sales users just to show this dashboard; those roles also grant ticket create/write privileges; Agent Manager additionally has delete permission. If Sales needs D3, create a dedicated read-only role (for example, <code>CRM Signals Helpdesk Read</code>) with base <code>HD Ticket</code> read. Grant <code>HD Service Level Agreement</code> read only if SLA metrics are required. For later Helpdesk releases, add field-level read only for the exact required permlevels after reviewing the full field set. Add this role to the approved Sales users/managers. Verify the installed Helpdesk version's permission metadata before applying this reference map.
 <ol>
 <li>Create a custom role such as <code>CRM Signals Helpdesk Read</code>.</li>
-<li>In Role Permission Manager, grant <strong>Read only</strong> on <code>HD Ticket</code> at permlevel 0 and 7. Add permlevel 8 only if <code>agreement_status</code>-based SLA outcomes are approved for Sales.</li>
+<li>In Role Permission Manager, grant <strong>Read only</strong> on <code>HD Ticket</code> at permlevel 0. For later Helpdesk versions, inspect the installed field permlevels and add only the approved additional read levels.</li>
 <li>Grant <strong>Read only</strong> on <code>HD Service Level Agreement</code> only if SLA metrics are approved. Do not grant Create, Write, Delete, Submit, Cancel or Amend.</li>
 <li>Assign the custom role to the approved Sales User/Manager accounts, then run the permission preflight and dashboard checks as those users. Do not assign Agent/Agent Manager solely for dashboard access.</li>
 </ol>
