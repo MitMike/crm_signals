@@ -38,8 +38,6 @@ jobs:
         run: npm ls @playwright/test eslint minimatch --all
       - name: ESLint and Oxlint
         run: npm run lint:js
-      - name: Diagnose Prettier output for the dashboard E2E test
-        run: npx prettier e2e/sahdev-dashboard.spec.ts
       - name: Check formatting of tooling and E2E tests
         run: npm run format:check
       - name: Compile Python
