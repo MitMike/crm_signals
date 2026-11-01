@@ -2,7 +2,7 @@
 
 **Started:** 2026-11-01  
 **Last reviewed:** 2026-11-02  
-**Baseline:** `main` at `ff434bdf407d1d61842d81fae16e04b4b9b483d5`  
+**Baseline:** `main` at `2e9eb89b8ed5618ca3e50e6bc0b2c867c516e17b`  
 **Decision register:** [ADR-046](DECISIONS.md#adr-046--run-release-readiness-as-an-evidence-gated-sprint)  
 **Operating rule:** no item is complete without the evidence listed here. CI evidence and target-site evidence are separate.
 
@@ -70,7 +70,7 @@
 
 ## Current blockers and known evidence
 
-- `main` baseline is `ff434bdf407d1d61842d81fae16e04b4b9b483d5`; PR #32 D3, PR #38 replay, PR #42 field guard, PR #44 source permission and PR #45 thresholds are merged and CI-verified.
+- `main` baseline is `ff434bdf407d1d61842d81fae16e04b4b9b483d5`; PR #32 D3, PR #38 replay, PR #42 field guard, PR #44 source permission and PR #45 thresholds and PR #49 currency auto-fetch/display correction are merged and CI-verified.
 - PR #38 replay is merged after both Frappe v15/v16 Bench jobs passed.
 - PR #45 threshold implementation merged as `ff434bdf`; Quality, Security and Bench v15/v16 passed on final head `84783d15`.
 - PR #48 first failed at Helpdesk v1.31.1 post-install; ADR-057 pins v1.30.2 for Frappe v16.5.0 and the rerun is pending.
@@ -85,6 +85,7 @@
 | 2026-11-02 | PR #32 D3 merge | Final head `93b536ab` passed all 16 check runs; merge commit `43fddfb` | Complete — CI verified |
 | 2026-11-02 | PR #38 replay implementation | Final head `8e4c58dc` passed Quality, Security and Bench v15/v16; merged as `1640bdd4` | Complete — CI verified |
 | 2026-11-02 | PR #45 threshold implementation | Final head `84783d15` passed all 16 required checks; merged as `ff434bdf` | Complete — CI verified |
+| 2026-11-02 | PR #49 currency display | Company currency auto-fetch + amount field binding; v15/v16 Bench, unit, lint and security passed; merged as `2e9eb89` | Complete — CI verified |
 | 2026-11-02 | PR #48 exact target CI | Helpdesk v1.31.1 failed at post-install Notification Type controller; ADR-056 pins v1.30.2 for exact v16.5.0 lane | Validation pending |
 | 2026-11-02 | ADR-049 target baseline | Frappe v16.5 confirmed; v15/v16 matrix retained | Complete — merged |
 | 2026-11-02 | D3 field-level permissions | Fail-closed field permission guard merged in PR #42 and passed v15/v16 CI | Complete — CI verified |
