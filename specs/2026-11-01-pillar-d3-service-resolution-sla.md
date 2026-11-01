@@ -59,8 +59,8 @@ The final cohort definitions (created cohort vs resolved cohort) must be display
 ## Permissions and failure states
 
 - Use permission-aware Frappe reads for ticket and SLA sources.
-- Check ticket and SLA source permissions independently.
-- If a DocType, required field, native SLA outcome or permission is missing, mark the corresponding metric unavailable.
+- Check ticket and SLA DocType permissions independently, then verify field-level read access for every lifecycle/SLA field used by an aggregate.
+- If a DocType, required field, native SLA outcome, DocType permission or field-level permission is missing, mark the corresponding metric unavailable; never interpret a field silently removed by Frappe as a zero.
 - If tickets are readable but SLA records are not, ticket volume may be available while SLA compliance is unavailable.
 - Do not return descriptions, comments, contact details or raw ticket payloads to the executive dashboard.
 
@@ -74,14 +74,14 @@ The final cohort definitions (created cohort vs resolved cohort) must be display
 | D3-AC4 | Resolution time uses authoritative resolution timestamp | Bench fixture where modified differs from resolved_at |
 | D3-AC5 | SLA calculation honors native deadline, pause and business-calendar behavior | Bench tests against the installed SLA engine |
 | D3-AC6 | SLA denominator includes only tickets with valid applicable outcomes | Unit + Bench edge-case tests |
-| D3-AC7 | Ticket and SLA permission failures are represented as unavailable | Sales User/Manager permission tests |
+| D3-AC7 | Ticket/SLA DocType and field-level permission failures are represented as unavailable, not zero | Sales User/Manager permlevel tests |
 | D3-AC8 | Dashboard cards show cohort, window, units and eligible count | Playwright E2E |
 | D3-AC9 | No sensitive ticket content is returned in aggregate payloads | API schema/privacy test |
 | D3-AC10 | Frappe/ERPNext v15 and v16 compatibility is maintained | Bench matrix |
 
 ## Implementation approach
 
-Implement a small adapter contract with metadata validation, permission-aware aggregate retrieval and normalization. The current adapter uses standard Frappe Helpdesk fields: creation, status_category, resolution_date, resolution_time, sla, and agreement_status. SLA compliance uses only native Fulfilled and Failed outcomes; due/paused states are excluded from the eligible denominator. SLA outcomes and no-SLA counts use the same rolling 30-day created-ticket cohort. The dashboard receives aggregates only.
+Implement a small adapter contract with metadata validation, permission-aware aggregate retrieval and normalization. The current adapter uses standard Frappe Helpdesk fields: creation, status_category, resolution_date, resolution_time, sla, and agreement_status. It checks the current user's permitted field names before querying because the standard Helpdesk fields are stored at permlevels 7 and 8 and Frappe may silently remove fields the user cannot read. SLA compliance uses only native Fulfilled and Failed outcomes; due/paused states are excluded from the eligible denominator. SLA outcomes and no-SLA counts use the same rolling 30-day created-ticket cohort. The dashboard receives aggregates only.
 
 ## Delivery gate
 

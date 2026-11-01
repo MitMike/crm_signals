@@ -466,3 +466,13 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Rationale:** Manual recovery must be explicit, attributable and use the same idempotent delivery path as automatic retries. It must not erase evidence or permit a second replay while the row is Pending/Completed.
 - **Consequences:** A failed enqueue leaves a durable Pending row for the scheduled worker. The stable source-event key prevents duplicate CRM Signals. Realtime notification delivery remains a separate reliability concern.
 - **Validation:** Bench tests cover non-System-Manager denial, missing outbox read permission, replay state, preserved attempt history, audit metadata/comment and after-commit enqueue. Required Frappe v15/v16 CI remains the merge gate.
+
+## ADR-052 — Treat Helpdesk field-level permissions as metric availability gates
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-02
+- **Context:** Standard Frappe Helpdesk places `status_category`, `resolution_date`, `resolution_time` and `sla` at permlevel 7, and `agreement_status` at permlevel 8. Frappe v15/v16 `get_list` filters fields the current user cannot read instead of necessarily failing the query. A DocType-level read check alone can therefore turn hidden lifecycle fields into misleading zero/empty aggregates.
+- **Decision:** Before each D3 aggregate, inspect the current user's permitted HD Ticket field names at read permission level. Compute backlog, resolution and SLA metrics only when every field required by that measure is readable. Keep independent metrics available when their fields are permitted; otherwise return the measure as unavailable (`null`/availability false), never as zero. Do not automatically grant Helpdesk permlevels to Sales roles.
+- **Rationale:** Availability must reflect the data the current user is authorized to read. Silent field removal is not evidence of zero tickets, and granting permlevel 7/8 broadly may expose additional Helpdesk fields outside the aggregate dashboard.
+- **Consequences:** The operator guide must explicitly test HD Ticket field-level access for Sales User/Manager. A site may show ticket creation counts while backlog, resolution or SLA measures remain unavailable until an authorized least-privilege policy is approved.
+- **Evidence:** [Frappe v16 permitted-field filtering](https://github.com/frappe/frappe/blob/version-16/frappe/model/db_query.py) and [Frappe Helpdesk HD Ticket field permlevels](https://github.com/frappe/helpdesk/blob/main/helpdesk/helpdesk/doctype/hd_ticket/hd_ticket.json).
