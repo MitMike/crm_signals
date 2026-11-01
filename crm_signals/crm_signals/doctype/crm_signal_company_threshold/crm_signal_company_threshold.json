@@ -33,6 +33,7 @@
    "fieldtype": "Link",
    "label": "Company currency",
    "options": "Currency",
+   "fetch_from": "company.default_currency",
    "read_only": 1,
    "in_list_view": 1
   }
