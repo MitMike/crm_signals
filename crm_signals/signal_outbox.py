@@ -38,6 +38,12 @@ def _load_outbox_by_key_for_update(event_key):
     return frappe.get_doc("CRM Signal Outbox", rows[0].name, for_update=True)
 
 
+def _find_outbox_name(event_key):
+    return frappe.db.get_value(
+        "CRM Signal Outbox", {"source_event_key": event_key}, "name"
+    )
+
+
 def _get_or_create_outbox(payload):
     event_key = build_source_event_key(
         payload["source_doctype"],
@@ -47,9 +53,7 @@ def _get_or_create_outbox(payload):
     if not event_key:
         raise ValueError("A stable source event identity is required for outbox delivery.")
 
-    existing_name = frappe.db.get_value(
-        "CRM Signal Outbox", {"source_event_key": event_key}, "name"
-    )
+    existing_name = _find_outbox_name(event_key)
     if existing_name:
         return frappe.get_doc("CRM Signal Outbox", existing_name, for_update=True)
 
