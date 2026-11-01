@@ -1,6 +1,6 @@
 # CRM Signals — Settings and core reliability
 
-**Status:** Settings and core reliability implementation merged in PR #19; independent API/digest concurrency hardening is in PR #23 pending Frappe v15/v16 CI.
+**Status:** Settings/presets merged in PR #19; API idempotency and digest concurrency hardening merged in PR #23; transactional signal outbox implementation is under review in PR #25.
 **Scope:** Singleton configuration, starter presets, event identity, external ingestion deduplication and digest delivery safety.
 
 ## Goals
@@ -31,6 +31,12 @@ External API callers may provide a source event ID. When source metadata is omit
 
 Quotation submit identity includes the source document and its submission modification timestamp. Opportunity transition identity includes source document, previous/next status and modification timestamp.
 
+## Transactional signal outbox
+
+Quotation and Opportunity events are written to the CRM Signal Outbox in the same database transaction as the source document. A stable source-event key is unique. If the outbox row cannot be persisted or recovered after a duplicate-key race, the hook raises a dedicated persistence error and the source document transaction must roll back. This is required for the transactional-outbox guarantee (ADR-045).
+
+After the outbox row exists, CRM Signal materialization is attempted immediately inside a savepoint. A materialization failure rolls back only the signal attempt, increments the failure count and leaves the outbox Pending. The scheduler checks every minute, selects only rows whose retry time is due, and processes at most 100 per batch. Backoff is 1, 2, 4, 8, 16, 32 and then at most 60 minutes. The tenth failed attempt moves the row to Failed. Only System Managers can inspect outbox records. Realtime notification delivery remains separate and is not retried by this outbox.
+
 ## Digest contract
 
 The scheduled checker runs every minute. It compares the configured time with the timezone in System Settings and uses the site-local calendar date as its idempotency boundary. A recipient is marked queued only after their separate `frappe.sendmail` request succeeds; the email-queue write and that recipient's Settings marker are committed together. The PR #23 follow-up acquires a row lock on the Settings singleton, then rechecks the marker before each recipient claim so concurrent scheduler workers cannot both queue the same recipient/date. A later scheduler run skips already queued recipients and retries the remaining recipients.
@@ -49,11 +55,18 @@ Notification delivery to one recipient is isolated from other recipients and the
 - The API requires Guest rejection, honors the ingestion switch, validates optional source identity and deduplicates stable IDs.
 - DocType validation recomputes source-event keys and rejects partial identities regardless of whether records arrive through hooks, the ingestion endpoint, Desk or another API.
 - Repeated source event IDs return the original CRM Signal without duplicate notification.
+- Quotation/Opportunity outbox persistence failure aborts the source transaction; CRM Signal materialization failure after outbox persistence leaves a retryable Pending row.
+- Outbox worker excludes future-dated rows before applying its batch limit, and concurrent workers materialize one CRM Signal for a single outbox event.
+- Outbox retries stop after ten attempts and expose a terminal Failed state to System Managers.
 - Digest schedule respects the System Settings timezone and sends at most one queued digest per date, including across overlapping scheduler workers (PR #23 Bench proof pending).
 - Digest labels the stale Lead condition as not modified, formats each Quote in its transaction currency and filters recipients to enabled System Users.
 - Unit, Bench and E2E tests cover the settings schema, identity uniqueness, scheduler date boundary, retries and user-visible settings.
 
 ## Deferred acceptance
+
+- Deterministic concurrent duplicate-enqueue proof for the outbox unique key; current tests cover concurrent processing of one persisted outbox row.
+- Audited operator replay for terminal Failed outbox rows.
+- Automatic retry of realtime notification dispatch failures.
 
 - Live-site confirmation of Company currency, Opportunity statuses, timezone, recipient policy and role matrix.
 - Multi-company threshold policy for installations whose companies use different base currencies.
