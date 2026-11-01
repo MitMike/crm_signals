@@ -14,7 +14,7 @@ This file records known work that is intentionally not represented as complete. 
 
 ## P1 — engineering reliability improvements
 
-- [ ] **Exact target CI (PR #43 in review):** the pinned lane installs Frappe `v16.5.0`, ERPNext `v16.5.0`, Telephony commit `9447577500a25d242088398157b72c654fa34b20` and Helpdesk `v1.31.1`, then verifies HD Ticket/HD Service Level Agreement schema and permlevels. Trigger it for app/test changes, not docs-only changes; retain the existing v15 and moving v16 matrix. The target lane still needs a green run.
+- [ ] **Exact target CI (PR #46 in review):** the pinned lane installs Frappe `v16.5.0`, ERPNext `v16.5.0`, Telephony commit `9447577500a25d242088398157b72c654fa34b20` and Helpdesk `v1.31.1`, then verifies HD Ticket/HD Service Level Agreement schema and permlevels. Trigger it for app/test changes, not docs-only changes; retain the existing v15 and moving v16 matrix. The target lane still needs a green run.
 
 
 - [x] **Durable signal outbox/reconciliation core.** PR [#26](https://github.com/MitMike/crm_signals/pull/26) merged as `b0364a74affa823977af74d1907781d1533e60c0`. The final synchronized head `222e70ec71164dab4448f7319525042323a357b4` passed Quality Checks, Security Scanning and Bench Integration/E2E on Frappe v15/v16. Source event/outbox persistence is transactional; delivery is queued after commit; bounded retries, scheduled recovery and a System Manager-visible Failed state are included. **Remaining:** PR #38 adds a POST-only, System Manager + outbox-read-gated Failed-row replay, preserving attempts and recording actor/time/comment; final Bench validation and merge are pending. This does not provide durable realtime notification retry.
