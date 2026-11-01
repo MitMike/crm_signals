@@ -2,9 +2,9 @@
 
 **Audit date:** 2026-11-01  
 **Repository:** MitMike/crm_signals  
-**Base:** main at f51fbce19b7d1e84cfa6f3ab26118f2977a8fe40 (PR #18 merged)  
-**Implementation under audit:** PR #19, branch feat/settings-and-core-reliability, current audited revision 1d47b03ae26c45a638b787e763576dbf374c025b  
-**Decision:** **Not yet approved for production sign-off.** PR #19 is open; CI and target-site acceptance must complete before release.
+**Base:** `main` at a49591947a89b011cc1770be176c1f11571b131b (PR #19 merged)  
+**Implementation under audit:** [PR #19](https://github.com/MitMike/crm_signals/pull/19), validated head a90315be7ef37e2dceeacb9b4e9b77d5d31df131, merged as a49591947a89b011cc1770be176c1f11571b131b  
+**Decision:** **Not approved for production sign-off.** PR #19 is merged and its CI passed; target-site acceptance and the remaining P1 reliability work are still outstanding.
 
 ## Scope reviewed
 
@@ -25,9 +25,12 @@
 | Digest could include an unlimited number of expiring Quotations. | Fetch at most 101, display at most 100, and show 100+ with an explicit truncation notice. | Digest query and rendering tests. |
 | API idempotency had only mocked coverage. | Add Bench-backed tests for same-user duplicate POSTs, one notification per event, per-user source namespaces, unique-key enforcement and multiple legacy null keys. | Bench integration test suite on v15 and v16. |
 | Dashboard JavaScript contained an unused catch binding. | Remove the unused binding. | ESLint. |
+| Frappe v15/v16 call document permission hooks with different keyword names; v16 requires explicit boolean decisions. | Accept both `permission_type` and `ptype`, enforce DocType role permission first, and return explicit decisions before applying row restrictions (ADR-039). | Bench integration tests passed on v15 and v16. |
+| Duplicate event insertion can lose a read-before-insert race and Frappe wraps a unique-key collision as `UniqueValidationError`. | Recover the persisted winning row with a locking read; add a simulated race regression test and correct Frappe exception handling (ADR-038/039). | Python regression tests and v15/v16 Bench suites passed; truly concurrent DB race load remains open. |
+| Browser login can expose the session cookie before redirecting to Desk, and v16 Int input commits its model value on change. | Wait for the version-appropriate `/app` or `/desk` route, commit the field change, and await the preset transition (ADR-040). | Final v16 Playwright suite passed. |
 | Release procedure was spread across guidance and assumptions. | Add a deployment/rollback runbook and link it from the administrator guide. | Target-site rehearsal remains outstanding. |
 
-Decisions are recorded in ADR-034 through ADR-037, in addition to the earlier settings and reliability ADRs.
+Decisions are recorded in ADR-034 through ADR-040, in addition to the earlier settings and reliability ADRs.
 
 ## Remaining production blockers
 
@@ -54,13 +57,19 @@ Decisions are recorded in ADR-034 through ADR-037, in addition to the earlier se
 
 ## Validation status
 
-PR #19's current CI is still running at the audited revision. Record the completed run IDs and final conclusions here before merge. Passing CI is necessary but does not close any target-site P0 item.
+PR #19 was merged as `a49591947a89b011cc1770be176c1f11571b131b` after all checks passed on validated head `a90315be7ef37e2dceeacb9b4e9b77d5d31df131`:
+
+- [Quality Checks](https://github.com/MitMike/crm_signals/actions/runs/41274491111) — passed, including Python 3.10/3.11/3.12/3.14, lint, formatting and static checks.
+- [Bench Integration and E2E](https://github.com/MitMike/crm_signals/actions/runs/41274491113) — passed on Frappe/ERPNext v15 and v16, including `bench run-tests --app crm_signals` and Playwright on v16.
+- [Security Scanning](https://github.com/MitMike/crm_signals/actions/runs/41274491117) — passed.
+- All 16 individual check-runs on that head completed successfully; the duplicate workflow runs also passed.
+
+Passing CI validates the tested clean-install and browser paths. It does not close any target-site P0 item or prove migration from the older schema.
 
 ## Release decision rule
 
-CRM Signals may be called production-ready only after:
-- PR #19 is merged with all required checks green;
-- the true upgrade/migration path is verified;
+PR #19 merge and green CI are complete. CRM Signals may be called production-ready only after:
+- the true upgrade/migration path is verified on supported Frappe versions;
 - P0 target-site acceptance items have evidence and an owner;
 - remaining P1 reliability limitations are either fixed or explicitly accepted by the site's business/technical owner.
 

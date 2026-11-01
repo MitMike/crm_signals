@@ -44,7 +44,7 @@ This changelog records user-visible and operationally significant changes. It is
 ### Validation
 - PR #11 merged as [05ad767](https://github.com/MitMike/crm_signals/commit/05ad767f6b62814cca5b7d0c1e233a2f690baa77).
 - All four PR gates passed on the final PR head: [Quality Checks](https://github.com/MitMike/crm_signals/actions/runs/41232087717), [Bench Integration and E2E](https://github.com/MitMike/crm_signals/actions/runs/41232087747), [Security Scanning](https://github.com/MitMike/crm_signals/actions/runs/41232087776) and [Dependency Security Audit](https://github.com/MitMike/crm_signals/actions/runs/41232087748).
-- Post-merge Quality Checks and Security Scanning passed on main. The fresh post-merge Bench validation was still running when this entry was prepared.
+- At the time this entry was prepared, the fresh post-merge Bench validation was still running. The subsequent PR #19 validation passed the full Frappe/ERPNext v15 and v16 Bench matrix, including the v16 Playwright suite (see the PR #19 validation entry below).
 
 This entry records engineering maintenance, not a formal release or production rollout.
 
@@ -104,7 +104,7 @@ Production/target-site acceptance is not implied by these CI results. See [Proje
 - This is engineering governance, not a product release.
 
 
-## 2026-11-01 — Configurable Settings and core reliability (implementation branch; not yet a release)
+## 2026-11-01 — Configurable Settings and core reliability (merged; not a product release)
 
 ### Added
 - System Manager-only CRM Signals Settings singleton with Balanced, Sales Focused and Executive starter presets.
@@ -121,23 +121,24 @@ Production/target-site acceptance is not implied by these CI results. See [Proje
 - Add a production-readiness audit with explicit P0/P1/P2 gates and follow-up ownership.
 
 ### Validation
-- Changes are on `feat/settings-and-core-reliability`. CI and target-site validation are not yet complete.
-- This entry does not claim a production rollout or a formal product release.
+- Merged in [PR #19](https://github.com/MitMike/crm_signals/pull/19) as [a495919](https://github.com/MitMike/crm_signals/commit/a49591947a89b011cc1770be176c1f11571b131b).
+- Validated head: `a90315be7ef37e2dceeacb9b4e9b77d5d31df131`. [Quality Checks](https://github.com/MitMike/crm_signals/actions/runs/41274491111), [Bench Integration and E2E](https://github.com/MitMike/crm_signals/actions/runs/41274491113) (Frappe/ERPNext v15 and v16, including v16 Playwright) and [Security Scanning](https://github.com/MitMike/crm_signals/actions/runs/41274491117) passed; all 16 check-runs on that head succeeded.
+- Target-site validation remains outstanding. This merge does not claim a production rollout or a formal product release.
 
 
-### 2026-11-01 — CI compatibility and idempotency corrections (PR #19, unmerged)
+### 2026-11-01 — CI compatibility and idempotency corrections (merged in PR #19)
 
 - Correct the CRM Signal document-permission hook for Frappe v15/v16 argument and return-value differences without bypassing role-level DocType permissions.
 - Recover from database unique-key races by reading the winning source-event row under a lock; cover the race path in a Bench-backed regression test.
 - Verify authenticated API users have the minimum CRM Signal create permission; test idempotency at notification-dispatch level so recipient fan-out is not mistaken for duplicate dispatch.
 - Correct the dashboard E2E Prettier formatting and remove the temporary CI diagnostic step.
 
-These corrections remain on the active PR branch until its required checks pass and the PR is merged.
+Included in PR #19's merge commit [a495919](https://github.com/MitMike/crm_signals/commit/a49591947a89b011cc1770be176c1f11571b131b); the final v15/v16 Bench, quality and security checks passed.
 
 
-### 2026-11-01 — E2E navigation and settings synchronization (PR #19, unmerged)
+### 2026-11-01 — E2E navigation and settings synchronization (merged in PR #19)
 
 - Wait for Frappe Desk navigation after the session cookie is established, preventing subsequent test requests from racing the login redirect.
 - Await the settings form's custom-preset model update and commit the integer field before asserting the preset change.
 
-These changes remain on the active PR branch pending final CI and merge.
+Included in PR #19's merge commit [a495919](https://github.com/MitMike/crm_signals/commit/a49591947a89b011cc1770be176c1f11571b131b); the final v16 Playwright suite passed.
