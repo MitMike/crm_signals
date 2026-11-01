@@ -20,7 +20,9 @@ except ModuleNotFoundError as error:
 
 if frappe is not None:
     from crm_signals import signal_outbox
-    from crm_signals.crm_signals.doctype.crm_signal_outbox.crm_signal_outbox import replay_failed_signal_outbox
+    from crm_signals.crm_signals.doctype.crm_signal_outbox.crm_signal_outbox import (
+        replay_failed_signal_outbox,
+    )
     from crm_signals.event_identity import build_source_event_key
     from crm_signals.events import on_quotation_submit
     from crm_signals.signal_outbox import (
