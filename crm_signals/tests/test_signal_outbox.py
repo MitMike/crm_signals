@@ -112,6 +112,21 @@ class TestSignalOutbox(FrappeTestCase):
             self.assertTrue(
                 any("Manual replay requested by Administrator" in row.content for row in comments)
             )
+
+            frappe.db.set_value("CRM Signal Outbox", outbox.name, "status", "Failed")
+            frappe.db.commit()
+            with (
+                patch("frappe.enqueue", side_effect=RuntimeError("queue unavailable")),
+                patch("frappe.log_error") as log_error,
+            ):
+                retry_result = replay_failed_signal_outbox(outbox.name)
+            retried = frappe.get_doc("CRM Signal Outbox", outbox.name)
+            self.assertEqual(retry_result["status"], "Pending")
+            self.assertEqual(retried.status, "Pending")
+            self.assertEqual(retried.replay_count, 2)
+            self.assertEqual(retried.attempt_count, 10)
+            self.assertEqual(retried.last_error, "RuntimeError")
+            log_error.assert_called_once()
         finally:
             frappe.set_user(original_user)
             frappe.delete_doc("CRM Signal Outbox", outbox.name, ignore_permissions=True, force=True)
