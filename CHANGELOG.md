@@ -23,6 +23,19 @@ This changelog records user-visible and operationally significant changes. It is
 - Final PR #32 head `93b536abef331d8b34b5b7b570fbb280a996bfb2` passed Python 3.10/3.11/3.12/3.14, lint/static, Semgrep and Bench v15/v16. Merge commit: `43fddfbbc46cac277a48c840251a7a2c963a8eb5`.
 - A follow-up field-level permission guard is in review because standard Helpdesk lifecycle/SLA fields use permlevels 7 and 8. Target-site app-version, field-permission and active SLA calendar acceptance remain open.
 
+### Audited terminal Failed-row replay — merged in PR #38
+
+- Add a POST-only System Manager action requiring CRM Signal Outbox read permission, with an explicit confirmation dialog.
+- Lock and replay only Failed rows; preserve original attempt count and last error, record replay count/actor/time and an audit Comment, then enqueue the same idempotent worker after commit.
+- If enqueue fails, the row remains Pending for the scheduled worker; direct outbox status editing remains unavailable.
+- PR #38 head `8e4c58dc3b2434559450651c3d3a4a649a034d3a` passed Quality, Security and Bench v15/v16. Merge commit: `1640bdd496706a7f297b0984f1fd1d9695307147`.
+
+### Per-company quotation thresholds — in PR #40 review
+
+- Add optional Company-specific threshold rows, deriving currency from Company metadata and comparing against Quotation base totals.
+- Retain the legacy site-wide threshold only when it exactly matches the Company's base currency; never perform implicit FX conversion.
+- Add tests for currency derivation, per-company selection and mismatched-currency suppression.
+
 
 ## 2026-11-01 — Concurrent API idempotency and digest delivery hardening (merged in PR #23)
 
