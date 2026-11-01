@@ -394,7 +394,9 @@ test("Guest access is rejected", async ({ page, request }) => {
     await expect(page).toHaveURL(/\/login(?:\?|$)/);
 });
 
-test("CRM Signals Settings presets can be applied and customised", async ({ page }) => {
+test(
+    "CRM Signals Settings presets can be applied and customised",
+    async ({ page }) => {
     await loginAsAdministrator(page);
     await page.goto("/app/crm-signals-settings");
 
