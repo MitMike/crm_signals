@@ -118,6 +118,7 @@ def load_sales_api(
     payment_read=True,
     helpdesk_read=True,
     sla_read=True,
+    helpdesk_permitted_fields=None,
     lead_has_status=True,
     opportunity_has_status=True,
     invoice_has_is_return=True,
@@ -187,6 +188,11 @@ def load_sales_api(
             if (self.doctype, fieldname) in configured_fields:
                 return configured_fields[(self.doctype, fieldname)]
             return fieldname in self.fields.get(self.doctype, set())
+
+        def get_permitted_fieldnames(self, user=None, permission_type="read"):
+            if self.doctype == "HD Ticket" and helpdesk_permitted_fields is not None:
+                return list(helpdesk_permitted_fields)
+            return list(self.fields.get(self.doctype, set()))
 
     frappe.get_meta = lambda doctype: FakeMeta(doctype)
     queries = []
@@ -435,3 +441,49 @@ def test_helpdesk_metrics_unavailable_without_ticket_permission(monkeypatch):
     assert result["available"] is False
     assert result["created_last_30_days"] is None
     assert not any(query["doctype"] == "HD Ticket" for query in queries)
+
+
+def test_helpdesk_metrics_do_not_report_zero_when_field_level_read_is_missing(monkeypatch):
+    api, queries, _ = load_sales_api(
+        monkeypatch,
+        helpdesk_permitted_fields={"creation"},
+    )
+    result = api.get_sales_compass_data()["service"]
+
+    assert result["available"] is True
+    assert result["created_last_30_days"] == 12
+    assert result["backlog_available"] is False
+    assert result["open_backlog"] is None
+    assert result["paused_backlog"] is None
+    assert result["resolved_available"] is False
+    assert result["resolution_time_available"] is False
+    assert result["sla_available"] is False
+    assert not any(
+        query["doctype"] == "HD Ticket"
+        and query.get("group_by") == "status_category"
+        for query in queries
+    )
+    assert not any(
+        query["doctype"] == "HD Ticket"
+        and query.get("group_by") == "agreement_status"
+        for query in queries
+    )
+
+
+def test_helpdesk_metrics_are_independently_available_for_permitted_fields(monkeypatch):
+    api, queries, _ = load_sales_api(
+        monkeypatch,
+        helpdesk_permitted_fields={"creation", "status_category"},
+    )
+    result = api.get_sales_compass_data()["service"]
+
+    assert result["available"] is True
+    assert result["backlog_available"] is True
+    assert result["open_backlog"] == 4
+    assert result["paused_backlog"] == 2
+    assert result["resolved_available"] is False
+    assert result["sla_available"] is False
+    assert not any(
+        query["doctype"] == "HD Ticket" and "resolution_date" in (query.get("filters") or {})
+        for query in queries
+    )
