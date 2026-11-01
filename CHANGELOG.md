@@ -116,6 +116,7 @@ Production/target-site acceptance is not implied by these CI results. See [Proje
 - Align CRM Signal list and direct-document permissions so linked-signal ownership cannot bypass parent User Permissions; add unit and Bench regression coverage (ADR-035).
 - Add a deployment/rollback runbook covering preflight, backups, migration, smoke tests, rollback and target-site evidence.
 - Default the master switch and external ingestion to off until System Manager explicitly enables the reviewed configuration (ADR-036).
+- Bound daily digest output to 100 Quotations and report truncation rather than creating unbounded email payloads (ADR-037).
 
 ### Validation
 - Changes are on `feat/settings-and-core-reliability`. CI and target-site validation are not yet complete.
