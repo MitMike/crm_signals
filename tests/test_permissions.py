@@ -61,9 +61,14 @@ class Signal:
     customer = None
 
 
-def test_manager_permission_falls_back_to_doc_type_permissions(monkeypatch):
+def test_manager_permission_explicitly_allows_doc_type_permission(monkeypatch):
     permissions = load_permissions(monkeypatch, roles=["Sales Manager"])
-    assert permissions.crm_signal_has_permission(Signal(), "manager@example.com", "read") is None
+    assert (
+        permissions.crm_signal_has_permission(
+            Signal(), "manager@example.com", "read"
+        )
+        is True
+    )
 
 
 def test_sales_user_read_requires_parent_read_permission(monkeypatch):
