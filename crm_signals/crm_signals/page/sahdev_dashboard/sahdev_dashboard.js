@@ -337,7 +337,7 @@ class SahdevSalesCompass {
 
     renderServiceSection(service) {
         if (!service.available) {
-            return '<section class="sahdev-billing-section">' +
+            return '<section class="sahdev-service-section">' +
                 '<div class="sahdev-eyebrow">' + __("S.A.H.D.E.V. · PILLAR D3") + "</div>" +
                 '<h3>' + __("Service resolution & SLA") + "</h3>" +
                 '<div class="sahdev-empty">' + __("Frappe Helpdesk ticket data is unavailable or you do not have permission to read it.") + "</div>" +
@@ -364,7 +364,7 @@ class SahdevSalesCompass {
                 this.escape(service.sla_failed) + " " + __("failed") + " · " +
                 this.escape(service.sla_unconfigured) + " " + __("tickets without an SLA")
             : __("SLA outcome is unavailable; ticket metrics remain independent.");
-        return '<section class="sahdev-billing-section">' +
+        return '<section class="sahdev-service-section">' +
             '<div class="sahdev-section-intro"><div><div class="sahdev-eyebrow">' +
             __("S.A.H.D.E.V. · PILLAR D3") + "</div><h3>" +
             __("Service resolution & SLA") + "</h3><p>" +
@@ -387,7 +387,7 @@ class SahdevSalesCompass {
             '<div class="sahdev-metrics">' + cardHtml + "</div>" +
             '<div class="sahdev-follow-on-note">' +
             '<strong>' + __("Scope of this slice") + "</strong> " +
-            __("This dashboard now combines CRM sales with the first billing realization slice. Service-ticket SLA metrics remain a separate follow-on slice.") +
+            __("This dashboard combines CRM sales, billing realization and permission-filtered Helpdesk service metrics when those sources are available.") +
             "</div>" +
             '<div class="sahdev-panels">' +
             '<section class="sahdev-panel">' +
