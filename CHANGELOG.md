@@ -123,3 +123,13 @@ Production/target-site acceptance is not implied by these CI results. See [Proje
 ### Validation
 - Changes are on `feat/settings-and-core-reliability`. CI and target-site validation are not yet complete.
 - This entry does not claim a production rollout or a formal product release.
+
+
+### 2026-11-01 — CI compatibility and idempotency corrections (PR #19, unmerged)
+
+- Correct the CRM Signal document-permission hook for Frappe v15/v16 argument and return-value differences without bypassing role-level DocType permissions.
+- Recover from database unique-key races by reading the winning source-event row under a lock; cover the race path in a Bench-backed regression test.
+- Verify authenticated API users have the minimum CRM Signal create permission; test idempotency at notification-dispatch level so recipient fan-out is not mistaken for duplicate dispatch.
+- Correct the dashboard E2E Prettier formatting and remove the temporary CI diagnostic step.
+
+These corrections remain on the active PR branch until its required checks pass and the PR is merged.
