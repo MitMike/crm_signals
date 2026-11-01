@@ -32,11 +32,11 @@ The following capabilities are present in the repository. "Implemented" means th
 |---|---|---|
 | Frappe app packaging and Pilot discovery metadata | Implemented | Run the actual Pilot import flow on the intended site |
 | CRM Signal DocType and validation | Implemented | Validate installed schema, roles and customizations |
-| Authenticated POST ingestion | Implemented; event-ID idempotency merged in PR #19 | Verify with a dedicated target-site integration user and deployment rate limits; concurrent API race fix is under test in PR #23 |
+| Authenticated POST ingestion | Event-ID idempotency and concurrent duplicate recovery merged in PR #19/#23 | Verify with a dedicated target-site integration user and deployment rate limits |
 | Quotation and Opportunity event hooks | Implemented; settings/idempotency merged in PR #19 | Confirm target-site status and threshold policy; durable outbox remains deferred |
 | Record-level Signal permissions | Implemented | Verify list, direct form, report, export and API on target roles |
 | Recipient-scoped realtime notifications | Implemented | Validate target-site assignments/permissions and failure isolation |
-| Daily CRM digest | Implemented; configurable per-recipient queue marker in PR #19; worker serialization in PR #23 | Pass Frappe v15/v16 concurrency tests; verify target-site semantics, timezone, recipient policy and live scheduler/mail behavior |
+| Daily CRM digest | Per-recipient queue tracking and cross-worker serialization merged in PR #19/#23 | Verify target-site semantics, timezone, recipient policy and live scheduler/mail behavior |
 | CRM Signals Settings | Implemented and merged in PR #19 | Confirm the default Company currency, preset behavior and selected site configuration |
 | CRM Signals Desk Console | Implemented | Target-site permission and usability smoke test |
 | D1 Sales Compass | Implemented; missing-status fix merged in PR #17 | Verify target-site status semantics and role visibility |
@@ -93,7 +93,7 @@ Work:
 - [x] Require `is_return` metadata for every return-sensitive D2 Sales Invoice measure. Implemented and merged in PR #17 as `fed496f`; no Sales Invoice aggregation runs without the return filter. Payment Entry receipts remain independent.
 - [x] Add calibrated source file/function size standards, checker, pre-commit and CI integration. Implemented and merged in PR #18 as `f51fbce`.
 - [x] Merge the settings, presets, event identity and digest foundation (PR #19, merged as `a495919`).
-- [ ] Pass and merge the independent-connections API idempotency and overlapping-digest-worker follow-up (PR #23) after all required v15/v16 and quality checks pass.
+- [x] Merge the independent-connections API idempotency and overlapping-digest-worker hardening (PR #23); v15/v16 Bench, v16 Playwright, quality and security checks passed on the final head.
 - Verify that CRM Signal list, direct-document, API, report and export permissions are equivalent.
 - Verify that the current shared is_read flag is acceptable as a team acknowledgement.
 - Confirm daily digest currency formatting, site timezone, recipients and duplicate-run behavior.
@@ -109,20 +109,19 @@ Exit criteria:
 - [ ] Install, migrate, scheduler, notification, dashboard and rollback smoke tests pass on the selected site version(s).
 
 
-### Merged Stage 1 implementation and current reliability follow-up
+### Merged Stage 1 implementation and verified reliability hardening
 
 PR #19 merged as [a495919](https://github.com/MitMike/crm_signals/commit/a49591947a89b011cc1770be176c1f11571b131b). It delivers the System Manager-only CRM Signals Settings singleton, Balanced/Sales Focused/Executive presets, configurable event controls, SHA-256 source-event identity, webhook retry deduplication, permission-safe notification routing and per-recipient digest tracking.
 
 PR #21 merged as [72833cd](https://github.com/MitMike/crm_signals/commit/72833cd383811d7c9be591206647b2e0b1f3fbd9). Its real `bench migrate` rehearsal preserved historical CRM Signal rows and restored event-identity fields on Frappe v15 and v16.
 
-PR #23 is the current reliability follow-up. It adds:
-- A deterministic two-connection Bench test for simultaneous API events, plus a fix to load the winning Signal with a current locking read after a unique-key collision.
-- A row lock on the Settings singleton and a fresh per-recipient marker check before each digest queue request, preventing overlapping scheduler workers from queueing the same recipient/date twice.
-- Matching v15/v16 Bench tests and updates to the progress, decision and follow-up records.
+PR #23 merged as [d75b7f3](https://github.com/MitMike/crm_signals/commit/d75b7f3591d2a863b0af6b8f88ad2a91e9bfd25f). It closes two demonstrated concurrency defects:
+- API duplicate recovery now loads the winning CRM Signal using a current locking read after a unique-key collision; a deterministic two-connection Bench test proves one Signal, one created response, one deduplicated response and one notification dispatch.
+- Digest workers lock the Settings singleton and re-check each recipient/date marker before queueing. System-owned marker fields use `db_set` so a digest status update does not rerun unrelated administrator configuration validation; the queue row and marker remain in one transaction.
 
-**PR #23 remains in review until its latest required checks pass.** Do not treat either concurrency safeguard as complete until the Frappe v15 and v16 Bench jobs pass.
+**Verification passed on final PR head `7ed0860`:** [Bench v15/v16 + Playwright](https://github.com/MitMike/crm_signals/actions/runs/41300667892), [Quality Checks](https://github.com/MitMike/crm_signals/actions/runs/41300667996) and [Security Scanning](https://github.com/MitMike/crm_signals/actions/runs/41300667997). Merge commit: `d75b7f3`.
 
-The first release uses one site-wide threshold currency. Multi-company overrides and a durable signal outbox/reconciliation process remain explicitly deferred in docs/FOLLOW_UPS.md. Target-site values and production security remain external acceptance gates.
+The first release uses one site-wide threshold currency. Multi-company overrides, durable signal outbox/reconciliation and durable realtime retry remain explicitly deferred in docs/FOLLOW_UPS.md. Target-site values and production security remain external acceptance gates.
 
 ### Stage 2 — D3 Service Resolution/SLA
 
@@ -255,9 +254,9 @@ A slice is done only when all applicable items are complete:
 | Area | Specification | State |
 |---|---|---|
 | CRM Signals data, ingestion and access | [Core and access](specs/2026-11-01-crm-signals-core-and-access.md) | Baseline implemented; release hardening open |
-| Settings and core reliability | [Settings, presets and idempotency](specs/2026-11-01-settings-and-core-reliability.md) | Core merged in PR #19; concurrency follow-up in PR #23 pending v15/v16 CI |
-| Document events and realtime routing | [Events and notifications](specs/2026-11-01-crm-signals-events-and-notifications.md) | Settings and idempotency merged in PR #19; API concurrency fix/test in PR #23 |
-| Daily digest | [Digest](specs/2026-11-01-crm-signals-daily-digest.md) | Per-recipient queue tracking merged in PR #19; overlapping-worker lock/test in PR #23; live policy open |
+| Settings and core reliability | [Settings, presets and idempotency](specs/2026-11-01-settings-and-core-reliability.md) | PR #19 and concurrency hardening PR #23 merged; v15/v16 Bench, Playwright, quality and security passed |
+| Document events and realtime routing | [Events and notifications](specs/2026-11-01-crm-signals-events-and-notifications.md) | Settings and idempotency merged in PR #19; concurrent API duplicate recovery verified in PR #23 |
+| Daily digest | [Digest](specs/2026-11-01-crm-signals-daily-digest.md) | Per-recipient tracking and overlapping-worker serialization merged in PR #19/#23; live policy open |
 | D1 | [Sales Compass](specs/2026-11-01-pillar-d1-sales-compass.md) | Missing-status correction merged; target-site validation open |
 | D2 | [Billing Realization](specs/2026-10-31-pillar-d2-billing-realization.md) | Return-metadata guard merged; target-site reconciliation open |
 | D3 | [Service Resolution/SLA](specs/2026-11-01-pillar-d3-service-resolution-sla.md) | Discovery spec ready; source mapping gated |
