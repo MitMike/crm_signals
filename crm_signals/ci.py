@@ -223,6 +223,9 @@ def verify_helpdesk_schema():
     # The API returns only aggregate metrics; no ticket rows or identifiers are emitted.
     from crm_signals.api import get_sales_compass_data
 
+    # bench execute does not guarantee an Administrator session; make the
+    # reference-stack smoke test's permission context explicit.
+    frappe.set_user("Administrator")
     service_metrics = get_sales_compass_data().get("service", {})
     required_metrics = (
         "available",
