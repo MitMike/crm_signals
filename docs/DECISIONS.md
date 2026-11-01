@@ -465,7 +465,7 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Decision:** Do not add retry logic by merely wrapping `frappe.publish_realtime` in another try/except, and do not describe a queued event as delivered. Keep realtime as best-effort until a durable per-recipient delivery boundary is implemented. Any future retry must persist a stable delivery ID, re-check recipient permissions, use bounded at-least-once attempts and client-side duplicate suppression, and distinguish published/attempted from human-delivered.
 - **Rationale:** A retry without a stable idempotency boundary can duplicate toasts; a retry that trusts the current API's return/exception behavior can silently lose events while claiming success.
 - **Consequences:** Durable realtime retry remains open. Required tests include Redis unavailability, crash after publish before state commit, duplicate suppression and permission revocation. Do not promise guaranteed human receipt without client acknowledgement.
-- **Evidence:** [Frappe v16 realtime implementation](https://github.com/frappe/frappe/blob/version-16/frappe/realtime/__init__.py).
+- **Evidence:** [Frappe v16 realtime implementation](https://github.com/frappe/frappe/blob/v16.5.0/frappe/realtime.py).
 
 ## ADR-054 — Require source-document read access before realtime signal delivery
 
@@ -476,3 +476,24 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Rationale:** A notification is not an authorization grant. Requiring access to every record that can contribute content is safer than sending to a user who can read only one related record.
 - **Consequences:** Users who can read a Lead but not its source Quotation/Opportunity will not receive that source-derived notification. Manual signals without a source link continue to use the linked party and CRM Signal permissions. Target-site permission parity must include source DocTypes.
 - **Validation:** Regression tests cover a parent reader without source-document read permission and malformed partial source identity; Frappe v15/v16 CI is the merge gate.
+
+## ADR-055 — Add an exact Frappe v16.5.0 and Helpdesk compatibility job
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-02
+- **Context:** The existing CI matrix tests the moving `version-16` branch. That proves major-version compatibility but not the confirmed Frappe v16.5.0 pilot baseline. The upstream Frappe and ERPNext `v16.5.0` tags exist; Helpdesk `v1.31.1` supports Frappe `>=15.123.1,<17.0.0` and depends on Telephony, whose `develop` branch supports the v16 line.
+- **Decision:** Add a targeted CI workflow for Frappe `v16.5.0`, ERPNext `v16.5.0`, Telephony `develop` and Helpdesk `v1.31.1`, while retaining the existing Frappe v15 and moving v16 matrix. Run the pinned job for application/test changes, not docs-only changes. Add an integration schema check for the pinned Helpdesk DocTypes/fields/permlevels.
+- **Rationale:** A moving branch can change after the pilot target; exact-tag CI makes the compatibility claim reproducible without adding the Helpdesk install cost to docs-only changes.
+- **Consequences:** The pinned job validates this reference stack, not the user's live site. The operator must still capture exact installed patch/app versions; older/newer Helpdesk builds may have different schemas and permissions.
+- **Evidence:** [Frappe v16.5.0](https://github.com/frappe/frappe/tree/v16.5.0), [ERPNext v16.5.0](https://github.com/frappe/erpnext/tree/v16.5.0), [Helpdesk v1.31.1](https://github.com/frappe/helpdesk/tree/v1.31.1), [Telephony develop](https://github.com/frappe/telephony/tree/develop).
+
+
+## ADR-056 — Preserve Helpdesk read-only permission boundaries for D3
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-02
+- **Context:** In Helpdesk v1.31.1, `HD Ticket` lifecycle/SLA fields `status_category`, `resolution_date`, `resolution_time` and `sla` are permlevel 7; `agreement_status` is permlevel 8. Default HD Ticket read roles are System Manager, Agent, Agent Manager, HD Customer and HD Customer Manager at base/level 7; level 8 is limited to System Manager, Agent and Agent Manager. `HD Service Level Agreement` read is granted to System Manager and Agent Manager. ERPNext Sales User/Manager are not default Helpdesk readers. Agent and Agent Manager also carry write/create/delete permissions.
+- **Decision:** Keep D3 permission-aware and fail-closed. Do not use `ignore_permissions` and do not assign Agent/Agent Manager solely to expose dashboard metrics. If Sales roles need D3, configure a dedicated custom read-only role with base `HD Ticket` read plus level 7/8 read as required, and `HD Service Level Agreement` read only if SLA metrics are required. Verify the installed Helpdesk metadata before applying this role map.
+- **Rationale:** Dashboard access must not silently grant ticket mutation privileges or bypass Helpdesk's field-level controls.
+- **Consequences:** Without the relevant read permissions, ticket or SLA metrics are unavailable rather than zero. Site administrators must decide which Sales roles receive ticket-only versus SLA visibility and test list/form/API parity.
+- **Evidence:** [Helpdesk v1.31.1 HD Ticket permissions](https://github.com/frappe/helpdesk/blob/v1.31.1/helpdesk/helpdesk/doctype/hd_ticket/hd_ticket.json), [HD Service Level Agreement permissions](https://github.com/frappe/helpdesk/blob/v1.31.1/helpdesk/helpdesk/doctype/hd_service_level_agreement/hd_service_level_agreement.json).
