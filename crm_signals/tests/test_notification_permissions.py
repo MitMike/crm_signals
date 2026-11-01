@@ -1,9 +1,15 @@
 """Bench-backed permission tests for CRM Signal notification routing."""
 
+import unittest
 from unittest.mock import patch
 
-import frappe
-from frappe.tests.utils import FrappeTestCase
+try:
+    import frappe
+    from frappe.tests.utils import FrappeTestCase
+except ModuleNotFoundError as error:
+    if error.name == "frappe":
+        raise unittest.SkipTest("Requires the Frappe Bench integration environment")
+    raise
 
 from crm_signals.notifications import notify_signal
 
