@@ -33,6 +33,10 @@ if frappe is not None:
 
 @unittest.skipIf(frappe is None, "Requires the Frappe Bench integration environment")
 class TestSignalOutbox(FrappeTestCase):
+    def test_outbox_uses_deterministic_source_key_as_name(self):
+        meta = frappe.get_meta("CRM Signal Outbox")
+        self.assertEqual(meta.autoname, "field:source_event_key")
+
     def test_outbox_records_are_read_only_for_system_managers(self):
         meta = frappe.get_meta("CRM Signal Outbox")
         permission = next(
