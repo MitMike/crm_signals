@@ -13,7 +13,8 @@ doctype_js = {
 scheduler_events = {
     "cron": {
         "* * * * *": [
-            "crm_signals.tasks.send_daily_signals_digest"
+            "crm_signals.tasks.send_daily_signals_digest",
+            "crm_signals.signal_outbox.process_pending_signal_outbox",
         ]
     }
 }
