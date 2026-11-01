@@ -56,6 +56,7 @@ def load_events(monkeypatch, *, existing_name=None, duplicate_on_insert=False):
         "opportunity_trigger_statuses": ["Replied"],
         "quotation_threshold": 200000,
         "threshold_currency": "USD",
+        "company_thresholds": [],
     }
     monkeypatch.setitem(sys.modules, "crm_signals.settings", settings)
     monkeypatch.delitem(sys.modules, "crm_signals.events", raising=False)
@@ -148,11 +149,16 @@ def test_quotation_threshold_requires_matching_site_currency(monkeypatch):
         grand_total=1350,
     )
 
-    assert module._company_threshold_value(quotation, {"threshold_currency": None}) is None
-    assert (
-        module._company_threshold_value(quotation, {"threshold_currency": "USD"}) is None
-    )
-    assert (
-        module._company_threshold_value(quotation, {"threshold_currency": "EUR"})
-        == 1234.5
-    )
+    assert module._company_threshold_policy(quotation, {"threshold_currency": None}) is None
+    assert module._company_threshold_policy(quotation, {"threshold_currency": "USD"}) is None
+    assert module._company_threshold_policy(quotation, {"threshold_currency": "EUR", "quotation_threshold": 200000}) == {
+        "amount": 1234.5, "threshold": 200000.0
+    }
+    assert module._company_threshold_policy(
+        quotation,
+        {
+            "threshold_currency": "USD",
+            "quotation_threshold": 200000,
+            "company_thresholds": [{"company": "Example Ltd", "currency": "EUR", "quotation_threshold": 750}],
+        },
+    ) == {"amount": 1234.5, "threshold": 750.0}
