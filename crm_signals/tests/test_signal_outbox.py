@@ -83,6 +83,10 @@ class TestSignalOutbox(FrappeTestCase):
                 replay_failed_signal_outbox(outbox.name)
 
             frappe.set_user("Administrator")
+            with patch("frappe.has_permission", return_value=False):
+                with self.assertRaises(frappe.PermissionError):
+                    replay_failed_signal_outbox(outbox.name)
+
             with patch("frappe.enqueue") as enqueue_job:
                 result = replay_failed_signal_outbox(outbox.name)
             saved = frappe.get_doc("CRM Signal Outbox", outbox.name)
