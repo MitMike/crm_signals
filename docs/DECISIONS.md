@@ -436,3 +436,14 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Decision:** Persist the outbox row in the source transaction, register immediate background delivery with `frappe.enqueue(..., enqueue_after_commit=True)`, and retain the once-per-minute pending-outbox scheduler as recovery if queue submission or delivery fails. Do not run signal materialization synchronously inside the source transaction.
 - **Rationale:** Keep the source event and outbox row atomic while moving nonessential delivery work outside the transaction. This should shorten unique-key lock duration and prevent delivery latency from holding competing idempotent inserts. Queue failure must not lose the durable row; the scheduler remains the fallback.
 - **Validation:** PR #26 passed Quality Checks, Security Scanning and Bench Integration/E2E on synchronized final head `222e70ec71164dab4448f7319525042323a357b4`; Frappe v15/v16 race tests verified one outbox row, one CRM Signal and one notification dispatch. All three workflows passed before squash merge `b0364a74affa823977af74d1907781d1533e60c0`.
+
+
+## ADR-050 — Support explicit per-company quotation alert thresholds
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-02
+- **Context:** The first settings version applies one site-wide quotation threshold in the default Company's currency. Multi-company sites may have different base currencies and different materiality thresholds; comparing base totals against one currency's threshold is invalid.
+- **Decision:** Add an optional Company Threshold child table. Each row is keyed by Company, stores a non-negative threshold, and derives its currency from that Company's configured default currency. Evaluate the Quotation's base total against the matching Company row. For companies without an override, retain the legacy site-wide threshold only when its currency exactly matches the Company's base currency. Never convert currencies implicitly.
+- **Rationale:** Company-specific thresholds avoid false positives/negatives without introducing an unapproved exchange-rate source or conversion policy.
+- **Consequences:** Existing single-company configurations continue to work. Multi-company administrators should configure an override for every Company that needs a threshold distinct from the legacy site-wide value.
+- **Validation:** Unit coverage verifies company-specific currency derivation and threshold selection. Bench migration and v15/v16 validation remain required.
