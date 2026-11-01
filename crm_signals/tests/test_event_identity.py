@@ -4,13 +4,13 @@ import unittest
 
 try:
     import frappe
-    from frappe.exceptions import DuplicateEntryError
+    from frappe.exceptions import UniqueValidationError
     from frappe.tests.utils import FrappeTestCase
 except ModuleNotFoundError as error:
     if error.name != "frappe":
         raise
     frappe = None
-    DuplicateEntryError = Exception
+    UniqueValidationError = Exception
 
     class FrappeTestCase(unittest.TestCase):
         pass
@@ -40,5 +40,5 @@ class TestCRMSourceEventUniqueKey(FrappeTestCase):
             }
         )
         frappe.get_doc(dict(values)).insert(ignore_permissions=True)
-        with self.assertRaises(DuplicateEntryError):
+        with self.assertRaises(UniqueValidationError):
             frappe.get_doc(dict(values)).insert(ignore_permissions=True)
