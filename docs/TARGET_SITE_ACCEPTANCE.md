@@ -1,6 +1,6 @@
 # CRM Signals — Target-Site Acceptance Kit
 
-**Purpose:** collect reproducible evidence that CRM Signals is safe and correct on the intended Frappe/ERPNext site. This kit is a runbook and evidence template, not proof that any target-site test has already passed.
+**Purpose:** collect reproducible evidence that CRM Signals is safe and correct on the intended Frappe/ERPNext site. The confirmed framework target is Frappe v16.5; this kit remains an evidence template, not proof that any target-site test has already passed.
 
 **Release rule:** do not sign off production until every P0 gate has an owner, dated evidence and an explicit pass. CI on a disposable Bench does not replace site-specific acceptance.
 
@@ -13,8 +13,9 @@
 | Technical owner | |
 | Test date (with timezone) | |
 | CRM Signals commit / tag | |
-| Frappe version | |
+| Frappe version (exact v16.5 patch/build) | |
 | ERPNext version | |
+| Helpdesk version | |
 | Database engine / version | |
 | Installed app list and versions | |
 | Backup identifier | |
@@ -26,7 +27,7 @@ Attach the output of `bench version`, the installed-app inventory and the deploy
 
 Record, do not infer:
 
-- [ ] Frappe and ERPNext versions are supported by the release.
+- [ ] Frappe reports the expected v16.5 patch/build; ERPNext and Helpdesk exact versions are recorded and compatible.
 - [ ] CRM Signals is installed and migrated on the intended site.
 - [ ] Installed support, helpdesk, telephony, email and activity apps are inventoried with exact versions.
 - [ ] Every enabled Company and its default currency are recorded.
@@ -37,11 +38,11 @@ Record, do not infer:
 - [ ] Email account, sender policy, mail queue and realtime deployment topology are recorded.
 - [ ] Current CRM Signals Settings values and enabled presets are captured.
 
-| Company | Default currency | Quotation threshold | Threshold currency | Approved? |
-|---|---|---:|---|---|
-| | | | | |
+| Company | Default currency | Company override threshold | Derived currency | Legacy fallback threshold (only on exact currency match) | Approved? |
+|---|---|---:|---|---:|---|
+| | | | | | |
 
-**Multi-company decision:** current threshold configuration is site-wide. Do not enable quotation signals across companies with different base currencies until the business owner approves a conversion policy or engineering delivers per-company thresholds.
+**Multi-company rule:** a Company-specific threshold row takes precedence and derives its currency from that Company's default currency. If no row exists, the legacy site-wide threshold is used only when its currency exactly matches the Quotation Company's base currency. No implicit FX conversion occurs. Record a row or explicitly approve the fallback for every enabled Company.
 
 ## 3. Deployment, migration and rollback
 
@@ -86,6 +87,7 @@ Acceptance criteria:
 - [ ] Digest content is generated under each recipient's user context.
 - [ ] Realtime delivery excludes users without the required read permissions.
 - [ ] Export and print do not expose rows unavailable in the corresponding report/list.
+- [ ] Helpdesk HD Ticket field-level read access is checked independently for `status_category`, `resolution_date`, `resolution_time`, `sla` (permlevel 7) and `agreement_status` (permlevel 8).
 - [ ] Disabled or unapproved recipients receive no digest or realtime content.
 
 Record user IDs/roles only in the site's secured test record; do not add personal data here.
@@ -147,32 +149,51 @@ Note: recipient-level failure isolation and digest queue idempotency are code-le
 
 - [ ] System Manager reviews Balanced, Sales Focused and Executive presets before enabling.
 - [ ] Master enable and external ingestion remain off until approved.
-- [ ] Quotation threshold and currency semantics are approved for every enabled Company.
+- [ ] Each enabled Company has an approved override or a currency-matched legacy fallback; no cross-currency comparison or implicit conversion is used.
 - [ ] Opportunity status list matches actual workflow values.
 - [ ] Stale-day window and timestamp semantics are approved.
 - [ ] Digest time, timezone and extra recipients are approved.
 - [ ] Each setting is tested after save and after a worker/scheduler restart.
 - [ ] Non-System Manager users cannot modify settings or outbox records.
 
-## 9. Support/SLA discovery input for D3
+## 9. D3 Frappe Helpdesk adapter acceptance
 
-Do not implement a generic ticket adapter based on assumed DocTypes. Capture:
+The initial adapter is implemented for standard Frappe Helpdesk. Verify the installed app and schema rather than assuming that the target site's patch level exactly matches upstream. Record the observed metadata and policy:
 
 | Question | Observed answer / evidence |
 |---|---|
-| Installed support/helpdesk app and exact version | |
-| Ticket DocType and owning app | |
-| Authoritative ticket status field and values | |
-| Resolution timestamp / reopen behavior | |
-| SLA DocType, deadline fields and linkage | |
-| Pause/resume rules | |
-| Business calendar and holidays | |
-| Timezone and elapsed-time semantics | |
-| Permissions and record visibility | |
-| Retention/deletion policy | |
-| Business-approved SLA cohorts and KPIs | |
+| Installed Helpdesk app and exact version | |
+| `HD Ticket` and `HD Service Level Agreement` DocTypes present | |
+| Required fields present: `creation`, `status_category`, `resolution_date`, `resolution_time`, `sla`, `agreement_status` | |
+| Sales User permitted fields at read level (including permlevels 7/8) | |
+| Sales Manager permitted fields at read level (including permlevels 7/8) | |
+| Ticket DocType read permission for each role | |
+| SLA DocType read permission for each role | |
+| Active SLA working days/hours and timezone | |
+| Active SLA holiday list | |
+| Confirmed Monday–Saturday calendar match or documented exception | |
+| Native pause/resume and Fulfilled/Failed behavior | |
+| Retention/deletion policy and business-approved KPI interpretation | |
 
-D3 implementation starts only after the source mapping and KPI semantics are approved by the site owner.
+Do not automatically grant permlevel 7 or 8. Review all Helpdesk fields at those levels with the security owner. A field-level permission gap should make the affected metric unavailable, not zero.
+
+### D3 staging test matrix
+
+Create synthetic tickets only in staging. Allow the Helpdesk SLA engine to set native outcomes.
+
+| Fixture | Expected dashboard behavior |
+|---|---|
+| Open ticket | Included in current Open backlog |
+| Paused ticket | Included in current Paused backlog; not an SLA-compliance outcome |
+| Resolved in last 30 days | Included in resolved cohort when `resolution_date` and status_category are readable |
+| Ticket with Fulfilled SLA | Included in eligible denominator and fulfilled numerator |
+| Ticket with Failed SLA | Included in eligible denominator and failed count |
+| First Response Due / Resolution Due / Paused | Excluded from Fulfilled/Failed compliance denominator |
+| Ticket without an SLA | Counted separately; excluded from compliance denominator |
+| User without HD Ticket read | D3 unavailable |
+| User without required field-level permission | Only affected measures unavailable; never displayed as zero |
+
+Expected compliance is `Fulfilled / (Fulfilled + Failed)`. With no eligible outcomes, show unavailable (—), not 0%. Average resolution duration uses positive Helpdesk `resolution_time` values converted from seconds to business hours; it is not elapsed time from ticket creation. SLA policy working hours, holiday list and timezone are authoritative.
 
 ## 10. Release decision
 
@@ -186,7 +207,7 @@ D3 implementation starts only after the source mapping and KPI semantics are app
 | Webhook security | | | | |
 | Scheduler / email / realtime | | | | |
 | Settings and business semantics | | | | |
-| Support/SLA discovery (for D3 scope) | | | | |
+| D3 Helpdesk version/schema/field permissions and SLA calendar acceptance | | | | |
 
 **Decision:** Not approved / Approved for limited pilot / Approved for production
 
