@@ -106,7 +106,7 @@ class TestSignalOutbox(FrappeTestCase):
             with self.assertRaises(SignalOutboxPersistenceError):
                 on_quotation_submit(quotation)
 
-    def test_failed_immediate_delivery_is_retried_without_losing_source_event(self):
+    def test_failed_post_commit_delivery_is_retried_without_losing_source_event(self):
         suffix = frappe.generate_hash(length=8)
         source_name = f"OUTBOX-TEST-{suffix}"
         source_event_id = f"submit:{suffix}"
@@ -125,10 +125,15 @@ class TestSignalOutbox(FrappeTestCase):
                 side_effect=RuntimeError("temporary database failure"),
             ),
             patch("frappe.log_error"),
+            patch("frappe.enqueue") as enqueue_job,
         ):
             outbox_name = enqueue_signal_event(**payload)
+            enqueue_job.assert_called_once()
+            self.assertTrue(enqueue_job.call_args.kwargs["enqueue_after_commit"])
+            result = process_signal_outbox_event(outbox_name)
 
         outbox = frappe.get_doc("CRM Signal Outbox", outbox_name)
+        self.assertEqual(result["status"], "pending")
         self.assertEqual(outbox.status, "Pending")
         self.assertEqual(outbox.attempt_count, 1)
         self.assertEqual(outbox.last_error, "RuntimeError")
@@ -192,8 +197,10 @@ class TestSignalOutbox(FrappeTestCase):
                 side_effect=RuntimeError("temporary database failure"),
             ),
             patch("frappe.log_error"),
+            patch("frappe.enqueue"),
         ):
             outbox_name = enqueue_signal_event(**payload)
+            process_signal_outbox_event(outbox_name)
             for _ in range(9):
                 frappe.db.set_value(
                     "CRM Signal Outbox",
@@ -233,8 +240,10 @@ class TestSignalOutbox(FrappeTestCase):
                 side_effect=RuntimeError("temporary database failure"),
             ),
             patch("frappe.log_error"),
+            patch("frappe.enqueue"),
         ):
             outbox_name = enqueue_signal_event(**payload)
+            process_signal_outbox_event(outbox_name)
 
         outbox = frappe.get_doc("CRM Signal Outbox", outbox_name)
         attempts = outbox.attempt_count
@@ -333,12 +342,20 @@ class TestSignalOutbox(FrappeTestCase):
                     side_effect=synchronized_lookup,
                 ),
                 patch("crm_signals.notifications.notify_signal") as notify_signal,
+                patch("frappe.enqueue") as enqueue_job,
                 ThreadPoolExecutor(max_workers=2) as executor,
             ):
                 futures = [executor.submit(enqueue_in_worker) for _ in range(2)]
                 outbox_names = [future.result(timeout=60) for future in futures]
 
             self.assertEqual(outbox_names[0], outbox_names[1])
+            self.assertEqual(enqueue_job.call_count, 2)
+            self.assertTrue(all(
+                call.kwargs.get("enqueue_after_commit")
+                for call in enqueue_job.call_args_list
+            ))
+            with patch("crm_signals.notifications.notify_signal") as notify_signal:
+                process_signal_outbox_event(outbox_names[0])
             self.assertEqual(notify_signal.call_count, 1)
             outbox_name = outbox_names[0]
             signal_names = frappe.get_all(
