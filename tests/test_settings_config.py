@@ -131,3 +131,20 @@ def test_unknown_preset_is_rejected(monkeypatch):
         assert "Unknown CRM Signals preset" in str(error)
     else:
         raise AssertionError("Unknown preset names must be rejected")
+
+def test_missing_settings_fail_closed_until_an_administrator_enables_the_app(monkeypatch):
+    settings = load_settings(monkeypatch)
+    frappe = sys.modules["frappe"]
+
+    class DoesNotExistError(Exception):
+        pass
+
+    def missing_settings(_doctype):
+        raise DoesNotExistError("CRM Signals Settings is not initialized")
+
+    frappe.get_single = missing_settings
+    values = settings.get_signal_settings()
+
+    assert values["enabled"] is False
+    assert values["enable_external_ingestion"] is False
+
