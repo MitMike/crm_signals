@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased — Per-company quotation thresholds
+
+### Added
+- Add optional per-company quotation thresholds. Each row uses the Company default currency and compares against the Quotation base total. The legacy site-wide threshold remains a safe fallback only for matching currencies; no implicit FX conversion is introduced.
+
+### Validation
+- Unit coverage added for company currency derivation and threshold selection. Frappe v15/v16 CI and schema migration checks are pending.
+
+
 This changelog records user-visible and operationally significant changes. It is not a substitute for commit history. Entries do not imply a production release unless explicitly stated.
 
 ## Unreleased — Transactional signal outbox (PR #26)
