@@ -147,7 +147,7 @@ def prepare_upgrade_site():
 
 
 def verify_helpdesk_schema():
-    """Verify the pinned Helpdesk v1.30.2 metric contract without reading ticket records."""
+    """Verify the pinned Helpdesk v1.28.0 metric contract without reading ticket records."""
     required_fields = {
         "status_category": 0,
         "resolution_date": 0,
