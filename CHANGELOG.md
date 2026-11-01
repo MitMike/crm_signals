@@ -15,9 +15,9 @@ This changelog records user-visible and operationally significant changes. It is
 ### Operational note
 - Terminal Failed rows can be replayed only through the POST-only, System Manager/read-permission-gated action merged in PR #38; attempt history and an audit Comment are preserved. Realtime notification retry remains separate and is not provided by the signal outbox.
 
-### Exact Frappe v16.5.0 / Helpdesk v1.30.2 compatibility lane — in PR #48 review
+### Exact Frappe v16.5.0 / Helpdesk v1.28.0 compatibility lane — in PR #50 review
 
-- Pin Frappe v16.5.0, ERPNext v16.5.0, Helpdesk v1.30.2 and the exact Telephony commit.
+- Pin Frappe v16.5.0, ERPNext v16.5.0, Helpdesk v1.28.0 and the exact Telephony commit.
 - Install the real Helpdesk app in Bench and verify HD Ticket / HD Service Level Agreement DocTypes, required fields, permlevels and the Frappe permitted-field API.
 - Helpdesk v1.31.1 attempts to create `Notification Type` during installation, but the unmodified Frappe v16.5.0 tag lacks that DocType/controller; v1.30.2 is the compatible reference pin unless the target Frappe build supplies an upstream-compatible implementation.
 - Keep moving v15/v16 coverage and the v16 Playwright E2E lane.
