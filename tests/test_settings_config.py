@@ -250,3 +250,4 @@ def test_company_threshold_currency_field_uses_row_currency():
     fields = {field["fieldname"]: field for field in doctype["fields"]}
 
     assert fields["quotation_threshold"]["options"] == "currency"
+    assert fields["currency"]["fetch_from"] == "company.default_currency"
