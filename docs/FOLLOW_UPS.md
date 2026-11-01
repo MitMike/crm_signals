@@ -2,6 +2,8 @@
 
 This file records known work that is intentionally not represented as complete. Revisit an item when its trigger or dependency is satisfied.
 
+**Ownership convention:** P0 target-site items belong to the site administrator/implementation lead with the relevant security or finance owner; P1 engineering items belong to CRM Signals maintainers; site-specific configuration items belong to the Sales Manager/business owner; P2 roadmap items belong to the product owner. Close an item only with the evidence described below.
+
 ## P0 — required before production sign-off
 
 - [ ] **Target-site preflight and acceptance.** Record Frappe/ERPNext versions, installed apps, Company currencies, timezone, workflows, custom fields and role matrix. Run Pilot import, migrate, scheduler, email, realtime, dashboard and rollback smoke tests.
