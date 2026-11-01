@@ -18,6 +18,7 @@ def load_events(monkeypatch, *, existing_name=None, duplicate_on_insert=False):
     )
     inserted = []
     loaded = []
+    loaded_document_options = []
 
     class FakeSignal:
         def __init__(self, values):
@@ -29,11 +30,12 @@ def load_events(monkeypatch, *, existing_name=None, duplicate_on_insert=False):
             if duplicate_on_insert:
                 raise DuplicateEntryError("unique key already exists")
 
-    def get_doc(values, name=None):
+    def get_doc(values, name=None, **kwargs):
         if isinstance(values, dict):
             signal = FakeSignal(values)
             loaded.append(signal)
             return signal
+        loaded_document_options.append(kwargs)
         return types.SimpleNamespace(name=name, loaded=True)
 
     fake.get_doc = get_doc
@@ -57,7 +59,7 @@ def load_events(monkeypatch, *, existing_name=None, duplicate_on_insert=False):
     monkeypatch.setitem(sys.modules, "crm_signals.settings", settings)
     monkeypatch.delitem(sys.modules, "crm_signals.events", raising=False)
     module = importlib.import_module("crm_signals.events")
-    return module, notifications, inserted, lookups, loaded, fake
+    return module, notifications, inserted, lookups, loaded, fake, loaded_document_options
 
 
 def test_new_source_event_is_inserted_once_and_notified(monkeypatch):
@@ -105,7 +107,7 @@ def test_existing_source_event_is_returned_without_insert_or_notification(monkey
 
 
 def test_unique_index_race_returns_existing_signal_without_duplicate_notification(monkeypatch):
-    module, notifications, inserted, lookups, loaded, fake = load_events(
+    module, notifications, inserted, lookups, loaded, fake, loaded_document_options = load_events(
         monkeypatch,
         duplicate_on_insert=True,
     )
@@ -129,6 +131,7 @@ def test_unique_index_race_returns_existing_signal_without_duplicate_notificatio
 
     assert created is False
     assert signal.name == "SIG-CONCURRENT"
+    assert loaded_document_options == [{"for_update": True}]
     assert inserted == [True]
     assert loaded[0].values["source_event_key"]
     assert notifications.sent == []
