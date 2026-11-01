@@ -466,3 +466,13 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Rationale:** A retry without a stable idempotency boundary can duplicate toasts; a retry that trusts the current API's return/exception behavior can silently lose events while claiming success.
 - **Consequences:** Durable realtime retry remains open. Required tests include Redis unavailability, crash after publish before state commit, duplicate suppression and permission revocation. Do not promise guaranteed human receipt without client acknowledgement.
 - **Evidence:** [Frappe v16 realtime implementation](https://github.com/frappe/frappe/blob/version-16/frappe/realtime/__init__.py).
+
+## ADR-054 — Require source-document read access before realtime signal delivery
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-02
+- **Context:** CRM Signal notifications include a message derived from the originating Quotation/Opportunity. The existing recipient filter checked read access to the linked Lead/Customer and CRM Signal, but did not check the source document. A user could therefore receive a message containing source-derived values without permission to read the source record.
+- **Decision:** A realtime recipient must be a related owner/assignee, an enabled System User, and have read access to the CRM Signal, every linked Lead/Customer, and the originating source document when present. If source DocType/name is partially populated, fail closed. Do not send a partial message that may still contain source data.
+- **Rationale:** A notification is not an authorization grant. Requiring access to every record that can contribute content is safer than sending to a user who can read only one related record.
+- **Consequences:** Users who can read a Lead but not its source Quotation/Opportunity will not receive that source-derived notification. Manual signals without a source link continue to use the linked party and CRM Signal permissions. Target-site permission parity must include source DocTypes.
+- **Validation:** Regression tests cover a parent reader without source-document read permission and malformed partial source identity; Frappe v15/v16 CI is the merge gate.
