@@ -27,6 +27,7 @@ This changelog records user-visible and operationally significant changes. It is
 - Add optional Company-specific threshold rows with an explicitly approved non-negative amount and currency derived from Company metadata.
 - Use the legacy site-wide threshold only when its currency exactly matches the Company's base currency; never perform implicit FX conversion.
 - If a Company's base currency changes, require the administrator to remove/re-add the row and enter a newly approved amount.
+- PR #49 binds the Currency field to the child row's fetched Company base currency so the symbol/value displays correctly before saving.
 
 ### D3 Service Resolution/SLA — merged in PR #32
 
