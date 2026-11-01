@@ -186,7 +186,25 @@ def enqueue_signal_event(
         ) from error
 
     if outbox.status == "Pending":
-        process_signal_outbox_event(outbox.name)
+        # The outbox row must commit with the source document before delivery
+        # starts. Running the worker inside this transaction makes competing
+        # idempotent inserts wait on a row whose owner is still doing delivery.
+        # The periodic scheduler remains the recovery path if queueing fails.
+        try:
+            frappe.enqueue(
+                "crm_signals.signal_outbox.process_signal_outbox_event",
+                queue="short",
+                enqueue_after_commit=True,
+                outbox_name=outbox.name,
+            )
+        except Exception:
+            try:
+                frappe.log_error(
+                    message=frappe.get_traceback(),
+                    title=f"CRM Signals outbox enqueue failed: {outbox.name}",
+                )
+            except Exception:
+                pass
     return outbox.name
 
 
