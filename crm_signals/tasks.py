@@ -173,6 +173,15 @@ def _build_recipient_digest(recipient, today, stale_before, stale_days):
         frappe.set_user(original_user)
 
 
+def _load_digest_settings_for_update():
+    """Lock the singleton so concurrent scheduler workers serialize recipient claims."""
+    return frappe.get_doc(
+        "CRM Signals Settings",
+        "CRM Signals Settings",
+        for_update=True,
+    )
+
+
 def _queued_recipients_for_date(settings_doc, today):
     saved_date = str(settings_doc.get("last_digest_queued_date") or "")[:10]
     if saved_date != today.isoformat():
@@ -202,14 +211,19 @@ def send_daily_signals_digest():
     if (site_now.hour, site_now.minute) < (digest_hour, digest_minute):
         return {"status": "not_due", "date": today.isoformat()}
 
-    settings_doc = frappe.get_single("CRM Signals Settings")
     recipients = _resolve_digest_recipients(settings["digest_extra_recipients"])
     if not recipients:
         return {"status": "no_recipients", "date": today.isoformat()}
 
+    # Lock and read the marker before deciding which recipients need a queue
+    # request. The row lock is released by the per-recipient commit below.
+    settings_doc = _load_digest_settings_for_update()
     queued_recipients = _queued_recipients_for_date(settings_doc, today)
-    pending_recipients = [recipient for recipient in recipients if recipient not in queued_recipients]
+    pending_recipients = [
+        recipient for recipient in recipients if recipient not in queued_recipients
+    ]
     if not pending_recipients:
+        frappe.db.commit()
         return {"status": "already_queued", "date": today.isoformat()}
 
     stale_days = int(settings["lead_stale_days"])
@@ -219,6 +233,15 @@ def send_daily_signals_digest():
     failed_recipients = []
     for recipient in pending_recipients:
         try:
+            # Re-acquire the lock and re-read after each commit. Another worker
+            # may have queued this recipient while this worker processed an
+            # earlier recipient in the same run.
+            settings_doc = _load_digest_settings_for_update()
+            queued_recipients = _queued_recipients_for_date(settings_doc, today)
+            if recipient in queued_recipients:
+                frappe.db.commit()
+                continue
+
             digest_html = _build_recipient_digest(
                 recipient,
                 today.isoformat(),
@@ -250,7 +273,7 @@ def send_daily_signals_digest():
                 )
             except Exception:
                 pass
-            settings_doc = frappe.get_single("CRM Signals Settings")
+
 
     return {
         "status": "queued" if not failed_recipients else "partial",
