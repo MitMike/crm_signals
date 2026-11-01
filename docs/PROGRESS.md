@@ -2,15 +2,15 @@
 
 **Last reviewed:** 2026-11-01  
 **Repository:** [MitMike/crm_signals](https://github.com/MitMike/crm_signals)  
-**Main baseline:** [9c0ecb1](https://github.com/MitMike/crm_signals/commit/9c0ecb1013311909041aebb687fef850ea084869)  
+**Main baseline:** [c930b64](https://github.com/MitMike/crm_signals/commit/c930b64ee0cc7c02528d58e94a34e678181eb2a9)  
 **Completed implementation:** PR #19 delivered settings/presets and core idempotency; PR #21 validated the legacy-schema migration; [PR #23](https://github.com/MitMike/crm_signals/pull/23) merged as [d75b7f3](https://github.com/MitMike/crm_signals/commit/d75b7f3591d2a863b0af6b8f88ad2a91e9bfd25f), closing concurrent API-idempotency and digest-queue races.  
-**Next acceptance:** PR #26 transactional outbox validation is blocked by three Bench regression failures; target-site acceptance and the explicitly deferred roadmap work remain open. Green CI does not constitute production sign-off.
+**Next acceptance:** PR #26 transactional outbox validation is blocked by a concurrent-enqueue lock-wait timeout on both Frappe v15/v16; the two missing-key fixture failures are fixed. [PR #28](https://github.com/MitMike/crm_signals/pull/28) adds the target-site acceptance evidence kit. Green CI does not constitute production sign-off.
 
 This file is the operational source of truth. [IMPLEMENTATION_PLAN.md](../IMPLEMENTATION_PLAN.md) is the roadmap, [DECISIONS.md](DECISIONS.md) is the durable decision register, [FOLLOW_UPS.md](FOLLOW_UPS.md) tracks deferred issues, and [specs/](../specs/) holds feature contracts.
 
 ## Current status
 
-**Sprint update — 2026-11-01:** Release-readiness sprint started on branch `docs/release-readiness-sprint-2026-11-01`. Latest `main` is `9c0ecb1`; PR #26 (`feature/durable-signal-outbox-validation`) is the active engineering dependency. Its Python/lint/Semgrep checks passed, but Frappe v15/v16 Bench checks failed in three outbox tests: concurrent enqueue lock-wait timeout, and two fixtures rejected because `source_event_key` was not supplied. Do not merge PR #26 until the failure is fixed and both supported Bench lanes pass. See `docs/RELEASE_READINESS_SPRINT.md` for ordered work and evidence.
+**Sprint update — 2026-11-01:** Release-readiness sprint started on branch `docs/release-readiness-sprint-2026-11-01`. Latest `main` is `c930b64` after release-readiness documentation PR #27 merged. PR #26 (`feature/durable-signal-outbox-validation`, latest head `b84528b`) remains open. Previous Python/lint/Semgrep checks passed; Frappe v15/v16 Bench each failed only the two-worker concurrent enqueue test with MariaDB lock wait timeout (1205). The missing `source_event_key` fixtures are corrected. The latest patch moves delivery to `frappe.enqueue(..., enqueue_after_commit=True)` and keeps the scheduled worker as recovery; new CI is pending. ADR-047 records this as a proposed decision pending v15/v16 validation. Do not merge PR #26 until both supported Bench lanes and all required checks pass. PR #28 adds `docs/TARGET_SITE_ACCEPTANCE.md`; no target-site test has yet been run. See `docs/RELEASE_READINESS_SPRINT.md` for ordered work and evidence.
 
 
 | Workstream | Status | Evidence / next action |
@@ -29,7 +29,7 @@ This file is the operational source of truth. [IMPLEMENTATION_PLAN.md](../IMPLEM
 | E Explorer | Planned | Inventory installed activity integrations and implement only verified source adapters |
 | V Vault | Planned | Approve metric registry, source visibility and retention before enabling snapshots |
 | A Analysis | Planned | Approved metric registry and constrained server-owned queries; no model-generated SQL |
-| Repository security/CI | Merged | PR #11 security/dependency hardening; PR #18 maintainability guardrails; main ruleset active |
+| Repository security/CI | Merged | PR #11 security/dependency hardening; PR #18 maintainability guardrails; main ruleset active |\n| Target-site acceptance kit | Draft in PR #28 | `docs/TARGET_SITE_ACCEPTANCE.md`; provides preflight, rollback, permissions, reconciliation, webhook, scheduler and sign-off evidence templates; target-site execution remains open |
 
 ## Completed reliability hardening — PR #23
 
