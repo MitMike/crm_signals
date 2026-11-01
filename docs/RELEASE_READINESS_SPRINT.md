@@ -2,7 +2,7 @@
 
 **Started:** 2026-11-01  
 **Last reviewed:** 2026-11-02  
-**Baseline:** `main` at `43fddfbbc46cac277a48c840251a7a2c963a8eb5`  
+**Baseline:** `main` at `e57d94ea3090cfa50c5270a673e14c19ec6acbe3`  
 **Decision register:** [ADR-046](DECISIONS.md#adr-046--run-release-readiness-as-an-evidence-gated-sprint)  
 **Operating rule:** no item is complete without the evidence listed here. CI evidence and target-site evidence are separate.
 
@@ -11,9 +11,9 @@
 ### 0. Active PR triage — current review queue
 
 - [x] Merge [PR #32](https://github.com/MitMike/crm_signals/pull/32) for D3 standard Frappe Helpdesk metrics. Final head `93b536abef331d8b34b5b7b570fbb280a996bfb2` passed Python 3.10/3.11/3.12/3.14, lint/static, Semgrep and Bench v15/v16; merge commit `43fddfbbc46cac277a48c840251a7a2c963a8eb5`.
-- [ ] Complete [PR #33](https://github.com/MitMike/crm_signals/pull/33) audited Failed-row replay. Earlier Bench failures exposed unsupported `frappe.has_role` and `Document.get_comments` assumptions; replaced them with `frappe.get_roles` and a Comment query. The action is POST-only, requires System Manager plus outbox read access, preserves attempt history and confirms before replay. Latest Bench run is pending.
-- [ ] Complete [PR #34](https://github.com/MitMike/crm_signals/pull/34) per-company quotation thresholds. Added the missing child-table controller after Bench install exposed it; added mismatch-currency regression coverage. Latest Quality passed; Bench rerun is pending.
-- [ ] Merge [PR #36](https://github.com/MitMike/crm_signals/pull/36) Frappe v16.5 target-baseline ADR-049 after the fresh required-check run completes. Earlier merge attempt was rejected because cancelled required contexts were still present.
+- [ ] Complete [PR #38](https://github.com/MitMike/crm_signals/pull/33) audited Failed-row replay. Earlier Bench failures exposed unsupported `frappe.has_role` and `Document.get_comments` assumptions; replaced them with `frappe.get_roles` and a Comment query. The action is POST-only, requires System Manager plus outbox read access, preserves attempt history and confirms before replay. Latest Bench run is pending.
+- [ ] Complete [PR #34](https://github.com/MitMike/crm_signals/pull/34) per-company quotation thresholds. Added the missing child-table controller after Bench install exposed it; added mismatch-currency regression coverage. Quality, Security and Bench v15/v16 passed on the prior branch head; the branch needs a clean rebase onto current main before merge.
+- [ ] [PR #36](https://github.com/MitMike/crm_signals/pull/36) merged as `e57d94ea`; ADR-049 sets Frappe v16.5 as the primary target while retaining v15/v16 CI coverage.
 - [ ] Validate the D3 field-level permission guard on branch `fix/d3-field-permission-awareness`. Standard Helpdesk uses permlevels 7/8 and Frappe may silently drop fields the user cannot read.
 
 **Merge gate:** all required checks pass on the final PR head; review threads resolved; no target-site claims inferred from CI.
