@@ -56,7 +56,7 @@ CRM Signals Settings provides starter presets and administrator-editable busines
 
 ## Compatibility
 
-The source declares intended Frappe/ERPNext v15 and v16 compatibility. GitHub Actions Bench validation has passed on both moving version lines (v15/Python 3.11 and v16/Python 3.14), with authenticated Playwright E2E in the v16 lane. A separate exact Frappe v16.5.0 + ERPNext v16.5.0 + Helpdesk v1.30.2 Bench lane is in PR #48; Helpdesk v1.31.1 currently fails installation on the unmodified Frappe v16.5.0 tag because its post-install hook expects the absent Notification Type DocType. CI is not a substitute for validation on the intended site's exact app versions, roles, customizations, currency, timezone and financial data.
+The source declares intended Frappe/ERPNext v15 and v16 compatibility. GitHub Actions Bench validation has passed on both moving version lines (v15/Python 3.11 and v16/Python 3.14), with authenticated Playwright E2E in the v16 lane. A separate exact Frappe v16.5.0 + ERPNext v16.5.0 + Helpdesk v1.28.0 Bench lane is in PR #50; Helpdesk v1.29.0 and later link @framework/ui to apps/frappe/ui, which is absent from the unmodified Frappe v16.5.0 tag; Helpdesk v1.31.1 additionally expects the absent Notification Type DocType. The exact reference lane therefore pins Helpdesk v1.28.0. CI is not a substitute for validation on the intended site's exact app versions, roles, customizations, currency, timezone and financial data.
 
 ## Installation
 
