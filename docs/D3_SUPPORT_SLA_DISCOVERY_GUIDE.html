@@ -29,6 +29,9 @@ details{border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin
   <p>A beginner-friendly guide for the person who administers your Frappe / ERPNext site. Follow the steps, collect the answers, and send the report to the CRM Signals team. You do <strong>not</strong> need to write code or change your site configuration.</p>
 </header>
 
+<div class="notice"><strong>Target baseline:</strong> Frappe v16.5. Capture the exact patch/build with <code>bench version</code> and the installed ERPNext/Helpdesk versions with <code>bench --site YOUR-SITE-NAME list-apps</code>. The standard HD Ticket / HD Service Level Agreement D3 adapter is already implemented; this guide verifies whether the pilot site's schema matches it.</div>
+<div class="notice"><strong>Pilot calendar expectation:</strong> Monday–Saturday business week. Verify the active Helpdesk SLA's actual working days, hours, holiday list and timezone. CRM Signals reads the native SLA policy and does not override it.</div>
+
 <div class="notice good"><strong>First, the important bit:</strong> This is a discovery exercise, not a setup exercise. We need to learn which support/ticket system your site already uses and how its SLA clock works. Do not install a new app, rename fields, or change workflows just for this exercise.</div>
 
 <section class="panel">
@@ -174,7 +177,7 @@ print("\\n=== END: metadata only; no ticket records were read ===")</pre>
 <details><summary>Can I just send a screenshot?</summary><p>Screenshots can help explain a screen, but we need exact DocType and field names. Send the metadata output and completed worksheet as the primary evidence. Hide customer details in any screenshots.</p></details>
 <details><summary>What if I cannot run the console script?</summary><p>Ask your Frappe hosting provider or implementation partner to run it. They can return the metadata-only output. You can still complete the business questions with your Support owner.</p></details>
 <details><summary>Is this changing anything on the site?</summary><p>No. The supplied script reads installed app names and DocType metadata. It does not change settings, workflows, tickets, or SLA records.</p></details>
-<details><summary>What happens after I send the answers?</summary><p>The CRM Signals team maps the verified source, confirms the KPI definitions with you, then implements and tests the correct adapter. D3 is not considered complete until that mapping and target-site validation are approved.</p></details>
+<details><summary>What happens after I send the answers?</summary><p>The standard HD Ticket / HD Service Level Agreement adapter is already implemented. We compare the discovered metadata with that contract. If it matches, proceed to configuration and pilot scenarios. If the site uses custom ticket DocTypes or fields, record the exact differences and decide whether a narrowly scoped adapter change is needed. D3 is not pilot-verified until live role permissions, the active SLA calendar and metric results pass.</p></details>
 </section>
 
 <section class="panel">
