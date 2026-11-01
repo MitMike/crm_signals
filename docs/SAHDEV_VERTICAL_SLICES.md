@@ -46,7 +46,7 @@ Specification: [D3 Service Resolution/SLA](../specs/2026-11-01-pillar-d3-service
 
 **Status:** High-value Quotation signals are implemented; per-company threshold policy is in review. VIP proposal-link tracking remains gated on privacy/consent and retention approval.
 
-- High-value submitted Quotations using Company base currency and an admin-configured threshold; per-company overrides are in PR #45 review.
+- High-value submitted Quotations using Company base currency and an admin-configured threshold; per-company overrides are in PR #45 merged.
 - VIP proposal-link opens only from first-party tracked links or a provider with stable event IDs.
 - Escalation to enabled, related users with source-record read permission.
 - Idempotency, bot/scanner exclusion, alert cooldown and privacy/consent controls.
