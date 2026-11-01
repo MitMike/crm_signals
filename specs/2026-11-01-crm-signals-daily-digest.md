@@ -1,6 +1,6 @@
 # CRM Signals — Daily sales digest
 
-**Status:** Implemented baseline; target-site semantics and currency formatting require hardening.
+**Status:** Core implementation merged in PR #19; overlapping-worker serialization and Bench proof are in PR #23 pending Frappe v15/v16 CI. Target-site semantics and mail behavior still require acceptance.
 
 ## Problem and user
 
@@ -38,7 +38,8 @@ The Lead metric is exactly "Leads not modified in more than 3 days". It is not p
 - Generate each digest while impersonating the individual recipient. Use permission-aware `frappe.get_list` calls for Leads and Quotations; never send one privileged site-wide result to every recipient.
 - Show a source as unavailable when the recipient lacks read permission or required metadata; do not convert a permission failure into zero.
 - Track the recipients queued for the site-local digest date in CRM Signals Settings. Each email queue request and its recipient marker are saved in the same transaction. A later scheduler run skips already queued recipients and retries only those still pending.
-- Do not log secrets or full sensitive document contents. A scheduler concurrency lock/unique recipient delivery row is still required before guaranteeing duplicate-free behavior under simultaneous scheduler executions.
+- PR #23 serializes concurrent workers by taking a `FOR UPDATE` lock on the CRM Signals Settings singleton before reading the queue marker, then re-locking and rechecking before each recipient claim after per-recipient commits. The two-worker Bench regression test must pass on Frappe v15 and v16 before this is considered verified.
+- Do not log secrets or full sensitive document contents.
 
 ## Content and security
 
@@ -57,10 +58,11 @@ Escape every party name, document name and other user-controlled HTML value. Pre
 | DIG-AC7 | Retry of same digest date does not duplicate delivery | Idempotency/retry test |
 | DIG-AC8 | Missing schema/permissions are visible as unavailable diagnostics | Bench permission/configuration fixture |
 | DIG-AC9 | Scheduler runs at the configured site-local time | Scheduler integration test on supported versions |
+| DIG-AC10 | Simultaneous scheduler workers queue at most one digest per recipient/date | Two-connection Bench test on Frappe v15 and v16 (PR #23) |
 
 ## Validation mapping
 
-Add or extend tests/test_tasks.py for date boundaries, recipient selection, currency rendering, escaping and duplicate-run behavior. Exercise the installed scheduler in the Frappe Bench matrix. Include an email-rendering snapshot and a target-site smoke test with actual Sales Manager accounts.
+Add or extend tests/test_tasks.py for date boundaries, recipient selection, currency rendering, escaping and duplicate-run behavior. Exercise the installed scheduler in the Frappe Bench matrix, including the two-worker same-recipient race. Include an email-rendering snapshot and a target-site smoke test with actual Sales Manager accounts.
 
 ## Open operational inputs
 
