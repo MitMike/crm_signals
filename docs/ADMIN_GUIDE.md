@@ -8,7 +8,7 @@ For release, backup, migration, smoke-test and rollback procedures, follow the [
 
 ## Target version
 
-The deployment owner confirmed **Frappe v16.5** as the target baseline. The pinned reference stack for compatibility testing is Frappe v16.5.0 + ERPNext v16.5.0 + Helpdesk v1.28.0 (with the pinned Telephony dependency). Before installation, capture the exact patch/build from `bench version`, plus the installed ERPNext and Helpdesk app versions from `bench --site <site-name> list-apps`; do not assume the pilot uses the same Helpdesk release. The repository retains Frappe/ERPNext v15 and moving v16 CI coverage, with an exact v16.5.0/Helpdesk job being added; CI does not prove the live site's permissions or configuration.
+The deployment owner confirmed **Frappe v16.5** as the target baseline. The pinned reference stack for compatibility testing is Frappe v16.5.0 + ERPNext v16.5.0 + Helpdesk v1.28.0 (with the pinned Telephony dependency). Before installation, capture the exact patch/build from `bench version`, plus the installed ERPNext and Helpdesk app versions from `bench --site <site-name> list-apps`; do not assume the pilot uses the same Helpdesk release. The repository retains Frappe/ERPNext v15 and moving v16 CI coverage; the exact v16.5.0/Helpdesk v1.28.0 reference job merged in PR #50 and passed. CI does not prove the live site's permissions or configuration.
 
 ## Installation and upgrade
 
