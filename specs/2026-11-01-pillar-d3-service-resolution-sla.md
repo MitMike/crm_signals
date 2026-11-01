@@ -50,7 +50,7 @@ All date windows use the site timezone and are configurable. The initial dashboa
 - Tickets created: count of source tickets created within the selected window.
 - Tickets resolved: count of tickets whose authoritative resolution timestamp falls within the window.
 - Open backlog: current tickets in configured non-terminal states.
-- Average resolution time: average elapsed duration from creation to authoritative resolution for resolved tickets in the selected window. If the installed SLA engine defines business-time duration, display that as a separately labelled measure; do not mix elapsed and business hours.
+- Average resolution time: the Helpdesk-native resolution_time is business-hours duration from SLA attachment to resolution, less hold time. Label it as average SLA business hours; do not present it as elapsed time from ticket creation. Tickets without an SLA do not provide this duration.
 - SLA compliance: compliant resolved/eligible tickets divided by all tickets with a valid applicable SLA outcome in the selected cohort. Exclude tickets without an applicable SLA from the denominator and show the eligible count.
 - SLA breaches: count tickets with native breach outcome in the selected cohort, including open breached tickets only if the installed SLA engine defines that state.
 
