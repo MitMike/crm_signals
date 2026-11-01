@@ -2,8 +2,9 @@
 
 **Last reviewed:** 2026-11-01  
 **Repository:** [MitMike/crm_signals](https://github.com/MitMike/crm_signals)  
-**Main baseline:** [f51fbce](https://github.com/MitMike/crm_signals/commit/f51fbce19b7d1e84cfa6f3ab26118f2977a8fe40)  
-**Active delivery branch:** `feat/settings-and-core-reliability` — configurable settings, presets, source-event idempotency and digest safety. Changes are not merged until GitHub reports the PR merged.
+**Main baseline:** [a495919](https://github.com/MitMike/crm_signals/commit/a49591947a89b011cc1770be176c1f11571b131b)  
+**Completed implementation:** [PR #19](https://github.com/MitMike/crm_signals/pull/19) merged as [a495919](https://github.com/MitMike/crm_signals/commit/a49591947a89b011cc1770be176c1f11571b131b): configurable settings, presets, permission parity, event idempotency and digest safety are on `main`.  
+**Next acceptance:** target-site validation and the explicitly deferred reliability work remain open; the merge and CI results do not constitute production sign-off.
 
 This file is the operational source of truth. [IMPLEMENTATION_PLAN.md](../IMPLEMENTATION_PLAN.md) is the roadmap, [DECISIONS.md](DECISIONS.md) is the durable decision register, [FOLLOW_UPS.md](FOLLOW_UPS.md) tracks deferred issues, and [specs/](../specs/) holds feature contracts.
 
@@ -11,15 +12,15 @@ This file is the operational source of truth. [IMPLEMENTATION_PLAN.md](../IMPLEM
 
 | Workstream | Status | Evidence / next action |
 |---|---|---|
-| CRM Signals core | Baseline implemented | Settings and reliability hardening in active branch; target-site permission/deployment checks remain |
+| CRM Signals core | Implemented; PR #19 merged | Target-site permission, upgrade and deployment checks remain |
 | Signals Console | Implemented | Validate actual target-site roles and list/form/report/export/API behavior |
 | D1 Sales Compass | Implemented; correctness fix merged | PR #17 merged as `fed496f`; target-site workflow/status validation remains |
 | D2 Billing Realization | Implemented; safety fix merged | PR #17 requires `is_return` for return-sensitive measures; target-site financial reconciliation remains |
 | File/function standards | Merged | PR #18 merged as `f51fbce`; limits, checker, pre-commit and CI enforcement are on main |
-| Settings + presets | Implemented on active branch | Settings singleton, validation, Balanced/Sales Focused/Executive presets and guide; CI/merge pending |
-| Event identity/idempotency | Implemented on active branch | Unique SHA-256 source-event key, API event ID support and duplicate-safe notification; CI/merge pending |
-| Digest hardening | Implemented on active branch | Site-timezone schedule, per-recipient permission-aware emails, recipient queue tracking, configurable stale window/time/recipients and currency-code formatting; CI/merge pending |
-| Notification failure isolation | Implemented on active branch | Recipient failures are logged and do not block other recipients or source-document saves; automated retry/outbox remains deferred |
+| Settings + presets | Merged in PR #19 | Settings singleton, validation, Balanced/Sales Focused/Executive presets and administrator guide; confirm target-site defaults before activation |
+| Event identity/idempotency | Merged in PR #19 | Unique SHA-256 source-event key, API event ID support and duplicate-safe notification; concurrency and upgrade validation remain open |
+| Digest hardening | Merged in PR #19 | Site-timezone schedule, per-recipient permission-aware emails, recipient queue tracking, configurable stale window/time/recipients and currency-code formatting; overlapping-worker proof remains open |
+| Notification failure isolation | Merged in PR #19 | Recipient failures are logged and do not block other recipients or source-document saves; automated retry/outbox remains deferred |
 | D3 Service Resolution/SLA | Specified; not implemented | Discover target-site support/SLA application and source semantics before adapter implementation |
 | H Highlights | Partial/planned | Finish idempotent events, recipient controls, verified proposal tracking and privacy approval |
 | E Explorer | Planned | Inventory installed activity integrations and implement only verified source adapters |
@@ -33,6 +34,7 @@ This file is the operational source of truth. [IMPLEMENTATION_PLAN.md](../IMPLEM
 - [PR #16](https://github.com/MitMike/crm_signals/pull/16) — complete specifications, decision register, delivery plan and feature roadmap.
 - [PR #17](https://github.com/MitMike/crm_signals/pull/17) — D1/D2 correctness safeguards for missing Lead/Opportunity status metadata and Sales Invoice return metadata. Merge commit: [fed496f](https://github.com/MitMike/crm_signals/commit/fed496f230f5ca88af25d663bc61fe4d748f5f83).
 - [PR #18](https://github.com/MitMike/crm_signals/pull/18) — graduated file/function size and complexity rules. Merge commit: [f51fbce](https://github.com/MitMike/crm_signals/commit/f51fbce19b7d1e84cfa6f3ab26118f2977a8fe40).
+- [PR #19](https://github.com/MitMike/crm_signals/pull/19) — configurable settings, presets, Frappe v15/v16 permission compatibility, event idempotency and digest hardening. Merge commit: [a495919](https://github.com/MitMike/crm_signals/commit/a49591947a89b011cc1770be176c1f11571b131b).
 
 ## Repository governance
 
@@ -54,7 +56,7 @@ GitHub ruleset [Protect main](https://github.com/MitMike/crm_signals/rules/26282
 - Payment Entry receipt metrics remain independent of Sales Invoice return metadata.
 - Branch protection and file/function size standards are merged.
 
-### On the active implementation branch; not yet merged
+### Implemented and merged in PR #19
 - Add System Manager-only CRM Signals Settings singleton and editable Balanced, Sales Focused and Executive presets.
 - Configure master/external-ingestion/Quotation/Opportunity/digest switches, Company-currency threshold, Opportunity status list, stale-day window, digest time and extra recipients validated against registered enabled System Users.
 - Add source-event metadata and a unique hash-based identity for CRM Signals.
@@ -70,8 +72,8 @@ GitHub ruleset [Protect main](https://github.com/MitMike/crm_signals/rules/26282
 - Bound daily digest quotation output to 100 rows with an explicit truncation notice to prevent unbounded email payloads (ADR-037).
 - Add Bench-backed webhook and database tests for same-user duplicate POSTs, one notification per event, per-user namespaces, unique-key enforcement and multiple legacy null keys; concurrent insert and true pre-feature upgrade migration remain open.
 - CI follow-up (2026-11-01): Bench v15/v16 exposed an invalid CRM Signal autoname expression that persisted the literal `SIG-.YYYY.-.#####`; corrected to Frappe's brace-delimited `format:SIG-{YYYY}-{#####}` (ADR-038). The API integration test now sets request form data after switching users because the user-context switch clears the local request form.
-- CI follow-up (2026-11-01): Bench v16 exposed the changed document-permission hook contract: it passes `ptype` and requires an explicit boolean. Updated the hook to accept both v15/v16 argument names and preserve role-level DocType permissions before row-level restrictions (ADR-039). Corrected duplicate-key recovery to handle Frappe's `UniqueValidationError` using a locking read, added a race-recovery regression test, and changed notification idempotency coverage to count one dispatch rather than assume one realtime recipient. Prettier formatting was corrected and its temporary diagnostic step removed. Both Bench matrices and required CI checks must pass on the final head before merge.
-- CI follow-up (2026-11-01): The v15/v16 Bench integration suites passed. The first v16 Playwright run then exposed a login race: the session cookie existed before Frappe completed the redirect, causing subsequent API/navigation actions to overlap with that redirect and trigger aborted requests and CSRF errors. The shared login helper now waits for the Desk URL; the settings custom-preset handler awaits its form-model update and the E2E test blurs the integer field before asserting. See ADR-040. Re-run the complete v15/v16 Bench and browser matrix on the final head before merge.
+- CI follow-up (2026-11-01): Bench v16 exposed the changed document-permission hook contract: it passes `ptype` and requires an explicit boolean. Updated the hook to accept both v15/v16 argument names and preserve role-level DocType permissions before row-level restrictions (ADR-039). Corrected duplicate-key recovery to handle Frappe's `UniqueValidationError` using a locking read, added a race-recovery regression test, and changed notification idempotency coverage to count one dispatch rather than assume one realtime recipient. Prettier formatting was corrected and its temporary diagnostic step removed. These changes passed the final v15/v16 Bench matrices, Playwright, Python, lint and security checks before PR #19 merged.
+- CI follow-up (2026-11-01): The first v16 Playwright run exposed a login race: the session cookie existed before Frappe completed the redirect, causing subsequent API/navigation actions to overlap with that redirect and trigger aborted requests and CSRF errors. The shared login helper now waits for the version-appropriate Desk URL; the settings custom-preset handler awaits its form-model update and the E2E test blurs the integer field before asserting. See ADR-040. The corrected v16 Playwright suite passed on final PR head `a90315be7ef37e2dceeacb9b4e9b77d5d31df131`.
 - Add an admin guide, settings/reliability spec and configuration/identity/digest tests.
 
 ### Target-site acceptance — still required
@@ -93,7 +95,7 @@ See [FOLLOW_UPS.md](FOLLOW_UPS.md) for issues that should not be silently treate
 
 ## CI and release evidence
 
-The merged baseline has passed the existing Quality Checks, Bench Integration/E2E (Frappe/ERPNext v15 and v16), Security Scanning and Dependency Security Audit workflows on the corresponding PR heads. The active settings/reliability branch must pass current CI on its final head and be merged before this code is treated as delivered.
+PR #19 was validated on head `a90315be7ef37e2dceeacb9b4e9b77d5d31df131` and merged as `a49591947a89b011cc1770be176c1f11571b131b`. [Quality Checks](https://github.com/MitMike/crm_signals/actions/runs/41274491111), [Bench Integration and E2E](https://github.com/MitMike/crm_signals/actions/runs/41274491113) and [Security Scanning](https://github.com/MitMike/crm_signals/actions/runs/41274491117) passed; all 16 check-runs on that head reported success, including Frappe/ERPNext v15 and v16 and the v16 Playwright suite.
 
 CI is necessary, not production acceptance. Never mark a target-site gate complete based only on a mocked unit test or the existence of source code.
 
