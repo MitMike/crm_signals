@@ -373,3 +373,13 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Rationale:** The test must synchronize on the application state that subsequent actions depend on, not merely on the existence of a session cookie. The UI handler should expose completion of the form-model update.
 - **Consequences:** Browser coverage now tests the post-login Desk state and the form-model transition rather than racing navigation and browser input events.
 - **Evidence:** `e2e/sahdev-dashboard.spec.ts`; `crm_signals/public/js/crm_signals_settings.js`.
+
+
+## ADR-041 — Prove DocType schema upgrades with historical CRM Signal rows
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-01
+- **Decision:** Add a Bench migration rehearsal that starts with the pre-source-event-identity CRM Signal table and DocField metadata, retains historical rows, then runs the current `bench migrate` and verifies that the current fields and unique source-event key are restored without losing or rewriting legacy records.
+- **Rationale:** Fresh-install CI does not prove that Frappe can upgrade an existing site's DocType metadata and physical table safely. The relevant compatibility boundary is the old schema plus real historical rows, not whether `patches.txt` contains a file.
+- **Consequences:** Do not add a patch solely because `patches.txt` is empty. Add a patch only if the supported Frappe migration path demonstrably cannot perform the required schema transition. The rehearsal is a CI compatibility test; target-site backup/restore and upgrade acceptance remain separate production gates.
+- **Sources:** [CRM Signal DocType](../crm_signals/crm_signals/doctype/crm_signal/crm_signal.json), [Upgrade fixture](../crm_signals/ci.py), [Bench workflow](../.github/workflows/bench-e2e.yml), [Production readiness audit](PRODUCTION_READINESS_AUDIT.md).
