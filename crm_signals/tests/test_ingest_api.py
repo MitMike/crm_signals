@@ -14,8 +14,10 @@ except ModuleNotFoundError as error:
     class FrappeTestCase(unittest.TestCase):
         pass
 
-from crm_signals.api import ingest_signal
 from crm_signals.event_identity import build_source_event_key
+
+if frappe is not None:
+    from crm_signals.api import ingest_signal
 
 
 def _make_integration_user(suffix):
