@@ -30,7 +30,6 @@ async function loginAs(page: Page, username: string, password: string) {
             { timeout: 15_000 }
         )
         .toBe(true);
-
 }
 
 async function loginAsAdministrator(page: Page) {
