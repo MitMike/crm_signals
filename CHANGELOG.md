@@ -2,6 +2,21 @@
 
 This changelog records user-visible and operationally significant changes. It is not a substitute for commit history. Entries do not imply a production release unless explicitly stated.
 
+## 2026-11-01 — Concurrent API idempotency and digest delivery hardening (merged in PR #23)
+
+### Changed
+- Recover the winning CRM Signal with a current locking read after a concurrent unique-key collision, preventing repeatable-read snapshots from hiding the row that another request committed.
+- Serialize daily digest recipient claims with a lock on the CRM Signals Settings singleton and recheck the per-recipient/date marker before each queue request.
+- Update system-owned digest markers through `Document.db_set` so operational status changes do not rerun unrelated administrator Settings validation; the Email Queue row and marker remain in one transaction.
+
+### Added
+- Deterministic two-connection Bench coverage for concurrent API requests and two overlapping digest workers.
+
+### Validation
+- PR #23 merged as [d75b7f3](https://github.com/MitMike/crm_signals/commit/d75b7f3591d2a863b0af6b8f88ad2a91e9bfd25f).
+- [Bench Integration and E2E, Frappe v15/v16 + Playwright](https://github.com/MitMike/crm_signals/actions/runs/41300667892), [Quality Checks](https://github.com/MitMike/crm_signals/actions/runs/41300667996) and [Security Scanning](https://github.com/MitMike/crm_signals/actions/runs/41300667997) all passed on final PR head `7ed0860`.
+- This is an engineering merge, not a production release. Target-site scheduler/mail, permission, currency, webhook and backup/rollback acceptance remains open.
+
 ## 2026-11-01 — Main branch protection verified
 
 ### Confirmed
