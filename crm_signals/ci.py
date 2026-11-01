@@ -160,8 +160,8 @@ def verify_helpdesk_schema():
             frappe.throw(f"Pinned Helpdesk app did not install required DocType: {doctype}")
 
     ticket_meta = frappe.get_meta("HD Ticket")
-    if not ticket_meta.has_field("creation"):
-        frappe.throw("HD Ticket is missing the standard creation timestamp")
+    if not frappe.db.has_column("HD Ticket", "creation"):
+        frappe.throw("HD Ticket is missing the standard creation timestamp column")
 
     mismatches = []
     for fieldname, expected_permlevel in required_fields.items():
