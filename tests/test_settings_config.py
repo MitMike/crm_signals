@@ -99,8 +99,9 @@ def test_company_currency_change_requires_threshold_reapproval(monkeypatch):
     try:
         settings.validate_settings_document(doc)
     except frappe.ValidationError as error:
-        assert "currency changed" in str(error)
-        assert "remove and re-add" in str(error)
+        message = str(error).casefold()
+        assert "currency changed" in message
+        assert "remove and re-add" in message
     else:
         raise AssertionError("A Company currency change must require threshold reapproval")
 
