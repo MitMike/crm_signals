@@ -456,3 +456,13 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Decision:** Use Frappe v16.5 as the primary target for configuration guidance, API/schema compatibility review and acceptance instructions. Retain v15 coverage as a supported compatibility matrix unless a separate product decision removes it. Do not claim live-site acceptance from CI; capture the observed Frappe, ERPNext and Helpdesk app versions before configuration and explicitly label every site-dependent check.
 - **Rationale:** A confirmed target version is stronger evidence than a generic supported-major assumption. Targeting the exact v16.5 baseline reduces ambiguity in the operator guide while preserving the existing cross-version support commitment.
 - **Consequences:** The operator guide will identify Frappe v16.5 as the expected target, request the exact patch build and ERPNext/Helpdesk app versions, and distinguish framework compatibility from site-specific acceptance. No production sign-off is implied.
+
+## ADR-053 — Do not treat Frappe realtime queueing as delivery confirmation
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-02
+- **Context:** Frappe v16 `publish_realtime(after_commit=True)` queues a callback and returns before Redis publication. The after-commit flush calls `emit_via_redis`, which suppresses `redis.exceptions.ConnectionError`. The current CRM Signals try/except therefore cannot detect a Redis outage, and its `sent` count represents a queued callback rather than confirmed publication or user receipt.
+- **Decision:** Do not add retry logic by merely wrapping `frappe.publish_realtime` in another try/except, and do not describe a queued event as delivered. Keep realtime as best-effort until a durable per-recipient delivery boundary is implemented. Any future retry must persist a stable delivery ID, re-check recipient permissions, use bounded at-least-once attempts and client-side duplicate suppression, and distinguish published/attempted from human-delivered.
+- **Rationale:** A retry without a stable idempotency boundary can duplicate toasts; a retry that trusts the current API's return/exception behavior can silently lose events while claiming success.
+- **Consequences:** Durable realtime retry remains open. Required tests include Redis unavailability, crash after publish before state commit, duplicate suppression and permission revocation. Do not promise guaranteed human receipt without client acknowledgement.
+- **Evidence:** [Frappe v16 realtime implementation](https://github.com/frappe/frappe/blob/version-16/frappe/realtime/__init__.py).
