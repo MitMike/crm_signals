@@ -128,6 +128,10 @@ jobs:
           ../../env/bin/pip install pytest pytest-cov
           ../../env/bin/python -m pytest -q tests --cov=crm_signals --cov-report=term-missing
 
+      - name: Run Frappe integration tests
+        working-directory: /home/runner/frappe-bench
+        run: bench --site test.local run-tests --app crm_signals
+
       - name: Install Playwright browser
         if: ${{ matrix.run_e2e }}
         working-directory: ${{ github.workspace }}
