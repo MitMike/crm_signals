@@ -8,6 +8,7 @@ app_include_js = "/assets/crm_signals/js/crm_signals_desk.js"
 
 doctype_js = {
     "CRM Signals Settings": "public/js/crm_signals_settings.js",
+    "CRM Signal Outbox": "public/js/crm_signal_outbox.js",
 }
 
 scheduler_events = {
