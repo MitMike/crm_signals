@@ -4,6 +4,8 @@
 
 CRM Signals is an extension to ERPNext CRM. It creates contextual signal records, sends recipient-scoped Desk notifications, and provides a daily sales digest. It does not replace ERPNext Leads, Opportunities, Quotations, Communications or a support application.
 
+For release, backup, migration, smoke-test and rollback procedures, follow the [Deployment and rollback runbook](DEPLOYMENT_RUNBOOK.md).
+
 ## Installation and upgrade
 
 Install from the app repository using the site's normal Bench/Pilot process:
