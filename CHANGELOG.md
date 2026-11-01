@@ -13,7 +13,19 @@ This changelog records user-visible and operationally significant changes. It is
 - Keep outbox payload and delivery state read-only to administrators; inspect failures through the outbox and Error Log.
 
 ### Operational note
-- Terminal Failed rows do not yet have a self-service replay action. Realtime notification retry remains separate and is not provided by the signal outbox.
+- Terminal Failed rows can be replayed only through the POST-only, System Manager/read-permission-gated action merged in PR #38; attempt history and an audit Comment are preserved. Realtime notification retry remains separate and is not provided by the signal outbox.
+
+### Exact Frappe v16.5.0 / Helpdesk v1.31.1 compatibility lane — in PR #43 review
+
+- Pin Frappe v16.5.0, ERPNext v16.5.0, Helpdesk v1.31.1 and the exact Telephony commit.
+- Install the real Helpdesk app in Bench and verify HD Ticket / HD Service Level Agreement DocTypes, required fields, permlevels and the Frappe permitted-field API.
+- Keep moving v15/v16 coverage and the v16 Playwright E2E lane.
+
+### Per-company quotation thresholds — in PR #45 review
+
+- Add optional Company-specific threshold rows with an explicitly approved non-negative amount and currency derived from Company metadata.
+- Use the legacy site-wide threshold only when its currency exactly matches the Company's base currency; never perform implicit FX conversion.
+- If a Company's base currency changes, require the administrator to remove/re-add the row and enter a newly approved amount.
 
 ### D3 Service Resolution/SLA — merged in PR #32
 
@@ -21,7 +33,7 @@ This changelog records user-visible and operationally significant changes. It is
 - Check ticket and SLA DocType read permissions independently; do not return ticket identifiers, subjects, comments, contact details or raw records to the dashboard.
 - Keep due/paused SLA states out of the Fulfilled/Failed compliance denominator and count tickets without an SLA separately.
 - Final PR #32 head `93b536abef331d8b34b5b7b570fbb280a996bfb2` passed Python 3.10/3.11/3.12/3.14, lint/static, Semgrep and Bench v15/v16. Merge commit: `43fddfbbc46cac277a48c840251a7a2c963a8eb5`.
-- A follow-up field-level permission guard is in review because standard Helpdesk lifecycle/SLA fields use permlevels 7 and 8. Target-site app-version, field-permission and active SLA calendar acceptance remain open.
+- PR #42 merged a fail-closed field-level guard that checks the current user's permitted HD Ticket fields and marks affected measures unavailable instead of returning zero. PR #44 additionally requires read access to the originating source DocType before source-derived notification content is queued. Target-site app-version, Sales read-only role and active SLA calendar acceptance remain open.
 
 ## 2026-11-01 — Concurrent API idempotency and digest delivery hardening (merged in PR #23)
 
