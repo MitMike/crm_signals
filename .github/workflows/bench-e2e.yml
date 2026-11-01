@@ -100,7 +100,10 @@ jobs:
         run: |
           bench get-app --skip-assets erpnext https://github.com/frappe/erpnext --branch "${{ matrix.erpnext_branch }}"
           if [ -n "${{ matrix.helpdesk_branch }}" ]; then
-            bench get-app --skip-assets telephony https://github.com/frappe/telephony --branch "${{ matrix.telephony_ref }}"
+            bench get-app --skip-assets telephony https://github.com/frappe/telephony --branch develop
+            git -C apps/telephony fetch --depth 1 upstream "${{ matrix.telephony_ref }}"
+            git -C apps/telephony checkout --detach "${{ matrix.telephony_ref }}"
+            test "$(git -C apps/telephony rev-parse HEAD)" = "${{ matrix.telephony_ref }}"
             bench get-app --skip-assets helpdesk https://github.com/frappe/helpdesk --branch "${{ matrix.helpdesk_branch }}"
           fi
           bench get-app --skip-assets crm_signals "${{ github.workspace }}"
