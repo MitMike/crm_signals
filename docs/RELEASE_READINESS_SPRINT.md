@@ -12,8 +12,9 @@
 
 - [x] Merge [PR #32](https://github.com/MitMike/crm_signals/pull/32) for D3 standard Frappe Helpdesk metrics. Final head `93b536abef331d8b34b5b7b570fbb280a996bfb2` passed Python 3.10/3.11/3.12/3.14, lint/static, Semgrep and Bench v15/v16; merge commit `43fddfbbc46cac277a48c840251a7a2c963a8eb5`.
 - [ ] Complete [PR #38](https://github.com/MitMike/crm_signals/pull/33) audited Failed-row replay. Earlier Bench failures exposed unsupported `frappe.has_role` and `Document.get_comments` assumptions; replaced them with `frappe.get_roles` and a Comment query. The action is POST-only, requires System Manager plus outbox read access, preserves attempt history and confirms before replay. Latest Bench run is pending.
-- [ ] Complete [PR #45](https://github.com/MitMike/crm_signals/pull/40) per-company quotation thresholds. Added the missing child-table controller after Bench install exposed it; added mismatch-currency regression coverage. Quality and Security passed on the rebased PR #45 head; Bench v15/v16 is running.
-- [ ] Complete [PR #44](https://github.com/MitMike/crm_signals/pull/39) source-document notification permission check. Quality and Security passed; Bench v15/v16 is pending.
+- [ ] Complete [PR #43](https://github.com/MitMike/crm_signals/pull/43) exact Frappe v16.5.0/Helpdesk v1.31.1 Bench lane; target install/schema job must pass.
+- [ ] Complete [PR #45](https://github.com/MitMike/crm_signals/pull/45) per-company quotation thresholds. Added the missing child-table controller after Bench install exposed it; added mismatch-currency regression coverage. Quality and Security passed on the rebased PR #45 head; Bench v15/v16 is running.
+- [ ] Complete [PR #44](https://github.com/MitMike/crm_signals/pull/44) source-document notification permission check. Quality and Security passed; Bench v15/v16 is pending.
 - [ ] [PR #36](https://github.com/MitMike/crm_signals/pull/36) merged as `e57d94ea`; ADR-049 sets Frappe v16.5 as the primary target while retaining v15/v16 CI coverage.
 - [ ] Validate the D3 field-level permission guard on branch `fix/d3-field-permission-awareness`. Standard Helpdesk uses permlevels 7/8 and Frappe may silently drop fields the user cannot read.
 
@@ -54,7 +55,7 @@
 ### 4. H Highlights
 
 - [x] Implement high-value Quotation event generation and stable source identity.
-- [ ] Merge PR #34 Company-specific threshold rows; verify every enabled Company uses a matching base-currency threshold or approved fallback.
+- [ ] Merge PR #45 Company-specific threshold rows; verify every enabled Company uses a matching base-currency threshold or approved fallback.
 - [ ] Add the admin-managed VIP allowlist and validate escalation recipient permissions/cooldown behavior.
 
 - [ ] Keep proposal-link tracking disabled until privacy/consent, retention and first-party link behavior are approved.
@@ -71,7 +72,7 @@
 
 - `main` baseline is `43fddfbbc46cac277a48c840251a7a2c963a8eb5`; PR #32 D3 is merged and CI-verified.
 - PR #33 replay Bench rerun is pending after two evidence-based compatibility fixes; do not merge until both Frappe v15/v16 jobs pass.
-- PR #34 threshold Quality Checks passed on the latest head; Bench v15/v16 rerun is pending after the child-table controller and currency-mismatch test fixes.
+- PR #45 threshold Quality Checks passed on the latest head; Bench v15/v16 rerun is pending after the child-table controller and currency-mismatch test fixes.
 - PR #36 ADR-049 Quality and Security passed; fresh Bench v15/v16 run is pending after an earlier required-check cancellation prevented merge.
 - D3 field-level guard has Python/lint/security checks passing; Bench v15/v16 is pending.
 - No target Frappe site is connected to this work. Pilot evidence for versions, Company policy, role/field permissions, finance reconciliation, SLA calendar and operations remains outstanding.
@@ -82,6 +83,6 @@
 |---|---|---|---|
 | 2026-11-02 | PR #32 D3 merge | Final head `93b536ab` passed all 16 check runs; merge commit `43fddfb` | Complete — CI verified |
 | 2026-11-02 | PR #33 replay review | Bench exposed `frappe.has_role` and `get_comments` API assumptions; fixes and stronger authorization are committed | Validation pending |
-| 2026-11-02 | PR #34 threshold review | Bench exposed missing child-table controller; controller and mismatch-currency test added | Validation pending |
+| 2026-11-02 | PR #45 threshold review | Bench exposed missing child-table controller; controller and mismatch-currency test added | Validation pending |
 | 2026-11-02 | ADR-049 target baseline | Frappe v16.5 confirmed; v15/v16 matrix retained | Validation pending |
 | 2026-11-02 | D3 field-level permissions | Upstream Helpdesk permlevels 7/8 and Frappe field filtering verified; fail-closed correction added | Bench validation pending |
