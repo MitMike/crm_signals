@@ -74,6 +74,12 @@ class TestCRMSignalNotificationPermissions(FrappeTestCase):
         self.assertTrue(
             frappe.has_permission("Lead", ptype="read", doc=lead.name, user=assignee.name)
         )
+        self.assertFalse(
+            frappe.has_permission("CRM Signal", ptype="read", doc=signal.name, user=owner.name)
+        )
+        self.assertTrue(
+            frappe.has_permission("CRM Signal", ptype="read", doc=signal.name, user=assignee.name)
+        )
 
         with patch("frappe.publish_realtime") as publish:
             notify_signal(signal)
