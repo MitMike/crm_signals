@@ -351,3 +351,14 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Rationale:** The previous dotted expression was persisted literally as `SIG-.YYYY.-.#####` in Bench v15/v16, causing every inserted CRM Signal to collide on the same primary key. This is a real installation/runtime defect, not a test-only issue.
 - **Consequences:** Fresh installs and schema syncs use a date-prefixed sequence. Validate upgrade/sync behavior on existing sites and ensure the naming series advances correctly after deployment.
 - **Sources:** [CRM Signal DocType](../crm_signals/crm_signals/doctype/crm_signal/crm_signal.json), [Bench CI failure](https://github.com/MitMike/crm_signals/actions).
+
+
+## ADR-039 — Keep CRM Signal row permissions compatible with Frappe v15 and v16
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-01
+- **Context:** Bench v16 exposed that the row-level permission hook used the v15 `permission_type` argument and returned `None` for manager/create and other paths. Frappe v16 passes `ptype` and requires an explicit boolean result. That made valid Sales User create/read permissions fail in the integration and recipient paths.
+- **Decision:** Accept both `permission_type` and `ptype` hook arguments. For every operation, first enforce the CRM Signal DocType's role-level permission; then apply row/relationship restrictions to read, write and delete. Return an explicit boolean for all hook calls. Keep the endpoint's normal permission check enabled; do not bypass DocType permissions.
+- **Rationale:** Framework compatibility must not weaken the security model. Role-level permissions remain the baseline, while linked records still require a readable owned/assigned parent and unlinked records remain owner-scoped.
+- **Consequences:** Bench tests exercise both hook signatures, Sales User create permission, parent/signal read restrictions and recipient routing on v15/v16.
+- **Sources:** [Frappe v16 migration guide](https://github.com/frappe/frappe/wiki/Migrating-to-version-16), [Permission implementation](../crm_signals/permissions.py), [Permission integration tests](../crm_signals/tests/test_notification_permissions.py).
