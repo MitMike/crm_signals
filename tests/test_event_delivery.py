@@ -162,3 +162,12 @@ def test_quotation_threshold_requires_matching_site_currency(monkeypatch):
             "company_thresholds": [{"company": "Example Ltd", "currency": "EUR", "quotation_threshold": 750}],
         },
     ) == {"amount": 1234.5, "threshold": 750.0}
+
+    assert module._company_threshold_policy(
+        quotation,
+        {
+            "threshold_currency": "EUR",
+            "quotation_threshold": 200000,
+            "company_thresholds": [{"company": "Example Ltd", "currency": "USD", "quotation_threshold": 750}],
+        },
+    ) is None
