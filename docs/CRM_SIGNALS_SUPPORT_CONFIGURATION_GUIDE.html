@@ -48,6 +48,8 @@ for app in frappe.get_installed_apps():
     except Exception:
         print(app)
 
+print("Notification Type DocType present:", bool(frappe.db.exists("DocType", "Notification Type")))
+
 keywords = ("support", "ticket", "issue", "helpdesk", "service", "sla")
 rows = frappe.get_all(
     "DocType",
@@ -67,6 +69,7 @@ for row in rows:
             print("  Could not read metadata:", str(exc))</pre>
 <p class="muted">If the app-version expression errors on your Frappe version, skip that version line and use <code>bench version</code> from Step 1. The DocType and field metadata portion is read-only.</p>
 <div class="good"><strong>Good:</strong> this inspects configuration and schema. It does not fetch ticket rows, customer names, email addresses, comments, or attachments.</div>
+<p><strong>Helpdesk version check:</strong> Helpdesk v1.31.1 attempts to create the <code>Notification Type</code> DocType during installation. The unmodified Frappe v16.5.0 tag does not include it. If the site reports Helpdesk v1.31.1 and this check is false, stop and resolve the upstream version compatibility before installation; do not patch around it. The pinned v16.5.0 reference uses Helpdesk v1.30.2.</p>
 </section>
 <section class="step"><h2>Step 2A — Check the standard Helpdesk fields and permissions</h2>
 <p>The initial adapter reads aggregate values from <code>HD Ticket</code> and checks the <code>HD Service Level Agreement</code> DocType. It does not read ticket subjects, comments, contacts or ticket identifiers. Confirm the following fields exist in the installed version:</p>
