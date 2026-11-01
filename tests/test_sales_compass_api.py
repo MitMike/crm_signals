@@ -124,6 +124,7 @@ def load_sales_api(
     invoice_has_is_return=True,
     user="sales@example.com",
     version="15.0.0",
+    helpdesk_creation_column=True,
 ):
     frappe = types.ModuleType("frappe")
     frappe.__path__ = []
@@ -144,6 +145,9 @@ def load_sales_api(
     class FakeDB:
         def exists(self, doctype, name):
             return doctype == "DocType" and name in {"Lead", "Opportunity", "Sales Invoice", "Payment Entry", "HD Ticket", "HD Service Level Agreement"}
+
+        def has_column(self, doctype, column):
+            return doctype == "HD Ticket" and column == "creation" and helpdesk_creation_column
 
     frappe.db = FakeDB()
     permissions = {
