@@ -180,7 +180,7 @@ The initial adapter is implemented for standard Frappe Helpdesk. Verify the inst
 | Native pause/resume and Fulfilled/Failed behavior | |
 | Retention/deletion policy and business-approved KPI interpretation | |
 
-The v1.28.0 reference fields are all permlevel 0. For later Helpdesk versions, do not automatically grant permlevel 7 or 8; review all fields at those levels with the security owner. A field-level permission gap should make the affected metric unavailable, not zero. Helpdesk v1.31.1 calls `Notification Type` during installation, but the unmodified Frappe v16.5.0 tag lacks that DocType; verify the exact Frappe build before using that pair.
+The v1.28.0 reference fields are all permlevel 0. For later Helpdesk versions, do not automatically grant permlevel 7 or 8; review all fields at those levels with the security owner. A field-level permission gap should make the affected metric unavailable, not zero. Helpdesk v1.29.0 and later link `@framework/ui` to `apps/frappe/ui`, absent from the unmodified Frappe v16.5.0 tag; v1.31.1 additionally calls `Notification Type` during installation, also absent. Verify the exact Frappe build before using those versions; the pinned v16.5.0 reference uses v1.28.0.
 
 ### D3 staging test matrix
 
