@@ -8,6 +8,9 @@
  "field_order": [
   "status",
   "attempt_count",
+  "replay_count",
+  "last_replayed_at",
+  "last_replayed_by",
   "column_break_delivery",
   "next_retry_at",
   "last_attempt_at",
@@ -46,6 +49,26 @@
    "default": "0",
    "read_only": 1,
    "in_list_view": 1
+  },
+  {
+   "fieldname": "replay_count",
+   "fieldtype": "Int",
+   "label": "Manual Replay Count",
+   "default": "0",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_replayed_at",
+   "fieldtype": "Datetime",
+   "label": "Last Manual Replay At",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_replayed_by",
+   "fieldtype": "Link",
+   "label": "Last Manual Replay By",
+   "options": "User",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_delivery",
