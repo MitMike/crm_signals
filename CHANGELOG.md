@@ -2,6 +2,19 @@
 
 This changelog records user-visible and operationally significant changes. It is not a substitute for commit history. Entries do not imply a production release unless explicitly stated.
 
+## Unreleased — Transactional signal outbox (PR #26)
+
+### Added
+- Persist Quotation and Opportunity source events in a dedicated idempotent outbox with scheduled retries, bounded exponential backoff and a terminal Failed state visible to System Managers.
+- Add Bench coverage for delivery recovery, retry exhaustion, batch fairness, concurrent outbox processing, concurrent duplicate enqueue and immutable outbox permissions.
+
+### Changed
+- Abort a Quotation submit or Opportunity update if its outbox event cannot be persisted in the source transaction. Failures to materialize the CRM Signal after persistence remain retryable and do not block the source document.
+- Keep outbox payload and delivery state read-only to administrators; inspect failures through the outbox and Error Log.
+
+### Operational note
+- Terminal Failed rows do not yet have a self-service replay action. Realtime notification retry remains separate and is not provided by the signal outbox.
+
 ## 2026-11-01 — Concurrent API idempotency and digest delivery hardening (merged in PR #23)
 
 ### Changed
