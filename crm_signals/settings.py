@@ -179,6 +179,14 @@ def _validate_company_thresholds(doc):
             frappe.throw(frappe._("Company {0} has no default currency.").format(company), frappe.ValidationError)
         if row.quotation_threshold is None or float(row.quotation_threshold) < 0:
             frappe.throw(frappe._("Company quotation thresholds must be zero or greater."), frappe.ValidationError)
+        configured_currency = str(row.currency or "").strip()
+        if configured_currency and configured_currency != currency:
+            frappe.throw(
+                frappe._(
+                    "Company {0} currency changed from {1} to {2}. Remove and re-add this threshold row, then enter the newly approved amount."
+                ).format(company, configured_currency, currency),
+                frappe.ValidationError,
+            )
         row.currency = currency
 
 
