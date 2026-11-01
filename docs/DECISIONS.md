@@ -341,3 +341,13 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Rationale:** An unlimited query can produce an unbounded email body and impose avoidable database, worker and mail-queue load on sites with many Quotations expiring on one date.
 - **Consequences:** The digest remains concise and honest about truncation; users must open ERPNext for the full list. The count is a lower-bound indicator only when the cap is reached.
 - **Sources:** [Daily digest specification](../specs/2026-11-01-crm-signals-daily-digest.md), [Digest implementation](../crm_signals/tasks.py), [Digest tests](../tests/test_digest_rendering.py).
+
+
+## ADR-038 — Use Frappe's supported formatted naming expression for CRM Signals
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-01
+- **Decision:** Define CRM Signal autoname as `format:SIG-{YYYY}-{#####}`, using Frappe's brace-delimited format tokens.
+- **Rationale:** The previous dotted expression was persisted literally as `SIG-.YYYY.-.#####` in Bench v15/v16, causing every inserted CRM Signal to collide on the same primary key. This is a real installation/runtime defect, not a test-only issue.
+- **Consequences:** Fresh installs and schema syncs use a date-prefixed sequence. Validate upgrade/sync behavior on existing sites and ensure the naming series advances correctly after deployment.
+- **Sources:** [CRM Signal DocType](../crm_signals/crm_signals/doctype/crm_signal/crm_signal.json), [Bench CI failure](https://github.com/MitMike/crm_signals/actions).
