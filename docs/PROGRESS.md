@@ -131,3 +131,13 @@ For each change:
 4. Update [CHANGELOG.md](../CHANGELOG.md) for user-visible or operationally significant changes.
 5. Reconcile this file after merge and attach commit/CI evidence.
 6. Put blocked or intentionally deferred work in [FOLLOW_UPS.md](FOLLOW_UPS.md), with an owner/trigger and reason.
+
+
+## Current engineering work — PR #25 (not merged)
+
+- Adds the System Manager-only CRM Signal Outbox DocType for Quotation and Opportunity source events.
+- Stores each outbox row in the source transaction. If outbox persistence itself fails, the source document save now fails rather than committing an event that cannot be retried (ADR-045). If CRM Signal materialization fails after the outbox is stored, a savepoint preserves the outbox row and records a bounded retry.
+- Retries due rows every minute in batches of at most 100, with exponential backoff capped at 60 minutes and a terminal Failed state after ten attempts.
+- Uses the unique source-event key and a row lock to prevent duplicate materialization by overlapping workers. The scheduler filters out future-dated retries before applying its batch limit so older delayed rows cannot starve due work.
+- Bench coverage now includes recovery after immediate delivery failure, bounded backoff, retry exhaustion, future retry exclusion, batch fairness, concurrent processing of one outbox row and the source-save behavior when outbox persistence fails.
+- **Status:** implementation is in [PR #25](https://github.com/MitMike/crm_signals/pull/25). The earlier head 45771d6 passed Quality Checks, Security Scanning and Bench v15/v16 + Playwright. Additional concurrency and persistence-failure tests were added afterwards; their CI must pass before merge. Concurrent duplicate enqueue/read-before-insert coverage and an operator replay action for terminal Failed rows remain open.
