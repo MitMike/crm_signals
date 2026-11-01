@@ -40,8 +40,8 @@ PRESETS = {
 }
 
 DEFAULTS = {
-    "enabled": 1,
-    "enable_external_ingestion": 1,
+    "enabled": 0,
+    "enable_external_ingestion": 0,
     "enable_quotation_signals": 1,
     "quotation_threshold": 200000,
     "threshold_currency": None,
