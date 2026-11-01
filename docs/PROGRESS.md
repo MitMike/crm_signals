@@ -10,7 +10,7 @@ This file is the operational source of truth. [IMPLEMENTATION_PLAN.md](../IMPLEM
 
 ## Current status
 
-**Sprint update — 2026-11-02:** PR #32 D3 adapter merged and passed v15/v16 CI; PR #36 ADR-049 confirmed Frappe v16.5 as the primary target while retaining v15/v16 coverage; PR #38 audited Failed-row replay merged; PR #42 D3 field-level fail-closed guard merged; PR #44 source-document read authorization merged; PR #45 per-company quotation thresholds merged as `ff434bdf` after all 16 required checks passed on head `84783d15`. PR #46 adds an exact Frappe v16.5.0 compatibility lane. Its first Helpdesk v1.31.1 install failed because that release calls the removed `Notification Type` controller; ADR-056 now pins Helpdesk v1.30.2 for the exact v16.5.0 lane and the rerun is pending. PR #47 contains the operator kit. No pilot-site acceptance has been recorded.
+**Sprint update — 2026-11-02:** PR #32 D3 adapter merged and passed v15/v16 CI; PR #36 ADR-049 confirmed Frappe v16.5 as the primary target while retaining v15/v16 coverage; PR #38 audited Failed-row replay merged; PR #42 D3 field-level fail-closed guard merged; PR #44 source-document read authorization merged; PR #45 per-company quotation thresholds merged as `ff434bdf` after all 16 required checks passed on head `84783d15`. PR #48 adds an exact Frappe v16.5.0 compatibility lane. Its first Helpdesk v1.31.1 install failed because that release calls the missing `Notification Type` controller; ADR-057 now pins Helpdesk v1.30.2 for the exact v16.5.0 lane and the corrected schema smoke-test rerun is pending. PR #47 contains the operator kit. No pilot-site acceptance has been recorded.
 
 
 | Workstream | Status | Evidence / next action |
