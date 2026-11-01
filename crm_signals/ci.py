@@ -82,3 +82,74 @@ def prepare_e2e_site():
         "company": "CRM Signals CI Company",
         "users": ["e2e-sales-user@example.com", "e2e-employee@example.com"],
     }
+
+
+LEGACY_SIGNAL_MESSAGES = (
+    "CRM Signals upgrade fixture: legacy row one",
+    "CRM Signals upgrade fixture: legacy row two",
+)
+
+
+def prepare_upgrade_site():
+    """Create pre-idempotency records, then restore the legacy table shape.
+
+    This runs only in the disposable CI site. It models an installation whose
+    CRM Signal table predates source-event identity fields while retaining real
+    historical rows and their original document names.
+    """
+    for message in LEGACY_SIGNAL_MESSAGES:
+        if not frappe.db.exists("CRM Signal", {"message": message}):
+            frappe.get_doc(
+                {
+                    "doctype": "CRM Signal",
+                    "signal_type": "Website Visit",
+                    "priority": "Medium",
+                    "message": message,
+                }
+            ).insert(ignore_permissions=True)
+    frappe.db.commit()
+
+    # A column drop also removes its unique index. DocField metadata remains
+    # installed, allowing the subsequent bench migrate to exercise Frappe's
+    # real schema synchronization path for the newer fields.
+    for fieldname in (
+        "source_doctype",
+        "source_name",
+        "source_event_id",
+        "source_event_key",
+    ):
+        if frappe.db.has_column("CRM Signal", fieldname):
+            frappe.db.sql(
+                f"ALTER TABLE \`tabCRM Signal\` DROP COLUMN \`{fieldname}\`"
+            )
+    frappe.db.commit()
+    return {"legacy_records": len(LEGACY_SIGNAL_MESSAGES), "schema": "pre-source-event-identity"}
+
+
+def verify_upgrade_site():
+    """Assert migrate restored new fields without losing legacy signal rows."""
+    missing = [
+        fieldname
+        for fieldname in (
+            "source_doctype",
+            "source_name",
+            "source_event_id",
+            "source_event_key",
+        )
+        if not frappe.db.has_column("CRM Signal", fieldname)
+    ]
+    if missing:
+        frappe.throw("CRM Signal upgrade did not restore fields: " + ", ".join(missing))
+
+    for message in LEGACY_SIGNAL_MESSAGES:
+        rows = frappe.get_all(
+            "CRM Signal",
+            filters={"message": message},
+            fields=["name", "source_event_key"],
+        )
+        if len(rows) != 1:
+            frappe.throw(f"Expected exactly one preserved legacy CRM Signal for: {message}")
+        if rows[0].source_event_key:
+            frappe.throw(f"Legacy CRM Signal unexpectedly acquired an event key: {rows[0].name}")
+
+    return {"status": "passed", "preserved_legacy_records": len(LEGACY_SIGNAL_MESSAGES)}
