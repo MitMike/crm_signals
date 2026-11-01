@@ -165,6 +165,22 @@ def _parse_time(value) -> datetime.time:
     return datetime.time.fromisoformat(str(value).strip()[:8]).replace(second=0, microsecond=0)
 
 
+def _validate_company_thresholds(doc):
+    """Validate unique company rows and derive their authoritative currencies."""
+    seen_companies = set()
+    for row in (getattr(doc, "company_thresholds", None) or []):
+        company = str(row.company or "").strip()
+        if not company or company in seen_companies:
+            frappe.throw(frappe._("Each company can have only one quotation threshold."), frappe.ValidationError)
+        seen_companies.add(company)
+        currency = get_company_default_currency(company)
+        if not currency:
+            frappe.throw(frappe._("Company {0} has no default currency.").format(company), frappe.ValidationError)
+        if row.quotation_threshold is None or float(row.quotation_threshold) < 0:
+            frappe.throw(frappe._("Company quotation thresholds must be zero or greater."), frappe.ValidationError)
+        row.currency = currency
+
+
 def validate_settings_document(doc) -> None:
     """Validate admin-entered settings and populate the Company currency."""
     if doc.quotation_threshold is None or float(doc.quotation_threshold) < 0:
@@ -179,18 +195,7 @@ def validate_settings_document(doc) -> None:
             frappe.ValidationError,
         )
 
-    seen_companies = set()
-    for row in (getattr(doc, "company_thresholds", None) or []):
-        company = str(row.company or "").strip()
-        if not company or company in seen_companies:
-            frappe.throw(frappe._("Each company can have only one quotation threshold."), frappe.ValidationError)
-        seen_companies.add(company)
-        currency = get_company_default_currency(company)
-        if not currency:
-            frappe.throw(frappe._("Company {0} has no default currency.").format(company), frappe.ValidationError)
-        if row.quotation_threshold is None or float(row.quotation_threshold) < 0:
-            frappe.throw(frappe._("Company quotation thresholds must be zero or greater."), frappe.ValidationError)
-        row.currency = currency
+    _validate_company_thresholds(doc)
 
     statuses = parse_statuses(doc.opportunity_trigger_statuses)
     if doc.enable_opportunity_signals and not statuses:
