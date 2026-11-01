@@ -115,19 +115,36 @@ def insert_signal_once(
     return signal, True
 
 
-def _company_threshold_value(doc, settings):
-    """Compare in the Company's base currency, not the Quote's transaction currency."""
-    company_currency = get_company_default_currency(getattr(doc, "company", None))
-    threshold_currency = settings.get("threshold_currency")
-    if not company_currency or not threshold_currency or threshold_currency != company_currency:
+def _company_threshold_policy(doc, settings):
+    """Resolve a threshold in the Quotation Company's base currency."""
+    company = getattr(doc, "company", None)
+    company_currency = get_company_default_currency(company)
+    if not company_currency:
         return None
+    overrides = {
+        row.get("company"): row
+        for row in (settings.get("company_thresholds") or [])
+        if row.get("company")
+    }
+    policy = overrides.get(company)
+    if policy:
+        if policy.get("currency") != company_currency:
+            return None
+        threshold = float(policy.get("quotation_threshold") or 0)
+    else:
+        threshold_currency = settings.get("threshold_currency")
+        if not threshold_currency or threshold_currency != company_currency:
+            return None
+        threshold = float(settings.get("quotation_threshold") or 0)
 
     base_total = getattr(doc, "base_grand_total", None)
     if base_total is not None:
-        return float(base_total)
-    if getattr(doc, "currency", None) == company_currency:
-        return float(getattr(doc, "grand_total", 0) or 0)
-    return None
+        amount = float(base_total)
+    elif getattr(doc, "currency", None) == company_currency:
+        amount = float(getattr(doc, "grand_total", 0) or 0)
+    else:
+        return None
+    return {"amount": amount, "threshold": threshold}
 
 
 def on_quotation_submit(doc, method=None):
@@ -137,8 +154,8 @@ def on_quotation_submit(doc, method=None):
         if not settings["enabled"] or not settings["enable_quotation_signals"]:
             return
 
-        amount = _company_threshold_value(doc, settings)
-        if amount is None or amount < float(settings["quotation_threshold"] or 0):
+        policy = _company_threshold_policy(doc, settings)
+        if policy is None or policy["amount"] < policy["threshold"]:
             return
 
         links = _party_links(

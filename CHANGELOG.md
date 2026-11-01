@@ -15,13 +15,32 @@ This changelog records user-visible and operationally significant changes. It is
 ### Operational note
 - Terminal Failed rows can be requeued only through the audited System Manager action above. Realtime notification retry remains separate and is not provided by the signal outbox.
 
+### Audited terminal Failed-row replay — merged in PR #38
+
+- Add a POST-only System Manager action requiring CRM Signal Outbox read permission, with an explicit confirmation dialog.
+- Lock and replay only Failed rows; preserve original attempt count and last error, record replay count/actor/time and an audit Comment, then enqueue the same idempotent worker after commit.
+- If enqueue fails, the row remains Pending for the scheduled worker; direct outbox status editing remains unavailable.
+- PR #38 head `8e4c58dc3b2434559450651c3d3a4a649a034d3a` passed Quality, Security and Bench v15/v16. Merge commit: `1640bdd496706a7f297b0984f1fd1d9695307147`.
+
+### Per-company quotation thresholds — in PR #45 review
+
+- Add an optional Company-specific threshold table and derive each row's currency from Company metadata.
+- Compare Quotation base totals to the matching Company threshold; use the legacy site-wide threshold only when currencies match exactly. No implicit FX conversion.
+- Add tests for per-company selection, currency mismatch suppression and exact-currency fallback.
+
+
 ### D3 Service Resolution/SLA — merged in PR #32
 
 - Add aggregate-only Frappe Helpdesk metrics from standard `HD Ticket` and `HD Service Level Agreement` metadata: rolling ticket creation/resolution cohorts, current Open/Paused backlog, native resolution duration and Fulfilled/Failed SLA outcomes.
 - Check ticket and SLA DocType read permissions independently; do not return ticket identifiers, subjects, comments, contact details or raw records to the dashboard.
 - Keep due/paused SLA states out of the Fulfilled/Failed compliance denominator and count tickets without an SLA separately.
 - Final PR #32 head `93b536abef331d8b34b5b7b570fbb280a996bfb2` passed Python 3.10/3.11/3.12/3.14, lint/static, Semgrep and Bench v15/v16. Merge commit: `43fddfbbc46cac277a48c840251a7a2c963a8eb5`.
-- A follow-up field-level permission guard is in review because standard Helpdesk lifecycle/SLA fields use permlevels 7 and 8. Target-site app-version, field-permission and active SLA calendar acceptance remain open.
+- PR #42 merged a fail-closed field-level guard that checks the current user's permitted HD Ticket field names and marks affected measures unavailable instead of returning zero. Target-site app-version, Sales read-only role and active SLA calendar acceptance remain open.
+
+### Realtime source-document authorization — in PR #44 review
+
+- Require read access to the originating Quotation/Opportunity as well as the linked Lead/Customer and CRM Signal before queuing a notification that may contain source-derived values.
+- Fail closed for partially populated source DocType/name pairs; regression tests prove a Lead reader without Quotation access receives no source-derived notification.
 
 
 ## 2026-11-01 — Concurrent API idempotency and digest delivery hardening (merged in PR #23)
@@ -179,3 +198,9 @@ Included in PR #19's merge commit [a495919](https://github.com/MitMike/crm_signa
 - Await the settings form's custom-preset model update and commit the integer field before asserting the preset change.
 
 Included in PR #19's merge commit [a495919](https://github.com/MitMike/crm_signals/commit/a49591947a89b011cc1770be176c1f11571b131b); the final v16 Playwright suite passed.
+
+### Realtime source-document authorization — merged in PR #44
+
+- Require read access to the originating Quotation/Opportunity as well as the linked Lead/Customer and CRM Signal before queuing a source-derived notification.
+- Fail closed for partially populated source DocType/name pairs; regression tests cover source access denial and malformed source identity.
+- Merged as `48622c08700032566051978076f49bc807c381e7` after Frappe v15/v16 CI passed.

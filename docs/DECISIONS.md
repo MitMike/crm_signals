@@ -467,6 +467,17 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Consequences:** A failed enqueue leaves a durable Pending row for the scheduled worker. The stable source-event key prevents duplicate CRM Signals. Realtime notification delivery remains a separate reliability concern.
 - **Validation:** Bench tests cover non-System-Manager denial, missing outbox read permission, replay state, preserved attempt history, audit metadata/comment and after-commit enqueue. Required Frappe v15/v16 CI remains the merge gate.
 
+
+## ADR-051 — Support explicit per-company quotation alert thresholds
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-02
+- **Context:** The first settings version applies one site-wide quotation threshold in the default Company's currency. Multi-company sites may have different base currencies and different materiality thresholds; comparing base totals against one currency's threshold is invalid.
+- **Decision:** Add an optional Company Threshold child table. Each row is keyed by Company, requires an explicitly entered non-negative threshold (including explicit zero), and derives its currency from that Company's configured default currency. Do not silently inherit the site-wide numeric amount into a new Company row. Evaluate the Quotation's base total against the matching Company row. For companies without an override, retain the legacy site-wide threshold only when its currency exactly matches the Company's base currency. Never convert currencies implicitly.
+- **Rationale:** Company-specific thresholds avoid false positives/negatives without introducing an unapproved exchange-rate source or conversion policy.
+- **Consequences:** Existing single-company configurations continue to work. Multi-company administrators should configure an override for every Company that needs a threshold distinct from the legacy site-wide value. If a Company's base currency changes, reject the stale row until the administrator removes/re-adds it and enters a newly approved amount; do not silently reinterpret the same number in a different currency.
+- **Validation:** Unit coverage verifies company-specific currency derivation and threshold selection, rejects mismatched override currencies, and preserves the exact-currency fallback. Bench migration and v15/v16 validation are the merge gate.
+
 ## ADR-052 — Treat Helpdesk field-level permissions as metric availability gates
 
 - **Status:** Accepted
@@ -476,3 +487,44 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Rationale:** Availability must reflect the data the current user is authorized to read. Silent field removal is not evidence of zero tickets, and granting permlevel 7/8 broadly may expose additional Helpdesk fields outside the aggregate dashboard.
 - **Consequences:** The operator guide must explicitly test HD Ticket field-level access for Sales User/Manager. A site may show ticket creation counts while backlog, resolution or SLA measures remain unavailable until an authorized least-privilege policy is approved.
 - **Evidence:** [Frappe v16 permitted-field filtering](https://github.com/frappe/frappe/blob/version-16/frappe/model/db_query.py) and [Frappe Helpdesk HD Ticket field permlevels](https://github.com/frappe/helpdesk/blob/main/helpdesk/helpdesk/doctype/hd_ticket/hd_ticket.json).
+
+## ADR-053 — Do not treat Frappe realtime queueing as delivery confirmation
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-02
+- **Context:** Frappe v16 `publish_realtime(after_commit=True)` queues a callback and returns before Redis publication. The after-commit flush calls `emit_via_redis`, which suppresses `redis.exceptions.ConnectionError`. The current CRM Signals try/except therefore cannot detect a Redis outage, and its `sent` count represents a queued callback rather than confirmed publication or user receipt.
+- **Decision:** Do not add retry logic by merely wrapping `frappe.publish_realtime` in another try/except, and do not describe a queued event as delivered. Keep realtime as best-effort until a durable per-recipient delivery boundary is implemented. Any future retry must persist a stable delivery ID, re-check recipient permissions, use bounded at-least-once attempts and client-side duplicate suppression, and distinguish published/attempted from human-delivered.
+- **Rationale:** A retry without a stable idempotency boundary can duplicate toasts; a retry that trusts the current API's return/exception behavior can silently lose events while claiming success.
+- **Consequences:** Durable realtime retry remains open. Required tests include Redis unavailability, crash after publish before state commit, duplicate suppression and permission revocation. Do not promise guaranteed human receipt without client acknowledgement.
+- **Evidence:** [Frappe v16.5.0 realtime implementation](https://github.com/frappe/frappe/blob/v16.5.0/frappe/realtime/__init__.py).
+
+## ADR-054 — Require source-document read access before realtime signal delivery
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-02
+- **Context:** CRM Signal notifications include a message derived from the originating Quotation/Opportunity. The existing recipient filter checked read access to the linked Lead/Customer and CRM Signal, but did not check the source document. A user could therefore receive a message containing source-derived values without permission to read the source record.
+- **Decision:** A realtime recipient must be a related owner/assignee, an enabled System User, and have read access to the CRM Signal, every linked Lead/Customer, and the originating source document when present. If source DocType/name is partially populated, fail closed. Do not send a partial message that may still contain source data.
+- **Rationale:** A notification is not an authorization grant. Requiring access to every record that can contribute content is safer than sending to a user who can read only one related record.
+- **Consequences:** Users who can read a Lead but not its source Quotation/Opportunity will not receive that source-derived notification. Manual signals without a source link continue to use the linked party and CRM Signal permissions. Target-site permission parity must include source DocTypes.
+- **Validation:** Regression tests cover a parent reader without source-document read permission and malformed partial source identity; Frappe v15/v16 CI is the merge gate.
+
+## ADR-055 — Add an exact Frappe v16.5.0 and Helpdesk compatibility job
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-02
+- **Context:** The existing CI matrix tests the moving `version-16` branch. That proves major-version compatibility but not the confirmed Frappe v16.5.0 pilot baseline. The upstream Frappe and ERPNext `v16.5.0` tags exist; Helpdesk `v1.31.1` supports Frappe `>=15.123.1,<17.0.0` and depends on Telephony, whose pinned commit supports the v16 line.
+- **Decision:** Add a dedicated Bench matrix lane pinned to Frappe `v16.5.0`, ERPNext `v16.5.0`, Helpdesk `v1.31.1` and Telephony commit `9447577500a25d242088398157b72c654fa34b20`. Keep the moving v15/v16 jobs. Run the pinned lane on all pull requests for continuous target evidence; preserve the existing required v15/v16 check names explicitly.
+- **Rationale:** A moving branch can change after the pilot target; exact-tag CI makes the compatibility claim reproducible.
+- **Consequences:** The pinned lane adds one parallel Bench job to each PR. It validates this reference stack, not the user's live site. The operator must still capture exact installed patch/app versions; older/newer Helpdesk builds may have different schemas and permissions.
+- **Evidence:** [Frappe v16.5.0](https://github.com/frappe/frappe/tree/v16.5.0), [ERPNext v16.5.0](https://github.com/frappe/erpnext/tree/v16.5.0), [Helpdesk v1.31.1](https://github.com/frappe/helpdesk/tree/v1.31.1), [Pinned Telephony commit](https://github.com/frappe/telephony/commit/9447577500a25d242088398157b72c654fa34b20).
+
+## ADR-056 — Preserve Helpdesk read-only permission boundaries for D3
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-02
+- **Context:** In Helpdesk v1.31.1, `HD Ticket` lifecycle/SLA fields `status_category`, `resolution_date`, `resolution_time` and `sla` are permlevel 7; `agreement_status` is permlevel 8. Default HD Ticket read roles are System Manager, Agent, Agent Manager, HD Customer and HD Customer Manager at base/level 7; level 8 is limited to System Manager, Agent and Agent Manager. `HD Service Level Agreement` read is granted to System Manager and Agent Manager. ERPNext Sales User/Manager are not default Helpdesk readers. Agent and Agent Manager carry create/write privileges; Agent Manager and System Manager also have delete permission.
+- **Decision:** Keep D3 permission-aware and fail-closed. Do not use `ignore_permissions` and do not assign Agent/Agent Manager solely to expose dashboard metrics. If Sales roles need D3, configure a dedicated custom read-only role with base `HD Ticket` read plus level 7/8 read as required, and `HD Service Level Agreement` read only if SLA metrics are required. Verify the installed Helpdesk metadata before applying this role map.
+- **Rationale:** Dashboard access must not silently grant ticket mutation privileges or bypass Helpdesk's field-level controls.
+- **Consequences:** Without the relevant read permissions, ticket or SLA metrics are unavailable rather than zero. Site administrators must decide which Sales roles receive ticket-only versus SLA visibility and test list/form/API parity.
+- **Evidence:** [Helpdesk v1.31.1 HD Ticket permissions](https://github.com/frappe/helpdesk/blob/v1.31.1/helpdesk/helpdesk/doctype/hd_ticket/hd_ticket.json), [HD Service Level Agreement permissions](https://github.com/frappe/helpdesk/blob/v1.31.1/helpdesk/helpdesk/doctype/hd_service_level_agreement/hd_service_level_agreement.json).
+
