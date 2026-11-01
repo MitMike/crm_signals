@@ -458,7 +458,7 @@ def _get_helpdesk_service_metrics(period_start):
     metrics = _helpdesk_empty_metrics()
     try:
         ticket_meta = _sales_dashboard_doctype_meta("HD Ticket")
-        if not ticket_meta or not ticket_meta.has_field("creation"):
+        if not ticket_meta or not frappe.db.has_column("HD Ticket", "creation"):
             return metrics
         permitted_fields = _sales_dashboard_permitted_fields(ticket_meta)
         metrics["available"] = True

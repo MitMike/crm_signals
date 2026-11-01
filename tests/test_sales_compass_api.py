@@ -145,6 +145,9 @@ def load_sales_api(
         def exists(self, doctype, name):
             return doctype == "DocType" and name in {"Lead", "Opportunity", "Sales Invoice", "Payment Entry", "HD Ticket", "HD Service Level Agreement"}
 
+        def has_column(self, doctype, column):
+            return doctype == "HD Ticket" and column == "creation"
+
     frappe.db = FakeDB()
     permissions = {
         "Lead": lead_read,
@@ -172,7 +175,7 @@ def load_sales_api(
                 "payment_type", "party_type", "posting_date", "received_amount",
                 "paid_to_account_currency",
             },
-            "HD Ticket": {"creation", "status_category", "resolution_date", "resolution_time", "sla", "agreement_status"},
+            "HD Ticket": {"status_category", "resolution_date", "resolution_time", "sla", "agreement_status"},
             "HD Service Level Agreement": {"service_level", "enabled", "default_sla"},
         }
 
@@ -403,6 +406,16 @@ def test_billing_marks_return_sensitive_invoice_metrics_unavailable_without_is_r
     assert not any(query["doctype"] == "Sales Invoice" for query in queries)
     assert any(query["doctype"] == "Payment Entry" for query in queries)
 
+
+
+def test_helpdesk_metrics_use_system_creation_column_not_meta_field(monkeypatch):
+    api, _, frappe = load_sales_api(monkeypatch)
+
+    assert not frappe.get_meta("HD Ticket").has_field("creation")
+    result = api.get_sales_compass_data()["service"]
+
+    assert result["available"] is True
+    assert result["created_last_30_days"] == 12
 
 
 def test_helpdesk_service_metrics_use_status_category_and_native_sla_outcomes(monkeypatch):
