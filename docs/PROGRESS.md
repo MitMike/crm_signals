@@ -2,17 +2,15 @@
 
 **Last reviewed:** 2026-11-02  
 **Repository:** [MitMike/crm_signals](https://github.com/MitMike/crm_signals)  
-**Main baseline:** [b0364a7](https://github.com/MitMike/crm_signals/commit/b0364a74affa823977af74d1907781d1533e60c0)  
-**Completed implementation:** PR #19 delivered settings/presets and core idempotency; PR #21 validated the legacy-schema migration; [PR #23](https://github.com/MitMike/crm_signals/pull/23) merged as [d75b7f3](https://github.com/MitMike/crm_signals/commit/d75b7f3591d2a863b0af6b8f88ad2a91e9bfd25f), closing concurrent API-idempotency and digest-queue races.  
-**Next acceptance:** PR #26 transactional outbox is merged and validated on Frappe v15/v16. [PR #28](https://github.com/MitMike/crm_signals/pull/28) adds the target-site acceptance evidence kit. Target-site execution remains outstanding; green CI does not constitute production sign-off.
+**Main baseline:** [e57d94e](https://github.com/MitMike/crm_signals/commit/e57d94ea3090cfa50c5270a673e14c19ec6acbe3)  
+**Completed implementation:** PR #19 delivered settings/presets and core idempotency; PR #21 validated the legacy-schema migration; PR #23 closed concurrent API-idempotency and digest-queue races; PR #26 merged the transactional signal outbox; PR #32 merged the standard Frappe Helpdesk D3 adapter.  
+**Next acceptance:** complete the Frappe v16.5 pilot: exact patch/app versions, Company threshold policy, role/field permissions, D1/D2 reconciliation, Helpdesk SLA calendar, scheduler/mail/realtime, and backup/restore/rollback. PR #32 is CI-verified, not pilot-verified.
 
 This file is the operational source of truth. [IMPLEMENTATION_PLAN.md](../IMPLEMENTATION_PLAN.md) is the roadmap, [DECISIONS.md](DECISIONS.md) is the durable decision register, [FOLLOW_UPS.md](FOLLOW_UPS.md) tracks deferred issues, and [specs/](../specs/) holds feature contracts.
 
 ## Current status
 
-**Engineering update — 2026-11-02:** An audited System Manager-only replay action for terminal Failed outbox rows is implemented on branch `feat/audited-outbox-replay`. It preserves attempt count/error history, records replay count/time/actor and a document comment, and reuses the existing after-commit worker plus scheduled fallback. Bench v15/v16 CI is pending; do not mark merged or validated until the exact PR head passes.
-
-**Sprint update — 2026-11-02:** PR #26 merged as `b0364a74`; its synchronized final head `222e70ec71164dab4448f7319525042323a357b4` passed Quality Checks, Security Scanning and Bench Integration/E2E on Frappe v15/v16. ADR-047 is accepted. PR #28's target-site acceptance kit is merged, but no target-site execution has been recorded. PR #29 updates the decision/progress/follow-up records for the outbox merge. Next roadmap slice is D3 Service Resolution/SLA; implementation remains gated on the actual site's installed support app, ticket/SLA DocTypes, lifecycle fields, calendar and permissions. Do not infer these from framework defaults.
+**Sprint update — 2026-11-02:** PR #32 D3 Helpdesk adapter merged as `43fddfbbc46cac277a48c840251a7a2c963a8eb5`; final head `93b536abef331d8b34b5b7b570fbb280a996bfb2` passed Python 3.10/3.11/3.12/3.14, lint/static, Semgrep and Bench v15/v16. PR #36 Frappe v16.5 target baseline ADR-049 merged as `e57d94ea3090cfa50c5270a673e14c19ec6acbe3`; v15/v16 CI coverage is retained. PR #33 audited Failed-row replay is in review: unsupported `frappe.has_role` and `Document.get_comments` assumptions were replaced, and the action is POST-only, System Manager/read-permission gated and confirmation-protected. PR #34 per-company thresholds are in review. A D3 field-level permission correction is also in validation because standard Helpdesk fields use permlevels 7/8. No target-site acceptance has been recorded.
 
 
 | Workstream | Status | Evidence / next action |
@@ -26,12 +24,12 @@ This file is the operational source of truth. [IMPLEMENTATION_PLAN.md](../IMPLEM
 | Event identity/idempotency | Runtime merged in PR #19; migration rehearsal merged in PR #21; concurrent recovery merged in PR #23 | Unique SHA-256 source-event key; legacy-schema migration passed on Frappe v15/v16; final two-connection API race test passed on both supported versions. One created response, one deduplicated response and one notification dispatch. |
 | Digest hardening | Core merged in PR #19; cross-worker serialization merged in PR #23 | Site-timezone schedule, permission-aware per-user email and per-recipient queue markers; Settings row lock plus recheck prevents overlapping workers queuing the same recipient/date; v15/v16 Bench tests passed. Target-site scheduler/mail acceptance remains open. |
 | Notification failure isolation | Merged in PR #19 | Recipient failures are logged and do not block other recipients or source-document saves; automated retry/outbox remains deferred |
-| D3 Service Resolution/SLA | Specified; not implemented | Discover target-site support/SLA application and source semantics before adapter implementation |
-| H Highlights | Partial/planned | Finish idempotent events, recipient controls, verified proposal tracking and privacy approval |
+| D3 Service Resolution/SLA | Initial adapter merged in PR #32; CI verified | Standard HD Ticket/HD Service Level Agreement aggregate adapter; target-site versions, DocType/field-level permissions and active SLA calendar remain. Field-level fail-closed hardening is in validation |
+| H Highlights | Partial | High-value Quotation signals exist; per-company currency thresholds are in PR #34 review. VIP proposal-link tracking remains blocked on privacy/consent and retention approval |
 | E Explorer | Planned | Inventory installed activity integrations and implement only verified source adapters |
 | V Vault | Planned | Approve metric registry, source visibility and retention before enabling snapshots |
 | A Analysis | Planned | Approved metric registry and constrained server-owned queries; no model-generated SQL |
-| Repository security/CI | Merged | PR #11 security/dependency hardening; PR #18 maintainability guardrails; main ruleset active |\n| Target-site acceptance kit | Draft in PR #28 | `docs/TARGET_SITE_ACCEPTANCE.md`; provides preflight, rollback, permissions, reconciliation, webhook, scheduler and sign-off evidence templates; target-site execution remains open |
+| Repository security/CI | Merged | PR #11 security/dependency hardening; PR #18 maintainability guardrails; main ruleset active |\n| Target-site acceptance kit | Merged in PR #28 | `docs/TARGET_SITE_ACCEPTANCE.md`; target-site execution remains open |
 
 ## Completed reliability hardening — PR #23
 
@@ -117,9 +115,9 @@ GitHub ruleset [Protect main](https://github.com/MitMike/crm_signals/rules/26282
 ## Explicitly deferred
 
 See [FOLLOW_UPS.md](FOLLOW_UPS.md) for issues that should not be silently treated as complete:
-- Retryable outbox/reconciliation for signal-creation failures. Current hooks log failures and preserve the source transaction; they do not yet guarantee automatic retry after a transient database failure.
-- Per-company quotation thresholds for multi-company sites with different base currencies.
-- D3 source discovery, H privacy/consent decisions, E integration inventory, V retention and A metric-registry work.
+- Audited operator replay for terminal Failed outbox rows (PR #33 in review) and durable realtime notification retry.
+- Multi-company quotation thresholds (PR #34 in review); no implicit FX conversion.
+- D3 field-level permission hardening and target-site acceptance; H privacy/consent decisions, E integration inventory, V retention and A metric-registry work.
 
 ## Completed branch work — PR #21
 
@@ -147,3 +145,13 @@ For each change:
 4. Update [CHANGELOG.md](../CHANGELOG.md) for user-visible or operationally significant changes.
 5. Reconcile this file after merge and attach commit/CI evidence.
 6. Put blocked or intentionally deferred work in [FOLLOW_UPS.md](FOLLOW_UPS.md), with an owner/trigger and reason.
+
+
+## D3 adapter merged — Frappe Helpdesk
+
+- Merge: PR #32 as `43fddfbbc46cac277a48c840251a7a2c963a8eb5`; CI verified on Frappe v15/v16.
+- Source schema verified against upstream Helpdesk: HD Ticket, HD Ticket Status, HD Service Level Agreement; ticket fields include status_category, resolution_date, resolution_time, sla and agreement_status.
+- API aggregates ticket creation, current Open/Paused backlog, resolved cohort, native resolution duration and SLA fulfilled/failed outcomes. Ticket and SLA permissions are checked independently; payload contains no ticket subjects, comments, contacts or identifiers.
+- SLA outcome counts use the same rolling 30-day created-ticket cohort; only Fulfilled/Failed are eligible. No-SLA tickets are counted separately.
+- Monday–Saturday is the agreed business-week assumption; configured Helpdesk SLA hours and holiday lists are not overridden.
+- Remaining: target-site version/permission/calendar acceptance. A separate fail-closed field-level permission guard is in validation and must pass Bench v15/v16 before merge.
