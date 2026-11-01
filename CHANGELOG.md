@@ -27,6 +27,7 @@ This changelog records user-visible and operationally significant changes. It is
 - Add an optional Company-specific threshold table and derive each row's currency from Company metadata.
 - Compare Quotation base totals to the matching Company threshold; use the legacy site-wide threshold only when currencies match exactly. No implicit FX conversion.
 - Add tests for per-company selection, currency mismatch suppression and exact-currency fallback.
+- Bind the threshold Currency field to the row's derived Company currency so multi-company amounts display with the correct symbol.
 
 
 ### D3 Service Resolution/SLA — merged in PR #32
