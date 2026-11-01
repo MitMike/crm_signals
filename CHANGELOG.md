@@ -22,7 +22,7 @@ This changelog records user-visible and operationally significant changes. It is
 - If enqueue fails, the row remains Pending for the scheduled worker; direct outbox status editing remains unavailable.
 - PR #38 head `8e4c58dc3b2434559450651c3d3a4a649a034d3a` passed Quality, Security and Bench v15/v16. Merge commit: `1640bdd496706a7f297b0984f1fd1d9695307147`.
 
-### Per-company quotation thresholds — in PR #44 review
+### Per-company quotation thresholds — in PR #45 review
 
 - Add an optional Company-specific threshold table and derive each row's currency from Company metadata.
 - Compare Quotation base totals to the matching Company threshold; use the legacy site-wide threshold only when currencies match exactly. No implicit FX conversion.
