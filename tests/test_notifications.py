@@ -27,7 +27,9 @@ class FakeSignal:
         self.message = "Sample CRM signal message"
 
 
-def load_module(monkeypatch, owner_map, assignments, enabled_users, readable_users=None):
+def load_module(
+    monkeypatch, owner_map, assignments, enabled_users, readable_users=None, signal_readable_users=None
+):
     fake = types.ModuleType("frappe")
     fake.db = FakeDB(owner_map)
     published = []
@@ -42,8 +44,12 @@ def load_module(monkeypatch, owner_map, assignments, enabled_users, readable_use
 
     fake.get_all = get_all
     readable = set(enabled_users if readable_users is None else readable_users)
+    signal_readable = set(
+        enabled_users if signal_readable_users is None else signal_readable_users
+    )
     fake.has_permission = lambda doctype, ptype="read", doc=None, user=None: (
-        ptype == "read" and user in readable
+        ptype == "read"
+        and user in (signal_readable if doctype == "CRM Signal" else readable)
     )
     fake.publish_realtime = lambda **kwargs: published.append(kwargs)
     monkeypatch.setitem(sys.modules, "frappe", fake)
@@ -134,3 +140,18 @@ def test_no_realtime_alert_is_sent_when_no_candidate_can_read_parent(monkeypatch
     module.notify_signal(FakeSignal(customer="CUST-1"))
 
     assert published == []
+
+def test_parent_reader_without_signal_read_permission_does_not_receive_alert(monkeypatch):
+    module, published = load_module(
+        monkeypatch,
+        {("Lead", "LEAD-1"): "owner@example.com"},
+        ["assignee@example.com"],
+        ["owner@example.com", "assignee@example.com"],
+        readable_users=["assignee@example.com"],
+        signal_readable_users=[],
+    )
+
+    module.notify_signal(FakeSignal(lead="LEAD-1"))
+
+    assert published == []
+
