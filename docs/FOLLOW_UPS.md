@@ -14,10 +14,14 @@ This file records known work that is intentionally not represented as complete. 
 
 ## P1 — engineering reliability improvements
 
-- [ ] **Durable signal outbox/reconciliation.** Current source hooks log unexpected CRM Signal creation failures and preserve the source Quotation/Opportunity transaction. This avoids blocking sales operations, but a transient DB failure can still lose the generated signal. Add a transactional outbox or scheduled reconciliation with retry/backoff and an admin-visible failed-event queue before claiming guaranteed delivery.
-- [ ] **Durable realtime retry.** Realtime notification failures are isolated and logged per recipient, but they are not yet retried automatically. Decide whether the site's operational requirement justifies an outbox/notification attempt record.
+- [ ] **Durable signal outbox acceptance and duplicate-enqueue proof.** The implementation is in [PR #25](https://github.com/MitMike/crm_signals/pull/25): source events are persisted transactionally, materialization failures retry with bounded backoff, and terminal failures are visible to System Managers. Close only after the latest Frappe v15/v16 Bench and E2E checks pass and a deterministic two-connection test proves concurrent enqueue of the same source-event key creates one outbox row. Outbox persistence failure intentionally aborts the source save; see ADR-045.
+- [ ] **Durable realtime retry.** CRM Signal creation is retried through the outbox, but realtime notification failures are still isolated and logged per recipient without automatic retry. Decide whether the site's operational requirement justifies a separate notification-attempt record and retry queue.
 - [ ] **Digest concurrency proof.** PR #23 adds a Settings-singleton row lock, rechecks the per-recipient marker before each queue request and includes a two-worker Bench test. Close only after the test passes on Frappe v15 and v16. Live scheduler, worker topology and mail-queue behavior still require target-site validation.
 - [ ] **API idempotency contract coverage.** Bench-backed tests verify same-user duplicate POST deduplication, one notification per event, cross-user source namespacing, unique-key enforcement and multiple legacy rows with null keys. PR #21's pre-feature-schema upgrade rehearsal passed on Frappe v15 and v16. A deterministic two-connection API-handler race test is now in review; close only after it passes on both supported Frappe versions. Broader HTTP load testing remains a separate optional stress test.
+
+## P1 — operator workflow
+
+- [ ] **Terminal outbox replay.** Failed outbox rows are visible to System Managers after ten attempts, but there is no self-service retry/replay action. Define an audited retry control and test that it cannot create a duplicate CRM Signal before closing this item.
 
 ## P1 — site-specific configuration decisions
 
