@@ -38,7 +38,7 @@ Specification: [D2 Billing Realization](../specs/2026-10-31-pillar-d2-billing-re
 - Ticket/SLA DocType permissions are checked independently; the payload contains aggregates only.
 - Monday–Saturday is the agreed initial assumption, but the active Helpdesk SLA's working hours, holiday list and timezone remain authoritative.
 
-**Remaining:** confirm the exact Frappe v16.5 patch and installed ERPNext/Helpdesk versions; verify Sales User/Manager field-level read access for Helpdesk permlevels 7/8; validate each active SLA calendar on the target site. A fail-closed field-level permission correction passed CI on validation head `99cc27a`; rebase/merge and target-site acceptance remain. Do not treat CI as pilot acceptance.
+**Remaining:** confirm the exact Frappe v16.5 patch and installed ERPNext/Helpdesk versions; verify Sales User/Manager field-level read access for Helpdesk permlevels 7/8; validate each active SLA calendar on the target site. A fail-closed field-level permission correction merged in PR #42; target-site version, read-only role and active SLA calendar acceptance remain. Do not treat CI as pilot acceptance.
 
 Specification: [D3 Service Resolution/SLA](../specs/2026-11-01-pillar-d3-service-resolution-sla.md).
 
@@ -46,7 +46,7 @@ Specification: [D3 Service Resolution/SLA](../specs/2026-11-01-pillar-d3-service
 
 **Status:** High-value Quotation signals are implemented; per-company threshold policy is in review. VIP proposal-link tracking remains gated on privacy/consent and retention approval.
 
-- High-value submitted Quotations using Company base currency and an admin-configured threshold; per-company overrides are in PR #40 review.
+- High-value submitted Quotations using Company base currency and an admin-configured threshold; per-company overrides are in PR #45 review.
 - VIP proposal-link opens only from first-party tracked links or a provider with stable event IDs.
 - Escalation to enabled, related users with source-record read permission.
 - Idempotency, bot/scanner exclusion, alert cooldown and privacy/consent controls.
