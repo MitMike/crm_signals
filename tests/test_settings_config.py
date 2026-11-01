@@ -56,7 +56,7 @@ def test_company_currency_comes_from_company_metadata(monkeypatch):
 def test_company_threshold_rows_derive_company_currency(monkeypatch):
     settings = load_settings(monkeypatch)
     frappe = sys.modules["frappe"]
-    currencies = {"Company A": "USD", "Company B": "EUR"}
+    currencies = {"Default Company": "USD", "Company A": "USD", "Company B": "EUR"}
     frappe.db.get_value = lambda doctype, name, field=None, **kwargs: currencies.get(name) if doctype == "Company" else None
     rows = [
         types.SimpleNamespace(company="Company A", quotation_threshold=100000, currency=None),
