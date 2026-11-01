@@ -24,6 +24,8 @@ bench restart
 
 For an existing installation, deploy the approved app revision and run `bench --site <site-name> migrate`, then build assets and restart workers. Take a database and files backup first. Follow your site's normal maintenance window and rollback process.
 
+For the pilot, install only after the required pull requests are merged and CI is green. Record the exact CRM Signals revision with `git -C apps/crm_signals rev-parse HEAD` and attach it to the acceptance record. Do not leave a production deployment tracking a moving `main` branch; use an approved release tag or pinned commit. After installation, capture `bench version` and `bench --site <site-name> list-apps` again so the installed state is evidenced.
+
 ## Configure CRM Signals
 
 1. Sign in as a System Manager.
