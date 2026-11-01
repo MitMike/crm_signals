@@ -24,7 +24,7 @@ This file records known work that is intentionally not represented as complete. 
 
 ## P1 — site-specific configuration decisions
 
-- [x] **Multi-company threshold policy.** PR #45 merged as `ff434bdf407d1d61842d81fae16e04b4b9b483d5` after all 16 required checks passed. Each enabled Company needs an explicitly approved non-negative threshold in its base currency; the legacy site-wide threshold is used only on an exact base-currency match. No implicit FX conversion. Target-site Company-by-Company amount approval and currency-change reapproval remain.
+- [x] **Multi-company threshold policy.** PR #45 merged as `ff434bdf407d1d61842d81fae16e04b4b9b483d5`; PR #49 merged the child-row Currency `options`/`fetch_from` correction as `2e9eb89b8ed5618ca3e50e6bc0b2c867c516e17b`, so the Company base currency displays correctly. Each enabled Company still needs an explicitly approved non-negative threshold in its base currency; the legacy site-wide threshold is used only on an exact base-currency match. No implicit FX conversion. Target-site Company-by-Company amount approval and currency-change reapproval remain.
 - [ ] **Opportunity and Lead semantics.** Confirm the exact trigger statuses and terminal Lead statuses from the live site's workflows. Confirm the Lead modified timestamp is an acceptable proxy for attention.
 - [ ] **Digest policy.** Confirm timezone, delivery time, additional recipients, mail-queue behavior and stale window with the Sales Manager/business owner.
 
