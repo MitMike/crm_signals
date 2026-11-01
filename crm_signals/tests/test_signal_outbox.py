@@ -22,6 +22,7 @@ if frappe is not None:
     from crm_signals import signal_outbox
     from crm_signals.event_identity import build_source_event_key
     from crm_signals.events import on_quotation_submit
+    from crm_signals.crm_signals.doctype.crm_signal_outbox.crm_signal_outbox import replay_failed_signal_outbox
     from crm_signals.signal_outbox import (
         SignalOutboxPersistenceError,
         _retry_delay_minutes,
@@ -77,7 +78,6 @@ class TestSignalOutbox(FrappeTestCase):
         try:
             frappe.set_user("Administrator")
             with patch("frappe.enqueue") as enqueue_job:
-                from crm_signals.crm_signals.doctype.crm_signal_outbox.crm_signal_outbox import replay_failed_signal_outbox
                 result = replay_failed_signal_outbox(outbox.name)
             saved = frappe.get_doc("CRM Signal Outbox", outbox.name)
             self.assertEqual(result["status"], "Pending")
