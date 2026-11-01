@@ -41,7 +41,7 @@ The following capabilities are present in the repository. "Implemented" means th
 | CRM Signals Desk Console | Implemented | Target-site permission and usability smoke test |
 | D1 Sales Compass | Implemented; missing-status fix merged in PR #17 | Verify target-site status semantics and role visibility |
 | D2 Billing Realization | Implemented; return-metadata guard merged in PR #17 | Reconcile totals and currency basis against target-site reports |
-| D3 Service Resolution/SLA | Standard Frappe Helpdesk adapter merged in PR #32; CI verified on v15/v16 | Confirm exact v16.5/ERPNext/Helpdesk versions, DocType and field-level permissions, and active SLA calendar on target site; field-level fail-closed hardening merged in PR #42 after Quality, Security and Bench v15/v16 passed |
+| D3 Service Resolution/SLA | Standard Frappe Helpdesk adapter and field-level guard merged in PR #32/#42; moving v15/v16 CI and exact Frappe v16.5.0 / ERPNext v16.5.0 / Helpdesk v1.28.0 reference lane passed in PR #50 | Confirm the pilot site's exact app versions, Sales read-only role/field permissions and active SLA calendar |
 | H Highlights | Partial; high-value Quotation events exist | Per-company threshold behavior merged in PR #45; target-site amounts and currency fallback still require approval. VIP allowlist/escalation and proposal-link tracking remain; tracking is gated on privacy/consent and retention approval |
 | E Explorer | Not implemented | Verify installed activity integrations and source adapters |
 | V Vault | Not implemented | Metric registry, retention and source-visibility policy |
@@ -227,7 +227,7 @@ Exit criteria:
 
 - Stage 0 is a prerequisite for all merges.
 - Stage 1 hardens the shared CRM Signals data, event and permission contract.
-- D3 requires target-site support application discovery; it does not assume a standard ticket DocType.
+- D3 uses the standard Frappe Helpdesk adapter when that app is installed; the discovery guide and read-only preflight verify the pilot's exact Helpdesk version, ticket fields and SLA policy before enabling site acceptance.
 - H depends on settings, idempotency and recipient permission checks.
 - E depends on source adapter discovery and permission-safe event identities.
 - V depends on accepted metric definitions and an explicit retention/source-visibility policy.
@@ -260,7 +260,7 @@ A slice is done only when all applicable items are complete:
 | Daily digest | [Digest](specs/2026-11-01-crm-signals-daily-digest.md) | Per-recipient tracking and overlapping-worker serialization merged in PR #19/#23; live policy open |
 | D1 | [Sales Compass](specs/2026-11-01-pillar-d1-sales-compass.md) | Missing-status correction merged; target-site validation open |
 | D2 | [Billing Realization](specs/2026-10-31-pillar-d2-billing-realization.md) | Return-metadata guard merged; target-site reconciliation open |
-| D3 | [Service Resolution/SLA](specs/2026-11-01-pillar-d3-service-resolution-sla.md) | Discovery spec ready; source mapping gated |
+| D3 | [Service Resolution/SLA](specs/2026-11-01-pillar-d3-service-resolution-sla.md) | Adapter and exact v16.5.0 reference CI verified; pilot-site source/permission/SLA acceptance remains |
 | H | [Highlights](specs/2026-11-01-pillar-h-highlights.md) | Planned |
 | A | [Analysis](specs/2026-11-01-pillar-a-analysis.md) | Planned |
 | E | [Explorer](specs/2026-11-01-pillar-e-explorer.md) | Planned |
