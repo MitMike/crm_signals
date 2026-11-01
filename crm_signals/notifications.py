@@ -48,9 +48,13 @@ def get_signal_recipients(signal):
                 can_read_party = frappe.has_permission(
                     doctype, ptype="read", doc=name, user=user
                 )
+                can_read_signal = frappe.has_permission(
+                    "CRM Signal", ptype="read", doc=signal.name, user=user
+                )
             except Exception:
                 can_read_party = False
-            if can_read_party:
+                can_read_signal = False
+            if can_read_party and can_read_signal:
                 eligible.append(user)
                 break
     return eligible
