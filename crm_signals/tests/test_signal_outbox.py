@@ -20,6 +20,7 @@ if frappe is not None:
         _retry_delay_minutes,
         enqueue_signal_event,
         process_signal_outbox_event,
+        process_pending_signal_outbox,
     )
 
 
@@ -158,8 +159,10 @@ class TestSignalOutbox(FrappeTestCase):
         outbox = frappe.get_doc("CRM Signal Outbox", outbox_name)
         attempts = outbox.attempt_count
         result = process_signal_outbox_event(outbox_name)
+        worker_result = process_pending_signal_outbox(limit=100)
         outbox.reload()
 
         self.assertEqual(result["status"], "not_due")
+        self.assertEqual(worker_result["not_due"], 0)
         self.assertEqual(outbox.attempt_count, attempts)
         self.assertEqual(outbox.status, "Pending")
