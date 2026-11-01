@@ -92,7 +92,13 @@ for user in ("sales.user@example.com", "sales.manager@example.com"):
     allowed = set(get_permitted_fields(
         "HD Ticket", user=user, permission_type="read"
     ))
-    print(user, {field: field in allowed for field in required})</pre>
+    print(user, {
+        "ticket_read": frappe.has_permission("HD Ticket", ptype="read", user=user),
+        "sla_read": frappe.has_permission(
+            "HD Service Level Agreement", ptype="read", user=user
+        ),
+        "fields": {field: field in allowed for field in required},
+    })</pre>
 <div class="warning"><strong>Do not grant permlevel 7 or 8 automatically.</strong> These levels can cover other Helpdesk fields beyond the dashboard metrics. Have the Helpdesk/security owner review the full field set and approve the narrowest safe policy. CRM Signals will mark an affected metric unavailable rather than misreporting zero when a field is not readable.</div>
 <p>Ticket DocType read permission is required for ticket metrics. SLA DocType read permission plus the required ticket fields is required for SLA metrics. Missing SLA access does not have to disable ticket creation/backlog metrics.</p>
 </section>
