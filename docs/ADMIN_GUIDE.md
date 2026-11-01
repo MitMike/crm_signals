@@ -80,6 +80,16 @@ D3 Service Resolution/SLA is implemented for the standard Frappe Helpdesk schema
 
 For the Helpdesk v1.31.1 reference schema, base/permlevel-7 HD Ticket read is granted to System Manager, Agent, Agent Manager, HD Customer and HD Customer Manager; permlevel 8 is limited to System Manager, Agent and Agent Manager. HD Service Level Agreement read is limited to System Manager and Agent Manager. ERPNext Sales User/Manager are not default Helpdesk readers. Do not assign Agent/Agent Manager just for dashboard visibility because they also grant ticket mutation privileges. If Sales needs D3, create a dedicated read-only role with base HD Ticket read plus permlevel 7, optionally permlevel 8, and HD Service Level Agreement read only if SLA metrics are approved. Verify the installed Helpdesk version's metadata before applying this map.
 
+#### Configure a read-only Sales role
+
+1. Create a custom role such as **CRM Signals Helpdesk Read**.
+2. In Role Permission Manager, add **Read only** for `HD Ticket` at permlevel 0 and permlevel 7. Add permlevel 8 only if Sales is approved to see `agreement_status`-based SLA outcomes.
+3. Add **Read only** for `HD Service Level Agreement` at permlevel 0 only if Sales is approved to see SLA metrics.
+4. Do not grant Create, Write, Delete, Submit, Cancel or Amend. Do not assign the Agent/Agent Manager roles solely to expose the dashboard.
+5. Assign the custom role to the approved Sales User/Manager accounts, then run the permission preflight for each role and test the dashboard as those users.
+
+If the role lacks `HD Service Level Agreement` read access, the ticket metrics can remain available while SLA metrics are reported as unavailable. Missing permission must never be interpreted as zero tickets or 100% SLA compliance.
+
 ## Pilot validation checklist
 
 Run these tests on staging with synthetic records before enabling the app on production:
