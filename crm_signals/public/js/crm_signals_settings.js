@@ -42,12 +42,12 @@ const crmSignalCustomFields = [
 
 for (const field of crmSignalCustomFields) {
     frappe.ui.form.on("CRM Signals Settings", {
-        [field](frm) {
+        async [field](frm) {
             if (
                 !frm.__applying_crm_signal_preset &&
                 frm.doc.notification_preset !== "Custom"
             ) {
-                frm.set_value("notification_preset", "Custom");
+                await frm.set_value("notification_preset", "Custom");
             }
         },
     });
