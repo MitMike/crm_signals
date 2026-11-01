@@ -2,7 +2,7 @@
 
 **Last reviewed:** 2026-11-02  
 **Repository:** [MitMike/crm_signals](https://github.com/MitMike/crm_signals)  
-**Main baseline:** [43fddfb](https://github.com/MitMike/crm_signals/commit/43fddfbbc46cac277a48c840251a7a2c963a8eb5)  
+**Main baseline:** [e57d94e](https://github.com/MitMike/crm_signals/commit/e57d94ea3090cfa50c5270a673e14c19ec6acbe3)  
 **Completed implementation:** PR #19 delivered settings/presets and core idempotency; PR #21 validated the legacy-schema migration; PR #23 closed concurrent API-idempotency and digest-queue races; PR #26 merged the transactional signal outbox; PR #32 merged the standard Frappe Helpdesk D3 adapter.  
 **Next acceptance:** complete the target-site Frappe v16.5 pilot: exact app versions, Company threshold policy, role/field permissions, D1/D2 reconciliation, Helpdesk SLA calendar, scheduler/mail/realtime, and backup/restore/rollback. PR #32 is CI-verified, not pilot-verified.
 
@@ -10,7 +10,7 @@ This file is the operational source of truth. [IMPLEMENTATION_PLAN.md](../IMPLEM
 
 ## Current status
 
-**Sprint update — 2026-11-02:** PR #26 transactional outbox and PR #32 D3 Helpdesk adapter are merged. PR #32 head `93b536abef331d8b34b5b7b570fbb280a996bfb2` passed the Python 3.10/3.11/3.12/3.14 matrix, lint/static checks, Semgrep and Bench v15/v16; merge commit is `43fddfbbc46cac277a48c840251a7a2c963a8eb5`. ADR-048 records the standard Helpdesk source and Monday–Saturday assumption. The user confirmed Frappe v16.5 as the primary target; ADR-049 is in review. Outbox replay (PR #33) and per-company thresholds (PR #34) are in focused review. A further D3 field-level permission guard is being tested because standard Helpdesk fields use permlevels 7/8. No target-site acceptance has been recorded.
+**Sprint update — 2026-11-02:** PR #26 transactional outbox and PR #32 D3 Helpdesk adapter are merged. PR #32 head `93b536abef331d8b34b5b7b570fbb280a996bfb2` passed the Python 3.10/3.11/3.12/3.14 matrix, lint/static checks, Semgrep and Bench v15/v16; merge commit is `43fddfbbc46cac277a48c840251a7a2c963a8eb5`. ADR-048 records the standard Helpdesk source and Monday–Saturday assumption. The user confirmed Frappe v16.5 as the primary target; ADR-049 merged as `e57d94ea`. Audited outbox replay (PR #38) and per-company thresholds (currently PR #34; to be rebased) are in review. A D3 field-level permission guard passed Quality, Security and Bench v15/v16 on validation branch head `99cc27a`; it must be reapplied to current main before merge because the earlier draft branch diverged. ADR-053 records that Frappe realtime queueing is not delivery confirmation. No target-site acceptance has been recorded.
 
 
 | Workstream | Status | Evidence / next action |
@@ -154,4 +154,4 @@ For each change:
 - API aggregates ticket creation, current Open/Paused backlog, resolved cohort, native resolution duration and SLA fulfilled/failed outcomes. Ticket and SLA permissions are checked independently; payload contains no ticket subjects, comments, contacts or identifiers.
 - SLA outcome counts use the same rolling 30-day created-ticket cohort; only Fulfilled/Failed are eligible. No-SLA tickets are counted separately.
 - Monday–Saturday is the agreed business-week assumption; configured Helpdesk SLA hours and holiday lists are not overridden.
-- Remaining: target-site version/permission/calendar acceptance. A separate fail-closed field-level permission guard is in branch `fix/d3-field-permission-awareness` and must pass Bench v15/v16 before merge.
+- Remaining: target-site version/permission/calendar acceptance. A separate fail-closed field-level permission guard passed Quality, Security and Bench v15/v16 on branch `fix/d3-field-permission-awareness` head `99cc27a`; it must be rebased onto current main before merge.
