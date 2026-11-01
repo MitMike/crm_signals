@@ -44,7 +44,7 @@ This changelog records user-visible and operationally significant changes. It is
 ### Validation
 - PR #11 merged as [05ad767](https://github.com/MitMike/crm_signals/commit/05ad767f6b62814cca5b7d0c1e233a2f690baa77).
 - All four PR gates passed on the final PR head: [Quality Checks](https://github.com/MitMike/crm_signals/actions/runs/41232087717), [Bench Integration and E2E](https://github.com/MitMike/crm_signals/actions/runs/41232087747), [Security Scanning](https://github.com/MitMike/crm_signals/actions/runs/41232087776) and [Dependency Security Audit](https://github.com/MitMike/crm_signals/actions/runs/41232087748).
-- Post-merge Quality Checks and Security Scanning passed on main. The fresh post-merge Bench validation was still running when this entry was prepared.
+- At the time this entry was prepared, the fresh post-merge Bench validation was still running. The subsequent PR #19 validation passed the full Frappe/ERPNext v15 and v16 Bench matrix, including the v16 Playwright suite (see the PR #19 validation entry below).
 
 This entry records engineering maintenance, not a formal release or production rollout.
 
