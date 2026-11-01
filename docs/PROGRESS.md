@@ -67,6 +67,7 @@ GitHub ruleset [Protect main](https://github.com/MitMike/crm_signals/rules/26282
 - Add a generic deployment/rollback runbook; actual target-site backup/restore rehearsal remains a P0 acceptance gate.
 - Default the master switch and external ingestion to disabled, including missing-settings fallback, until System Manager explicitly activates the reviewed configuration (ADR-036).
 - Bound daily digest quotation output to 100 rows with an explicit truncation notice to prevent unbounded email payloads (ADR-037).
+- Add Bench-backed webhook tests for same-user duplicate POSTs, single notification delivery and per-integration-user source namespaces; concurrent insert/migration coverage remains open.
 - Add an admin guide, settings/reliability spec and configuration/identity/digest tests.
 
 ### Target-site acceptance — still required
