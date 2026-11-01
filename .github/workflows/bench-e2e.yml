@@ -98,6 +98,13 @@ jobs:
           bench --site test.local set-config host_name "http://test.local:8000"
           bench --site test.local migrate
 
+      - name: Exercise upgrade from the pre-event-identity CRM Signal schema
+        working-directory: /home/runner/frappe-bench
+        run: |
+          bench --site test.local execute crm_signals.ci.prepare_upgrade_site
+          bench --site test.local migrate
+          bench --site test.local execute crm_signals.ci.verify_upgrade_site
+
       - name: Generate ephemeral E2E user passwords
         if: ${{ matrix.run_e2e }}
         id: e2e_credentials
