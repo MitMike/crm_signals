@@ -231,7 +231,7 @@ def test_sales_compass_returns_permission_filtered_lead_and_opportunity_metrics(
     ]
     assert opportunities["recent"][0]["name"] == "OPP-0001"
     assert all("ignore_permissions" not in query for query in queries)
-    assert all(query["doctype"] in {"Lead", "Opportunity", "Sales Invoice", "Payment Entry"} for query in queries)
+    assert all(query["doctype"] in {"Lead", "Opportunity", "Sales Invoice", "Payment Entry", "HD Ticket"} for query in queries)
 
     billing = result["billing"]
     assert billing["available"] is True
