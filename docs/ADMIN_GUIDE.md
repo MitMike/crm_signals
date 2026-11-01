@@ -98,7 +98,7 @@ A stable `source_event_id` is strongly recommended. When `source_doctype` and `s
 - **No Quotation alert:** verify the master/Quotation switches, Company currency, Quotation company, base total and configured threshold.
 - **No Opportunity alert:** verify the switch and exact status spelling; only transitions into configured statuses generate signals.
 - **No digest:** verify scheduler and workers, site timezone, enabled System User Sales Managers, additional recipients and the last queued date.
-- **No realtime notification:** verify the linked Lead/Customer owner and active ToDo assignees; there is intentionally no site-wide broadcast.
+- **No realtime notification:** verify the linked Lead/Customer owner and active ToDo assignees, and confirm each recipient can read both the linked party and CRM Signal; there is intentionally no site-wide broadcast.
 - **Signal not visible:** check CRM Signal role permissions and linked-party ownership/assignment. A notification is not an authorization grant.
 - **Duplicate external event:** send a stable source event ID and use the same integration user for retries.
 
