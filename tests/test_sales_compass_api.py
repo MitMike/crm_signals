@@ -176,7 +176,7 @@ def load_sales_api(
                 "payment_type", "party_type", "posting_date", "received_amount",
                 "paid_to_account_currency",
             },
-            "HD Ticket": {"creation", "status_category", "resolution_date", "resolution_time", "sla", "agreement_status"},
+            "HD Ticket": {"status_category", "resolution_date", "resolution_time", "sla", "agreement_status"},
             "HD Service Level Agreement": {"service_level", "enabled", "default_sla"},
         }
 
