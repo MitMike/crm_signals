@@ -350,7 +350,7 @@ class SahdevSalesCompass {
             [__("Open backlog"), value(service.backlog_available, service.open_backlog)],
             [__("Paused backlog"), value(service.backlog_available, service.paused_backlog)],
             [__("Resolved · 30 days"), value(service.resolved_available, service.resolved_last_30_days)],
-            [__("Avg. resolution · hours"), value(service.resolution_time_available, service.average_resolution_hours)],
+            [__("Avg. SLA resolution · business hours"), value(service.resolution_time_available, service.average_resolution_hours)],
             [__("SLA compliance"), service.sla_available && service.sla_compliance_percent !== null
                 ? this.number(service.sla_compliance_percent) + "%" : "—"]
         ].map(([label, metric]) =>
@@ -368,12 +368,12 @@ class SahdevSalesCompass {
             '<div class="sahdev-section-intro"><div><div class="sahdev-eyebrow">' +
             __("S.A.H.D.E.V. · PILLAR D3") + "</div><h3>" +
             __("Service resolution & SLA") + "</h3><p>" +
-            __("Frappe Helpdesk · rolling 30-day ticket cohorts · native SLA outcomes") +
+            __("Frappe Helpdesk · rolling 30-day ticket cohorts · SLA business-hours duration") +
             "</p></div></div>" +
             '<div class="sahdev-billing-metrics">' + cards + "</div>" +
             '<div class="sahdev-billing-note">' + slaNote + " · " +
             __("SLA outcomes count only Fulfilled and Failed tickets; paused and due states are excluded from the compliance denominator.") +
-            " " + __("The Helpdesk policy calendar and holiday list remain authoritative.") +
+            " " + __("Resolution duration is measured from SLA attachment in configured business hours, excluding hold time. The Helpdesk policy calendar and holiday list remain authoritative.") +
             "</div></section>";
     }
 
