@@ -70,12 +70,12 @@ for row in rows:
 </section>
 <section class="step"><h2>Step 2A — Check the standard Helpdesk fields and permissions</h2>
 <p>The initial adapter reads aggregate values from <code>HD Ticket</code> and checks the <code>HD Service Level Agreement</code> DocType. It does not read ticket subjects, comments, contacts or ticket identifiers. Confirm the following fields exist in the installed version:</p>
-<table><thead><tr><th>Field</th><th>Used for</th><th>Standard Helpdesk permission level</th></tr></thead><tbody>
-<tr><td><code>status_category</code></td><td>Current Open / Paused backlog</td><td>7</td></tr>
-<tr><td><code>resolution_date</code></td><td>Resolved ticket cohort</td><td>7</td></tr>
-<tr><td><code>resolution_time</code></td><td>Average SLA business-hours resolution duration</td><td>7</td></tr>
-<tr><td><code>sla</code></td><td>Applied SLA / no-SLA cohort</td><td>7</td></tr>
-<tr><td><code>agreement_status</code></td><td>Fulfilled / Failed SLA outcome</td><td>8</td></tr>
+<table><thead><tr><th>Field</th><th>Used for</th><th>Reference permlevel (Helpdesk v1.30.2)</th></tr></thead><tbody>
+<tr><td><code>status_category</code></td><td>Current Open / Paused backlog</td><td>0</td></tr>
+<tr><td><code>resolution_date</code></td><td>Resolved ticket cohort</td><td>0</td></tr>
+<tr><td><code>resolution_time</code></td><td>Average SLA business-hours resolution duration</td><td>0</td></tr>
+<tr><td><code>sla</code></td><td>Applied SLA / no-SLA cohort</td><td>0</td></tr>
+<tr><td><code>agreement_status</code></td><td>Fulfilled / Failed SLA outcome</td><td>0</td></tr>
 </tbody></table>
 <p>Run this read-only check in <code>bench --site your-site-name console</code>. Replace the two example user IDs with the actual Sales User and Sales Manager accounts. It reports permission names only; it does not read ticket rows.</p>
 <pre>import frappe
