@@ -7,6 +7,7 @@ This changelog records user-visible and operationally significant changes. It is
 ### Added
 - Persist Quotation and Opportunity source events in a dedicated idempotent outbox with scheduled retries, bounded exponential backoff and a terminal Failed state visible to System Managers.
 - Add Bench coverage for delivery recovery, retry exhaustion, batch fairness, concurrent outbox processing, concurrent duplicate enqueue and immutable outbox permissions.
+- Add a beginner-friendly D3 Support & SLA discovery guide with a metadata-only Bench script, business-calendar/permission/retention questions, KPI sign-off and an interactive completion checklist.
 
 ### Changed
 - Abort a Quotation submit or Opportunity update if its outbox event cannot be persisted in the source transaction. Failures to materialize the CRM Signal after persistence remain retryable and do not block the source document.
