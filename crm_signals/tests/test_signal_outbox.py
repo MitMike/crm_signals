@@ -96,6 +96,8 @@ class TestSignalOutbox(FrappeTestCase):
             self.assertEqual(saved.last_error, "RuntimeError")
             self.assertEqual(saved.replay_count, 1)
             self.assertEqual(saved.last_replayed_by, "Administrator")
+            with self.assertRaises(frappe.ValidationError):
+                replay_failed_signal_outbox(outbox.name)
             enqueue_job.assert_called_once()
             self.assertTrue(enqueue_job.call_args.kwargs["enqueue_after_commit"])
             comments = frappe.get_all(
