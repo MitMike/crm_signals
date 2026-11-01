@@ -88,6 +88,8 @@ Acceptance criteria:
 - [ ] Realtime delivery excludes users without read access to the CRM Signal, linked Lead/Customer and originating source DocType (e.g. Quotation/Opportunity); test that parent access without source access suppresses the notification.
 - [ ] Export and print do not expose rows unavailable in the corresponding report/list.
 - [ ] Helpdesk HD Ticket field-level read access is checked independently for `status_category`, `resolution_date`, `resolution_time`, `sla` (permlevel 7) and `agreement_status` (permlevel 8).
+- [ ] Compare installed Helpdesk permission metadata with the v1.31.1 reference: Sales User/Manager are not default HD Ticket or SLA readers. Do not assign Agent/Agent Manager solely for dashboard visibility; use an approved custom read-only role with base/permlevel 7 and optional permlevel 8 HD Ticket read, plus HD Service Level Agreement read only if SLA metrics are approved.
+- [ ] Confirm ticket metrics become unavailable without HD Ticket read/required fields, and SLA metrics become unavailable without SLA DocType read or `agreement_status` field access.
 - [ ] Disabled or unapproved recipients receive no digest or realtime content.
 
 Record user IDs/roles only in the site's secured test record; do not add personal data here.
