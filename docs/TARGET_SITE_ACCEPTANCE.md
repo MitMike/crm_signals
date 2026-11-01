@@ -85,7 +85,7 @@ Acceptance criteria:
 - [ ] List-query and direct-document access produce equivalent authorization outcomes.
 - [ ] API access does not bypass document or linked-party permissions.
 - [ ] Digest content is generated under each recipient's user context.
-- [ ] Realtime delivery excludes users without the required read permissions.
+- [ ] Realtime delivery excludes users without read access to the CRM Signal, linked Lead/Customer and originating source DocType (e.g. Quotation/Opportunity); test that parent access without source access suppresses the notification.
 - [ ] Export and print do not expose rows unavailable in the corresponding report/list.
 - [ ] Helpdesk HD Ticket field-level read access is checked independently for `status_category`, `resolution_date`, `resolution_time`, `sla` (permlevel 7) and `agreement_status` (permlevel 8).
 - [ ] Disabled or unapproved recipients receive no digest or realtime content.
@@ -140,7 +140,7 @@ Use a fixed, approved date range and the site's native ERPNext reports as the co
 - [ ] Confirm per-recipient failures do not block other recipients.
 - [ ] Confirm duplicate scheduler execution does not queue duplicate recipient/date digests.
 - [ ] Confirm mail provider delivery, bounce and suppression behavior.
-- [ ] Confirm realtime notifications reach only authorized users.
+- [ ] Confirm realtime notifications reach only users who can read the CRM Signal, linked party and originating source DocType; publication is best-effort and is not a client receipt.
 - [ ] Record monitoring, alert thresholds, log locations and on-call owner.
 
 Note: recipient-level failure isolation and digest queue idempotency are code-level safeguards; actual scheduler topology, mail-provider behavior and live realtime routing still require this site test.
