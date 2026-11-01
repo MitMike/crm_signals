@@ -99,6 +99,13 @@ See [FOLLOW_UPS.md](FOLLOW_UPS.md) for issues that should not be silently treate
 - Per-company quotation thresholds for multi-company sites with different base currencies.
 - D3 source discovery, H privacy/consent decisions, E integration inventory, V retention and A metric-registry work.
 
+## Current branch work — PR #21
+
+- PR #21 adds a disposable Frappe v15/v16 rehearsal for upgrading historical CRM Signal rows from the pre-source-event-identity schema.
+- First rehearsal attempts failed because Frappe's stored DocType `migration_hash` still matched the current JSON, so the importer skipped the schema import even after the timestamp rewind.
+- The fixture now clears that hash and rewinds the DocType timestamp before `bench migrate` (ADR-042). This is a CI fixture correction, not yet a passing migration result.
+- Latest fix commit: `acc096879841286afa61073571fbe40eea473fd4`. Awaiting its v15/v16 Bench results; PR #21 is not merged.
+
 ## CI and release evidence
 
 PR #19 was validated on head `a90315be7ef37e2dceeacb9b4e9b77d5d31df131` and merged as `a49591947a89b011cc1770be176c1f11571b131b`. [Quality Checks](https://github.com/MitMike/crm_signals/actions/runs/41274491111), [Bench Integration and E2E](https://github.com/MitMike/crm_signals/actions/runs/41274491113) and [Security Scanning](https://github.com/MitMike/crm_signals/actions/runs/41274491117) passed; all 16 check-runs on that head reported success, including Frappe/ERPNext v15 and v16 and the v16 Playwright suite.
