@@ -53,6 +53,25 @@ def test_company_currency_comes_from_company_metadata(monkeypatch):
     assert settings.get_company_default_currency("Example Ltd") == "USD"
 
 
+def test_company_threshold_rows_derive_company_currency(monkeypatch):
+    settings = load_settings(monkeypatch)
+    frappe = sys.modules["frappe"]
+    currencies = {"Company A": "USD", "Company B": "EUR"}
+    frappe.db.get_value = lambda doctype, name, field=None, **kwargs: currencies.get(name) if doctype == "Company" else None
+    rows = [
+        types.SimpleNamespace(company="Company A", quotation_threshold=100000, currency=None),
+        types.SimpleNamespace(company="Company B", quotation_threshold=50000, currency=None),
+    ]
+    doc = types.SimpleNamespace(
+        quotation_threshold=200000, threshold_currency=None, company_thresholds=rows,
+        enable_quotation_signals=1, enable_opportunity_signals=1,
+        opportunity_trigger_statuses="Replied", lead_stale_days=3,
+        digest_time="08:30:00", digest_extra_recipients="",
+    )
+    settings.validate_settings_document(doc)
+    assert [row.currency for row in rows] == ["USD", "EUR"]
+
+
 def test_extra_digest_recipient_must_be_an_enabled_system_user(monkeypatch):
     settings = load_settings(monkeypatch)
     frappe = sys.modules["frappe"]
@@ -64,6 +83,7 @@ def test_extra_digest_recipient_must_be_an_enabled_system_user(monkeypatch):
     doc = types.SimpleNamespace(
         quotation_threshold=200000,
         threshold_currency=None,
+        company_thresholds=[],
         enable_quotation_signals=1,
         enable_opportunity_signals=1,
         opportunity_trigger_statuses="Replied",
