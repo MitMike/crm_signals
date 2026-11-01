@@ -109,19 +109,27 @@ def prepare_upgrade_site():
             ).insert(ignore_permissions=True)
     frappe.db.commit()
 
-    # A column drop also removes its unique index. DocField metadata remains
-    # installed, allowing the subsequent bench migrate to exercise Frappe's
-    # real schema synchronization path for the newer fields.
-    for fieldname in (
+    # Revert both physical columns and field metadata to the pre-feature
+    # shape. The following bench migrate must recreate DocFields and columns
+    # from the current app's JSON definition. Dropping the unique-key column
+    # also removes its database index.
+    legacy_fields = (
         "source_doctype",
         "source_name",
         "source_event_id",
         "source_event_key",
-    ):
+    )
+    for fieldname in legacy_fields:
         if frappe.db.has_column("CRM Signal", fieldname):
             frappe.db.sql(
-                f"ALTER TABLE \`tabCRM Signal\` DROP COLUMN \`{fieldname}\`"
+                f"ALTER TABLE `tabCRM Signal` DROP COLUMN `{fieldname}`"
             )
+    frappe.db.sql(
+        "DELETE FROM `tabDocField` "
+        "WHERE parent = %s AND fieldname IN (%s, %s, %s, %s)",
+        ("CRM Signal", *legacy_fields),
+    )
+    frappe.clear_cache(doctype="CRM Signal")
     frappe.db.commit()
     return {\n        "legacy_records": len(LEGACY_SIGNAL_MESSAGES),\n        "schema": "pre-source-event-identity",\n    }
 
