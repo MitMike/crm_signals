@@ -121,7 +121,7 @@ PR #23 merged as [d75b7f3](https://github.com/MitMike/crm_signals/commit/d75b7f3
 
 **Verification passed on final PR head `7ed0860`:** [Bench v15/v16 + Playwright](https://github.com/MitMike/crm_signals/actions/runs/41300667892), [Quality Checks](https://github.com/MitMike/crm_signals/actions/runs/41300667996) and [Security Scanning](https://github.com/MitMike/crm_signals/actions/runs/41300667997). Merge commit: `d75b7f3`.
 
-The transactional signal outbox is merged in PR #26 and CI-verified on Frappe v15/v16. Audited Failed-row replay merged in PR #38; durable realtime notification retry remains a separate follow-up. Company-specific quotation thresholds merged in PR #45; the legacy site-wide threshold is a fallback only on an exact Company-currency match, with no implicit FX conversion. Target-site values, field-level permissions and production security remain external acceptance gates.
+The transactional signal outbox is merged in PR #26 and CI-verified on Frappe v15/v16. Audited Failed-row replay merged in PR #38; durable realtime notification retry remains a separate follow-up. Company-specific quotation thresholds merged in PR #45; PR #49 fixes the child-row currency display/fetch behavior. The legacy site-wide threshold is a fallback only on an exact Company-currency match, with no implicit FX conversion. Target-site values, field-level permissions and production security remain external acceptance gates.
 
 ### Stage 2 — D3 Service Resolution/SLA
 
