@@ -45,8 +45,8 @@
    "fieldname": "enabled",
    "fieldtype": "Check",
    "label": "Enable CRM Signals",
-   "default": "1",
-   "description": "Master switch for event-generated signals and external ingestion."
+   "default": "0",
+   "description": "Master switch for event-generated signals and external ingestion. Off until an administrator completes preflight."
   },
   {
    "fieldname": "column_break_master",
@@ -56,7 +56,7 @@
    "fieldname": "enable_external_ingestion",
    "fieldtype": "Check",
    "label": "Enable authenticated external ingestion",
-   "default": "1"
+   "default": "0"
   },
   {
    "fieldname": "section_break_quotes",
