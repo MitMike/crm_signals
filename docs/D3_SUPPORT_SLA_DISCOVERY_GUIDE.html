@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CRM Signals — D3 Support & SLA Discovery (Beginner Guide)</title>
+<style>
+:root{color-scheme:light;--ink:#172033;--muted:#5b6475;--line:#dce2eb;--paper:#fff;--bg:#f4f7fb;--blue:#2457c5;--green:#16794b;--amber:#8a5700;--red:#a52b2b}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+main{max-width:980px;margin:0 auto;padding:28px 18px 64px}.hero{background:#172b4d;color:white;padding:28px;border-radius:18px}.hero p{color:#e2e9f5;max-width:760px}
+h1{font-size:clamp(1.8rem,4vw,2.6rem);line-height:1.15;margin:0 0 12px}h2{font-size:1.45rem;margin:34px 0 12px}h3{font-size:1.08rem;margin:22px 0 8px}
+p{margin:8px 0 14px}.muted,small{color:var(--muted)}.panel{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:20px;margin:16px 0}
+.notice{border-left:5px solid var(--blue);background:#edf3ff;padding:14px 16px;border-radius:8px;margin:16px 0}.warn{border-left-color:#d18a16;background:#fff6e5}.good{border-left-color:var(--green);background:#eaf7f0}
+.steps{counter-reset:step;list-style:none;padding:0}.steps>li{counter-increment:step;background:white;border:1px solid var(--line);border-radius:12px;padding:16px 18px 16px 58px;margin:12px 0;position:relative}.steps>li:before{content:counter(step);position:absolute;left:16px;top:16px;width:28px;height:28px;border-radius:50%;background:#e8efff;color:var(--blue);font-weight:700;display:grid;place-items:center}
+code,pre{font-family:ui-monospace,SFMono-Regular,Consolas,monospace}code{background:#eef1f6;padding:2px 5px;border-radius:4px}pre{white-space:pre;overflow:auto;background:#101827;color:#e7edf7;padding:16px;border-radius:10px;font-size:13px;line-height:1.5}
+button{border:0;border-radius:8px;background:var(--blue);color:white;padding:10px 14px;font-weight:650;cursor:pointer;margin:4px 6px 4px 0}button.secondary{background:#e9edf5;color:var(--ink)}button:focus,input:focus{outline:3px solid #9db8ff;outline-offset:2px}
+.check{display:flex;gap:10px;align-items:flex-start;margin:10px 0}.check input{margin-top:6px;transform:scale(1.15)}.progress{height:10px;background:#e7ebf2;border-radius:99px;overflow:hidden}.progress span{display:block;height:100%;width:0;background:var(--green);transition:width .2s}
+table{width:100%;border-collapse:collapse;margin:12px 0}th,td{border:1px solid var(--line);padding:9px;text-align:left;vertical-align:top}th{background:#f0f3f8}
+details{border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin:10px 0;background:white}summary{font-weight:700;cursor:pointer}
+.pill{display:inline-block;border-radius:30px;background:#e9edf5;padding:3px 9px;font-size:.82rem;font-weight:700}.footer{margin-top:34px;color:var(--muted);font-size:.9rem}
+@media(max-width:600px){main{padding:14px 12px 40px}.panel{padding:15px}table{font-size:.9rem}}
+</style>
+</head>
+<body>
+<main>
+<header class="hero">
+  <span class="pill">CRM Signals · D3</span>
+  <h1>Find your Support & SLA setup</h1>
+  <p>A beginner-friendly guide for the person who administers your Frappe / ERPNext site. Follow the steps, collect the answers, and send the report to the CRM Signals team. You do <strong>not</strong> need to write code or change your site configuration.</p>
+</header>
+
+<div class="notice"><strong>Target baseline:</strong> Frappe v16.5. Capture the exact patch/build with <code>bench version</code> and the installed ERPNext/Helpdesk versions with <code>bench --site YOUR-SITE-NAME list-apps</code>. The standard HD Ticket / HD Service Level Agreement D3 adapter is already implemented; this guide verifies whether the pilot site's schema matches it.</div>
+<div class="notice"><strong>Pilot calendar expectation:</strong> Monday–Saturday business week. Verify the active Helpdesk SLA's actual working days, hours, holiday list and timezone. CRM Signals reads the native SLA policy and does not override it.</div>
+
+<div class="notice good"><strong>First, the important bit:</strong> This is a discovery exercise, not a setup exercise. We need to learn which support/ticket system your site already uses and how its SLA clock works. Do not install a new app, rename fields, or change workflows just for this exercise.</div>
+
+<section class="panel">
+<h2>What are we trying to find? (ELI5)</h2>
+<p>Think of a support ticket as a customer asking your team for help.</p>
+<ul>
+<li><strong>Ticket:</strong> the record that says someone needs help.</li>
+<li><strong>Status:</strong> whether the ticket is new, being worked on, waiting, or finished.</li>
+<li><strong>Resolved time:</strong> the actual date and time the team finished the ticket. This is not always the same as “last modified”.</li>
+<li><strong>SLA:</strong> the promise about how quickly the team should respond or solve the problem.</li>
+<li><strong>SLA clock:</strong> the timer. It may pause while waiting for the customer, and it may count only business hours.</li>
+<li><strong>Business calendar:</strong> working days, hours, holidays, and timezone used by that timer.</li>
+</ul>
+<p>CRM Signals must read the real ticket and SLA records. It must not guess these rules.</p>
+</section>
+
+<section>
+<h2>Before you start</h2>
+<div class="panel">
+<p><strong>You need:</strong></p>
+<ul>
+<li>A System Manager / site administrator who can open the target Frappe site.</li>
+<li>Access to the server or Bench command line for the read-only inventory in Step 3. If you do not have this, ask your hosting/implementation partner to run it.</li>
+<li>A Support or Helpdesk owner who can confirm what “resolved” and “SLA breached” mean for your business.</li>
+</ul>
+<p><strong>Time:</strong> about 20–40 minutes if the right people are available.</p>
+<p><strong>Do not share:</strong> passwords, API keys, customer names, ticket descriptions, comments, email addresses, phone numbers, or database exports.</p>
+</div>
+</section>
+
+<section>
+<h2>Follow these steps in order</h2>
+<ol class="steps">
+<li><strong>Confirm which site you are checking.</strong><p>Write down the site/environment name (for example, “staging” or “production”), the date, and who is the technical and business contact. Do not include private hostnames in a report sent outside your company.</p></li>
+<li><strong>Record the installed app versions.</strong><p>On the server, run this command from your Bench folder:</p><pre>bench version</pre><p>Copy the app names and version numbers into the worksheet below. We especially need Frappe, ERPNext, CRM Signals, and any app with a name like Support, Helpdesk, Service Desk, Issue, or SLA.</p></li>
+<li><strong>Run the read-only discovery script.</strong><p>Open the site console:</p><pre>bench --site YOUR-SITE-NAME console</pre><p>Replace <code>YOUR-SITE-NAME</code> with the site's Bench site name. Paste the full script below into the console. It reads installed-app names and DocType/field metadata only. It does not create, update, or delete records.</p>
+<div class="notice warn"><strong>Safety:</strong> Run this only on the intended site. Review the output before sharing it. The script deliberately does not read ticket rows or customer data.</div>
+<pre id="script">import frappe
+
+print("\\n=== INSTALLED APPS ===")
+for app in sorted(frappe.get_installed_apps()):
+    print(app)
+
+keywords = ("support", "helpdesk", "help desk", "ticket", "issue", "service", "sla")
+print("\\n=== POSSIBLE SUPPORT / SLA DOCTYPES ===")
+doctypes = frappe.get_all(
+    "DocType",
+    filters={"istable": 0},
+    fields=["name", "module", "custom"],
+    limit_page_length=5000,
+)
+candidates = [
+    d for d in doctypes
+    if any(k in ((d.name or "") + " " + (d.module or "")).lower()
+           for k in keywords)
+]
+for d in sorted(candidates, key=lambda x: (x.module or "", x.name or "")):
+    print("\\n---", d.name, "| module:", d.module, "| custom:", d.custom, "---")
+    try:
+        meta = frappe.get_meta(d.name)
+        for field in meta.fields:
+            print(
+                field.fieldname,
+                "| label:", field.label,
+                "| type:", field.fieldtype,
+                "| options:", field.options or ""
+            )
+    except Exception as exc:
+        print("Could not read metadata:", type(exc).__name__)
+
+print("\\n=== END: metadata only; no ticket records were read ===")</pre>
+<button type="button" onclick="copyScript()">Copy discovery script</button><span id="copyStatus" class="muted" aria-live="polite"></span>
+<p>Copy the output into your internal worksheet. If the list is very long, share only the likely ticket and SLA DocTypes plus their field lists.</p></li>
+<li><strong>Check the Support / Helpdesk screen in Desk.</strong><p>Open the support app your team actually uses. Find one example ticket manually. Note the DocType name (often visible in the URL or from the DocType list), the status choices, and which status values mean “finished”. Do not copy the customer's details.</p></li>
+<li><strong>Find the real resolution timestamp.</strong><p>Ask the Support owner: “When a ticket is solved, which field records the actual solved date and time? What happens if it is reopened?” Write the exact field name. Do not assume <code>modified</code> is the resolution time.</p></li>
+<li><strong>Find the SLA rule and clock.</strong><p>Ask where the SLA policy is configured and how a ticket is linked to it. Record the SLA DocType, policy field, deadline field, and native result/status that says compliant or breached. Also record whether waiting states pause the clock.</p></li>
+<li><strong>Confirm the business calendar.</strong><p>Record working days, start/end of working hours, holiday list, and timezone. Ask whether the SLA uses elapsed hours (24×7) or business hours. If different policies use different calendars, list them separately.</p></li>
+<li><strong>Confirm permissions and retention.</strong><p>Ask which roles can read tickets and SLA records (especially Sales User and Sales Manager), and how long old tickets/SLA records are retained. CRM Signals must not show a metric if the logged-in user is not allowed to read its source.</p></li>
+<li><strong>Get business sign-off on the numbers.</strong><p>The Support owner and Sales/business owner must agree which tickets count in each KPI: created, resolved, open backlog, resolution time, and SLA compliance. Confirm whether reopened, cancelled, merged, duplicate, or non-SLA tickets are included or excluded.</p></li>
+</ol>
+</section>
+
+<section class="panel">
+<h2>What information must be collected?</h2>
+<p>Fill in this worksheet. “Unknown” is a valid answer—do not guess.</p>
+<table>
+<thead><tr><th>Item</th><th>What to write down</th><th>Why we need it</th></tr></thead>
+<tbody>
+<tr><td>Support app + version</td><td>Exact installed app name and version</td><td>Different apps store tickets differently.</td></tr>
+<tr><td>Ticket DocType</td><td>Exact DocType name and owning app</td><td>This is the source of ticket counts.</td></tr>
+<tr><td>Ticket identity + customer link</td><td>Document key and customer/Lead link field names</td><td>Stable identity and safe relationships.</td></tr>
+<tr><td>Created time</td><td>Exact field (usually creation, confirm)</td><td>Defines the created-ticket period.</td></tr>
+<tr><td>Status</td><td>Exact field and all status values; mark terminal values</td><td>Defines open backlog and resolved tickets.</td></tr>
+<tr><td>Resolved time</td><td>Exact timestamp field and reopen behavior</td><td>Measures resolution accurately.</td></tr>
+<tr><td>SLA record + link</td><td>SLA DocType, ticket link field, policy identifier</td><td>Connects each ticket to its SLA.</td></tr>
+<tr><td>SLA deadline + outcome</td><td>Exact deadline and native compliant/breached/paused fields</td><td>Prevents guessed SLA calculations.</td></tr>
+<tr><td>Pause rules</td><td>Which states pause/resume the timer</td><td>Waiting time may not count.</td></tr>
+<tr><td>Calendar + timezone</td><td>Working days/hours, holidays, timezone</td><td>Business-time calculations depend on these.</td></tr>
+<tr><td>Permissions + retention</td><td>Roles that can read source; retention period</td><td>Protects private tickets and explains missing history.</td></tr>
+<tr><td>KPI definitions</td><td>Approved inclusion/exclusion rules and cohorts</td><td>Everyone must mean the same thing by each number.</td></tr>
+</tbody>
+</table>
+</section>
+
+<section>
+<h2>How CRM Signals will use the answers</h2>
+<div class="panel">
+<ul>
+<li><strong>Tickets created:</strong> tickets whose created timestamp is inside the selected date window.</li>
+<li><strong>Tickets resolved:</strong> tickets whose true resolved timestamp is inside that window.</li>
+<li><strong>Open backlog:</strong> tickets currently in a non-terminal status.</li>
+<li><strong>Average resolution time:</strong> created-to-resolved duration. Business hours and elapsed hours will be labelled separately if both are available.</li>
+<li><strong>SLA compliance:</strong> compliant tickets divided by tickets that had a valid, applicable SLA result. Tickets without an SLA are not silently counted as compliant.</li>
+<li><strong>SLA breaches:</strong> tickets marked breached by the installed SLA engine, following its actual rules.</li>
+</ul>
+<div class="notice warn">If a source field, SLA result, or permission is missing, the metric should show “Unavailable / not configured”—not a misleading zero.</div>
+</div>
+</section>
+
+<section class="panel">
+<h2>Completion checklist</h2>
+<p>Tick each item as you finish. Your progress is shown below and stays in this browser on this device.</p>
+<div class="progress" aria-label="Checklist progress"><span id="progressBar"></span></div>
+<p id="progressText" class="muted">0 of 9 complete</p>
+<div id="checks">
+<label class="check"><input type="checkbox"> I recorded the site/environment and contacts.</label>
+<label class="check"><input type="checkbox"> I captured <code>bench version</code> output.</label>
+<label class="check"><input type="checkbox"> I ran the read-only discovery script and saved its metadata output.</label>
+<label class="check"><input type="checkbox"> I identified the ticket DocType, status field, and terminal states.</label>
+<label class="check"><input type="checkbox"> I identified the true resolution timestamp and reopen behavior.</label>
+<label class="check"><input type="checkbox"> I identified the SLA DocType, policy, deadline, outcome, and pause rules.</label>
+<label class="check"><input type="checkbox"> I recorded working hours, holidays, and timezone.</label>
+<label class="check"><input type="checkbox"> I confirmed permissions and retention with the site owner.</label>
+<label class="check"><input type="checkbox"> Support and business owners approved the KPI definitions.</label>
+</div>
+<button type="button" onclick="resetChecks()" class="secondary">Reset checklist</button>
+</section>
+
+<section class="panel">
+<h2>Common questions</h2>
+<details><summary>Do I need to install a Support app?</summary><p>No. First tell us what is already installed. If no support/ticket source exists, record “No support app found”. Do not install one as part of discovery.</p></details>
+<details><summary>What if we use a custom ticket DocType?</summary><p>That is fine. Record its exact name, owning app, fields, status values, and links. The adapter can be designed around a verified custom source.</p></details>
+<details><summary>Can I just send a screenshot?</summary><p>Screenshots can help explain a screen, but we need exact DocType and field names. Send the metadata output and completed worksheet as the primary evidence. Hide customer details in any screenshots.</p></details>
+<details><summary>What if I cannot run the console script?</summary><p>Ask your Frappe hosting provider or implementation partner to run it. They can return the metadata-only output. You can still complete the business questions with your Support owner.</p></details>
+<details><summary>Is this changing anything on the site?</summary><p>No. The supplied script reads installed app names and DocType metadata. It does not change settings, workflows, tickets, or SLA records.</p></details>
+<details><summary>What happens after I send the answers?</summary><p>The standard HD Ticket / HD Service Level Agreement adapter is already implemented. We compare the discovered metadata with that contract. If it matches, proceed to configuration and pilot scenarios. If the site uses custom ticket DocTypes or fields, record the exact differences and decide whether a narrowly scoped adapter change is needed. D3 is not pilot-verified until live role permissions, the active SLA calendar and metric results pass.</p></details>
+</section>
+
+<section class="panel">
+<h2>Where to send the result</h2>
+<p>Send the completed worksheet and the reviewed metadata-only output to your CRM Signals implementation/technical owner using your company's approved secure channel. Include the environment and date. Do not send credentials or ticket/customer records.</p>
+<p><strong>Final rule:</strong> If you are unsure, write “Unknown” and ask the Support owner. A correct unknown is safer than a confident guess.</p>
+</section>
+
+<p class="footer">CRM Signals · D3 Service Resolution & SLA · Discovery guide. This page is self-contained and can be opened locally in a modern browser. Checklist progress is stored only in this browser.</p>
+</main>
+<script>
+const checks=[...document.querySelectorAll('#checks input[type="checkbox"]')];
+const key='crm-signals-d3-discovery-checks-v1';
+function update(){const done=checks.filter(x=>x.checked).length;document.getElementById('progressBar').style.width=(done/checks.length*100)+'%';document.getElementById('progressText').textContent=done+' of '+checks.length+' complete';try{localStorage.setItem(key,JSON.stringify(checks.map(x=>x.checked)))}catch(e){}}
+try{const saved=JSON.parse(localStorage.getItem(key)||'null');if(Array.isArray(saved))checks.forEach((x,i)=>x.checked=!!saved[i])}catch(e){}
+checks.forEach(x=>x.addEventListener('change',update));update();
+function copyScript(){const value=document.getElementById('script').innerText;const status=document.getElementById('copyStatus');if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(value).then(()=>status.textContent=' Copied.').catch(()=>fallback())}else{fallback()}function fallback(){const area=document.createElement('textarea');area.value=value;document.body.appendChild(area);area.select();try{document.execCommand('copy');status.textContent=' Copied.'}catch(e){status.textContent=' Select and copy the code manually.'}area.remove()}}
+function resetChecks(){checks.forEach(x=>x.checked=false);update()}
+</script>
+</body>
+</html>
