@@ -2,7 +2,7 @@
 
 **Last reviewed:** 2026-11-02  
 **Repository:** [MitMike/crm_signals](https://github.com/MitMike/crm_signals)  
-**Main baseline:** [1640bdd](https://github.com/MitMike/crm_signals/commit/1640bdd496706a7f297b0984f1fd1d9695307147)  
+**Main baseline:** [17eca3f](https://github.com/MitMike/crm_signals/commit/17eca3f6cb493fb8729632e0902c07ccb776b6a5)  
 **Completed implementation:** PR #19 delivered settings/presets and core idempotency; PR #21 validated the legacy-schema migration; PR #23 closed concurrent API-idempotency and digest-queue races; PR #26 merged the transactional signal outbox; PR #32 merged the standard Frappe Helpdesk D3 adapter; PR #38 merged audited Failed-row replay.  
 **Next acceptance:** complete the target-site Frappe v16.5 pilot: exact app versions, Company threshold policy, role/field permissions, D1/D2 reconciliation, Helpdesk SLA calendar, scheduler/mail/realtime, and backup/restore/rollback. PR #32 is CI-verified, not pilot-verified.
 
@@ -23,9 +23,9 @@ This file is the operational source of truth. [IMPLEMENTATION_PLAN.md](../IMPLEM
 | Settings + presets | Merged in PR #19 | Settings singleton, validation, Balanced/Sales Focused/Executive presets and administrator guide; confirm target-site defaults before activation |
 | Event identity/idempotency | Runtime merged in PR #19; migration rehearsal merged in PR #21; concurrent recovery merged in PR #23 | Unique SHA-256 source-event key; legacy-schema migration passed on Frappe v15/v16; final two-connection API race test passed on both supported versions. One created response, one deduplicated response and one notification dispatch. |
 | Digest hardening | Core merged in PR #19; cross-worker serialization merged in PR #23 | Site-timezone schedule, permission-aware per-user email and per-recipient queue markers; Settings row lock plus recheck prevents overlapping workers queuing the same recipient/date; v15/v16 Bench tests passed. Target-site scheduler/mail acceptance remains open. |
-| Realtime notification delivery | Partial | PR #41 adds source-DocType read checks alongside linked-party and CRM Signal permissions. Frappe v16 `publish_realtime(after_commit=True)` defers Redis emission; its emitter suppresses `redis.ConnectionError`, so the current try/except cannot confirm publication or provide durable retry |
+| Realtime notification delivery | Partial | PR #44 adds source-DocType read checks alongside linked-party and CRM Signal permissions. Frappe v16 `publish_realtime(after_commit=True)` defers Redis emission; its emitter suppresses `redis.ConnectionError`, so the current try/except cannot confirm publication or provide durable retry |
 | D3 Service Resolution/SLA | Initial adapter merged in PR #32; CI verified | Standard HD Ticket/HD Service Level Agreement aggregate adapter; target-site versions, DocType/field-level permissions and active SLA calendar remain. Field-level fail-closed hardening is in review |
-| H Highlights | Partial | High-value Quotation signals exist; per-company currency thresholds are in PR #40 review. VIP proposal-link tracking remains blocked on privacy/consent and retention approval |
+| H Highlights | Partial | High-value Quotation signals exist; per-company currency thresholds are in PR #45 review. VIP proposal-link tracking remains blocked on privacy/consent and retention approval |
 | E Explorer | Planned | Inventory installed activity integrations and implement only verified source adapters |
 | V Vault | Planned | Approve metric registry, source visibility and retention before enabling snapshots |
 | A Analysis | Planned | Approved metric registry and constrained server-owned queries; no model-generated SQL |
@@ -154,4 +154,4 @@ For each change:
 - API aggregates ticket creation, current Open/Paused backlog, resolved cohort, native resolution duration and SLA fulfilled/failed outcomes. Ticket and SLA permissions are checked independently; payload contains no ticket subjects, comments, contacts or identifiers.
 - SLA outcome counts use the same rolling 30-day created-ticket cohort; only Fulfilled/Failed are eligible. No-SLA tickets are counted separately.
 - Monday–Saturday is the agreed business-week assumption; configured Helpdesk SLA hours and holiday lists are not overridden.
-- Remaining: target-site version/permission/calendar acceptance. A separate fail-closed field-level permission guard passed Quality, Security and Bench v15/v16 on validation branch head `99cc27a`; it must be reapplied to current main before merge.
+- Remaining: target-site version/permission/calendar acceptance. A fail-closed field-level permission guard merged in PR #42; exact v16.5.0/Helpdesk v1.31.1 compatibility CI remains to be added.
