@@ -2,15 +2,15 @@
 
 **Last reviewed:** 2026-11-02  
 **Repository:** [MitMike/crm_signals](https://github.com/MitMike/crm_signals)  
-**Main baseline:** [ff434bd](https://github.com/MitMike/crm_signals/commit/ff434bdf407d1d61842d81fae16e04b4b9b483d5)  
-**Completed implementation:** PR #19 delivered settings/presets and core idempotency; PR #21 validated the legacy-schema migration; PR #23 closed concurrent API-idempotency and digest-queue races; PR #26 merged the transactional signal outbox; PR #32 merged the standard Frappe Helpdesk D3 adapter; PR #38 merged audited Failed-row replay; PR #42 merged D3 field-level permission hardening; PR #44 merged source-document notification authorization; PR #45 merged per-company quotation thresholds.  
+**Main baseline:** [2e9eb89](https://github.com/MitMike/crm_signals/commit/2e9eb89b8ed5618ca3e50e6bc0b2c867c516e17b)  
+**Completed implementation:** PR #19 delivered settings/presets and core idempotency; PR #21 validated the legacy-schema migration; PR #23 closed concurrent API-idempotency and digest-queue races; PR #26 merged the transactional signal outbox; PR #32 merged the standard Frappe Helpdesk D3 adapter; PR #38 merged audited Failed-row replay; PR #42 merged D3 field-level permission hardening; PR #44 merged source-document notification authorization; PR #45 merged per-company quotation thresholds; PR #49 merged the Company-row currency auto-fetch/display correction.  
 **Next acceptance:** complete the Frappe v16.5 pilot: exact patch/app versions, approve/configure thresholds for every enabled Company, role/field permissions, D1/D2 reconciliation, Helpdesk SLA calendar, scheduler/mail/realtime, and backup/restore/rollback. Engineering changes are CI-verified, not pilot-verified.
 
 This file is the operational source of truth. [IMPLEMENTATION_PLAN.md](../IMPLEMENTATION_PLAN.md) is the roadmap, [DECISIONS.md](DECISIONS.md) is the durable decision register, [FOLLOW_UPS.md](FOLLOW_UPS.md) tracks deferred issues, and [specs/](../specs/) holds feature contracts.
 
 ## Current status
 
-**Sprint update — 2026-11-02:** PR #32 D3 adapter merged and passed v15/v16 CI; PR #36 ADR-049 confirmed Frappe v16.5 as the primary target while retaining v15/v16 coverage; PR #38 audited Failed-row replay merged; PR #42 D3 field-level fail-closed guard merged; PR #44 source-document read authorization merged; PR #45 per-company quotation thresholds merged as `ff434bdf` after all 16 required checks passed on head `84783d15`. PR #48 adds an exact Frappe v16.5.0 compatibility lane. Its first Helpdesk v1.31.1 install failed because that release calls the missing `Notification Type` controller; ADR-057 now pins Helpdesk v1.30.2 for the exact v16.5.0 lane and the corrected schema smoke-test rerun is pending. PR #47 contains the operator kit. No pilot-site acceptance has been recorded.
+**Sprint update — 2026-11-02:** PR #32 D3 adapter merged and passed v15/v16 CI; PR #36 ADR-049 confirmed Frappe v16.5 as the primary target while retaining v15/v16 coverage; PR #38 audited Failed-row replay merged; PR #42 D3 field-level fail-closed guard merged; PR #44 source-document read authorization merged; PR #45 per-company quotation thresholds merged as `ff434bdf` after all 16 required checks passed on head `84783d15`; PR #49 merged as `2e9eb89` after v15/v16 Bench, unit, lint and security checks passed. PR #48 adds an exact Frappe v16.5.0 compatibility lane. Its first Helpdesk v1.31.1 install failed because that release calls the missing `Notification Type` controller; ADR-057 now pins Helpdesk v1.30.2 for the exact v16.5.0 lane and the corrected schema smoke-test rerun is pending. PR #47 contains the operator kit. No pilot-site acceptance has been recorded.
 
 
 | Workstream | Status | Evidence / next action |
@@ -25,7 +25,7 @@ This file is the operational source of truth. [IMPLEMENTATION_PLAN.md](../IMPLEM
 | Digest hardening | Core merged in PR #19; cross-worker serialization merged in PR #23 | Site-timezone schedule, permission-aware per-user email and per-recipient queue markers; Settings row lock plus recheck prevents overlapping workers queuing the same recipient/date; v15/v16 Bench tests passed. Target-site scheduler/mail acceptance remains open. |
 | Notification failure isolation | Merged in PR #19 | Recipient failures are logged and do not block other recipients or source-document saves; automated retry/outbox remains deferred |
 | D3 Service Resolution/SLA | Adapter and field-level fail-closed guard merged in PR #32/#42; CI verified | Standard HD Ticket/HD Service Level Agreement aggregate adapter; target-site versions, actual field-level permissions and active SLA calendar remain |
-| H Highlights | Partial | High-value Quotation signals and per-company currency thresholds are merged; every enabled Company's threshold still needs business approval/configuration. VIP proposal-link tracking remains blocked on privacy/consent and retention approval |
+| H Highlights | Partial | High-value Quotation signals and per-company currency thresholds are merged; PR #49 ensures row currency is fetched from Company metadata and used for amount display. Every enabled Company's threshold still needs business approval/configuration. VIP proposal-link tracking remains blocked on privacy/consent and retention approval |
 | E Explorer | Planned | Inventory installed activity integrations and implement only verified source adapters |
 | V Vault | Planned | Approve metric registry, source visibility and retention before enabling snapshots |
 | A Analysis | Planned | Approved metric registry and constrained server-owned queries; no model-generated SQL |
@@ -116,7 +116,7 @@ GitHub ruleset [Protect main](https://github.com/MitMike/crm_signals/rules/26282
 
 See [FOLLOW_UPS.md](FOLLOW_UPS.md) for issues that should not be silently treated as complete:
 - Durable realtime notification retry; Frappe v16.5.0's after-commit Redis emitter suppresses connection errors, so a per-recipient delivery ledger and stable client dedupe ID are required.
-- Per-company quotation threshold implementation merged in PR #45; site-specific amounts still require business approval and pilot validation.
+- Per-company quotation threshold implementation merged in PR #45; row currency auto-fetch/display fix merged in PR #49. Site-specific amounts still require business approval and pilot validation.
 - D3 field-level permission hardening and target-site acceptance; H privacy/consent decisions, E integration inventory, V retention and A metric-registry work.
 
 ## Completed branch work — PR #21
