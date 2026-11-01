@@ -118,6 +118,7 @@ Production/target-site acceptance is not implied by these CI results. See [Proje
 - Default the master switch and external ingestion to off until System Manager explicitly enables the reviewed configuration (ADR-036).
 - Bound daily digest output to 100 Quotations and report truncation rather than creating unbounded email payloads (ADR-037).
 - Add Bench-backed API idempotency and source-key tests for duplicate requests, notification dedupe, per-user namespaces and legacy null-key compatibility.
+- Add a production-readiness audit with explicit P0/P1/P2 gates and follow-up ownership.
 
 ### Validation
 - Changes are on `feat/settings-and-core-reliability`. CI and target-site validation are not yet complete.
