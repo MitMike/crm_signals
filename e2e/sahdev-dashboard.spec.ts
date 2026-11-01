@@ -31,7 +31,6 @@ async function loginAs(page: Page, username: string, password: string) {
         )
         .toBe(true);
 
-    await page.goto("/app");
 }
 
 async function loginAsAdministrator(page: Page) {
@@ -395,29 +394,31 @@ test("Guest access is rejected", async ({ page, request }) => {
     await expect(page).toHaveURL(/\/login(?:\?|$)/);
 });
 
-test(
-    "CRM Signals Settings presets can be applied and customised",
-    async ({ page }) => {
-        await loginAsAdministrator(page);
-        await page.goto("/app/crm-signals-settings");
+test("CRM Signals Settings presets can be applied and customised", async ({ page }) => {
+    await loginAsAdministrator(page);
+    await page.goto("/app/crm-signals-settings");
 
-        const preset = page.locator(
-            '.frappe-control[data-fieldname="notification_preset"] select'
-        );
-        const staleDays = page.locator(
-            '.frappe-control[data-fieldname="lead_stale_days"] input'
-        );
-        const quotationThreshold = page.locator(
-            '.frappe-control[data-fieldname="quotation_threshold"] input'
-        );
+    const preset = page.locator(
+        '.frappe-control[data-fieldname="notification_preset"] select'
+    );
+    const staleDays = page.locator(
+        '.frappe-control[data-fieldname="lead_stale_days"] input'
+    );
+    const quotationThreshold = page.locator(
+        '.frappe-control[data-fieldname="quotation_threshold"] input'
+    );
 
-        await expect(preset).toBeVisible();
-        await preset.selectOption({ label: "Sales Focused" });
+    await expect(preset).toBeVisible();
+    await preset.selectOption({ label: "Sales Focused" });
 
-        await expect(staleDays).toHaveValue("2");
-        await expect(quotationThreshold).toHaveValue("100000");
+    await expect(staleDays).toHaveValue("2");
+    await expect
+        .poll(async () => {
+            const value = await quotationThreshold.inputValue();
+            return Number(value.replace(/,/g, ""));
+        })
+        .toBe(100000);
 
-        await staleDays.fill("4");
-        await expect(preset).toHaveValue("Custom");
-    }
-);
+    await staleDays.fill("4");
+    await expect(preset).toHaveValue("Custom");
+});
