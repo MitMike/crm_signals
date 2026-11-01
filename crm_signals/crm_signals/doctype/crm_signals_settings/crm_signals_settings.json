@@ -84,7 +84,7 @@
    "label": "Threshold currency",
    "options": "Currency",
    "read_only": 1,
-   "description": "Automatically follows the default Company's currency. This first release uses one site-wide threshold currency."
+   "description": "Automatically follows the default Company's currency. Used as a fallback only when it matches the Quotation Company's base currency; no currency conversion is performed."
   },
   {
    "fieldname": "company_thresholds",
