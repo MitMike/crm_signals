@@ -467,6 +467,16 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Consequences:** A failed enqueue leaves a durable Pending row for the scheduled worker. The stable source-event key prevents duplicate CRM Signals. Realtime notification delivery remains a separate reliability concern.
 - **Validation:** Bench tests cover non-System-Manager denial, missing outbox read permission, replay state, preserved attempt history, audit metadata/comment and after-commit enqueue. Required Frappe v15/v16 CI remains the merge gate.
 
+## ADR-051 — Support explicit per-company quotation alert thresholds
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-02
+- **Context:** The first settings version applies one site-wide quotation threshold in the default Company's currency. Multi-company sites may have different base currencies and different materiality thresholds; comparing base totals against one currency's threshold is invalid.
+- **Decision:** Add an optional Company Threshold child table. Each row is keyed by Company, requires an explicitly entered non-negative threshold (it does not inherit the site-wide default), and derives its currency from that Company's configured default currency. Evaluate the Quotation's base total against the matching Company row. For companies without an override, retain the legacy site-wide threshold only when its currency exactly matches the Company's base currency. Never convert currencies implicitly.
+- **Rationale:** Company-specific thresholds avoid false positives/negatives without introducing an unapproved exchange-rate source or conversion policy.
+- **Consequences:** Existing single-company configurations continue to work. Multi-company administrators should configure an override for every Company that needs a threshold distinct from the legacy site-wide value. A Company currency change suppresses alerts immediately; saving Settings then fails closed until the administrator removes and re-adds that Company's row and enters a newly approved threshold, preventing a numeric amount from silently changing currency meaning.
+- **Validation:** Unit coverage verifies company-specific currency derivation and threshold selection, rejects mismatched override currencies, and preserves the exact-currency fallback. Bench migration and v15/v16 validation are the merge gate.
+
 ## ADR-052 — Treat Helpdesk field-level permissions as metric availability gates
 
 - **Status:** Accepted

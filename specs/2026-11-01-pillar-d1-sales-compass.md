@@ -69,3 +69,8 @@ Implementation is in crm_signals.api.get_sales_compass_data and crm_signals/crm_
 ## Known correctness hardening
 
 The baseline code treated every Lead/Opportunity as active when the corresponding status field was absent. The Stage 1 correction now marks Lead active count, Opportunity active count, stage distribution and active pipeline unavailable when their required status metadata is missing; total/created counts and recent Opportunity rows remain available where their independent fields/permissions permit. Confirm the terminal-status list with the target site and allow explicit configuration for custom workflows.
+
+
+### Multi-company quotation thresholds
+
+The Settings singleton supports optional per-company threshold rows. Each row derives its currency from Company metadata and is evaluated against the Quotation's base total. If a Company has no override, the legacy site-wide threshold is applied only when its currency matches that Company's base currency. No automatic currency conversion is performed. Administrators must validate each Company's threshold before enabling its quotation alerts.

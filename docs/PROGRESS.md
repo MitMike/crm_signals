@@ -2,15 +2,15 @@
 
 **Last reviewed:** 2026-11-02  
 **Repository:** [MitMike/crm_signals](https://github.com/MitMike/crm_signals)  
-**Main baseline:** [e57d94e](https://github.com/MitMike/crm_signals/commit/e57d94ea3090cfa50c5270a673e14c19ec6acbe3)  
-**Completed implementation:** PR #19 delivered settings/presets and core idempotency; PR #21 validated the legacy-schema migration; PR #23 closed concurrent API-idempotency and digest-queue races; PR #26 merged the transactional signal outbox; PR #32 merged the standard Frappe Helpdesk D3 adapter.  
+**Main baseline:** [17eca3f](https://github.com/MitMike/crm_signals/commit/17eca3f6cb493fb8729632e0902c07ccb776b6a5)  
+**Completed implementation:** PR #19 delivered settings/presets and core idempotency; PR #21 validated the legacy-schema migration; PR #23 closed concurrent API-idempotency and digest-queue races; PR #26 merged the transactional signal outbox; PR #32 merged the standard Frappe Helpdesk D3 adapter; PR #38 merged audited Failed-row replay; PR #42 merged the fail-closed Helpdesk field-level permission guard.  
 **Next acceptance:** complete the Frappe v16.5 pilot: exact patch/app versions, Company threshold policy, role/field permissions, D1/D2 reconciliation, Helpdesk SLA calendar, scheduler/mail/realtime, and backup/restore/rollback. PR #32 is CI-verified, not pilot-verified.
 
 This file is the operational source of truth. [IMPLEMENTATION_PLAN.md](../IMPLEMENTATION_PLAN.md) is the roadmap, [DECISIONS.md](DECISIONS.md) is the durable decision register, [FOLLOW_UPS.md](FOLLOW_UPS.md) tracks deferred issues, and [specs/](../specs/) holds feature contracts.
 
 ## Current status
 
-**Sprint update — 2026-11-02:** PR #32 D3 Helpdesk adapter merged as `43fddfbbc46cac277a48c840251a7a2c963a8eb5`; final head `93b536abef331d8b34b5b7b570fbb280a996bfb2` passed Python 3.10/3.11/3.12/3.14, lint/static, Semgrep and Bench v15/v16. PR #36 Frappe v16.5 target baseline ADR-049 merged as `e57d94ea3090cfa50c5270a673e14c19ec6acbe3`; v15/v16 CI coverage is retained. PR #38 audited Failed-row replay is in review: unsupported `frappe.has_role` and `Document.get_comments` assumptions were replaced, and the action is POST-only, System Manager/read-permission gated and confirmation-protected. PR #34 per-company thresholds are in review. A D3 field-level permission correction is also in validation because standard Helpdesk fields use permlevels 7/8. No target-site acceptance has been recorded.
+**Sprint update — 2026-11-02:** PR #32 D3 Helpdesk adapter merged as `43fddfbbc46cac277a48c840251a7a2c963a8eb5`; final head `93b536abef331d8b34b5b7b570fbb280a996bfb2` passed Python 3.10/3.11/3.12/3.14, lint/static, Semgrep and Bench v15/v16. PR #36 Frappe v16.5 target baseline ADR-049 merged as `e57d94ea3090cfa50c5270a673e14c19ec6acbe3`; v15/v16 CI coverage is retained. PR #38 audited Failed-row replay merged as `1640bdd496706a7f297b0984f1fd1d9695307147` after Quality, Security and Bench v15/v16 passed. PR #41 source-document notification permission check is in review. PR #40 per-company thresholds are in review. PR #42 D3 field-level permission guard merged as `17eca3f6cb493fb8729632e0902c07ccb776b6a5`; Python, lint/static, Semgrep and Bench v15/v16 checks passed. Target-site Sales-role field permissions remain unverified. No target-site acceptance has been recorded.
 
 
 | Workstream | Status | Evidence / next action |
@@ -23,9 +23,9 @@ This file is the operational source of truth. [IMPLEMENTATION_PLAN.md](../IMPLEM
 | Settings + presets | Merged in PR #19 | Settings singleton, validation, Balanced/Sales Focused/Executive presets and administrator guide; confirm target-site defaults before activation |
 | Event identity/idempotency | Runtime merged in PR #19; migration rehearsal merged in PR #21; concurrent recovery merged in PR #23 | Unique SHA-256 source-event key; legacy-schema migration passed on Frappe v15/v16; final two-connection API race test passed on both supported versions. One created response, one deduplicated response and one notification dispatch. |
 | Digest hardening | Core merged in PR #19; cross-worker serialization merged in PR #23 | Site-timezone schedule, permission-aware per-user email and per-recipient queue markers; Settings row lock plus recheck prevents overlapping workers queuing the same recipient/date; v15/v16 Bench tests passed. Target-site scheduler/mail acceptance remains open. |
-| Notification failure isolation | Merged in PR #19 | Recipient failures are logged and do not block other recipients or source-document saves; automated retry/outbox remains deferred |
-| D3 Service Resolution/SLA | Initial adapter merged in PR #32; CI verified | Standard HD Ticket/HD Service Level Agreement aggregate adapter; target-site versions, DocType/field-level permissions and active SLA calendar remain. Field-level fail-closed hardening is in validation |
-| H Highlights | Partial | High-value Quotation signals exist; per-company currency thresholds are in PR #34 review. VIP proposal-link tracking remains blocked on privacy/consent and retention approval |
+| Realtime notification delivery | Partial | PR #41 adds source-DocType read checks alongside linked-party and CRM Signal permissions. Frappe v16 `publish_realtime(after_commit=True)` defers Redis emission and suppresses `redis.ConnectionError`; the current try/except cannot confirm publication or provide durable retry |
+| D3 Service Resolution/SLA | Initial adapter merged in PR #32; CI verified | Standard HD Ticket/HD Service Level Agreement aggregate adapter; target-site versions, DocType/field-level permissions and active SLA calendar remain. Field-level fail-closed hardening merged in PR #42 and CI-verified; target-site Sales-role field permissions remain |
+| H Highlights | Partial | High-value Quotation signals exist; per-company currency thresholds are in PR #40 review. VIP proposal-link tracking remains blocked on privacy/consent and retention approval |
 | E Explorer | Planned | Inventory installed activity integrations and implement only verified source adapters |
 | V Vault | Planned | Approve metric registry, source visibility and retention before enabling snapshots |
 | A Analysis | Planned | Approved metric registry and constrained server-owned queries; no model-generated SQL |
@@ -72,7 +72,7 @@ GitHub ruleset [Protect main](https://github.com/MitMike/crm_signals/rules/26282
 - Final synchronized head: `222e70ec71164dab4448f7319525042323a357b4` (based on main after PR #28).
 - Quality Checks, Security Scanning and Bench Integration/E2E all passed on that exact head; Bench covered Frappe v15/v16 and the concurrent enqueue/process idempotency cases.
 - Source events and outbox rows commit atomically; delivery is queued after commit, with the scheduled pending-event worker retained as recovery. Retry is bounded and terminal failures are visible to System Managers.
-- **Still open:** audited operator replay for terminal Failed rows and durable realtime notification retry. These are not included in the merged outbox scope.
+- **Still open:** durable realtime notification retry. Audited Failed-row replay merged in PR #38; realtime publication remains best-effort and has no client receipt.
 
 ## Stage 1 — release readiness and core hardening
 
@@ -115,9 +115,9 @@ GitHub ruleset [Protect main](https://github.com/MitMike/crm_signals/rules/26282
 ## Explicitly deferred
 
 See [FOLLOW_UPS.md](FOLLOW_UPS.md) for issues that should not be silently treated as complete:
-- Audited operator replay for terminal Failed outbox rows (PR #38 in review) and durable realtime notification retry.
+- Durable realtime notification retry; Frappe's after-commit Redis emitter suppresses connection errors, so a per-recipient delivery ledger and stable client dedupe ID are required.
 - Multi-company quotation thresholds (PR #34 in review); no implicit FX conversion.
-- D3 field-level permission hardening and target-site acceptance; H privacy/consent decisions, E integration inventory, V retention and A metric-registry work.
+- D3 target-site acceptance; H privacy/consent decisions, E integration inventory, V retention and A metric-registry work.
 
 ## Completed branch work — PR #21
 
