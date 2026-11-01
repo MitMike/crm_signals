@@ -1,0 +1,139 @@
+name: Pinned Frappe v16.5.0 + Helpdesk v1.31.1
+
+on:
+  pull_request:
+    paths:
+      - "crm_signals/**"
+      - "tests/**"
+      - "pyproject.toml"
+      - "setup.py"
+      - ".github/workflows/bench-e2e.yml"
+      - ".github/workflows/bench-target-v16-5.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bench-target-v16-5-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  target-helpdesk-validation:
+    name: target-helpdesk-validation (Frappe 16.5.0, Helpdesk 1.31.1)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    services:
+      redis-cache:
+        image: redis:alpine
+        ports:
+          - 13000:6379
+      redis-queue:
+        image: redis:alpine
+        ports:
+          - 11000:6379
+      mariadb:
+        image: mariadb:10.6
+        env:
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: --health-cmd="mariadb-admin ping" --health-interval=5s --health-timeout=2s --health-retries=3
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+
+      - name: Add test hostname
+        run: echo "127.0.0.1 test.local" | sudo tee -a /etc/hosts
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: "**/pyproject.toml"
+
+      - name: Install MariaDB client
+        run: sudo apt-get update && sudo apt-get install -y mariadb-client
+
+      - name: Configure MariaDB client defaults
+        run: |
+          sudo mkdir -p /etc/mysql/mariadb.conf.d
+          printf '[client]\\nskip-ssl\\n[mysql]\\nskip-ssl\\n[mariadb]\\nskip-ssl\\n' | sudo tee /etc/mysql/mariadb.conf.d/99-ci-client.cnf
+          mariadb --skip-ssl --host 127.0.0.1 --port 3306 -u root -proot -e "SET GLOBAL character_set_server = 'utf8mb4'"
+          mariadb --skip-ssl --host 127.0.0.1 --port 3306 -u root -proot -e "SET GLOBAL collation_server = 'utf8mb4_unicode_ci'"
+
+      - name: Initialize Frappe v16.5.0 Bench
+        run: |
+          uv tool install frappe-bench
+          bench init --skip-redis-config-generation --skip-assets --frappe-branch v16.5.0 --python "$(which python)" ~/frappe-bench
+
+      - name: Get ERPNext, Telephony, Helpdesk and CRM Signals
+        working-directory: /home/runner/frappe-bench
+        env:
+          TELEPHONY_COMMIT: "9447577500a25d242088398157b72c654fa34b20"
+        run: |
+          bench get-app --skip-assets erpnext https://github.com/frappe/erpnext --branch v16.5.0
+          bench get-app --skip-assets telephony https://github.com/frappe/telephony --branch develop
+          git -C apps/telephony fetch --depth 1 upstream "$TELEPHONY_COMMIT"
+          git -C apps/telephony checkout --detach "$TELEPHONY_COMMIT"
+          test "$(git -C apps/telephony rev-parse HEAD)" = "$TELEPHONY_COMMIT"
+          bench get-app --skip-assets helpdesk https://github.com/frappe/helpdesk --branch v1.31.1
+          bench get-app --skip-assets crm_signals "${{ github.workspace }}"
+          bench setup requirements --dev
+
+      - name: Create site and install apps
+        working-directory: /home/runner/frappe-bench
+        env:
+          CI: "Yes"
+        run: |
+          bench new-site --db-root-password root --admin-password admin test.local
+          bench --site test.local install-app erpnext
+          bench --site test.local install-app telephony
+          bench --site test.local install-app helpdesk
+          bench --site test.local install-app crm_signals
+          bench --site test.local set-config allow_tests true
+          bench --site test.local set-config host_name "http://test.local:8000"
+          bench --site test.local migrate
+
+      - name: Verify pinned Helpdesk schema and read-role contract
+        working-directory: /home/runner/frappe-bench
+        run: bench --site test.local execute crm_signals.ci.verify_helpdesk_schema
+
+      - name: Exercise CRM Signal schema upgrade
+        working-directory: /home/runner/frappe-bench
+        run: |
+          bench --site test.local execute crm_signals.ci.prepare_upgrade_site
+          bench --site test.local migrate
+          bench --site test.local execute crm_signals.ci.verify_upgrade_site
+
+      - name: Build application assets
+        working-directory: /home/runner/frappe-bench
+        run: bench build
+
+      - name: Run Python tests in the Bench environment
+        working-directory: /home/runner/frappe-bench/apps/crm_signals
+        run: |
+          ../../env/bin/pip install pytest pytest-cov
+          ../../env/bin/python -m pytest -q tests --cov=crm_signals --cov-report=term-missing
+
+      - name: Run Frappe integration tests
+        working-directory: /home/runner/frappe-bench
+        run: bench --site test.local run-tests --app crm_signals
+
+      - name: Show Bench logs on failure
+        if: failure()
+        working-directory: /home/runner/frappe-bench
+        run: |
+          echo "=== Frappe logs ==="
+          cat logs/*.log || true
