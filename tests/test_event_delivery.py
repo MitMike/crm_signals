@@ -38,6 +38,7 @@ def load_events(monkeypatch, *, existing_name=None, duplicate_on_insert=False):
         loaded_document_options.append(kwargs)
         return types.SimpleNamespace(name=name, loaded=True)
 
+    fake.loaded_document_options = loaded_document_options
     fake.get_doc = get_doc
     monkeypatch.setitem(sys.modules, "frappe", fake)
 
@@ -59,7 +60,7 @@ def load_events(monkeypatch, *, existing_name=None, duplicate_on_insert=False):
     monkeypatch.setitem(sys.modules, "crm_signals.settings", settings)
     monkeypatch.delitem(sys.modules, "crm_signals.events", raising=False)
     module = importlib.import_module("crm_signals.events")
-    return module, notifications, inserted, lookups, loaded, fake, loaded_document_options
+    return module, notifications, inserted, lookups, loaded, fake
 
 
 def test_new_source_event_is_inserted_once_and_notified(monkeypatch):
@@ -107,7 +108,7 @@ def test_existing_source_event_is_returned_without_insert_or_notification(monkey
 
 
 def test_unique_index_race_returns_existing_signal_without_duplicate_notification(monkeypatch):
-    module, notifications, inserted, lookups, loaded, fake, loaded_document_options = load_events(
+    module, notifications, inserted, lookups, loaded, fake = load_events(
         monkeypatch,
         duplicate_on_insert=True,
     )
@@ -131,7 +132,7 @@ def test_unique_index_race_returns_existing_signal_without_duplicate_notificatio
 
     assert created is False
     assert signal.name == "SIG-CONCURRENT"
-    assert loaded_document_options == [{"for_update": True}]
+    assert fake.loaded_document_options == [{"for_update": True}]
     assert inserted == [True]
     assert loaded[0].values["source_event_key"]
     assert notifications.sent == []
