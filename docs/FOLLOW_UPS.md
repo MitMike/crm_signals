@@ -8,7 +8,7 @@ This file records known work that is intentionally not represented as complete. 
 - [ ] **Permission parity.** Verify Sales User, Sales Manager, System Manager and non-sales users across list, direct form, API, report, export and print. Notifications are not an authorization grant. The scheduled digest now queries Leads and Quotations separately under each recipient's user context; confirm this behavior with the target site's actual user permissions.
 - [ ] **D2 financial reconciliation.** Compare invoices, Payment Entry receipts, separate POS receipts and party-account-currency receivables to native ERPNext reports, by currency.
 - [ ] **Webhook operations.** Provision a dedicated integration System User, least-privilege create access, TLS, gateway rate limiting, monitoring, secret rotation and secure secret storage.
-- [ ] **Deployment runbook.** Document backup, migration, smoke tests, rollback and supported release procedure for the intended site.
+- [ ] **Target-site deployment rehearsal.** The generic backup, migration, smoke-test and rollback procedure is documented in [Deployment Runbook](DEPLOYMENT_RUNBOOK.md); execute it with the intended site's actual backup, restore, app revision and process manager before sign-off.
 
 ## P1 — engineering reliability improvements
 
