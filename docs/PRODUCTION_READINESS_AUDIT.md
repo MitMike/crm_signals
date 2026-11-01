@@ -2,7 +2,7 @@
 
 **Audit date:** 2026-11-01  
 **Repository:** MitMike/crm_signals  
-**Base:** `main` at `72833cd383811d7c9be591206647b2e0b1f3fbd9` (PR #21 merged)  
+**Base:** `main` at `69140a243ed2bf6b49f24a8265948a21899f2bb4` (PR #21 and subsequent documentation updates merged)  
 **Implementation under audit:** [PR #19](https://github.com/MitMike/crm_signals/pull/19), validated head a90315be7ef37e2dceeacb9b4e9b77d5d31df131, merged as a49591947a89b011cc1770be176c1f11571b131b  
 **Decision:** **Not approved for production sign-off.** PR #19 is merged and its CI passed; target-site acceptance and the remaining P1 reliability work are still outstanding.
 
@@ -26,7 +26,7 @@
 | API idempotency had only mocked coverage. | Add Bench-backed tests for same-user duplicate POSTs, one notification per event, per-user source namespaces, unique-key enforcement and multiple legacy null keys. | Bench integration test suite on v15 and v16. |
 | Dashboard JavaScript contained an unused catch binding. | Remove the unused binding. | ESLint. |
 | Frappe v15/v16 call document permission hooks with different keyword names; v16 requires explicit boolean decisions. | Accept both `permission_type` and `ptype`, enforce DocType role permission first, and return explicit decisions before applying row restrictions (ADR-039). | Bench integration tests passed on v15 and v16. |
-| Duplicate event insertion can lose a read-before-insert race and Frappe wraps a unique-key collision as `UniqueValidationError`. | Recover the persisted winning row with a locking read; add a simulated race regression test and correct Frappe exception handling (ADR-038/039). | Python regression tests and v15/v16 Bench suites passed; truly concurrent DB race load remains open. |
+| Duplicate event insertion can lose a read-before-insert race and Frappe wraps a unique-key collision as `UniqueValidationError`. | PR #23 reloads the winning row with a current locking document read after a unique-key collision and adds a deterministic two-connection Bench test (ADR-043). | Python quality passed on an earlier PR #23 head; final test and both v15/v16 Bench jobs are pending. |
 | Browser login can expose the session cookie before redirecting to Desk, and v16 Int input commits its model value on change. | Wait for the version-appropriate `/app` or `/desk` route, commit the field change, and await the preset transition (ADR-040). | Final v16 Playwright suite passed. |
 | Release procedure was spread across guidance and assumptions. | Add a deployment/rollback runbook and link it from the administrator guide. | Target-site rehearsal remains outstanding. |
 
@@ -46,8 +46,8 @@ Decisions are recorded in ADR-034 through ADR-040, in addition to the earlier se
 
 1. **Signal outbox/reconciliation:** Source hook failures are logged without blocking the source business transaction. A transient CRM Signal write failure can still lose an event; guaranteed delivery requires a durable outbox or reconciliation process.
 2. **Realtime retry:** Per-recipient failures are isolated and logged but not automatically retried.
-3. **Digest concurrency:** The Settings marker and email queue request are committed per recipient. Concurrent scheduler workers have not been proven safe; add a per-recipient lock or unique delivery record if the target site's worker topology permits overlapping runs.
-4. **Idempotency race:** Bench tests cover normal duplicate requests and the unique key. Concurrent duplicate inserts under real simultaneous database transactions remain open. The pre-feature-schema upgrade rehearsal passed in PR #21 on v15/v16.
+3. **Digest concurrency:** PR #23 adds a Settings-singleton row lock, a fresh per-recipient marker read before queueing and a two-worker Bench test (ADR-044). Keep open until the v15/v16 tests pass; target-site scheduler topology and mail-queue behavior still need validation.
+4. **Idempotency race:** PR #23 adds a deterministic two-connection API-handler race test and changes duplicate recovery to a current locking document read. Keep open until both supported Frappe Bench lanes pass. The pre-feature-schema upgrade rehearsal passed in PR #21 on v15/v16.
 5. **Multi-company threshold:** One site-wide Company-currency threshold is supported. Sites with different Company base currencies need an approved per-company threshold or conversion policy before enabling signals for all companies.
 
 ### P2 — roadmap dependencies
