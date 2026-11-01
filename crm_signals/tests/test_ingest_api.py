@@ -131,3 +131,99 @@ class TestCRMSignalWebhookIntegration(FrappeTestCase):
             ),
             [other_source["signal"]],
         )
+
+    def test_concurrent_duplicate_posts_create_one_signal_and_dispatch_once(self):
+        """Exercise the unique-key race using two independent MariaDB connections."""
+        import threading
+        from concurrent.futures import ThreadPoolExecutor
+
+        from crm_signals import events
+
+        suffix = frappe.generate_hash(length=8)
+        integration_user = _make_integration_user(f"{suffix}-race")
+        settings = frappe.get_single("CRM Signals Settings")
+        previous_settings = {
+            "enabled": settings.enabled,
+            "enable_external_ingestion": settings.enable_external_ingestion,
+            "enable_quotation_signals": settings.enable_quotation_signals,
+            "enable_opportunity_signals": settings.enable_opportunity_signals,
+            "enable_daily_digest": settings.enable_daily_digest,
+        }
+        settings.enabled = 1
+        settings.enable_external_ingestion = 1
+        settings.enable_quotation_signals = 0
+        settings.enable_opportunity_signals = 0
+        settings.enable_daily_digest = 0
+        settings.save(ignore_permissions=True)
+        frappe.db.commit()
+
+        site = frappe.local.site
+        event_id = f"concurrent-{suffix}"
+        payload = {
+            "signal_type": "Website Visit",
+            "priority": "Medium",
+            "message": "Concurrent duplicate API event",
+            "source_event_id": event_id,
+        }
+        both_pre_reads_complete = threading.Barrier(2)
+        thread_state = threading.local()
+        original_lookup = events._existing_signal_name
+        worker_errors = []
+
+        def synchronized_lookup(event_key, *, locking_read=False):
+            result = original_lookup(event_key, locking_read=locking_read)
+            if not locking_read and not getattr(thread_state, "initial_read_done", False):
+                thread_state.initial_read_done = True
+                both_pre_reads_complete.wait(timeout=20)
+            return result
+
+        def post_from_independent_connection():
+            try:
+                frappe.init(site=site)
+                frappe.connect(site=site)
+                frappe.set_user(integration_user.name)
+                frappe.local.form_dict = dict(payload)
+                response = ingest_signal()
+                frappe.db.commit()
+                return response
+            except Exception as error:
+                worker_errors.append(repr(error))
+                try:
+                    frappe.db.rollback()
+                except Exception:
+                    pass
+                raise
+            finally:
+                frappe.destroy()
+
+        try:
+            with patch.object(events, "_existing_signal_name", side_effect=synchronized_lookup):
+                with patch("crm_signals.notifications.notify_signal") as notify:
+                    with ThreadPoolExecutor(max_workers=2) as executor:
+                        futures = [
+                            executor.submit(post_from_independent_connection)
+                            for _ in range(2)
+                        ]
+                        responses = [future.result(timeout=60) for future in futures]
+
+            self.assertEqual(worker_errors, [])
+            self.assertEqual(len({response["signal"] for response in responses}), 1)
+            self.assertEqual(
+                sorted(response["deduplicated"] for response in responses),
+                [False, True],
+            )
+            self.assertEqual(notify.call_count, 1)
+            event_key = build_source_event_key(
+                "API Integration", integration_user.name, event_id
+            )
+            rows = frappe.get_all(
+                "CRM Signal",
+                filters={"source_event_key": event_key},
+                pluck="name",
+            )
+            self.assertEqual(rows, [responses[0]["signal"]])
+        finally:
+            for fieldname, value in previous_settings.items():
+                frappe.db.set_value("CRM Signals Settings", None, fieldname, value)
+            frappe.db.commit()
+
