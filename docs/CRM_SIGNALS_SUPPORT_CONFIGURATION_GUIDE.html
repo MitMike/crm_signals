@@ -150,11 +150,10 @@ for user in ("sales.user@example.com", "sales.manager@example.com"):
 <h3>Example fixture and expected results</h3>
 <p>Create these six synthetic tickets in staging, all with creation dates in the last 30 days and all resolved tickets with resolution dates in that same window:</p>
 <table><thead><tr><th>Tickets</th><th>Count</th><th>Setup</th></tr></thead><tbody>
-<tr><td>Open</td><td>2</td><td>SLA set; native agreement status <code>Resolution Due</code></td></tr>
+<tr><td>Open</td><td>2</td><td>One SLA set with native <code>Resolution Due</code>; one with no SLA</td></tr>
 <tr><td>Paused</td><td>1</td><td>SLA set; native agreement status <code>Paused</code></td></tr>
-<tr><td>Resolved / Fulfilled</td><td>1</td><td>SLA set; resolution_time <code>7200</code> seconds</td></tr>
+<tr><td>Resolved / Fulfilled</td><td>2</td><td>SLA set; resolution_time <code>7200</code> and <code>1800</code> seconds</td></tr>
 <tr><td>Resolved / Failed</td><td>1</td><td>SLA set; resolution_time <code>3600</code> seconds</td></tr>
-<tr><td>Resolved / no SLA</td><td>1</td><td>SLA empty; resolution_time <code>1800</code> seconds</td></tr>
 </tbody></table>
 <table><thead><tr><th>Expected measure</th><th>Expected value</th><th>Why</th></tr></thead><tbody>
 <tr><td>Created · 30 days</td><td>6</td><td>All six tickets are inside the creation window</td></tr>
@@ -162,8 +161,8 @@ for user in ("sales.user@example.com", "sales.manager@example.com"):
 <tr><td>Paused backlog</td><td>1</td><td>One current Paused ticket</td></tr>
 <tr><td>Resolved · 30 days</td><td>3</td><td>Three Resolved tickets with resolution dates in the window</td></tr>
 <tr><td>Average resolution</td><td>1.17 hours</td><td>(7200 + 3600 + 1800) ÷ 3 ÷ 3600</td></tr>
-<tr><td>SLA eligible / fulfilled / failed</td><td>2 / 1 / 1</td><td>Only native Fulfilled and Failed outcomes enter the denominator</td></tr>
-<tr><td>SLA compliance</td><td>50%</td><td>1 Fulfilled ÷ (1 Fulfilled + 1 Failed)</td></tr>
+<tr><td>SLA eligible / fulfilled / failed</td><td>3 / 2 / 1</td><td>Only native Fulfilled and Failed outcomes enter the denominator</td></tr>
+<tr><td>SLA compliance</td><td>66.7%</td><td>2 Fulfilled ÷ (2 Fulfilled + 1 Failed)</td></tr>
 <tr><td>Tickets without SLA</td><td>1</td><td>Counted separately and excluded from SLA compliance</td></tr>
 </tbody></table>
 <p class="muted">If there are no eligible SLA outcomes, compliance is unavailable (—), not 0%. A user may see ticket counts while SLA or resolution measures remain unavailable because of field-level permissions.</p>
