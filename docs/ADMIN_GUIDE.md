@@ -8,7 +8,7 @@ For release, backup, migration, smoke-test and rollback procedures, follow the [
 
 ## Target version
 
-The deployment owner confirmed **Frappe v16.5** as the target baseline. PR #46 is validating the exact reference stack Frappe v16.5.0 + ERPNext v16.5.0 + Helpdesk v1.30.2 (with Telephony). The first attempt with Helpdesk v1.31.1 failed during its post-install Notification Type setup because that controller is absent from the exact Frappe v16.5.0 tag; ADR-056 records the evidence and the narrower compatible reference choice. Do not install or upgrade Helpdesk based on this CI lane alone. Before installation, capture the exact patch/build from `bench version`, plus ERPNext and Helpdesk versions from `bench --site <site-name> list-apps`. The repository retains Frappe/ERPNext v15 and moving v16 CI coverage. PR #46's v1.30.2 rerun is pending; CI does not prove the live site's permissions or configuration.
+The deployment owner confirmed **Frappe v16.5** as the target baseline. PR #48 is validating the exact reference stack Frappe v16.5.0 + ERPNext v16.5.0 + Helpdesk v1.30.2 (with Telephony). The first attempt with Helpdesk v1.31.1 failed during its post-install Notification Type setup because that controller is absent from the exact Frappe v16.5.0 tag; ADR-057 records the evidence and the narrower compatible reference choice. Do not install or upgrade Helpdesk based on this CI lane alone. Before installation, capture the exact patch/build from `bench version`, plus ERPNext and Helpdesk versions from `bench --site <site-name> list-apps`. The repository retains Frappe/ERPNext v15 and moving v16 CI coverage. PR #48's v1.30.2 rerun is pending; CI does not prove the live site's permissions or configuration.
 
 ## Installation and upgrade
 
