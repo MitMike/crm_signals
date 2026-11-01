@@ -38,7 +38,7 @@ Specification: [D2 Billing Realization](../specs/2026-10-31-pillar-d2-billing-re
 - Ticket/SLA DocType permissions are checked independently; the payload contains aggregates only.
 - Monday–Saturday is the agreed initial assumption, but the active Helpdesk SLA's working hours, holiday list and timezone remain authoritative.
 
-**Remaining:** confirm the exact Frappe v16.5 patch and installed ERPNext/Helpdesk versions; inspect actual Sales User/Manager permitted fields at the installed Helpdesk release's permlevels; validate each active SLA calendar on the target site. PR #42's fail-closed field-level guard is merged. The exact v16.5.0 reference lane is testing Helpdesk v1.30.2; its D3 fields are permlevel 0, unlike the v1.31.1 schema. Target-site version, read-only role and active SLA calendar acceptance remain. Do not treat CI as pilot acceptance.
+**Remaining:** confirm the exact Frappe v16.5 patch and installed ERPNext/Helpdesk versions; inspect actual Sales User/Manager permitted fields at the installed Helpdesk release's permlevels; validate each active SLA calendar on the target site. PR #42's fail-closed field-level guard is merged. The exact v16.5.0 reference lane passed with Helpdesk v1.28.0; its five D3 fields are permlevel 0 and the pinned lane verified the default read-role contract. Target-site version, read-only role and active SLA calendar acceptance remain. Do not treat CI as pilot acceptance.
 
 Specification: [D3 Service Resolution/SLA](../specs/2026-11-01-pillar-d3-service-resolution-sla.md).
 
