@@ -13,7 +13,16 @@ This changelog records user-visible and operationally significant changes. It is
 - Keep outbox payload and delivery state read-only to administrators; inspect failures through the outbox and Error Log.
 
 ### Operational note
-- Terminal Failed rows do not yet have a self-service replay action. Realtime notification retry remains separate and is not provided by the signal outbox.
+- Terminal Failed rows can be requeued only through the audited System Manager action above. Realtime notification retry remains separate and is not provided by the signal outbox.
+
+### D3 Service Resolution/SLA — merged in PR #32
+
+- Add aggregate-only Frappe Helpdesk metrics from standard `HD Ticket` and `HD Service Level Agreement` metadata: rolling ticket creation/resolution cohorts, current Open/Paused backlog, native resolution duration and Fulfilled/Failed SLA outcomes.
+- Check ticket and SLA DocType read permissions independently; do not return ticket identifiers, subjects, comments, contact details or raw records to the dashboard.
+- Keep due/paused SLA states out of the Fulfilled/Failed compliance denominator and count tickets without an SLA separately.
+- Final PR #32 head `93b536abef331d8b34b5b7b570fbb280a996bfb2` passed Python 3.10/3.11/3.12/3.14, lint/static, Semgrep and Bench v15/v16. Merge commit: `43fddfbbc46cac277a48c840251a7a2c963a8eb5`.
+- A follow-up field-level permission guard is in review because standard Helpdesk lifecycle/SLA fields use permlevels 7 and 8. Target-site app-version, field-permission and active SLA calendar acceptance remain open.
+
 
 ## 2026-11-01 — Concurrent API idempotency and digest delivery hardening (merged in PR #23)
 
