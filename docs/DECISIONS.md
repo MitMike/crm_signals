@@ -394,3 +394,13 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Rationale:** The fixture must represent an older installed DocType definition, not merely a damaged table paired with a current-schema migration hash. Clearing the hash makes Frappe re-import the current JSON through its normal migration path.
 - **Consequences:** Keep the upgrade rehearsal failing until both supported Frappe versions demonstrate restoration of the fields and preservation of historical rows. Do not replace the rehearsal with a direct `reload_doc` call, which would bypass the migration path being tested.
 - **Evidence:** Frappe v15 and v16 `frappe/modules/import_file.py`; CI jobs [v15](https://github.com/MitMike/crm_signals/actions/runs/41291789841/job/124804365910) and [v16](https://github.com/MitMike/crm_signals/actions/runs/41291789841/job/124804366016).
+
+## ADR-043 — Test API idempotency with independent concurrent database connections
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-01
+- **Context:** Existing webhook integration coverage proved sequential retries and a mocked unique-key collision, but neither exercised two real transactions that both observe the event key as absent before attempting insertion.
+- **Decision:** Add a Bench-backed concurrency regression test that invokes the authenticated API handler from two worker threads, each with its own Frappe database connection and user context. Synchronize the initial identity reads so both transactions reach the insert race, then assert one persisted CRM Signal, one non-deduplicated response, one deduplicated response and exactly one notification dispatch.
+- **Rationale:** A deterministic race test is more reliable than timing-dependent load tests for proving the exact read-before-insert failure mode. Running against the Bench MariaDB database exercises the unique constraint and locking-read recovery used in production.
+- **Consequences:** The test must pass on both supported Frappe v15 and v16 Bench lanes before the API concurrency follow-up can be closed. This test covers the handler and database race, not HTTP gateway throughput or production webhook rate limiting.
+- **Evidence:** Branch `test/concurrent-api-idempotency`; CI result pending.
