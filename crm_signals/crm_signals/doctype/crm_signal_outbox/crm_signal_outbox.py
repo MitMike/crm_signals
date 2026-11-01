@@ -44,7 +44,7 @@ class CRMSignalOutbox(Document):
 @frappe.whitelist()
 def replay_failed_signal_outbox(name):
     """Audited, idempotent operator replay for a terminal Failed outbox row."""
-    if not frappe.has_role("System Manager"):
+    if "System Manager" not in frappe.get_roles():
         frappe.throw("Only System Managers can replay failed CRM Signal events.", frappe.PermissionError)
 
     outbox = frappe.get_doc("CRM Signal Outbox", name, for_update=True)
