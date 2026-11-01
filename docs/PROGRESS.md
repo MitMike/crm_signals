@@ -62,6 +62,7 @@ GitHub ruleset [Protect main](https://github.com/MitMike/crm_signals/rules/26282
 - Schedule the digest at the configured System Settings timezone, query CRM rows under each recipient's user context, send separate permission-filtered emails and record each queued recipient in the same transaction as that email-queue request.
 - Remove hard-coded INR formatting and isolate realtime notification errors by recipient.
 - Filter realtime recipients by the linked Lead/Customer read permission before sending signal content; denied/failed permission checks are excluded (ADR-034).
+- Also require CRM Signal document read permission; add a real FrappeTestCase for both checks and run it with `bench run-tests --app crm_signals` on v15 and v16.
 - Add an admin guide, settings/reliability spec and configuration/identity/digest tests.
 
 ### Target-site acceptance — still required
