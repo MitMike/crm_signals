@@ -404,3 +404,14 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Rationale:** A deterministic race test is more reliable than timing-dependent load tests for proving the exact read-before-insert failure mode. Running against the Bench MariaDB database exercises the unique constraint and locking-read recovery used in production.
 - **Consequences:** The test must pass on both supported Frappe v15 and v16 Bench lanes before the API concurrency follow-up can be closed. This test covers the handler and database race, not HTTP gateway throughput or production webhook rate limiting.
 - **Evidence:** Branch `test/concurrent-api-idempotency`; CI result pending.
+
+
+## ADR-044 — Serialize digest recipient claims across scheduler workers
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-01
+- **Context:** The digest previously read the queued-recipient marker without locking, then queued mail and updated the marker. Two scheduler workers could both observe a recipient/date as pending and enqueue duplicate messages before either transaction committed.
+- **Decision:** Acquire a row lock on the CRM Signals Settings singleton before reading the marker. Re-acquire the lock and re-read the marker before each recipient queue operation because per-recipient commits release the lock and allow another worker to make progress. Save the Email Queue request and the corresponding recipient marker in the same transaction.
+- **Rationale:** Use the database as the serialization point across processes and workers. An in-process mutex would not protect multiple Frappe workers or hosts.
+- **Consequences:** Add a two-connection Bench test that synchronizes two workers before the lock and proves a single queue request for the same recipient/date. The test must pass on Frappe v15 and v16. This does not prove delivery after the Email Queue is created or replace target-site scheduler/mail testing.
+- **Evidence:** PR #23, `crm_signals/tasks.py` and `crm_signals/tests/test_digest_delivery.py`; CI pending.
