@@ -430,9 +430,9 @@ Append a new ADR with the next available identifier. Include status, date record
 
 ## ADR-047 — Defer outbox delivery until after the source transaction commits
 
-- **Status:** Proposed; implementation under Frappe v15/v16 CI validation
+- **Status:** Accepted
 - **Recorded:** 2026-11-01
 - **Context:** PR #26's two-connection enqueue race consistently timed out while the winning request attempted signal delivery before committing its outbox row. A competing request waited on the unique source-event key while the first transaction still performed delivery work.
 - **Decision:** Persist the outbox row in the source transaction, register immediate background delivery with `frappe.enqueue(..., enqueue_after_commit=True)`, and retain the once-per-minute pending-outbox scheduler as recovery if queue submission or delivery fails. Do not run signal materialization synchronously inside the source transaction.
 - **Rationale:** Keep the source event and outbox row atomic while moving nonessential delivery work outside the transaction. This should shorten unique-key lock duration and prevent delivery latency from holding competing idempotent inserts. Queue failure must not lose the durable row; the scheduler remains the fallback.
-- **Validation required:** Frappe v15/v16 Bench race tests must pass, including one outbox row, one CRM Signal and one notification dispatch. Confirm enqueue-after-commit behavior on both supported Frappe versions. If either lane fails, revisit the design rather than weakening the race test.
+- **Validation:** PR #26 passed Quality Checks, Security Scanning and Bench Integration/E2E on synchronized final head `222e70ec71164dab4448f7319525042323a357b4`; Frappe v15/v16 race tests verified one outbox row, one CRM Signal and one notification dispatch. All three workflows passed before squash merge `b0364a74affa823977af74d1907781d1533e60c0`.
