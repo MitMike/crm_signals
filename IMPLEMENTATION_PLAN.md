@@ -42,7 +42,7 @@ The following capabilities are present in the repository. "Implemented" means th
 | D1 Sales Compass | Implemented; missing-status fix merged in PR #17 | Verify target-site status semantics and role visibility |
 | D2 Billing Realization | Implemented; return-metadata guard merged in PR #17 | Reconcile totals and currency basis against target-site reports |
 | D3 Service Resolution/SLA | Not implemented | Discover and map the installed support/SLA source first |
-| H Highlights | Partially present for quote events | Finish settings/idempotency foundation; VIP link tracking still needs privacy review |
+| H Highlights | Partially present for quote events | Settings/idempotency foundation merged in PR #19/#23; VIP link tracking still needs privacy/consent and retention approval |
 | E Explorer | Not implemented | Verify installed activity integrations and source adapters |
 | V Vault | Not implemented | Metric registry, retention and source-visibility policy |
 | A Analysis | Not implemented | Approved metric/query registry and constrained intent mapping |
