@@ -21,7 +21,7 @@ This file records known work that is intentionally not represented as complete. 
 
 ## P1 — site-specific configuration decisions
 
-- [x] **Multi-company threshold implementation.** PR #45 merged as `ff434bdf`; all 16 required checks passed on head `84783d15`. Company-specific rows require explicit non-negative amounts, derive currency from Company metadata, and never use implicit FX conversion. [ ] **Pilot policy acceptance:** the business owner must approve/configure each enabled Company's amount or explicitly approve the exact-currency legacy fallback.
+- [x] **Multi-company threshold implementation.** PR #45 merged as `ff434bdf`; all 16 required checks passed on head `84783d15`. Company-specific rows require explicit non-negative amounts, derive currency from Company metadata, and never use implicit FX conversion. PR #49 merged the `fetch_from` and Currency-field binding so the currency appears as soon as Company is selected. [ ] **Pilot policy acceptance:** the business owner must approve/configure each enabled Company's amount or explicitly approve the exact-currency legacy fallback.
 - [ ] **Opportunity and Lead semantics.** Confirm the exact trigger statuses and terminal Lead statuses from the live site's workflows. Confirm the Lead modified timestamp is an acceptable proxy for attention.
 - [ ] **Digest policy.** Confirm timezone, delivery time, additional recipients, mail-queue behavior and stale window with the Sales Manager/business owner.
 
