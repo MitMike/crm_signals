@@ -131,8 +131,11 @@ def prepare_upgrade_site():
     )
     # Frappe skips unchanged DocType JSON when its stored modified timestamp
     # is newer than the file. Rewind it so migrate performs the real JSON sync.
+    # Frappe stores a migration_hash for DocTypes and skips importing the JSON
+    # when that hash matches the current file, regardless of the modified time.
+    # Clear it to model an older installed DocType definition and force sync.
     frappe.db.sql(
-        "UPDATE `tabDocType` SET modified = %s WHERE name = %s",
+        "UPDATE `tabDocType` SET modified = %s, migration_hash = NULL WHERE name = %s",
         ("2000-01-01 00:00:00", "CRM Signal"),
     )
     frappe.clear_cache(doctype="CRM Signal")
