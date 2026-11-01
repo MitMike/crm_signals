@@ -12,7 +12,7 @@
 
 - [x] Merge [PR #32](https://github.com/MitMike/crm_signals/pull/32) for D3 standard Frappe Helpdesk metrics. Final head `93b536abef331d8b34b5b7b570fbb280a996bfb2` passed Python 3.10/3.11/3.12/3.14, lint/static, Semgrep and Bench v15/v16; merge commit `43fddfbbc46cac277a48c840251a7a2c963a8eb5`.
 - [x] [PR #38](https://github.com/MitMike/crm_signals/pull/38) audited Failed-row replay merged as `1640bdd496706a7f297b0984f1fd1d9695307147`; Quality, Security and Bench v15/v16 passed. The action is POST-only, requires System Manager plus outbox read access, preserves attempt history and audit Comment, and confirms before replay.
-- [ ] Complete [PR #50](https://github.com/MitMike/crm_signals/pull/50) exact Frappe v16.5.0/Helpdesk v1.28.0 Bench lane; exact Helpdesk install/schema, D3 aggregate smoke, CRM Signals upgrade, full asset build and Bench test target job has passed; standard required v15/v16 matrix and merge remain.
+- [x] [PR #50](https://github.com/MitMike/crm_signals/pull/50) exact Frappe v16.5.0/ERPNext v16.5.0/Helpdesk v1.28.0 Bench lane merged as `24a9b8d3d178682a68df418f5cd29582644056c8`; exact target job and required v15/v16 matrix passed.
 - [x] [PR #45](https://github.com/MitMike/crm_signals/pull/45) per-company quotation thresholds merged as `ff434bdf407d1d61842d81fae16e04b4b9b483d5`; all 16 required checks passed, including Bench v15/v16. The child-table controller and currency-mismatch regression coverage are included.
 - [x] [PR #49](https://github.com/MitMike/crm_signals/pull/49) fixes the child-row Currency field's Company-base-currency fetch/display binding; all required checks passed and the change is merged as `2e9eb89b8ed5618ca3e50e6bc0b2c867c516e17b`.
 - [x] [PR #44](https://github.com/MitMike/crm_signals/pull/44) source-document notification permission check merged as `48622c08700032566051978076f49bc807c381e7` after Quality, Security and Bench v15/v16 passed.
@@ -47,7 +47,7 @@
 - [x] Implement and merge the standard Frappe Helpdesk adapter in PR #32; CI passed on Frappe v15/v16.
 - [x] Use aggregate-only metrics, native resolution/SLA fields and independent ticket/SLA DocType permission checks.
 - [ ] Verify exact Frappe v16.5, ERPNext and Helpdesk versions on the pilot site.
-- [ ] Verify Sales User/Manager field-level access for `status_category`, `resolution_date`, `resolution_time`, `sla` and `agreement_status`; field-level fail-closed correction is in review.
+- [ ] Verify Sales User/Manager field-level access for `status_category`, `resolution_date`, `resolution_time`, `sla` and `agreement_status`; field-level fail-closed correction merged in PR #42; pilot-site permission evidence remains.
 - [ ] Confirm active SLA working days/hours, holiday list and timezone against the Monday–Saturday assumption.
 - [ ] Run staging fixtures for Open, Paused, Resolved, no-SLA, Fulfilled, Failed and due states; verify privacy-safe aggregate payloads.
 
