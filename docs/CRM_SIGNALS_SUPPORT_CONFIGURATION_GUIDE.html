@@ -13,7 +13,7 @@
 <span class="tag">ELI5 · Administrator checklist</span>
 <h1>CRM Signals: Support & SLA setup</h1>
 <p><strong>What is this?</strong> This guide helps your Frappe/ERPNext administrator tell CRM Signals which support tickets to count and how to measure service response and resolution.</p>
-<p class="muted">Target baseline: Frappe v16.5. Confirm the exact patch build and installed ERPNext/Helpdesk versions before testing. This guide is read-only until its staging test steps explicitly ask you to create synthetic tickets.</p>
+<p class="muted">Target baseline: Frappe v16.5. The pinned CI reference stack is Frappe v16.5.0 + ERPNext v16.5.0 + Helpdesk v1.31.1 (with Telephony). Confirm the exact patch build and installed ERPNext/Helpdesk versions on your pilot site because its Helpdesk release may differ. This guide is read-only until its staging test steps explicitly ask you to create synthetic tickets.</p>
 <div class="actions"><button onclick="window.print()">Print / Save as PDF</button></div>
 </section>
 <section class="note warning"><strong>One important rule:</strong> do not guess the ticket system. Your site may use ERPNext Issue, Frappe Helpdesk, another app, or a custom DocType. We must inspect the real site before writing the integration.</section>
