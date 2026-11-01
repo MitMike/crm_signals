@@ -147,6 +147,7 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Sources:** [D3 specification](../specs/2026-11-01-pillar-d3-service-resolution-sla.md).
 
 ## ADR-017 — Highlights require first-party or verifiable proposal-link events
+
 - **Status:** Accepted
 - **Recorded:** 2026-11-01
 - **Decision:** High-value quotation alerts use Company currency and a configurable threshold. VIP proposal opens are accepted only from first-party tracked links or a provider callback with a stable event ID. Store token hashes rather than bearer tokens; do not fingerprint browsers or retain full IP addresses. Known scanners do not trigger human-engagement alerts; ambiguous traffic is not escalated. Tracking remains disabled until privacy/consent requirements are approved.
@@ -297,6 +298,7 @@ Append a new ADR with the next available identifier. Include status, date record
 
 
 ## ADR-033 — Generate scheduled digests under each recipient's permissions
+
 - **Status:** Accepted
 - **Recorded:** 2026-11-01
 - **Decision:** Never compute one privileged, site-wide digest and send it to multiple users. Generate each digest while running source queries under that recipient's Frappe user context, use permission-aware `frappe.get_list` calls, and send a separate message per user. Missing read access/source configuration is shown as unavailable, not as zero.
@@ -400,8 +402,8 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Context:** Existing webhook integration coverage proved sequential retries and a mocked unique-key collision, but neither exercised two real transactions that both observe the event key as absent before attempting insertion.
 - **Decision:** Add a Bench-backed concurrency regression test that invokes the authenticated API handler from two worker threads, each with its own Frappe database connection and user context. Synchronize the initial identity reads so both transactions reach the insert race, then assert one persisted CRM Signal, one non-deduplicated response, one deduplicated response and exactly one notification dispatch.
 - **Rationale:** A deterministic race test is more reliable than timing-dependent load tests for proving the exact read-before-insert failure mode. Running against the Bench MariaDB database exercises the unique constraint and locking-read recovery used in production.
-- **Consequences:** The test must pass on both supported Frappe v15 and v16 Bench lanes before the API concurrency follow-up can be closed. This test covers the handler and database race, not HTTP gateway throughput or production webhook rate limiting.
-- **Evidence:** Branch `test/concurrent-api-idempotency`; CI result pending.
+- **Consequences:** The regression test is required on both supported Frappe v15 and v16 Bench lanes. It covers the API handler and database race, not HTTP gateway throughput or production webhook rate limiting.
+- **Evidence:** Merged in PR #23 as `d75b7f3`; [Bench v15/v16 + Playwright](https://github.com/MitMike/crm_signals/actions/runs/41300667892), [Quality](https://github.com/MitMike/crm_signals/actions/runs/41300667996) and [Security](https://github.com/MitMike/crm_signals/actions/runs/41300667997) passed on head `7ed0860`.
 
 
 ## ADR-044 — Serialize digest recipient claims across scheduler workers
@@ -409,10 +411,11 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Status:** Accepted
 - **Recorded:** 2026-11-01
 - **Context:** The digest previously read the queued-recipient marker without locking, then queued mail and updated the marker. Two scheduler workers could both observe a recipient/date as pending and enqueue duplicate messages before either transaction committed.
-- **Decision:** Acquire a row lock on the CRM Signals Settings singleton before reading the marker. Re-acquire the lock and re-read the marker before each recipient queue operation because per-recipient commits release the lock and allow another worker to make progress. Save the Email Queue request and the corresponding recipient marker in the same transaction.
+- **Decision:** Acquire a row lock on the CRM Signals Settings singleton before reading the marker. Re-acquire the lock and re-read the marker before each recipient queue operation because per-recipient commits release the lock and allow another worker to make progress. Write system-owned digest status fields with `Document.db_set` so the update does not rerun unrelated Settings validation; keep that write in the same transaction as the Email Queue insert.
 - **Rationale:** Use the database as the serialization point across processes and workers. An in-process mutex would not protect multiple Frappe workers or hosts.
-- **Consequences:** Add a two-connection Bench test that synchronizes two workers before the lock and proves a single queue request for the same recipient/date. The test must pass on Frappe v15 and v16. This does not prove delivery after the Email Queue is created or replace target-site scheduler/mail testing.
-- **Evidence:** PR #23, `crm_signals/tasks.py` and `crm_signals/tests/test_digest_delivery.py`; CI pending.
+- **Consequences:** The two-connection Bench test synchronizes two workers before the lock and proves a single queue request for the same recipient/date. This does not prove delivery after the Email Queue is created or replace target-site scheduler/mail testing.
+- **Evidence:** Merged in PR #23 as `d75b7f3`; [Bench v15/v16 + Playwright](https://github.com/MitMike/crm_signals/actions/runs/41300667892), [Quality](https://github.com/MitMike/crm_signals/actions/runs/41300667996) and [Security](https://github.com/MitMike/crm_signals/actions/runs/41300667997) passed.
+
 
 ## ADR-045 — Outbox persistence is part of the source transaction
 
