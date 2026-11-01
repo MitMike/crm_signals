@@ -10,7 +10,7 @@ This file is the operational source of truth. [IMPLEMENTATION_PLAN.md](../IMPLEM
 
 ## Current status
 
-**Sprint update — 2026-11-02:** PR #26 merged as `b0364a74`; its synchronized final head `222e70ec71164dab4448f7319525042323a357b4` passed Quality Checks, Security Scanning and Bench Integration/E2E on Frappe v15/v16. ADR-047 is accepted. PR #28's target-site acceptance kit is merged, but no target-site execution has been recorded. PR #29 updates the decision/progress/follow-up records for the outbox merge. Next roadmap slice is D3 Service Resolution/SLA; implementation remains gated on the actual site's installed support app, ticket/SLA DocTypes, lifecycle fields, calendar and permissions. Do not infer these from framework defaults.
+**Sprint update — 2026-11-02:** PR #26 merged as `b0364a74`; its synchronized final head `222e70ec71164dab4448f7319525042323a357b4` passed Quality Checks, Security Scanning and Bench Integration/E2E on Frappe v15/v16. ADR-047 is accepted. PR #28's target-site acceptance kit is merged, but no target-site execution has been recorded. PR #29 updates the decision/progress/follow-up records for the outbox merge. D3 now has an initial Frappe Helpdesk adapter and dashboard section on branch feat/d3-frappe-helpdesk-adapter; CI and target-site acceptance are pending. The user confirmed standard Helpdesk defaults and a Monday–Saturday working-week assumption. The active SLA's configured working hours/holiday list remain authoritative.
 
 
 | Workstream | Status | Evidence / next action |
@@ -24,7 +24,7 @@ This file is the operational source of truth. [IMPLEMENTATION_PLAN.md](../IMPLEM
 | Event identity/idempotency | Runtime merged in PR #19; migration rehearsal merged in PR #21; concurrent recovery merged in PR #23 | Unique SHA-256 source-event key; legacy-schema migration passed on Frappe v15/v16; final two-connection API race test passed on both supported versions. One created response, one deduplicated response and one notification dispatch. |
 | Digest hardening | Core merged in PR #19; cross-worker serialization merged in PR #23 | Site-timezone schedule, permission-aware per-user email and per-recipient queue markers; Settings row lock plus recheck prevents overlapping workers queuing the same recipient/date; v15/v16 Bench tests passed. Target-site scheduler/mail acceptance remains open. |
 | Notification failure isolation | Merged in PR #19 | Recipient failures are logged and do not block other recipients or source-document saves; automated retry/outbox remains deferred |
-| D3 Service Resolution/SLA | Specified; not implemented | Discover target-site support/SLA application and source semantics before adapter implementation |
+| D3 Service Resolution/SLA | Implemented on feature branch; validation pending | Standard Frappe Helpdesk adapter uses runtime metadata, permission-aware aggregates, native status category/resolution/SLA outcome fields; confirm installed versions, permissions and Monday–Saturday calendar on target site |
 | H Highlights | Partial/planned | Finish idempotent events, recipient controls, verified proposal tracking and privacy approval |
 | E Explorer | Planned | Inventory installed activity integrations and implement only verified source adapters |
 | V Vault | Planned | Approve metric registry, source visibility and retention before enabling snapshots |
@@ -145,3 +145,13 @@ For each change:
 4. Update [CHANGELOG.md](../CHANGELOG.md) for user-visible or operationally significant changes.
 5. Reconcile this file after merge and attach commit/CI evidence.
 6. Put blocked or intentionally deferred work in [FOLLOW_UPS.md](FOLLOW_UPS.md), with an owner/trigger and reason.
+
+
+## D3 implementation in progress — Frappe Helpdesk
+
+- Branch: feat/d3-frappe-helpdesk-adapter.
+- Source schema verified against upstream Helpdesk: HD Ticket, HD Ticket Status, HD Service Level Agreement; ticket fields include status_category, resolution_date, resolution_time, sla and agreement_status.
+- API aggregates ticket creation, current Open/Paused backlog, resolved cohort, native resolution duration and SLA fulfilled/failed outcomes. Ticket and SLA permissions are checked independently; payload contains no ticket subjects, comments, contacts or identifiers.
+- SLA outcome counts use the same rolling 30-day created-ticket cohort; only Fulfilled/Failed are eligible. No-SLA tickets are counted separately.
+- Monday–Saturday is the agreed business-week assumption; configured Helpdesk SLA hours and holiday lists are not overridden.
+- Pending: tests/CI, review of metric implementation, merge, and target-site version/permission/calendar acceptance.
