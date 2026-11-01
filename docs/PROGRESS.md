@@ -63,6 +63,7 @@ GitHub ruleset [Protect main](https://github.com/MitMike/crm_signals/rules/26282
 - Remove hard-coded INR formatting and isolate realtime notification errors by recipient.
 - Filter realtime recipients by the linked Lead/Customer read permission before sending signal content; denied/failed permission checks are excluded (ADR-034).
 - Also require CRM Signal document read permission; add a real FrappeTestCase for both checks and run it with `bench run-tests --app crm_signals` on v15 and v16.
+- Align list-query access with direct-document access: owner-only visibility is restricted to unlinked signals; linked signals require a permission-readable owned/assigned parent (ADR-035).
 - Add an admin guide, settings/reliability spec and configuration/identity/digest tests.
 
 ### Target-site acceptance — still required
