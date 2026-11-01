@@ -1,6 +1,6 @@
 # CRM Signals — Settings and core reliability
 
-**Status:** Implementation in progress.
+**Status:** Settings and core reliability implementation merged in PR #19; independent API/digest concurrency hardening is in PR #23 pending Frappe v15/v16 CI.
 **Scope:** Singleton configuration, starter presets, event identity, external ingestion deduplication and digest delivery safety.
 
 ## Goals
@@ -33,7 +33,7 @@ Quotation submit identity includes the source document and its submission modifi
 
 ## Digest contract
 
-The scheduled checker runs every minute. It compares the configured time with the timezone in System Settings and uses the site-local calendar date as its idempotency boundary. A recipient is marked queued only after their separate `frappe.sendmail` request succeeds; the email-queue write and that recipient's Settings marker are committed together. A later scheduler run skips already queued recipients and retries the remaining recipients.
+The scheduled checker runs every minute. It compares the configured time with the timezone in System Settings and uses the site-local calendar date as its idempotency boundary. A recipient is marked queued only after their separate `frappe.sendmail` request succeeds; the email-queue write and that recipient's Settings marker are committed together. The PR #23 follow-up acquires a row lock on the Settings singleton, then rechecks the marker before each recipient claim so concurrent scheduler workers cannot both queue the same recipient/date. A later scheduler run skips already queued recipients and retries the remaining recipients.
 
 Recipients are enabled System Users holding the Sales Manager role plus explicitly configured additional System User email addresses. Settings validation rejects unknown, disabled or Website User addresses; the task still filters recipients to enabled System Users and never sends to Guest or arbitrary external recipients. Generate each message while impersonating that recipient and use permission-aware `frappe.get_list` queries for Lead counts and expiring Quotations. Send one digest per user; never share a system-wide result across recipients.
 
@@ -49,7 +49,7 @@ Notification delivery to one recipient is isolated from other recipients and the
 - The API requires Guest rejection, honors the ingestion switch, validates optional source identity and deduplicates stable IDs.
 - DocType validation recomputes source-event keys and rejects partial identities regardless of whether records arrive through hooks, the ingestion endpoint, Desk or another API.
 - Repeated source event IDs return the original CRM Signal without duplicate notification.
-- Digest schedule respects the System Settings timezone and sends at most one queued digest per date.
+- Digest schedule respects the System Settings timezone and sends at most one queued digest per date, including across overlapping scheduler workers (PR #23 Bench proof pending).
 - Digest labels the stale Lead condition as not modified, formats each Quote in its transaction currency and filters recipients to enabled System Users.
 - Unit, Bench and E2E tests cover the settings schema, identity uniqueness, scheduler date boundary, retries and user-visible settings.
 
