@@ -59,6 +59,12 @@ class TestDigestDeliveryConcurrency(FrappeTestCase):
         thread_state = threading.local()
         original_locking_load = tasks._load_digest_settings_for_update
         worker_errors = []
+        logged_errors = []
+        original_log_error = frappe.log_error
+
+        def capture_log_error(*, message, title):
+            logged_errors.append((title, message))
+            return original_log_error(message=message, title=title)
 
         def synchronized_locking_load():
             if not getattr(thread_state, "initial_load_complete", False):
@@ -99,12 +105,14 @@ class TestDigestDeliveryConcurrency(FrappeTestCase):
                     side_effect=synchronized_locking_load,
                 ),
                 patch("frappe.sendmail") as sendmail,
+                patch("frappe.log_error", side_effect=capture_log_error),
             ):
                 with ThreadPoolExecutor(max_workers=2) as executor:
                     futures = [executor.submit(run_digest_worker) for _ in range(2)]
                     results = [future.result(timeout=60) for future in futures]
 
             self.assertEqual(worker_errors, [])
+            self.assertEqual(logged_errors, [], msg=repr(logged_errors))
             self.assertEqual(
                 sorted(result["status"] for result in results),
                 ["already_queued", "queued"],
