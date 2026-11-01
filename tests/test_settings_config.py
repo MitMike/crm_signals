@@ -72,6 +72,38 @@ def test_company_threshold_rows_derive_company_currency(monkeypatch):
     assert [row.currency for row in rows] == ["USD", "EUR"]
 
 
+def test_company_threshold_requires_an_explicit_amount(monkeypatch):
+    settings = load_settings(monkeypatch)
+    frappe = sys.modules["frappe"]
+    currencies = {"Default Company": "USD", "Company A": "USD"}
+    frappe.db.get_value = lambda doctype, name, field=None, **kwargs: (
+        currencies.get(name) if doctype == "Company" else None
+    )
+    row = types.SimpleNamespace(
+        company="Company A",
+        quotation_threshold=None,
+        currency=None,
+    )
+    doc = types.SimpleNamespace(
+        quotation_threshold=200000,
+        threshold_currency=None,
+        company_thresholds=[row],
+        enable_quotation_signals=1,
+        enable_opportunity_signals=1,
+        opportunity_trigger_statuses="Replied",
+        lead_stale_days=3,
+        digest_time="08:30:00",
+        digest_extra_recipients="",
+    )
+
+    try:
+        settings.validate_settings_document(doc)
+    except frappe.ValidationError as error:
+        assert "explicitly set" in str(error)
+    else:
+        raise AssertionError("A Company threshold row must require an explicit amount")
+
+
 def test_company_currency_change_requires_threshold_reapproval(monkeypatch):
     settings = load_settings(monkeypatch)
     frappe = sys.modules["frappe"]

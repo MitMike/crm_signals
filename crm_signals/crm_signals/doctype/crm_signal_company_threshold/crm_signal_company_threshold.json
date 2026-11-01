@@ -24,7 +24,7 @@
    "fieldtype": "Currency",
    "label": "High-value threshold",
    "reqd": 1,
-   "default": "200000",
+   "description": "Enter an approved amount in this Company\u0027s base currency. No currency conversion is performed.",
    "in_list_view": 1
   },
   {

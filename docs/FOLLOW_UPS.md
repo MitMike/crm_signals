@@ -21,7 +21,7 @@ This file records known work that is intentionally not represented as complete. 
 
 ## P1 — site-specific configuration decisions
 
-- [ ] **Multi-company threshold policy.** PR #40 adds Company-specific threshold rows with currencies derived from Company metadata. The legacy site-wide threshold is used only when it exactly matches the Quotation Company's base currency; no implicit FX conversion. A Company currency change suppresses alerts and now requires removing/re-adding the row with a newly approved amount before Settings can be saved. Quality, Security and Bench v15/v16 must pass on the final rebased head; target-site approval for each enabled Company remains.
+- [ ] **Multi-company threshold policy.** PR #40 adds Company-specific threshold rows with currencies derived from Company metadata. The legacy site-wide threshold is used only when it exactly matches the Quotation Company's base currency; no implicit FX conversion. Each Company row requires an explicitly entered approved amount (no inherited global default). A Company currency change suppresses alerts and requires removing/re-adding the row with a newly approved amount before Settings can be saved. Quality, Security and Bench v15/v16 must pass on the final rebased head; target-site approval for each enabled Company remains.
 - [ ] **Opportunity and Lead semantics.** Confirm the exact trigger statuses and terminal Lead statuses from the live site's workflows. Confirm the Lead modified timestamp is an acceptable proxy for attention.
 - [ ] **Digest policy.** Confirm timezone, delivery time, additional recipients, mail-queue behavior and stale window with the Sales Manager/business owner.
 

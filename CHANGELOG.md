@@ -33,6 +33,7 @@ This changelog records user-visible and operationally significant changes. It is
 ### Per-company quotation thresholds — in PR #40 review
 
 - Add optional Company-specific threshold rows, deriving currency from Company metadata and comparing against Quotation base totals.
+- Require each Company-specific threshold to be entered explicitly; a new row does not silently inherit the site-wide numeric default, and currency changes require administrator reapproval.
 - Retain the legacy site-wide threshold only when it exactly matches the Company's base currency; never perform implicit FX conversion.
 - Add tests for currency derivation, per-company selection and mismatched-currency suppression.
 
