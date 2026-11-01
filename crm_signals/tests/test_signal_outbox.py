@@ -4,6 +4,7 @@ import threading
 import unittest
 from concurrent.futures import ThreadPoolExecutor
 from datetime import timedelta
+from types import SimpleNamespace
 from unittest.mock import patch
 
 try:
@@ -19,7 +20,9 @@ except ModuleNotFoundError as error:
 
 if frappe is not None:
     from crm_signals.event_identity import build_source_event_key
+    from crm_signals.events import on_quotation_submit
     from crm_signals.signal_outbox import (
+        SignalOutboxPersistenceError,
         _retry_delay_minutes,
         enqueue_signal_event,
         process_pending_signal_outbox,
@@ -29,6 +32,55 @@ if frappe is not None:
 
 @unittest.skipIf(frappe is None, "Requires the Frappe Bench integration environment")
 class TestSignalOutbox(FrappeTestCase):
+    def test_outbox_persistence_failure_is_distinct_from_delivery_failure(self):
+        payload = {
+            "signal_type": "High-Value Quote",
+            "message": "Outbox persistence failure test",
+            "priority": "High",
+            "source_doctype": "Quotation",
+            "source_name": "OUTBOX-PERSISTENCE-FAILURE",
+            "source_event_id": "submit:persistence-failure",
+        }
+        with patch(
+            "crm_signals.signal_outbox._get_or_create_outbox",
+            side_effect=RuntimeError("database unavailable"),
+        ):
+            with self.assertRaises(SignalOutboxPersistenceError):
+                enqueue_signal_event(**payload)
+
+    def test_quotation_hook_aborts_when_outbox_cannot_be_persisted(self):
+        quotation = SimpleNamespace(
+            company="Example Company",
+            base_grand_total=250,
+            currency="USD",
+            grand_total=250,
+            quotation_to="Lead",
+            party_name="LEAD-OUTBOX-TEST",
+            name="QUOT-OUTBOX-TEST",
+            modified="2026-11-01 12:00:00",
+        )
+        settings = {
+            "enabled": True,
+            "enable_quotation_signals": True,
+            "quotation_threshold": 100,
+            "threshold_currency": "USD",
+        }
+        with (
+            patch("crm_signals.events.get_signal_settings", return_value=settings),
+            patch("crm_signals.events.get_company_default_currency", return_value="USD"),
+            patch(
+                "crm_signals.events._party_links",
+                return_value={"lead": None, "customer": None},
+            ),
+            patch(
+                "crm_signals.signal_outbox._get_or_create_outbox",
+                side_effect=RuntimeError("database unavailable"),
+            ),
+            patch("frappe.log_error"),
+        ):
+            with self.assertRaises(SignalOutboxPersistenceError):
+                on_quotation_submit(quotation)
+
     def test_failed_immediate_delivery_is_retried_without_losing_source_event(self):
         suffix = frappe.generate_hash(length=8)
         source_name = f"OUTBOX-TEST-{suffix}"
