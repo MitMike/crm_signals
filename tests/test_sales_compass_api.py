@@ -254,7 +254,7 @@ def test_sales_compass_returns_permission_filtered_lead_and_opportunity_metrics(
     assert billing["overdue_count"] == 2
     assert billing["overdue_invoices"][0]["name"] == "SINV-OVERDUE-1"
     assert all("ignore_permissions" not in query for query in queries)
-    assert all(query["doctype"] in {"Lead", "Opportunity", "Sales Invoice", "Payment Entry"} for query in queries)
+    assert all(query["doctype"] in {"Lead", "Opportunity", "Sales Invoice", "Payment Entry", "HD Ticket"} for query in queries)
 
 
 def test_sales_compass_marks_unreadable_sources_unavailable(monkeypatch):
