@@ -1,8 +1,8 @@
 # CRM Signals — Product and Engineering Delivery Plan
 
-**Last reviewed:** 2026-11-01  
+**Last reviewed:** 2026-11-02  
 **Repository:** [MitMike/crm_signals](https://github.com/MitMike/crm_signals)  
-**Supported framework target:** Frappe / ERPNext v15 and v16
+**Supported framework coverage:** Frappe / ERPNext v15 and v16. **Primary deployment target:** Frappe v16.5; record the exact patch/build and installed ERPNext/Helpdesk versions.
 
 This is the execution plan and source of truth for delivery order, scope, dependencies, acceptance gates and exit criteria. The operational state is maintained in [docs/PROGRESS.md](docs/PROGRESS.md); durable choices are in [docs/DECISIONS.md](docs/DECISIONS.md); feature contracts are in [specs/](specs/).
 
@@ -33,7 +33,7 @@ The following capabilities are present in the repository. "Implemented" means th
 | Frappe app packaging and Pilot discovery metadata | Implemented | Run the actual Pilot import flow on the intended site |
 | CRM Signal DocType and validation | Implemented | Validate installed schema, roles and customizations |
 | Authenticated POST ingestion | Event-ID idempotency and concurrent duplicate recovery merged in PR #19/#23 | Verify with a dedicated target-site integration user and deployment rate limits |
-| Quotation and Opportunity event hooks | Implemented; settings/idempotency merged in PR #19 | Confirm target-site status and threshold policy; durable outbox remains deferred |
+| Quotation and Opportunity event hooks | Implemented; transactional outbox merged in PR #26 | Confirm target-site status/threshold policy; audited Failed-row replay is in PR #33 review; per-company thresholds are in PR #34 review |
 | Record-level Signal permissions | Implemented | Verify list, direct form, report, export and API on target roles |
 | Recipient-scoped realtime notifications | Implemented | Validate target-site assignments/permissions and failure isolation |
 | Daily CRM digest | Per-recipient queue tracking and cross-worker serialization merged in PR #19/#23 | Verify target-site semantics, timezone, recipient policy and live scheduler/mail behavior |
@@ -41,8 +41,8 @@ The following capabilities are present in the repository. "Implemented" means th
 | CRM Signals Desk Console | Implemented | Target-site permission and usability smoke test |
 | D1 Sales Compass | Implemented; missing-status fix merged in PR #17 | Verify target-site status semantics and role visibility |
 | D2 Billing Realization | Implemented; return-metadata guard merged in PR #17 | Reconcile totals and currency basis against target-site reports |
-| D3 Service Resolution/SLA | Not implemented | Discover and map the installed support/SLA source first |
-| H Highlights | Partially present for quote events | Settings/idempotency foundation merged in PR #19/#23; VIP link tracking still needs privacy/consent and retention approval |
+| D3 Service Resolution/SLA | Standard Frappe Helpdesk adapter merged in PR #32; CI verified on v15/v16 | Confirm exact v16.5/ERPNext/Helpdesk versions, DocType and field-level permissions, and active SLA calendar on target site; field-level fail-closed hardening is in review |
+| H Highlights | Partial; high-value Quotation events exist | Per-company threshold behavior is in PR #34 review. VIP allowlist/escalation and proposal-link tracking remain; tracking is gated on privacy/consent and retention approval |
 | E Explorer | Not implemented | Verify installed activity integrations and source adapters |
 | V Vault | Not implemented | Metric registry, retention and source-visibility policy |
 | A Analysis | Not implemented | Approved metric/query registry and constrained intent mapping |
@@ -121,26 +121,27 @@ PR #23 merged as [d75b7f3](https://github.com/MitMike/crm_signals/commit/d75b7f3
 
 **Verification passed on final PR head `7ed0860`:** [Bench v15/v16 + Playwright](https://github.com/MitMike/crm_signals/actions/runs/41300667892), [Quality Checks](https://github.com/MitMike/crm_signals/actions/runs/41300667996) and [Security Scanning](https://github.com/MitMike/crm_signals/actions/runs/41300667997). Merge commit: `d75b7f3`.
 
-The first release uses one site-wide threshold currency. Transactional signal outbox implementation is under review in PR #26; terminal-failure replay and durable realtime notification retry remain open in docs/FOLLOW_UPS.md. Multi-company threshold overrides are also deferred. Target-site values and production security remain external acceptance gates.
+The transactional signal outbox is merged in PR #26 and CI-verified on Frappe v15/v16. Audited Failed-row replay is under review in PR #33; durable realtime notification retry remains a separate follow-up. Company-specific quotation thresholds are under review in PR #34; the legacy site-wide threshold is a fallback only on an exact Company-currency match, with no implicit FX conversion. Target-site values, field-level permissions and production security remain external acceptance gates.
 
 ### Stage 2 — D3 Service Resolution/SLA
 
 **Priority:** P1  
-**Dependencies:** Stage 1 target-site discovery and source permission review.
+**Dependencies:** Stage 1 permission contract; owner-confirmed standard Frappe Helpdesk source; target-site version, field-level permission and SLA-calendar acceptance.
 
 Work:
-- Inventory installed support applications and authoritative ticket/SLA DocTypes.
-- Map ticket status, creation timestamp, resolution timestamp, SLA deadline/outcome, pause state, business calendar, timezone and permissions.
-- Implement source-specific adapters behind a normalized D3 metric contract.
+- Verify the target site has the standard `HD Ticket` and `HD Service Level Agreement` schema; record exact app versions and required fields.
+- Map ticket lifecycle, resolution timestamp, native SLA outcomes, pause behavior, business calendar, timezone and DocType/field-level permissions.
+- Maintain the merged Helpdesk adapter behind a normalized D3 metric contract; unavailable fields must remain unavailable, never silently become zero.
 - Add permission-aware ticket volume, open backlog, resolutions, resolution duration and SLA compliance.
 - Keep missing/unsupported sources visibly unavailable.
 
 Exit criteria:
-- [ ] D3 discovery map is completed against the target site.
-- [ ] Business owner approves cohort and SLA definitions.
-- [ ] Unit and Bench tests cover lifecycle, pause/calendar behavior, permissions and edge cases.
-- [ ] Dashboard and Playwright tests cover values, unavailable and empty states.
-- [ ] Frappe/ERPNext v15 and v16 CI remains green.
+- [ ] Target-site record confirms Frappe v16.5 patch, ERPNext/Helpdesk versions and required DocTypes/fields.
+- [ ] Business owner approves created/resolved cohorts and SLA denominator semantics.
+- [ ] Sales User/Manager DocType and field-level permissions are tested; missing fields show unavailable.
+- [ ] Active SLA working hours, holiday list and timezone are verified against the Monday–Saturday assumption.
+- [x] Initial adapter unit/Bench v15/v16 and dashboard coverage passed in PR #32.
+- [ ] Field-level permission hardening passes Bench v15/v16 and merges.
 
 ### Stage 3 — H Highlights
 
@@ -148,10 +149,10 @@ Exit criteria:
 **Dependencies:** Stage 1 settings, recipient permissions and idempotency.
 
 Work:
-- Make high-value quotation threshold configurable in Company default currency.
-- Reuse CRM Signals for the quote alert and preserve source links.
-- Add VIP Customer allowlist and escalation routing.
-- Add first-party proposal-link tokens stored as hashes; support expiry and revocation.
+- Complete Company-specific quotation thresholds (PR #34 review) and preserve the no-FX, currency-matched fallback rule.
+- Reuse CRM Signals for the quote alert and preserve source links; verify one alert per submission identity.
+- Add the admin-managed VIP Customer allowlist and escalation routing after the threshold policy is merged.
+- Add first-party proposal-link tokens stored as hashes; support expiry and revocation only after privacy/consent and retention approval.
 - Accept stable provider event IDs; deduplicate opens and throttle alert delivery.
 - Exclude known scanners/previews from human-engagement alerts; never fingerprint browsers.
 - Complete privacy/consent review before enabling proposal-link tracking.
