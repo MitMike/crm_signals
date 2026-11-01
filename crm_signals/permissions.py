@@ -9,6 +9,23 @@ def _has_manager_role(user):
     return bool(set(frappe.get_roles(user) or []) & MANAGER_ROLES)
 
 
+def _field_value(doc, fieldname):
+    if isinstance(doc, dict):
+        return doc.get(fieldname)
+    return getattr(doc, fieldname, None)
+
+
+def _doctype_permission(permission_type, user):
+    """Check role-level permission without invoking this document's row hook."""
+    return bool(
+        frappe.has_permission(
+            "CRM Signal",
+            ptype=permission_type,
+            user=user,
+        )
+    )
+
+
 def _is_assigned(doctype, name, user):
     if not doctype or not name or not user:
         return False
@@ -25,17 +42,34 @@ def _is_assigned(doctype, name, user):
     )
 
 
-def crm_signal_has_permission(doc, user=None, permission_type=None):
-    """Restrict Sales User access to related, owned/assigned CRM records."""
+def crm_signal_has_permission(
+    doc,
+    user=None,
+    permission_type=None,
+    ptype=None,
+):
+    """Enforce CRM Signal row access on Frappe v15 and v16.
+
+    Frappe v15 passes `permission_type`; v16 passes `ptype` and requires
+    permission hooks to return an explicit boolean. Role-level DocType
+    permissions remain authoritative for every permission type.
+    """
     user = user or frappe.session.user
+    permission_type = ptype or permission_type
+
+    if not permission_type or not _doctype_permission(permission_type, user):
+        return False
+
     if _has_manager_role(user):
-        return None
+        return True
 
     links = []
-    if doc.lead:
-        links.append(("Lead", doc.lead))
-    if doc.customer:
-        links.append(("Customer", doc.customer))
+    lead = _field_value(doc, "lead")
+    customer = _field_value(doc, "customer")
+    if lead:
+        links.append(("Lead", lead))
+    if customer:
+        links.append(("Customer", customer))
 
     related_and_readable = False
     assigned = False
@@ -50,17 +84,28 @@ def crm_signal_has_permission(doc, user=None, permission_type=None):
             related_and_readable = True
 
     if not links:
-        related_and_readable = doc.owner == user
+        related_and_readable = _field_value(doc, "owner") == user
 
     if permission_type == "read":
         return bool(related_and_readable)
+
     if permission_type in {"write", "delete", "submit", "cancel"}:
         owns_related_party = any(
             frappe.db.get_value(doctype, name, "owner") == user
             for doctype, name in links
         )
-        return bool(related_and_readable and (doc.owner == user or owns_related_party or assigned))
-    return None
+        return bool(
+            related_and_readable
+            and (
+                _field_value(doc, "owner") == user
+                or owns_related_party
+                or assigned
+            )
+        )
+
+    # Create, share, export, print and other actions are governed by the
+    # role-level DocType permission checked above.
+    return True
 
 
 def _get_visible_party_names(doctype, user):
