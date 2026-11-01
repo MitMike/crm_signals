@@ -33,7 +33,7 @@ The following capabilities are present in the repository. "Implemented" means th
 | Frappe app packaging and Pilot discovery metadata | Implemented | Run the actual Pilot import flow on the intended site |
 | CRM Signal DocType and validation | Implemented | Validate installed schema, roles and customizations |
 | Authenticated POST ingestion | Event-ID idempotency and concurrent duplicate recovery merged in PR #19/#23 | Verify with a dedicated target-site integration user and deployment rate limits |
-| Quotation and Opportunity event hooks | Implemented; transactional outbox merged in PR #26 | Confirm target-site status/threshold policy; audited Failed-row replay merged in PR #38; per-company thresholds merged in PR #45 as `ff434bdf` after all 16 required checks passed |
+| Quotation and Opportunity event hooks | Implemented; transactional outbox merged in PR #26 | Confirm target-site status/threshold policy; audited Failed-row replay merged in PR #38; per-company thresholds merged in PR #45 as `ff434bdf` after all 16 required checks passed; PR #49 then fixed Company-row currency auto-fetch/display and passed v15/v16 CI |
 | Record-level Signal permissions | Implemented | Verify list, direct form, report, export and API on target roles |
 | Recipient-scoped realtime notifications | Implemented | Validate target-site assignments/permissions and failure isolation |
 | Daily CRM digest | Per-recipient queue tracking and cross-worker serialization merged in PR #19/#23 | Verify target-site semantics, timezone, recipient policy and live scheduler/mail behavior |
