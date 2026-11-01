@@ -82,3 +82,94 @@ def prepare_e2e_site():
         "company": "CRM Signals CI Company",
         "users": ["e2e-sales-user@example.com", "e2e-employee@example.com"],
     }
+
+
+LEGACY_SIGNAL_MESSAGES = (
+    "CRM Signals upgrade fixture: legacy row one",
+    "CRM Signals upgrade fixture: legacy row two",
+)
+
+
+def prepare_upgrade_site():
+    """Create pre-idempotency records, then restore the legacy table shape.
+
+    This runs only in the disposable CI site. It models an installation whose
+    CRM Signal table predates source-event identity fields while retaining real
+    historical rows and their original document names.
+    """
+    for message in LEGACY_SIGNAL_MESSAGES:
+        if not frappe.db.exists("CRM Signal", {"message": message}):
+            frappe.get_doc(
+                {
+                    "doctype": "CRM Signal",
+                    "signal_type": "Website Visit",
+                    "priority": "Medium",
+                    "message": message,
+                }
+            ).insert(ignore_permissions=True)
+    frappe.db.commit()
+
+    # Revert both physical columns and field metadata to the pre-feature
+    # shape. The following bench migrate must recreate DocFields and columns
+    # from the current app's JSON definition. Dropping the unique-key column
+    # also removes its database index.
+    legacy_fields = (
+        "source_doctype",
+        "source_name",
+        "source_event_id",
+        "source_event_key",
+    )
+    for fieldname in legacy_fields:
+        if frappe.db.has_column("CRM Signal", fieldname):
+            frappe.db.sql(
+                f"ALTER TABLE `tabCRM Signal` DROP COLUMN `{fieldname}`"
+            )
+    frappe.db.sql(
+        "DELETE FROM `tabDocField` "
+        "WHERE parent = %s AND fieldname IN (%s, %s, %s, %s)",
+        ("CRM Signal", *legacy_fields),
+    )
+    # Frappe skips unchanged DocType JSON when its stored modified timestamp
+    # is newer than the file. Rewind it so migrate performs the real JSON sync.
+    # Frappe stores a migration_hash for DocTypes and skips importing the JSON
+    # when that hash matches the current file, regardless of the modified time.
+    # Clear it to model an older installed DocType definition and force sync.
+    frappe.db.sql(
+        "UPDATE `tabDocType` SET modified = %s, migration_hash = NULL WHERE name = %s",
+        ("2000-01-01 00:00:00", "CRM Signal"),
+    )
+    frappe.clear_cache(doctype="CRM Signal")
+    frappe.db.commit()
+    return {
+        "legacy_records": len(LEGACY_SIGNAL_MESSAGES),
+        "schema": "pre-source-event-identity",
+    }
+
+
+def verify_upgrade_site():
+    """Assert migrate restored new fields without losing legacy signal rows."""
+    missing = [
+        fieldname
+        for fieldname in (
+            "source_doctype",
+            "source_name",
+            "source_event_id",
+            "source_event_key",
+        )
+        if not frappe.db.has_column("CRM Signal", fieldname)
+    ]
+    if missing:
+        frappe.throw("CRM Signal upgrade did not restore fields: " + ", ".join(missing))
+
+    for message in LEGACY_SIGNAL_MESSAGES:
+        rows = frappe.get_all(
+            "CRM Signal",
+            filters={"message": message},
+            fields=["name", "source_event_key"],
+        )
+        if len(rows) != 1:
+            frappe.throw(f"Expected exactly one preserved legacy CRM Signal for: {message}")
+        if rows[0].source_event_key:
+            frappe.throw(f"Legacy CRM Signal unexpectedly acquired an event key: {rows[0].name}")
+
+    return {"status": "passed", "preserved_legacy_records": len(LEGACY_SIGNAL_MESSAGES)}
