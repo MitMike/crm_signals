@@ -32,6 +32,26 @@ if frappe is not None:
 
 @unittest.skipIf(frappe is None, "Requires the Frappe Bench integration environment")
 class TestSignalOutbox(FrappeTestCase):
+    def test_outbox_records_are_read_only_for_system_managers(self):
+        meta = frappe.get_meta("CRM Signal Outbox")
+        permission = next(
+            row for row in meta.permissions if row.role == "System Manager"
+        )
+        self.assertEqual(permission.read, 1)
+        self.assertFalse(permission.write)
+        self.assertFalse(permission.create)
+        for fieldname in (
+            "status",
+            "signal_type",
+            "priority",
+            "message",
+            "source_doctype",
+            "source_name",
+            "source_event_id",
+            "source_event_key",
+        ):
+            self.assertTrue(meta.get_field(fieldname).read_only, fieldname)
+
     def test_outbox_persistence_failure_is_distinct_from_delivery_failure(self):
         payload = {
             "signal_type": "High-Value Quote",
