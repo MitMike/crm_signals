@@ -412,9 +412,103 @@ def get_sales_compass_data():
     result["leads"] = _sales_compass_lead_metrics(period_start)
     result["opportunities"] = _sales_compass_opportunity_metrics()
     result["billing"] = _get_sales_billing_data(period_start, nowdate())
+    result["service"] = _get_helpdesk_service_metrics(period_start)
     return result
 
 
+
+
+# ---------------------------------------------------------------------------
+# S.A.H.D.E.V. Pillar D3 — Frappe Helpdesk service resolution and SLA
+# ---------------------------------------------------------------------------
+
+def _helpdesk_empty_metrics():
+    return {
+        "source": "Frappe Helpdesk", "available": False, "period_days": 30,
+        "created_last_30_days": None, "backlog_available": False,
+        "open_backlog": None, "paused_backlog": None,
+        "resolved_available": False, "resolved_last_30_days": None,
+        "resolution_time_available": False, "average_resolution_hours": None,
+        "sla_available": False, "sla_eligible": None, "sla_fulfilled": None,
+        "sla_failed": None, "sla_compliance_percent": None, "sla_unconfigured": None,
+    }
+
+
+def _helpdesk_count(filters):
+    rows = frappe.get_list(
+        "HD Ticket",
+        fields=[_dashboard_aggregate_field("COUNT", "name", "total")],
+        filters=filters, limit_page_length=1,
+    )
+    return int(_sales_dashboard_value(rows[0], "total", 0) if rows else 0)
+
+
+def _get_helpdesk_service_metrics(period_start):
+    """Aggregate standard Frappe Helpdesk ticket lifecycle and native SLA outcomes."""
+    metrics = _helpdesk_empty_metrics()
+    try:
+        ticket_meta = _sales_dashboard_doctype_meta("HD Ticket")
+        if not ticket_meta or not all(ticket_meta.has_field(f) for f in ("creation", "status_category")):
+            return metrics
+        metrics["available"] = True
+        metrics["created_last_30_days"] = _helpdesk_count({"creation": [">=", period_start]})
+        category_rows = frappe.get_list(
+            "HD Ticket",
+            fields=["status_category", _dashboard_aggregate_field("COUNT", "name", "total")],
+            group_by="status_category", order_by="status_category asc", limit_page_length=10,
+        )
+        categories = {
+            str(_sales_dashboard_value(row, "status_category", "") or ""):
+            int(_sales_dashboard_value(row, "total", 0) or 0) for row in category_rows
+        }
+        metrics.update({
+            "backlog_available": True,
+            "open_backlog": categories.get("Open", 0),
+            "paused_backlog": categories.get("Paused", 0),
+        })
+        if ticket_meta.has_field("resolution_date"):
+            metrics["resolved_available"] = True
+            resolved_filters = {"resolution_date": [">=", period_start], "status_category": "Resolved"}
+            metrics["resolved_last_30_days"] = _helpdesk_count(resolved_filters)
+            if ticket_meta.has_field("resolution_time"):
+                average_rows = frappe.get_list(
+                    "HD Ticket",
+                    fields=[_dashboard_aggregate_field("AVG", "resolution_time", "average_resolution_seconds")],
+                    filters={**resolved_filters, "resolution_time": [">", 0]}, limit_page_length=1,
+                )
+                raw_average = _sales_dashboard_value(
+                    average_rows[0], "average_resolution_seconds", None
+                ) if average_rows else None
+                metrics["resolution_time_available"] = True
+                metrics["average_resolution_hours"] = (
+                    round(float(raw_average) / 3600, 2) if raw_average is not None else None
+                )
+        if ticket_meta.has_field("sla") and ticket_meta.has_field("agreement_status"):
+            if not frappe.has_permission("HD Service Level Agreement", ptype="read"):
+                return metrics
+            if not _sales_dashboard_doctype_meta("HD Service Level Agreement"):
+                return metrics
+            sla_rows = frappe.get_list(
+                "HD Ticket",
+                fields=["agreement_status", _dashboard_aggregate_field("COUNT", "name", "total")],
+                filters={"sla": ["is", "set"], "creation": [">=", period_start]},
+                group_by="agreement_status", order_by="agreement_status asc", limit_page_length=20,
+            )
+            outcomes = {
+                str(_sales_dashboard_value(row, "agreement_status", "") or ""):
+                int(_sales_dashboard_value(row, "total", 0) or 0) for row in sla_rows
+            }
+            fulfilled, failed = outcomes.get("Fulfilled", 0), outcomes.get("Failed", 0)
+            eligible = fulfilled + failed
+            metrics.update({
+                "sla_available": True, "sla_eligible": eligible,
+                "sla_fulfilled": fulfilled, "sla_failed": failed,
+                "sla_compliance_percent": round(fulfilled * 100 / eligible, 1) if eligible else None,
+                "sla_unconfigured": _helpdesk_count({"sla": ["is", "not set"], "creation": [">=", period_start]}),
+            })
+        return metrics
+    except frappe.PermissionError:
+        return _helpdesk_empty_metrics()
 
 # ---------------------------------------------------------------------------
 # S.A.H.D.E.V. Pillar D2 — Billing realization

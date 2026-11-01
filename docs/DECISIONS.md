@@ -436,3 +436,14 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Decision:** Persist the outbox row in the source transaction, register immediate background delivery with `frappe.enqueue(..., enqueue_after_commit=True)`, and retain the once-per-minute pending-outbox scheduler as recovery if queue submission or delivery fails. Do not run signal materialization synchronously inside the source transaction.
 - **Rationale:** Keep the source event and outbox row atomic while moving nonessential delivery work outside the transaction. This should shorten unique-key lock duration and prevent delivery latency from holding competing idempotent inserts. Queue failure must not lose the durable row; the scheduler remains the fallback.
 - **Validation:** PR #26 passed Quality Checks, Security Scanning and Bench Integration/E2E on synchronized final head `222e70ec71164dab4448f7319525042323a357b4`; Frappe v15/v16 race tests verified one outbox row, one CRM Signal and one notification dispatch. All three workflows passed before squash merge `b0364a74affa823977af74d1907781d1533e60c0`.
+
+
+## ADR-048 — Use standard Frappe Helpdesk as the initial D3 source
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-02
+- **Context:** The project owner confirmed the support system is Frappe Helpdesk and that its standard/default configuration is in use. The initial SLA working-week assumption is Monday–Saturday.
+- **Decision:** Implement D3 against the standard HD Ticket and HD Service Level Agreement DocTypes. Use HD Ticket.status_category for Open/Paused/Resolved lifecycle aggregation, resolution_date and native resolution_time for resolution measures, and native agreement_status values Fulfilled/Failed for SLA compliance. Check runtime metadata and independent ticket/SLA read permissions. Return aggregate-only data. Scope created/resolved/SLA outcomes to the rolling 30-day cohort; keep current backlog unbounded by date.
+- **Calendar rule:** Monday–Saturday is the agreed initial business-week assumption, but do not overwrite Helpdesk configuration or recalculate deadlines. The active SLA's configured working-hours rows, holiday list and timezone are authoritative. A target-site mismatch must be recorded and resolved during acceptance.
+- **Rationale:** This delivers a useful adapter without fabricating SLA results or bypassing Helpdesk's own calendar and lifecycle engine.
+- **Consequences:** Sites without the Helpdesk DocTypes or required fields receive unavailable metrics. Tickets without an applicable SLA are counted separately and excluded from compliance. Paused, First Response Due and Resolution Due are excluded from the fulfilled/failed denominator. Target-site version, permissions and calendar validation remain mandatory.

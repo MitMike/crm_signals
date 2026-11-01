@@ -69,10 +69,34 @@ def _opportunity_rows(fields, filters):
     ]
 
 
+def _helpdesk_rows(fields, filters):
+    if "status_category" in fields and "agreement_status" not in fields:
+        return [
+            {"status_category": "Open", "total": 4},
+            {"status_category": "Paused", "total": 2},
+            {"status_category": "Resolved", "total": 5},
+        ]
+    if "agreement_status" in fields:
+        return [
+            {"agreement_status": "Fulfilled", "total": 8},
+            {"agreement_status": "Failed", "total": 2},
+            {"agreement_status": "Paused", "total": 1},
+            {"agreement_status": "Resolution Due", "total": 3},
+        ]
+    if fields and any((isinstance(field, dict) and field.get("AVG")) or (isinstance(field, str) and "avg(" in field.lower()) for field in fields):
+        return [{"average_resolution_seconds": 7200}]
+    if filters and "resolution_date" in filters:
+        return [{"total": 5}]
+    if filters and "sla" in filters:
+        return [{"total": 6}]
+    return [{"total": 12}]
+
+
 def _fake_get_list(queries):
     handlers = {
         "Sales Invoice": _sales_invoice_rows,
         "Payment Entry": _payment_entry_rows,
+        "HD Ticket": lambda fields, filters: _helpdesk_rows(fields, filters),
         "Lead": _lead_rows,
         "Opportunity": _opportunity_rows,
     }
@@ -92,6 +116,8 @@ def load_sales_api(
     opportunity_read=True,
     invoice_read=True,
     payment_read=True,
+    helpdesk_read=True,
+    sla_read=True,
     lead_has_status=True,
     opportunity_has_status=True,
     invoice_has_is_return=True,
@@ -116,7 +142,7 @@ def load_sales_api(
 
     class FakeDB:
         def exists(self, doctype, name):
-            return doctype == "DocType" and name in {"Lead", "Opportunity", "Sales Invoice", "Payment Entry"}
+            return doctype == "DocType" and name in {"Lead", "Opportunity", "Sales Invoice", "Payment Entry", "HD Ticket", "HD Service Level Agreement"}
 
     frappe.db = FakeDB()
     permissions = {
@@ -124,6 +150,8 @@ def load_sales_api(
         "Opportunity": opportunity_read,
         "Sales Invoice": invoice_read,
         "Payment Entry": payment_read,
+        "HD Ticket": helpdesk_read,
+        "HD Service Level Agreement": sla_read,
     }
     frappe.has_permission = lambda doctype, ptype="read": permissions.get(doctype, True)
 
@@ -143,6 +171,8 @@ def load_sales_api(
                 "payment_type", "party_type", "posting_date", "received_amount",
                 "paid_to_account_currency",
             },
+            "HD Ticket": {"creation", "status_category", "resolution_date", "resolution_time", "sla", "agreement_status"},
+            "HD Service Level Agreement": {"service_level", "enabled", "default_sla"},
         }
 
         def __init__(self, doctype):
@@ -201,7 +231,7 @@ def test_sales_compass_returns_permission_filtered_lead_and_opportunity_metrics(
     ]
     assert opportunities["recent"][0]["name"] == "OPP-0001"
     assert all("ignore_permissions" not in query for query in queries)
-    assert all(query["doctype"] in {"Lead", "Opportunity", "Sales Invoice", "Payment Entry"} for query in queries)
+    assert all(query["doctype"] in {"Lead", "Opportunity", "Sales Invoice", "Payment Entry", "HD Ticket"} for query in queries)
 
     billing = result["billing"]
     assert billing["available"] is True
@@ -224,7 +254,7 @@ def test_sales_compass_returns_permission_filtered_lead_and_opportunity_metrics(
     assert billing["overdue_count"] == 2
     assert billing["overdue_invoices"][0]["name"] == "SINV-OVERDUE-1"
     assert all("ignore_permissions" not in query for query in queries)
-    assert all(query["doctype"] in {"Lead", "Opportunity", "Sales Invoice", "Payment Entry"} for query in queries)
+    assert all(query["doctype"] in {"Lead", "Opportunity", "Sales Invoice", "Payment Entry", "HD Ticket"} for query in queries)
 
 
 def test_sales_compass_marks_unreadable_sources_unavailable(monkeypatch):
@@ -367,3 +397,41 @@ def test_billing_marks_return_sensitive_invoice_metrics_unavailable_without_is_r
     assert not any(query["doctype"] == "Sales Invoice" for query in queries)
     assert any(query["doctype"] == "Payment Entry" for query in queries)
 
+
+
+def test_helpdesk_service_metrics_use_status_category_and_native_sla_outcomes(monkeypatch):
+    api, queries, _ = load_sales_api(monkeypatch)
+    result = api.get_sales_compass_data()["service"]
+
+    assert result["source"] == "Frappe Helpdesk"
+    assert result["available"] is True
+    assert result["created_last_30_days"] == 12
+    assert result["open_backlog"] == 4
+    assert result["paused_backlog"] == 2
+    assert result["resolved_last_30_days"] == 5
+    assert result["average_resolution_hours"] == 2
+    assert result["sla_eligible"] == 10
+    assert result["sla_fulfilled"] == 8
+    assert result["sla_failed"] == 2
+    assert result["sla_compliance_percent"] == 80
+    assert all("ignore_permissions" not in query for query in queries)
+    assert not any("subject" in (query.get("fields") or []) for query in queries)
+
+
+def test_helpdesk_ticket_metrics_available_when_sla_policy_is_not_readable(monkeypatch):
+    api, _, _ = load_sales_api(monkeypatch, sla_read=False)
+    result = api.get_sales_compass_data()["service"]
+
+    assert result["available"] is True
+    assert result["open_backlog"] == 4
+    assert result["sla_available"] is False
+    assert result["sla_compliance_percent"] is None
+
+
+def test_helpdesk_metrics_unavailable_without_ticket_permission(monkeypatch):
+    api, queries, _ = load_sales_api(monkeypatch, helpdesk_read=False)
+    result = api.get_sales_compass_data()["service"]
+
+    assert result["available"] is False
+    assert result["created_last_30_days"] is None
+    assert not any(query["doctype"] == "HD Ticket" for query in queries)

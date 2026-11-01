@@ -1,6 +1,6 @@
 # D3 — Service Resolution and SLA
 
-**Status:** Source-discovery spec ready; metric implementation is gated on target-site support configuration.
+**Status:** Frappe Helpdesk adapter implemented for the standard HD Ticket schema; target-site version, permissions and SLA calendar acceptance remain open.
 
 ## Problem and users
 
@@ -41,7 +41,7 @@ Before selecting a source, inspect the target site's installed apps, DocTypes, c
 | Permissions | Ticket and SLA read access for Sales User and Sales Manager |
 | Retention | Whether old ticket/SLA records remain queryable |
 
-Do not complete this mapping from assumed framework defaults. Record observed app versions and field metadata in the target-site validation record.
+The user confirmed that the target support system is Frappe Helpdesk and that the standard/default configuration is in use. The adapter targets standard HD Ticket, HD Ticket Status, and HD Service Level Agreement schema, while checking runtime metadata and permissions before querying. The agreed initial working-week assumption is Monday–Saturday; the installed SLA's own working-hours rows and holiday list remain authoritative at runtime. Do not infer target-site app versions or active policy configuration from upstream source.
 
 ## Metric contract after source mapping
 
@@ -50,7 +50,7 @@ All date windows use the site timezone and are configurable. The initial dashboa
 - Tickets created: count of source tickets created within the selected window.
 - Tickets resolved: count of tickets whose authoritative resolution timestamp falls within the window.
 - Open backlog: current tickets in configured non-terminal states.
-- Average resolution time: average elapsed duration from creation to authoritative resolution for resolved tickets in the selected window. If the installed SLA engine defines business-time duration, display that as a separately labelled measure; do not mix elapsed and business hours.
+- Average resolution time: the Helpdesk-native resolution_time is business-hours duration from SLA attachment to resolution, less hold time. Label it as average SLA business hours; do not present it as elapsed time from ticket creation. Tickets without an SLA do not provide this duration.
 - SLA compliance: compliant resolved/eligible tickets divided by all tickets with a valid applicable SLA outcome in the selected cohort. Exclude tickets without an applicable SLA from the denominator and show the eligible count.
 - SLA breaches: count tickets with native breach outcome in the selected cohort, including open breached tickets only if the installed SLA engine defines that state.
 
@@ -81,8 +81,8 @@ The final cohort definitions (created cohort vs resolved cohort) must be display
 
 ## Implementation approach
 
-Implement a small adapter contract with methods for metadata validation, permission-aware aggregate retrieval and normalization to the metric contract above. Keep app-specific adapters isolated (for example, an ERPNext Issue adapter only if the target site confirms it, and a Frappe Helpdesk adapter only if that app is installed). The dashboard consumes normalized data and never knows the source-specific fields.
+Implement a small adapter contract with metadata validation, permission-aware aggregate retrieval and normalization. The current adapter uses standard Frappe Helpdesk fields: creation, status_category, resolution_date, resolution_time, sla, and agreement_status. SLA compliance uses only native Fulfilled and Failed outcomes; due/paused states are excluded from the eligible denominator. SLA outcomes and no-SLA counts use the same rolling 30-day created-ticket cohort. The dashboard receives aggregates only.
 
 ## Delivery gate
 
-D3 implementation cannot be signed off until the discovery table is completed against the intended site and the target site's business owner approves the lifecycle, SLA and timezone definitions. CI fixtures can verify adapters but cannot substitute for that site confirmation.
+D3 implementation is code-complete pending CI and target-site acceptance. Sign-off still requires recording the installed Helpdesk/Frappe versions, confirming the Monday–Saturday calendar against each active SLA policy's configured working hours and holiday list, and validating ticket/SLA permissions. CI fixtures cannot substitute for that site confirmation.
