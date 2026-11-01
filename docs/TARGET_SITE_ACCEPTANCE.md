@@ -139,11 +139,13 @@ Use a fixed, approved date range and the site's native ERPNext reports as the co
 - [ ] Trigger a controlled digest and inspect the queued email as each recipient.
 - [ ] Confirm per-recipient failures do not block other recipients.
 - [ ] Confirm duplicate scheduler execution does not queue duplicate recipient/date digests.
+- [ ] In staging, use a controlled Failed outbox fixture to verify only a System Manager with outbox read access can replay; GET is rejected, only Failed rows are accepted, and attempt history/audit comment are preserved.
+- [ ] Verify a second replay is rejected while the row is Pending/Completed and that an enqueue failure leaves Pending for scheduled recovery.
 - [ ] Confirm mail provider delivery, bounce and suppression behavior.
 - [ ] Confirm realtime notifications reach only users who can read the CRM Signal, linked party and originating source DocType; publication is best-effort and is not a client receipt.
 - [ ] Record monitoring, alert thresholds, log locations and on-call owner.
 
-Note: recipient-level failure isolation and digest queue idempotency are code-level safeguards; actual scheduler topology, mail-provider behavior and live realtime routing still require this site test.
+Note: digest recipient failure isolation and digest queue idempotency are code-level safeguards; actual scheduler topology and mail-provider behavior still require this site test. Realtime publication is best-effort, and a queued event is not a client receipt.
 
 ## 8. Settings and business semantics
 
