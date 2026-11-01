@@ -70,6 +70,8 @@ Open **CRM Signals** workspace, then select **CRM Signals Dashboard** (route `/a
 
 The `is_read` flag is a shared team acknowledgement in this release, not an individual read receipt or private inbox.
 
+Realtime notifications are best-effort. Frappe queues the Redis publish after the database commit and does not provide a client receipt; a queued event is not proof that a user saw it. This release does not automatically retry missed realtime events. Use the CRM Signals console and configured digest as the durable places to review signals.
+
 ## S.A.H.D.E.V. dashboards
 
 Open **S.A.H.D.E.V. Executive Compass** (route `/app/sahdev-dashboard`). D1 shows Lead and Opportunity indicators. D2 shows invoice, customer receipt, POS receipt, receivable and overdue measures. Monetary values remain grouped by their source currency. Missing schema or permissions must show as unavailable rather than zero.
@@ -120,7 +122,7 @@ A stable `source_event_id` is strongly recommended. When `source_doctype` and `s
 - **No Quotation alert:** verify the master/Quotation switches, Company currency, Quotation company, base total and configured threshold.
 - **No Opportunity alert:** verify the switch and exact status spelling; only transitions into configured statuses generate signals.
 - **No digest:** verify scheduler and workers, site timezone, enabled System User Sales Managers, additional recipients and the last queued date.
-- **No realtime notification:** verify the linked Lead/Customer owner and active ToDo assignees, and confirm each recipient can read both the linked party and CRM Signal; there is intentionally no site-wide broadcast.
+- **No realtime notification:** verify the linked Lead/Customer owner and active ToDo assignees, and confirm each recipient can read the linked party, CRM Signal and originating source DocType (for example, Quotation or Opportunity). There is intentionally no site-wide broadcast; realtime publication is best-effort, not a delivery receipt.
 - **Signal not visible:** check CRM Signal role permissions and linked-party ownership/assignment. A notification is not an authorization grant.
 - **Duplicate external event:** send a stable source event ID and use the same integration user for retries.
 
