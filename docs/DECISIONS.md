@@ -417,12 +417,22 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Evidence:** Merged in PR #23 as `d75b7f3`; [Bench v15/v16 + Playwright](https://github.com/MitMike/crm_signals/actions/runs/41300667892), [Quality](https://github.com/MitMike/crm_signals/actions/runs/41300667996) and [Security](https://github.com/MitMike/crm_signals/actions/runs/41300667997) passed.
 
 
-## ADR-045 — Outbox persistence is part of the source transaction
+## ADR-046 — Run release readiness as an evidence-gated sprint
 
 - **Status:** Accepted
 - **Recorded:** 2026-11-01
-- **Context:** A transactional outbox only prevents event loss when its row is committed atomically with the source Quotation or Opportunity. Swallowing an outbox insert failure would allow the source document to commit without either a CRM Signal or a retry record.
-- **Decision:** Persist the outbox row in the source document transaction. If the outbox row cannot be created or safely recovered after a duplicate-key race, raise a dedicated persistence error and abort the source document transaction. Once the outbox row exists, CRM Signal materialization failures are isolated with a savepoint, recorded as Pending and retried with bounded exponential backoff (1, 2, 4, 8, 16, 32, then at most 60 minutes). After ten failed attempts the row becomes Failed and requires operator review.
-- **Rationale:** This preserves the source transaction when downstream signal materialization fails while avoiding a false guarantee when the durable event record itself could not be written.
-- **Consequences:** A Quotation submit or Opportunity update can fail if the outbox cannot be persisted. Realtime notification dispatch remains a separate concern: notification failures are logged but are not retried by this outbox. Terminal Failed rows are inspectable by System Managers; a self-service replay action is not yet included.
-- **Sources:** [Outbox implementation](../crm_signals/signal_outbox.py), [Event hooks](../crm_signals/events.py), [Outbox tests](../crm_signals/tests/test_signal_outbox.py), [Deferred follow-ups](FOLLOW_UPS.md).
+- **Context:** The core feature set and concurrency hardening are merged, while target-site acceptance and reliability/roadmap work remain open. A transactional outbox implementation is already under review in PR #26 and has failed its latest Frappe v15/v16 Bench validation.
+- **Decision:** Sequence work by release risk: (1) repair and validate PR #26 before merge; (2) prepare a target-site acceptance kit and execute all source-independent release checks; (3) collect target-site evidence for configuration, permissions, financial reconciliation, scheduler/mail, integration credentials and backup/restore; (4) then implement D3 and complete H under their documented source/privacy gates; (5) defer E, V and A until their dependencies are approved. Do not duplicate work already present in an open PR.
+- **Rationale:** Durable event persistence and correct retry behavior are more important to release confidence than starting additional dashboard surfaces. Site-specific values and policies must be observed, not guessed.
+- **Consequences:** PR #26 remains unmergeable until Frappe v15 and v16 Bench suites pass. Target-site sign-off remains blocked until actual installation and business evidence is recorded. Realtime notification retry is tracked separately from the source-event outbox.
+- **Evidence:** PR #26 check runs on head `a63b3b60f909ebc0e62d5bfde383aa6224ba36b2`; latest failures include `test_two_workers_enqueue_the_same_source_event_once` (MariaDB lock wait timeout), `test_two_workers_process_one_outbox_event_once` (missing source-event key in fixture), and `test_worker_filters_future_retries_before_applying_batch_limit` (missing source-event key in fixture).
+
+
+## ADR-047 — Defer outbox delivery until after the source transaction commits
+
+- **Status:** Proposed; implementation under Frappe v15/v16 CI validation
+- **Recorded:** 2026-11-01
+- **Context:** PR #26's two-connection enqueue race consistently timed out while the winning request attempted signal delivery before committing its outbox row. A competing request waited on the unique source-event key while the first transaction still performed delivery work.
+- **Decision:** Persist the outbox row in the source transaction, register immediate background delivery with `frappe.enqueue(..., enqueue_after_commit=True)`, and retain the once-per-minute pending-outbox scheduler as recovery if queue submission or delivery fails. Do not run signal materialization synchronously inside the source transaction.
+- **Rationale:** Keep the source event and outbox row atomic while moving nonessential delivery work outside the transaction. This should shorten unique-key lock duration and prevent delivery latency from holding competing idempotent inserts. Queue failure must not lose the durable row; the scheduler remains the fallback.
+- **Validation required:** Frappe v15/v16 Bench race tests must pass, including one outbox row, one CRM Signal and one notification dispatch. Confirm enqueue-after-commit behavior on both supported Frappe versions. If either lane fails, revisit the design rather than weakening the race test.
