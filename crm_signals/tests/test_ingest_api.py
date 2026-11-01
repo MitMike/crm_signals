@@ -76,9 +76,10 @@ class TestCRMSignalWebhookIntegration(FrappeTestCase):
                 "source_event_id": "event-42",
             }
             frappe.set_user(first_user.name)
-            with patch("frappe.publish_realtime"):
+            with patch("frappe.publish_realtime") as publish:
                 first = ingest_signal()
                 duplicate = ingest_signal()
+                self.assertEqual(publish.call_count, 1)
 
             frappe.set_user(second_user.name)
             with patch("frappe.publish_realtime"):
@@ -87,8 +88,7 @@ class TestCRMSignalWebhookIntegration(FrappeTestCase):
             frappe.local.form_dict = previous_form_dict
             frappe.set_user(previous_user)
             for fieldname, value in previous_settings.items():
-                setattr(settings, fieldname, value)
-            settings.save(ignore_permissions=True)
+                frappe.db.set_value("CRM Signals Settings", None, fieldname, value)
 
         first_key = build_source_event_key("API Integration", first_user.name, "event-42")
         second_key = build_source_event_key("API Integration", second_user.name, "event-42")
