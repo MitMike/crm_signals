@@ -60,11 +60,8 @@ class TestDigestDeliveryConcurrency(FrappeTestCase):
         original_locking_load = tasks._load_digest_settings_for_update
         worker_errors = []
         logged_errors = []
-        original_log_error = frappe.log_error
-
         def capture_log_error(*, message, title):
             logged_errors.append((title, message))
-            return original_log_error(message=message, title=title)
 
         def synchronized_locking_load():
             if not getattr(thread_state, "initial_load_complete", False):
