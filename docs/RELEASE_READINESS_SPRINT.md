@@ -1,32 +1,30 @@
 # CRM Signals — Release-readiness completion sprint
 
 **Started:** 2026-11-01  
-**Baseline:** `main` at `9c0ecb1013311909041aebb687fef850ea084869`  
+**Last reviewed:** 2026-11-02  
+**Baseline:** `main` at `43fddfbbc46cac277a48c840251a7a2c963a8eb5`  
 **Decision register:** [ADR-046](DECISIONS.md#adr-046--run-release-readiness-as-an-evidence-gated-sprint)  
 **Operating rule:** no item is complete without the evidence listed here. CI evidence and target-site evidence are separate.
 
 ## Sprint sequence
 
-### 0. Active PR triage — first
+### 0. Active PR triage — current review queue
 
-- [ ] Repair [PR #26](https://github.com/MitMike/crm_signals/pull/26) before merge.
-- [ ] Fix the MariaDB concurrent-enqueue lock-wait timeout in `test_two_workers_enqueue_the_same_source_event_once`; preserve the actual two-transaction race and prove one outbox row, one CRM Signal and one notification dispatch.
-- [ ] Fix test fixture creation in `test_two_workers_process_one_outbox_event_once` and `test_worker_filters_future_retries_before_applying_batch_limit` by supplying the deterministic `source_event_key` required by the DocType's field-based autoname, or use the production enqueue helper where appropriate.
-- [ ] Run the complete Bench v15 and v16 suites, quality checks, security scanning and Playwright on the final PR head.
-- [ ] Keep terminal Failed-row operator replay and realtime notification retry as explicitly separate follow-ups unless implemented and tested in a distinct scope.
+- [x] Merge [PR #32](https://github.com/MitMike/crm_signals/pull/32) for D3 standard Frappe Helpdesk metrics. Final head `93b536abef331d8b34b5b7b570fbb280a996bfb2` passed Python 3.10/3.11/3.12/3.14, lint/static, Semgrep and Bench v15/v16; merge commit `43fddfbbc46cac277a48c840251a7a2c963a8eb5`.
+- [ ] Complete [PR #33](https://github.com/MitMike/crm_signals/pull/33) audited Failed-row replay. Earlier Bench failures exposed unsupported `frappe.has_role` and `Document.get_comments` assumptions; replaced them with `frappe.get_roles` and a Comment query. The action is POST-only, requires System Manager plus outbox read access, preserves attempt history and confirms before replay. Latest Bench run is pending.
+- [ ] Complete [PR #34](https://github.com/MitMike/crm_signals/pull/34) per-company quotation thresholds. Added the missing child-table controller after Bench install exposed it; added mismatch-currency regression coverage. Latest Quality passed; Bench rerun is pending.
+- [ ] Merge [PR #36](https://github.com/MitMike/crm_signals/pull/36) Frappe v16.5 target-baseline ADR-049 after the fresh required-check run completes. Earlier merge attempt was rejected because cancelled required contexts were still present.
+- [ ] Validate the D3 field-level permission guard on branch `fix/d3-field-permission-awareness`. Standard Helpdesk uses permlevels 7/8 and Frappe may silently drop fields the user cannot read.
 
 **Merge gate:** all required checks pass on the final PR head; review threads resolved; no target-site claims inferred from CI.
 
 ### 1. Target-site acceptance kit — source-independent preparation
 
-- [ ] Prepare a site inventory template for Frappe/ERPNext versions, installed apps, Company currencies, timezone, workflows, custom fields and roles.
-- [ ] Prepare a role matrix for Sales User, Sales Manager, System Manager and non-sales users across list, direct form, API, report, export and print.
-- [ ] Prepare D1/D2 reconciliation worksheets with native ERPNext report names, date ranges, currency grouping and evidence fields.
-- [ ] Prepare webhook operational checklist: dedicated least-privilege integration user, TLS, gateway rate limiting, monitoring, secure secret storage and rotation.
-- [ ] Prepare scheduler/mail/realtime smoke tests and a target-site deployment record.
-- [ ] Prepare backup/restore/rollback evidence checklist using the site's actual Bench/process manager and off-host backup policy.
+- [x] Prepare the site inventory, permission, finance reconciliation, webhook, scheduler/mail/realtime and backup/restore/rollback templates in `docs/TARGET_SITE_ACCEPTANCE.md`.
+- [x] Update the operator guides for the confirmed Frappe v16.5 target, exact patch/app-version capture, Company-specific threshold configuration and D3 Helpdesk field-level permission tests.
+- [ ] Review the guide with the pilot operator and adjust only where the actual site differs.
 
-**Gate:** kit is documented and executable, but no target-site item is closed until performed on the intended site.
+**Gate:** documentation is prepared; no target-site item is closed until performed on the intended site.
 
 ### 2. Target-site acceptance — requires intended environment and business owners
 
@@ -43,18 +41,21 @@
 
 ### 3. D3 Service Resolution/SLA
 
-- [ ] Discover installed support app(s), exact ticket DocType and owning app/version.
-- [ ] Map authoritative status, resolution timestamp, SLA record, deadline, pause behavior, business calendar, timezone, permissions and retention.
-- [ ] Obtain business-owner approval of cohort definitions and metric semantics.
-- [ ] Implement isolated source adapter(s) only for observed apps.
-- [ ] Add unit, Bench v15/v16 and Playwright coverage, including unavailable/permission-denied states and privacy-safe aggregate payloads.
+- [x] Implement and merge the standard Frappe Helpdesk adapter in PR #32; CI passed on Frappe v15/v16.
+- [x] Use aggregate-only metrics, native resolution/SLA fields and independent ticket/SLA DocType permission checks.
+- [ ] Verify exact Frappe v16.5, ERPNext and Helpdesk versions on the pilot site.
+- [ ] Verify Sales User/Manager field-level access for `status_category`, `resolution_date`, `resolution_time`, `sla` and `agreement_status`; field-level fail-closed correction is in review.
+- [ ] Confirm active SLA working days/hours, holiday list and timezone against the Monday–Saturday assumption.
+- [ ] Run staging fixtures for Open, Paused, Resolved, no-SLA, Fulfilled, Failed and due states; verify privacy-safe aggregate payloads.
 
-**Gate:** D3 acceptance criteria in its specification pass against the mapped source. No assumed Issue/HD Ticket schema.
+**Gate:** D3 CI is not pilot acceptance. Site version, permissions and SLA calendar must be evidenced.
 
 ### 4. H Highlights
 
-- [ ] Complete configurable quote threshold behavior with explicit Company currency semantics and idempotent submission events.
-- [ ] Validate escalation recipient permissions and cooldown behavior.
+- [x] Implement high-value Quotation event generation and stable source identity.
+- [ ] Merge PR #34 Company-specific threshold rows; verify every enabled Company uses a matching base-currency threshold or approved fallback.
+- [ ] Add the admin-managed VIP allowlist and validate escalation recipient permissions/cooldown behavior.
+
 - [ ] Keep proposal-link tracking disabled until privacy/consent, retention and first-party link behavior are approved.
 - [ ] If tracking is approved, implement opaque expiring/revocable tokens, stable event IDs, scanner classification and non-invasive diagnostics.
 - [ ] Add Bench v15/v16 and Playwright coverage.
@@ -67,19 +68,19 @@
 
 ## Current blockers and known evidence
 
-- `main` is at `9c0ecb1`; it contains the merged PR #23 concurrency hardening and associated documentation.
-- PR #26 is open at head `a63b3b60f909ebc0e62d5bfde383aa6224ba36b2`.
-- Python, lint/static and Semgrep checks passed on the PR's merge-synced head.
-- Frappe v15/v16 Bench checks failed in:
-  - `test_two_workers_enqueue_the_same_source_event_once`: MariaDB `1205 Lock wait timeout exceeded` while inserting the competing outbox row.
-  - `test_two_workers_process_one_outbox_event_once`: DocType validation reports `Source Event Key is required`.
-  - `test_worker_filters_future_retries_before_applying_batch_limit`: same missing source-event key fixture failure.
-- PR #26 must remain open until the actual concurrent-enqueue failure is understood and fixed, not merely skipped or weakened.
+- `main` baseline is `43fddfbbc46cac277a48c840251a7a2c963a8eb5`; PR #32 D3 is merged and CI-verified.
+- PR #33 replay Bench rerun is pending after two evidence-based compatibility fixes; do not merge until both Frappe v15/v16 jobs pass.
+- PR #34 threshold Quality Checks passed on the latest head; Bench v15/v16 rerun is pending after the child-table controller and currency-mismatch test fixes.
+- PR #36 ADR-049 Quality and Security passed; fresh Bench v15/v16 run is pending after an earlier required-check cancellation prevented merge.
+- D3 field-level guard has Python/lint/security checks passing; Bench v15/v16 is pending.
+- No target Frappe site is connected to this work. Pilot evidence for versions, Company policy, role/field permissions, finance reconciliation, SLA calendar and operations remains outstanding.
 
 ## Evidence log
 
 | Date | Work | Evidence | Status |
 |---|---|---|---|
-| 2026-11-01 | Baseline audit | `main` `9c0ecb1`; no open standalone issues; PR #26 is active | Complete |
-| 2026-11-01 | PR #26 validation review | Frappe v15/v16 logs inspected; three failing tests recorded above | Blocked |
-| 2026-11-01 | Sprint sequencing | ADR-046 and progress/follow-up records updated on sprint docs branch | In progress |
+| 2026-11-02 | PR #32 D3 merge | Final head `93b536ab` passed all 16 check runs; merge commit `43fddfb` | Complete — CI verified |
+| 2026-11-02 | PR #33 replay review | Bench exposed `frappe.has_role` and `get_comments` API assumptions; fixes and stronger authorization are committed | Validation pending |
+| 2026-11-02 | PR #34 threshold review | Bench exposed missing child-table controller; controller and mismatch-currency test added | Validation pending |
+| 2026-11-02 | ADR-049 target baseline | Frappe v16.5 confirmed; v15/v16 matrix retained | Validation pending |
+| 2026-11-02 | D3 field-level permissions | Upstream Helpdesk permlevels 7/8 and Frappe field filtering verified; fail-closed correction added | Bench validation pending |
