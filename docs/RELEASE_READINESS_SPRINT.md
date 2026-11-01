@@ -12,7 +12,7 @@
 
 - [x] Merge [PR #32](https://github.com/MitMike/crm_signals/pull/32) for D3 standard Frappe Helpdesk metrics. Final head `93b536abef331d8b34b5b7b570fbb280a996bfb2` passed Python 3.10/3.11/3.12/3.14, lint/static, Semgrep and Bench v15/v16; merge commit `43fddfbbc46cac277a48c840251a7a2c963a8eb5`.
 - [x] [PR #38](https://github.com/MitMike/crm_signals/pull/38) audited Failed-row replay merged as `1640bdd496706a7f297b0984f1fd1d9695307147`; Quality, Security and Bench v15/v16 passed. The action is POST-only, requires System Manager plus outbox read access, preserves attempt history and audit Comment, and confirms before replay.
-- [ ] Complete [PR #46](https://github.com/MitMike/crm_signals/pull/46) exact Frappe v16.5.0/Helpdesk v1.30.2 Bench lane; target install/schema job must pass.
+- [ ] Complete [PR #48](https://github.com/MitMike/crm_signals/pull/48) exact Frappe v16.5.0/Helpdesk v1.30.2 Bench lane; target install/schema job must pass.
 - [ ] Complete [PR #45](https://github.com/MitMike/crm_signals/pull/45) per-company quotation thresholds. Added the missing child-table controller after Bench install exposed it; added mismatch-currency regression coverage. Quality and Security passed on the rebased PR #45 head; Bench v15/v16 is running.
 - [x] [PR #44](https://github.com/MitMike/crm_signals/pull/44) source-document notification permission check merged as `48622c08700032566051978076f49bc807c381e7` after Quality, Security and Bench v15/v16 passed.
 - [x] [PR #36](https://github.com/MitMike/crm_signals/pull/36) merged as `e57d94ea`; ADR-049 sets Frappe v16.5 as the primary target while retaining v15/v16 CI coverage.
