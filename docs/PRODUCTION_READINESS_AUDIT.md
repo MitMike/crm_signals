@@ -2,7 +2,7 @@
 
 **Audit date:** 2026-11-01  
 **Repository:** MitMike/crm_signals  
-**Base:** `main` at a49591947a89b011cc1770be176c1f11571b131b (PR #19 merged)  
+**Base:** `main` at `72833cd383811d7c9be591206647b2e0b1f3fbd9` (PR #21 merged)  
 **Implementation under audit:** [PR #19](https://github.com/MitMike/crm_signals/pull/19), validated head a90315be7ef37e2dceeacb9b4e9b77d5d31df131, merged as a49591947a89b011cc1770be176c1f11571b131b  
 **Decision:** **Not approved for production sign-off.** PR #19 is merged and its CI passed; target-site acceptance and the remaining P1 reliability work are still outstanding.
 
@@ -36,7 +36,7 @@ Decisions are recorded in ADR-034 through ADR-040, in addition to the earlier se
 
 ### P0 — target-site acceptance
 
-1. **Installation/upgrade:** CI installs the current app on fresh Bench sites. A true upgrade from the pre-source-event-key schema with existing CRM Signal rows still needs validation on both supported Frappe versions.
+1. **Installation/upgrade:** PR #21 passed a real `bench migrate` rehearsal from the pre-source-event-key schema with two historical CRM Signal rows on Frappe v15 and v16. Target-site upgrade with a real backup, restore and rollback rehearsal remains required.
 2. **Permission matrix:** Bench tests cover important parent-read, signal-read and list-query cases. The intended site's actual Sales User, Sales Manager, System Manager, non-sales and User Permission matrix still needs testing across list, direct form, API, report, export and print.
 3. **Webhook operations:** Provision a dedicated integration System User and least-privilege create role; confirm HTTPS, gateway rate limiting, secret storage, monitoring and rotation.
 4. **Financial acceptance:** Reconcile D2 invoice, Payment Entry, POS, receivable and overdue figures to native ERPNext reports by currency.
@@ -47,7 +47,7 @@ Decisions are recorded in ADR-034 through ADR-040, in addition to the earlier se
 1. **Signal outbox/reconciliation:** Source hook failures are logged without blocking the source business transaction. A transient CRM Signal write failure can still lose an event; guaranteed delivery requires a durable outbox or reconciliation process.
 2. **Realtime retry:** Per-recipient failures are isolated and logged but not automatically retried.
 3. **Digest concurrency:** The Settings marker and email queue request are committed per recipient. Concurrent scheduler workers have not been proven safe; add a per-recipient lock or unique delivery record if the target site's worker topology permits overlapping runs.
-4. **Idempotency race and upgrade:** Bench tests cover normal duplicate requests and the unique key, but concurrent duplicate inserts and migration from the pre-feature schema remain open.
+4. **Idempotency race:** Bench tests cover normal duplicate requests and the unique key. Concurrent duplicate inserts under real simultaneous database transactions remain open. The pre-feature-schema upgrade rehearsal passed in PR #21 on v15/v16.
 5. **Multi-company threshold:** One site-wide Company-currency threshold is supported. Sites with different Company base currencies need an approved per-company threshold or conversion policy before enabling signals for all companies.
 
 ### P2 — roadmap dependencies
@@ -57,14 +57,14 @@ Decisions are recorded in ADR-034 through ADR-040, in addition to the earlier se
 
 ## Validation status
 
-PR #19 was merged as `a49591947a89b011cc1770be176c1f11571b131b` after all checks passed on validated head `a90315be7ef37e2dceeacb9b4e9b77d5d31df131`:
+PR #21 was merged as `72833cd383811d7c9be591206647b2e0b1f3fbd9` after all checks passed on final head `3578dd566683d2dff4c9f663b733e838b6627e25`, including the v15/v16 legacy-schema migration rehearsal. PR #19 was merged as `a49591947a89b011cc1770be176c1f11571b131b` after all checks passed on validated head `a90315be7ef37e2dceeacb9b4e9b77d5d31df131`:
 
 - [Quality Checks](https://github.com/MitMike/crm_signals/actions/runs/41274491111) — passed, including Python 3.10/3.11/3.12/3.14, lint, formatting and static checks.
 - [Bench Integration and E2E](https://github.com/MitMike/crm_signals/actions/runs/41274491113) — passed on Frappe/ERPNext v15 and v16, including `bench run-tests --app crm_signals` and Playwright on v16.
 - [Security Scanning](https://github.com/MitMike/crm_signals/actions/runs/41274491117) — passed.
 - All 16 individual check-runs on that head completed successfully; the duplicate workflow runs also passed.
 
-Passing CI validates the tested clean-install and browser paths. It does not close any target-site P0 item or prove migration from the older schema.
+Passing CI validates the tested clean-install, browser and CI-level legacy-schema upgrade paths. It does not close any target-site P0 item or prove backup/restore/rollback behavior on the intended site.
 
 ## Release decision rule
 
