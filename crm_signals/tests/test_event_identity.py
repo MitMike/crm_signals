@@ -1,6 +1,7 @@
 """Bench integration tests for source event identity."""
 
 import unittest
+from unittest.mock import MagicMock, patch
 
 try:
     import frappe
@@ -42,3 +43,37 @@ class TestCRMSourceEventUniqueKey(FrappeTestCase):
         frappe.get_doc(dict(values)).insert(ignore_permissions=True)
         with self.assertRaises(UniqueValidationError):
             frappe.get_doc(dict(values)).insert(ignore_permissions=True)
+
+    def test_insert_signal_once_recovers_from_a_unique_key_race(self):
+        from crm_signals.events import insert_signal_once
+
+        source = {
+            "signal_type": "Website Visit",
+            "message": "Concurrent duplicate event",
+            "priority": "Medium",
+            "source_doctype": "API Integration",
+            "source_name": f"integration-{frappe.generate_hash(length=8)}",
+            "source_event_id": "race-event-1",
+        }
+
+        with patch("crm_signals.notifications.notify_signal") as notify:
+            existing, created = insert_signal_once(**source)
+            self.assertTrue(created)
+            self.assertEqual(notify.call_count, 1)
+
+            duplicate_doc = MagicMock()
+            unique_error = type("UniqueValidationError", (Exception,), {})(
+                "simulated unique-key race"
+            )
+            duplicate_doc.insert.side_effect = unique_error
+
+            # Simulate the read-before-insert race: the initial SELECT misses
+            # the row, INSERT loses to another transaction, and the locking
+            # read must return the already committed winner.
+            with patch.object(frappe.db, "get_value", return_value=None):
+                with patch("frappe.get_doc", side_effect=[duplicate_doc, existing]):
+                    recovered, recovered_created = insert_signal_once(**source)
+
+            self.assertFalse(recovered_created)
+            self.assertEqual(recovered.name, existing.name)
+            self.assertEqual(notify.call_count, 1)
