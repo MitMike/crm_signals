@@ -436,3 +436,14 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Decision:** Persist the outbox row in the source transaction, register immediate background delivery with `frappe.enqueue(..., enqueue_after_commit=True)`, and retain the once-per-minute pending-outbox scheduler as recovery if queue submission or delivery fails. Do not run signal materialization synchronously inside the source transaction.
 - **Rationale:** Keep the source event and outbox row atomic while moving nonessential delivery work outside the transaction. This should shorten unique-key lock duration and prevent delivery latency from holding competing idempotent inserts. Queue failure must not lose the durable row; the scheduler remains the fallback.
 - **Validation:** PR #26 passed Quality Checks, Security Scanning and Bench Integration/E2E on synchronized final head `222e70ec71164dab4448f7319525042323a357b4`; Frappe v15/v16 race tests verified one outbox row, one CRM Signal and one notification dispatch. All three workflows passed before squash merge `b0364a74affa823977af74d1907781d1533e60c0`.
+
+
+## ADR-049 — Provide an audited System Manager replay for terminal outbox failures
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-02
+- **Context:** The transactional signal outbox retries transient delivery failures with bounded backoff, but exhausted events remain in a terminal Failed state. Operators could inspect those rows but could not safely replay them without direct database intervention.
+- **Decision:** Add a System Manager-only form action and server-side authorization check. Replay is allowed only from Failed, atomically returns the row to Pending, clears its due-time gate, queues the existing idempotent worker after commit and retains the original attempt count and last error. Record replay count, timestamp, actor and a document comment for each manual replay.
+- **Rationale:** Manual recovery should be explicit, attributable and use the same idempotent delivery path as automatic retries. It must not erase evidence or allow a second replay while the row is Pending/Completed.
+- **Consequences:** A failed enqueue leaves a durable Pending row for the existing scheduled worker. Realtime notification delivery remains a separate reliability concern.
+- **Validation:** Bench test covers replay state, preserved attempt history, audit metadata/comment and after-commit enqueue. Required Frappe v15/v16 CI remains the merge gate.
