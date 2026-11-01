@@ -275,7 +275,7 @@ class TestSignalOutbox(FrappeTestCase):
         }
         site = frappe.local.site
         both_reads_complete = threading.Barrier(2)
-        database_class = type(frappe.db)
+        database_class = type(frappe.db._get_current_object())
         original_get_value = database_class.get_value
 
         def synchronized_get_value(db, doctype, filters=None, fieldname=None, *args, **kwargs):
