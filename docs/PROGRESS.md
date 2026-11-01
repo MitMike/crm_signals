@@ -2,7 +2,7 @@
 
 **Last reviewed:** 2026-11-02  
 **Repository:** [MitMike/crm_signals](https://github.com/MitMike/crm_signals)  
-**Main baseline:** [17eca3f](https://github.com/MitMike/crm_signals/commit/17eca3f6cb493fb8729632e0902c07ccb776b6a5)  
+**Main baseline:** [48622c0](https://github.com/MitMike/crm_signals/commit/48622c08700032566051978076f49bc807c381e7)  
 **Completed implementation:** PR #19 delivered settings/presets and core idempotency; PR #21 validated the legacy-schema migration; PR #23 closed concurrent API-idempotency and digest-queue races; PR #26 merged the transactional signal outbox; PR #32 merged the standard Frappe Helpdesk D3 adapter; PR #38 merged audited Failed-row replay.  
 **Next acceptance:** complete the target-site Frappe v16.5 pilot: exact app versions, Company threshold policy, role/field permissions, D1/D2 reconciliation, Helpdesk SLA calendar, scheduler/mail/realtime, and backup/restore/rollback. PR #32 is CI-verified, not pilot-verified.
 
