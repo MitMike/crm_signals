@@ -65,6 +65,15 @@ GitHub ruleset [Protect main](https://github.com/MitMike/crm_signals/rules/26282
 
 [Issue #12](https://github.com/MitMike/crm_signals/issues/12) was closed after ruleset verification.
 
+
+## Durable transactional signal outbox — PR #26 merged
+
+- PR [#26](https://github.com/MitMike/crm_signals/pull/26) merged to `main` as `b0364a74affa823977af74d1907781d1533e60c0`.
+- Final synchronized head: `222e70ec71164dab4448f7319525042323a357b4` (based on main after PR #28).
+- Quality Checks, Security Scanning and Bench Integration/E2E all passed on that exact head; Bench covered Frappe v15/v16 and the concurrent enqueue/process idempotency cases.
+- Source events and outbox rows commit atomically; delivery is queued after commit, with the scheduled pending-event worker retained as recovery. Retry is bounded and terminal failures are visible to System Managers.
+- **Still open:** audited operator replay for terminal Failed rows and durable realtime notification retry. These are not included in the merged outbox scope.
+
 ## Stage 1 — release readiness and core hardening
 
 ### Completed in merged code
