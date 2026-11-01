@@ -1,8 +1,10 @@
 """Unit tests for CRM Signals configuration parsing and presets."""
 
 import importlib
+import json
 import sys
 import types
+from pathlib import Path
 
 
 def load_settings(monkeypatch):
@@ -234,3 +236,18 @@ def test_missing_settings_fail_closed_until_an_administrator_enables_the_app(mon
     assert values["enabled"] is False
     assert values["enable_external_ingestion"] is False
 
+
+def test_company_threshold_currency_field_uses_row_currency():
+    path = (
+        Path(__file__).resolve().parents[1]
+        / "crm_signals"
+        / "crm_signals"
+        / "doctype"
+        / "crm_signal_company_threshold"
+        / "crm_signal_company_threshold.json"
+    )
+    doctype = json.loads(path.read_text(encoding="utf-8"))
+    fields = {field["fieldname"]: field for field in doctype["fields"]}
+
+    assert fields["quotation_threshold"]["options"] == "currency"
+    assert fields["currency"]["fetch_from"] == "company.default_currency"
