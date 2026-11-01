@@ -2,7 +2,7 @@
 
 This changelog records user-visible and operationally significant changes. It is not a substitute for commit history. Entries do not imply a production release unless explicitly stated.
 
-## Unreleased — Transactional signal outbox (PR #26)
+## Unreleased — Reliability and target compatibility
 
 ### Added
 - Persist Quotation and Opportunity source events in a dedicated idempotent outbox with scheduled retries, bounded exponential backoff and a terminal Failed state visible to System Managers.
@@ -22,11 +22,12 @@ This changelog records user-visible and operationally significant changes. It is
 - If enqueue fails, the row remains Pending for the scheduled worker; direct outbox status editing remains unavailable.
 - PR #38 head `8e4c58dc3b2434559450651c3d3a4a649a034d3a` passed Quality, Security and Bench v15/v16. Merge commit: `1640bdd496706a7f297b0984f1fd1d9695307147`.
 
-### Per-company quotation thresholds — in PR #45 review
+### Per-company quotation thresholds — merged in PR #45 and #49
 
 - Add an optional Company-specific threshold table and derive each row's currency from Company metadata.
 - Compare Quotation base totals to the matching Company threshold; use the legacy site-wide threshold only when currencies match exactly. No implicit FX conversion.
 - Add tests for per-company selection, currency mismatch suppression and exact-currency fallback.
+- PR #45 merged as `ff434bdf` after all 16 required checks passed on head `84783d15`. PR #49 merged as `2e9eb89`; it fetches Company `default_currency` into each row and binds the amount display to that currency. v15/v16 Bench, unit, lint and security checks passed.
 
 
 ### D3 Service Resolution/SLA — merged in PR #32
@@ -37,10 +38,18 @@ This changelog records user-visible and operationally significant changes. It is
 - Final PR #32 head `93b536abef331d8b34b5b7b570fbb280a996bfb2` passed Python 3.10/3.11/3.12/3.14, lint/static, Semgrep and Bench v15/v16. Merge commit: `43fddfbbc46cac277a48c840251a7a2c963a8eb5`.
 - PR #42 merged a fail-closed field-level guard that checks the current user's permitted HD Ticket field names and marks affected measures unavailable instead of returning zero. Target-site app-version, Sales read-only role and active SLA calendar acceptance remain open.
 
-### Realtime source-document authorization — in PR #44 review
+### Realtime source-document authorization — merged in PR #44
 
 - Require read access to the originating Quotation/Opportunity as well as the linked Lead/Customer and CRM Signal before queuing a notification that may contain source-derived values.
 - Fail closed for partially populated source DocType/name pairs; regression tests prove a Lead reader without Quotation access receives no source-derived notification.
+- PR #44 merged as `48622c08700032566051978076f49bc807c381e7` after Quality, Security and Bench v15/v16 passed.
+
+### Exact Frappe v16.5 reference CI — merged in PR #50
+
+- Add a separate Bench lane pinned to Frappe v16.5.0, ERPNext v16.5.0, Helpdesk v1.28.0 and the exact Telephony commit recorded in ADR-057. Keep the existing v15 and moving v16 matrix unchanged.
+- Install the real Helpdesk app and verify the HD Ticket / HD Service Level Agreement DocTypes, D3 field permlevels, default read roles, Frappe permitted-field API, CRM Signals D3 aggregate availability, upgrade, assets and application tests.
+- Fix D3 `creation` detection to use the physical system column rather than `Meta.has_field`, with a regression test.
+- PR #50 merged as `24a9b8d`; Quality Checks, Security Scanning, Bench v15/v16 and the exact target-stack workflow all passed. This is reference-stack CI, not pilot-site acceptance.
 
 
 ## 2026-11-01 — Concurrent API idempotency and digest delivery hardening (merged in PR #23)
