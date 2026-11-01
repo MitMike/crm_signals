@@ -4,6 +4,7 @@ import frappe
 
 from crm_signals.event_identity import build_source_event_key
 from crm_signals.settings import get_company_default_currency, get_signal_settings
+from crm_signals.signal_outbox import SignalOutboxPersistenceError, enqueue_signal_event
 
 
 def _log_error(title):
@@ -147,7 +148,8 @@ def on_quotation_submit(doc, method=None):
         currency = getattr(doc, "currency", None)
         value = float(doc.grand_total or 0)
         formatted_amount = f"{currency} {value:,.2f}" if currency else f"{value:,.2f}"
-        insert_signal_once(
+
+        enqueue_signal_event(
             signal_type="High-Value Quote",
             message=f"High-value quotation {doc.name} submitted for {party} ({formatted_amount})",
             priority="High",
@@ -156,6 +158,9 @@ def on_quotation_submit(doc, method=None):
             source_event_id=f"submit:{getattr(doc, 'modified', None) or doc.name}",
             **links,
         )
+    except SignalOutboxPersistenceError:
+        _log_error("CRM Signals could not persist a submitted Quotation event")
+        raise
     except Exception:
         _log_error("CRM Signals failed to process a submitted Quotation")
 
@@ -177,7 +182,8 @@ def on_opportunity_update(doc, method=None):
         previous_status = str(getattr(before, "status", "") or "") if before else ""
         lead = getattr(doc, "party_name", None) if getattr(doc, "opportunity_from", None) == "Lead" else None
         customer = getattr(doc, "party_name", None) if getattr(doc, "opportunity_from", None) == "Customer" else None
-        insert_signal_once(
+
+        enqueue_signal_event(
             signal_type="Opportunity Activity",
             message=f"Opportunity {doc.name} status updated to {current_status}",
             priority="Medium",
@@ -190,5 +196,8 @@ def on_opportunity_update(doc, method=None):
                 f"{getattr(doc, 'modified', None) or ''}"
             ),
         )
+    except SignalOutboxPersistenceError:
+        _log_error("CRM Signals could not persist an Opportunity event")
+        raise
     except Exception:
         _log_error("CRM Signals failed to process an Opportunity status change")

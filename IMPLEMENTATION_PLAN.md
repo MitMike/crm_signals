@@ -121,7 +121,7 @@ PR #23 merged as [d75b7f3](https://github.com/MitMike/crm_signals/commit/d75b7f3
 
 **Verification passed on final PR head `7ed0860`:** [Bench v15/v16 + Playwright](https://github.com/MitMike/crm_signals/actions/runs/41300667892), [Quality Checks](https://github.com/MitMike/crm_signals/actions/runs/41300667996) and [Security Scanning](https://github.com/MitMike/crm_signals/actions/runs/41300667997). Merge commit: `d75b7f3`.
 
-The first release uses one site-wide threshold currency. Multi-company overrides, durable signal outbox/reconciliation and durable realtime retry remain explicitly deferred in docs/FOLLOW_UPS.md. Target-site values and production security remain external acceptance gates.
+The first release uses one site-wide threshold currency. Transactional signal outbox implementation is under review in PR #26; terminal-failure replay and durable realtime notification retry remain open in docs/FOLLOW_UPS.md. Multi-company threshold overrides are also deferred. Target-site values and production security remain external acceptance gates.
 
 ### Stage 2 — D3 Service Resolution/SLA
 
