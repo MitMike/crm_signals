@@ -19,6 +19,7 @@ except ModuleNotFoundError as error:
         pass
 
 if frappe is not None:
+    from crm_signals import signal_outbox
     from crm_signals.event_identity import build_source_event_key
     from crm_signals.events import on_quotation_submit
     from crm_signals.signal_outbox import (
@@ -295,18 +296,15 @@ class TestSignalOutbox(FrappeTestCase):
         }
         site = frappe.local.site
         both_reads_complete = threading.Barrier(2)
-        database_class = type(frappe.db._get_current_object())
-        original_get_value = database_class.get_value
+        thread_state = threading.local()
+        original_lookup = signal_outbox._find_outbox_name
 
-        def synchronized_get_value(db, doctype, filters=None, fieldname=None, *args, **kwargs):
-            value = original_get_value(db, doctype, filters, fieldname, *args, **kwargs)
-            if (
-                doctype == "CRM Signal Outbox"
-                and filters == {"source_event_key": event_key}
-                and fieldname == "name"
-            ):
+        def synchronized_lookup(key):
+            name = original_lookup(key)
+            if not getattr(thread_state, "initial_lookup_complete", False):
+                thread_state.initial_lookup_complete = True
                 both_reads_complete.wait(timeout=20)
-            return value
+            return name
 
         def enqueue_in_worker():
             frappe.init(site=site)
@@ -319,33 +317,58 @@ class TestSignalOutbox(FrappeTestCase):
             finally:
                 frappe.destroy()
 
-        with (
-            patch.object(database_class, "get_value", synchronized_get_value),
-            patch("crm_signals.notifications.notify_signal") as notify_signal,
-            ThreadPoolExecutor(max_workers=2) as executor,
-        ):
-            futures = [executor.submit(enqueue_in_worker) for _ in range(2)]
-            outbox_names = [future.result(timeout=60) for future in futures]
+        outbox_name = None
+        signal_name = None
+        try:
+            with (
+                patch.object(
+                    signal_outbox,
+                    "_find_outbox_name",
+                    side_effect=synchronized_lookup,
+                ),
+                patch("crm_signals.notifications.notify_signal") as notify_signal,
+                ThreadPoolExecutor(max_workers=2) as executor,
+            ):
+                futures = [executor.submit(enqueue_in_worker) for _ in range(2)]
+                outbox_names = [future.result(timeout=60) for future in futures]
 
-        self.assertEqual(outbox_names[0], outbox_names[1])
-        self.assertEqual(notify_signal.call_count, 1)
-        signal_names = frappe.get_all(
-            "CRM Signal",
-            filters={"source_event_key": event_key},
-            pluck="name",
-        )
-        self.assertEqual(len(signal_names), 1)
-        self.assertEqual(
-            frappe.db.get_value("CRM Signal Outbox", outbox_names[0], "signal"),
-            signal_names[0],
-        )
-        frappe.delete_doc(
-            "CRM Signal Outbox", outbox_names[0], ignore_permissions=True, force=True
-        )
-        frappe.delete_doc(
-            "CRM Signal", signal_names[0], ignore_permissions=True, force=True
-        )
-        frappe.db.commit()
+            self.assertEqual(outbox_names[0], outbox_names[1])
+            self.assertEqual(notify_signal.call_count, 1)
+            outbox_name = outbox_names[0]
+            signal_names = frappe.get_all(
+                "CRM Signal",
+                filters={"source_event_key": event_key},
+                pluck="name",
+            )
+            self.assertEqual(len(signal_names), 1)
+            signal_name = signal_names[0]
+            self.assertEqual(
+                frappe.db.get_value("CRM Signal Outbox", outbox_name, "signal"),
+                signal_name,
+            )
+        finally:
+            if not outbox_name:
+                outbox_name = frappe.db.get_value(
+                    "CRM Signal Outbox", {"source_event_key": event_key}, "name"
+                )
+            if outbox_name and frappe.db.exists("CRM Signal Outbox", outbox_name):
+                signal_name = signal_name or frappe.db.get_value(
+                    "CRM Signal Outbox", outbox_name, "signal"
+                )
+                frappe.delete_doc(
+                    "CRM Signal Outbox",
+                    outbox_name,
+                    ignore_permissions=True,
+                    force=True,
+                )
+            if signal_name and frappe.db.exists("CRM Signal", signal_name):
+                frappe.delete_doc(
+                    "CRM Signal",
+                    signal_name,
+                    ignore_permissions=True,
+                    force=True,
+                )
+            frappe.db.commit()
 
     def test_two_workers_process_one_outbox_event_once(self):
         suffix = frappe.generate_hash(length=8)
