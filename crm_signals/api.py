@@ -491,7 +491,7 @@ def _get_helpdesk_service_metrics(period_start):
             sla_rows = frappe.get_list(
                 "HD Ticket",
                 fields=["agreement_status", _dashboard_aggregate_field("COUNT", "name", "total")],
-                filters={"sla": ["is", "set"]},
+                filters={"sla": ["is", "set"], "creation": [">=", period_start]},
                 group_by="agreement_status", order_by="agreement_status asc", limit_page_length=20,
             )
             outcomes = {
@@ -504,7 +504,7 @@ def _get_helpdesk_service_metrics(period_start):
                 "sla_available": True, "sla_eligible": eligible,
                 "sla_fulfilled": fulfilled, "sla_failed": failed,
                 "sla_compliance_percent": round(fulfilled * 100 / eligible, 1) if eligible else None,
-                "sla_unconfigured": _helpdesk_count({"sla": ["is", "not set"]}),
+                "sla_unconfigured": _helpdesk_count({"sla": ["is", "not set"], "creation": [">=", period_start]}),
             })
         return metrics
     except frappe.PermissionError:
