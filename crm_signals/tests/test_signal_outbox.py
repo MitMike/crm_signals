@@ -262,12 +262,14 @@ class TestSignalOutbox(FrappeTestCase):
             **common,
             "source_name": f"OUTBOX-FUTURE-{suffix}",
             "source_event_id": f"future:{suffix}",
+            "source_event_key": build_source_event_key("Quotation", f"OUTBOX-FUTURE-{suffix}", f"future:{suffix}"),
             "next_retry_at": frappe.utils.now_datetime() + timedelta(minutes=30),
         }).insert(ignore_permissions=True)
         due = frappe.get_doc({
             **common,
             "source_name": f"OUTBOX-DUE-{suffix}",
             "source_event_id": f"due:{suffix}",
+            "source_event_key": build_source_event_key("Quotation", f"OUTBOX-DUE-{suffix}", f"due:{suffix}"),
             "next_retry_at": None,
         }).insert(ignore_permissions=True)
 
@@ -386,6 +388,7 @@ class TestSignalOutbox(FrappeTestCase):
             "source_doctype": "Quotation",
             "source_name": source_name,
             "source_event_id": source_event_id,
+            "source_event_key": build_source_event_key("Quotation", source_name, source_event_id),
             "status": "Pending",
             "attempt_count": 0,
         }).insert(ignore_permissions=True)
