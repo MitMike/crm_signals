@@ -59,7 +59,7 @@ details{border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin
 </ul>
 <p><strong>Time:</strong> about 20–40 minutes if the right people are available.</p>
 <p><strong>Do not share:</strong> passwords, API keys, customer names, ticket descriptions, comments, email addresses, phone numbers, or database exports.</p>
-<p><strong>Frappe v16.5.0 compatibility gate:</strong> the tested reference uses Helpdesk v1.28.0. Helpdesk v1.29.0 and later link <code>@framework/ui</code> to <code>apps/frappe/ui</code>, which is absent from the unmodified Frappe v16.5.0 tag. Helpdesk v1.31.1 also requires the <code>Notification Type</code> DocType. The discovery script reports both dependencies. Do not install a Helpdesk version whose required dependencies are absent.</p>
+<p><strong>Frappe v16.5.0 compatibility gate:</strong> the tested reference uses Helpdesk v1.28.0. Helpdesk v1.29.0 and v1.30.2 desk builds link <code>@framework/ui</code> to <code>apps/frappe/ui</code>, which is absent from the unmodified Frappe v16.5.0 tag. Helpdesk v1.31.1 also requires the <code>Notification Type</code> DocType. The discovery script reports both dependencies for the installed site. For any other Helpdesk release, use the same preflight and verify its actual dependencies; do not install a version whose required dependencies are absent.</p>
 </div>
 </section>
 
