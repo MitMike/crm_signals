@@ -68,6 +68,7 @@ class TestCRMSignalWebhookIntegration(FrappeTestCase):
         previous_user = frappe.session.user
         previous_form_dict = frappe.local.form_dict
         try:
+            frappe.set_user(first_user.name)
             frappe.local.form_dict = {
                 "signal_type": "Website Visit",
                 "priority": "Medium",
@@ -75,13 +76,19 @@ class TestCRMSignalWebhookIntegration(FrappeTestCase):
                 "lead": lead.name,
                 "source_event_id": "event-42",
             }
-            frappe.set_user(first_user.name)
             with patch("frappe.publish_realtime") as publish:
                 first = ingest_signal()
                 duplicate = ingest_signal()
                 self.assertEqual(publish.call_count, 1)
 
             frappe.set_user(second_user.name)
+            frappe.local.form_dict = {
+                "signal_type": "Website Visit",
+                "priority": "Medium",
+                "message": "Visited the pricing page",
+                "lead": lead.name,
+                "source_event_id": "event-42",
+            }
             with patch("frappe.publish_realtime"):
                 other_source = ingest_signal()
         finally:
