@@ -83,7 +83,7 @@ def _helpdesk_rows(fields, filters):
             {"agreement_status": "Paused", "total": 1},
             {"agreement_status": "Resolution Due", "total": 3},
         ]
-    if fields and any(isinstance(field, dict) and field.get("AVG") for field in fields):
+    if fields and any((isinstance(field, dict) and field.get("AVG")) or (isinstance(field, str) and "avg(" in field.lower()) for field in fields):
         return [{"average_resolution_seconds": 7200}]
     if filters and "resolution_date" in filters:
         return [{"total": 5}]
