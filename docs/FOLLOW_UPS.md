@@ -15,7 +15,7 @@ This file records known work that is intentionally not represented as complete. 
 - [ ] **Durable signal outbox/reconciliation.** Current source hooks log unexpected CRM Signal creation failures and preserve the source Quotation/Opportunity transaction. This avoids blocking sales operations, but a transient DB failure can still lose the generated signal. Add a transactional outbox or scheduled reconciliation with retry/backoff and an admin-visible failed-event queue before claiming guaranteed delivery.
 - [ ] **Durable realtime retry.** Realtime notification failures are isolated and logged per recipient, but they are not yet retried automatically. Decide whether the site's operational requirement justifies an outbox/notification attempt record.
 - [ ] **Digest concurrency proof.** The current sendmail queue request and per-recipient Settings marker are written within one Frappe transaction. Verify this behavior and simultaneous scheduler execution on supported Frappe versions. Add a per-recipient lock or unique delivery record if concurrent workers can process the same recipient/date before either commits.
-- [ ] **API idempotency contract coverage.** Add Bench integration tests for same integration-user/source_event_id duplicate POST, cross-source distinct IDs, concurrent duplicate inserts and migration of the unique key on v15/v16.
+- [ ] **API idempotency contract coverage.** Bench-backed tests now verify same-user duplicate POST deduplication, one notification per event and cross-user source namespacing. Add concurrent duplicate-insert and existing-data unique-key migration validation on v15/v16.
 
 ## P1 — site-specific configuration decisions
 
