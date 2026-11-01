@@ -9,6 +9,8 @@ import frappe
 
 from crm_signals.settings import get_signal_settings, parse_recipients
 
+MAX_EXPIRING_QUOTATIONS = 100
+
 
 def _site_now():
     timezone = frappe.db.get_single_value("System Settings", "time_zone") or "UTC"
@@ -91,8 +93,8 @@ def _get_expiring_quotations(today):
             "Quotation",
             filters={"valid_till": today, "docstatus": 1, "status": "Open"},
             fields=["name", "party_name", "grand_total", "currency"],
-            order_by="valid_till asc",
-            limit_page_length=0,
+            order_by="name asc",
+            limit_page_length=MAX_EXPIRING_QUOTATIONS + 1,
         )
     except Exception:
         frappe.log_error(
@@ -119,15 +121,26 @@ def _render_digest(stale_lead_count, stale_days, quotations):
         quote_count = "Unavailable"
         quote_summary = "<p>Quotation data is unavailable for your user permissions or site configuration.</p>"
     else:
-        quote_count = str(len(quotations))
+        truncated = len(quotations) > MAX_EXPIRING_QUOTATIONS
+        displayed_quotations = quotations[:MAX_EXPIRING_QUOTATIONS]
+        quote_count = (
+            f"{MAX_EXPIRING_QUOTATIONS}+"
+            if truncated
+            else str(len(displayed_quotations))
+        )
         quote_rows = "".join(
             "<li><b>{}</b>: {} ({})</li>".format(
                 html.escape(quotation.party_name or "Unspecified party"),
                 html.escape(_format_quote_amount(quotation)),
                 html.escape(quotation.name),
             )
-            for quotation in quotations
+            for quotation in displayed_quotations
         )
+        if truncated:
+            quote_rows += (
+                "<li>Additional quotations are not shown. "
+                "Review the full list in ERPNext.</li>"
+            )
         quote_summary = (
             f"<ul>{quote_rows}</ul>"
             if quote_rows
