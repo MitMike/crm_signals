@@ -455,7 +455,7 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Context:** The deployment owner confirmed the target instance runs Frappe v16.5. The repository's automated compatibility matrix covers Frappe v15 and v16, but generic v16 coverage does not by itself prove the exact target site's installed apps, patches, customizations, permissions or configuration.
 - **Decision:** Use Frappe v16.5 as the primary target for configuration guidance, API/schema compatibility review and acceptance instructions. Retain v15 coverage as a supported compatibility matrix unless a separate product decision removes it. Do not claim live-site acceptance from CI; capture the observed Frappe, ERPNext and Helpdesk app versions before configuration and explicitly label every site-dependent check.
 - **Rationale:** A confirmed target version is stronger evidence than a generic supported-major assumption. Targeting the exact v16.5 baseline reduces ambiguity in the operator guide while preserving the existing cross-version support commitment.
-- **Consequences:** The operator guide will identify Frappe v16.5 as the expected target, request the exact patch build and ERPNext/Helpdesk app versions, and distinguish framework compatibility from site-specific acceptance. No production sign-off is implied.
+- **Consequences:** The operator guide will identify Frappe v16.5 as the expected target, request the exact patch/build string printed by `bench version` and the ERPNext/Helpdesk app versions, and distinguish framework compatibility from site-specific acceptance. No production sign-off is implied.
 
 ## ADR-052 — Treat Helpdesk field-level permissions as metric availability gates
 
