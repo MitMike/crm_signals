@@ -147,13 +147,13 @@ def prepare_upgrade_site():
 
 
 def verify_helpdesk_schema():
-    """Verify the pinned Helpdesk metric contract without reading ticket records."""
+    """Verify the pinned Helpdesk v1.30.2 metric contract without reading ticket records."""
     required_fields = {
-        "status_category": 7,
-        "resolution_date": 7,
-        "resolution_time": 7,
-        "sla": 7,
-        "agreement_status": 8,
+        "status_category": 0,
+        "resolution_date": 0,
+        "resolution_time": 0,
+        "sla": 0,
+        "agreement_status": 0,
     }
     for doctype in ("HD Ticket", "HD Service Level Agreement"):
         if not frappe.db.exists("DocType", doctype):
@@ -202,8 +202,6 @@ def verify_helpdesk_schema():
 
     expected_ticket_roles = {
         0: {"System Manager", "Agent", "Agent Manager", "HD Customer", "HD Customer Manager"},
-        7: {"System Manager", "Agent", "Agent Manager", "HD Customer", "HD Customer Manager"},
-        8: {"System Manager", "Agent", "Agent Manager"},
     }
     for permlevel, expected_roles in expected_ticket_roles.items():
         actual_roles = read_roles(ticket_meta, permlevel)
