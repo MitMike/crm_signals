@@ -18,9 +18,11 @@ class FakeDB:
 
 
 class FakeSignal:
-    def __init__(self, lead=None, customer=None, name="SIG-1"):
+    def __init__(self, lead=None, customer=None, source_doctype=None, source_name=None, name="SIG-1"):
         self.lead = lead
         self.customer = customer
+        self.source_doctype = source_doctype
+        self.source_name = source_name
         self.name = name
         self.signal_type = "Website Visit"
         self.priority = "Medium"
@@ -28,7 +30,8 @@ class FakeSignal:
 
 
 def load_module(
-    monkeypatch, owner_map, assignments, enabled_users, readable_users=None, signal_readable_users=None
+    monkeypatch, owner_map, assignments, enabled_users, readable_users=None, signal_readable_users=None,
+    readable_links=None,
 ):
     fake = types.ModuleType("frappe")
     fake.db = FakeDB(owner_map)
@@ -47,10 +50,16 @@ def load_module(
     signal_readable = set(
         enabled_users if signal_readable_users is None else signal_readable_users
     )
-    fake.has_permission = lambda doctype, ptype="read", doc=None, user=None: (
-        ptype == "read"
-        and user in (signal_readable if doctype == "CRM Signal" else readable)
-    )
+    def has_permission(doctype, ptype="read", doc=None, user=None):
+        if ptype != "read":
+            return False
+        if doctype == "CRM Signal":
+            return user in signal_readable
+        if readable_links is not None:
+            return (doctype, doc, user) in readable_links
+        return user in readable
+
+    fake.has_permission = has_permission
     fake.publish_realtime = lambda **kwargs: published.append(kwargs)
     monkeypatch.setitem(sys.modules, "frappe", fake)
     sys.modules.pop("crm_signals.notifications", None)
@@ -155,3 +164,44 @@ def test_parent_reader_without_signal_read_permission_does_not_receive_alert(mon
 
     assert published == []
 
+
+
+def test_recipient_must_read_source_document_before_receiving_signal_content(monkeypatch):
+    module, published = load_module(
+        monkeypatch,
+        {("Lead", "LEAD-1"): "owner@example.com"},
+        ["assignee@example.com"],
+        ["owner@example.com", "assignee@example.com"],
+        readable_links={
+            ("Lead", "LEAD-1", "owner@example.com"),
+            ("Quotation", "QTN-1", "owner@example.com"),
+            ("Lead", "LEAD-1", "assignee@example.com"),
+        },
+    )
+    signal = FakeSignal(
+        lead="LEAD-1",
+        source_doctype="Quotation",
+        source_name="QTN-1",
+    )
+
+    assert module.get_signal_recipients(signal) == ["owner@example.com"]
+    module.notify_signal(signal)
+    assert [event["user"] for event in published] == ["owner@example.com"]
+
+
+def test_partial_source_identity_fails_closed_for_notifications(monkeypatch):
+    module, published = load_module(
+        monkeypatch,
+        {("Lead", "LEAD-1"): "owner@example.com"},
+        [],
+        ["owner@example.com"],
+    )
+    signal = FakeSignal(
+        lead="LEAD-1",
+        source_doctype="Quotation",
+        source_name=None,
+    )
+
+    assert module.get_signal_recipients(signal) == []
+    module.notify_signal(signal)
+    assert published == []
