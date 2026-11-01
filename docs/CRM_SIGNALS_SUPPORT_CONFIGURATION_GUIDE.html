@@ -39,7 +39,8 @@
 <p>A DocType is like a spreadsheet template: it defines what a ticket record looks like. We need its exact name, not a guess.</p>
 <p>Open the Frappe bench console:</p><pre>bench --site your-site-name console</pre>
 <p>Paste this read-only discovery snippet. It lists likely support DocTypes and their field definitions, not ticket contents.</p>
-<pre>import frappe
+<pre>import os
+import frappe
 
 print("Installed apps:")
 for app in frappe.get_installed_apps():
@@ -49,6 +50,8 @@ for app in frappe.get_installed_apps():
         print(app)
 
 print("Notification Type DocType present:", bool(frappe.db.exists("DocType", "Notification Type")))
+frappe_path = frappe.get_app_path("frappe")
+print("frappe/ui package present:", os.path.isdir(os.path.join(frappe_path, "ui")))
 
 keywords = ("support", "ticket", "issue", "helpdesk", "service", "sla")
 rows = frappe.get_all(
