@@ -154,4 +154,6 @@ For each change:
 - API aggregates ticket creation, current Open/Paused backlog, resolved cohort, native resolution duration and SLA fulfilled/failed outcomes. Ticket and SLA permissions are checked independently; payload contains no ticket subjects, comments, contacts or identifiers.
 - SLA outcome counts use the same rolling 30-day created-ticket cohort; only Fulfilled/Failed are eligible. No-SLA tickets are counted separately.
 - Monday–Saturday is the agreed business-week assumption; configured Helpdesk SLA hours and holiday lists are not overridden.
-- Remaining: target-site version/permission/calendar acceptance. A separate fail-closed field-level permission guard is in validation and must pass Bench v15/v16 before merge.
+- Field-level guard merged in PR #42 as `17eca3f6cb493fb8729632e0902c07ccb776b6a5`; it checks the current user's permitted HD Ticket field names and marks affected measures unavailable instead of returning zero.
+- Reference Helpdesk v1.31.1 places `status_category`, `resolution_date`, `resolution_time` and `sla` at permlevel 7 and `agreement_status` at permlevel 8. Sales User/Manager are not default Helpdesk readers; use an approved read-only role rather than granting Agent/Agent Manager solely for the dashboard.
+- Remaining: exact Frappe v16.5.0/ERPNext v16.5.0/Helpdesk v1.31.1 CI job, target-site installed versions, Sales role permissions and active SLA calendar acceptance.
