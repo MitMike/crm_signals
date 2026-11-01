@@ -151,8 +151,9 @@ For each change:
 ## D3 adapter merged — Frappe Helpdesk
 
 - Merge: PR #32 as `43fddfbbc46cac277a48c840251a7a2c963a8eb5`; CI verified on Frappe v15/v16.
-- Source schema verified against upstream Helpdesk: HD Ticket, HD Ticket Status, HD Service Level Agreement; ticket fields include status_category, resolution_date, resolution_time, sla and agreement_status.
+- Source schema verified against Helpdesk v1.31.1 reference: HD Ticket, HD Ticket Status, HD Service Level Agreement; ticket fields include status_category, resolution_date, resolution_time, sla and agreement_status at permlevels 7/8.
 - API aggregates ticket creation, current Open/Paused backlog, resolved cohort, native resolution duration and SLA fulfilled/failed outcomes. Ticket and SLA permissions are checked independently; payload contains no ticket subjects, comments, contacts or identifiers.
 - SLA outcome counts use the same rolling 30-day created-ticket cohort; only Fulfilled/Failed are eligible. No-SLA tickets are counted separately.
 - Monday–Saturday is the agreed business-week assumption; configured Helpdesk SLA hours and holiday lists are not overridden.
-- Remaining: target-site version/permission/calendar acceptance. A fail-closed field-level permission guard merged in PR #42; exact v16.5.0/Helpdesk v1.31.1 compatibility CI remains to be added.
+- Field-level fail-closed permission guard merged in PR #42; exact Frappe v16.5.0/ERPNext v16.5.0/Helpdesk v1.31.1 CI is in PR #46 and is running the pinned install plus real aggregate smoke test. The first run exposed a malformed MariaDB client config; the here-doc correction is under test.
+- Remaining: capture the pilot site's exact app versions, configure the approved custom read-only Helpdesk role for Sales, and verify the active SLA calendar, hours and holiday list.
