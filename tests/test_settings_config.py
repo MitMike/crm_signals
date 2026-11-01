@@ -237,8 +237,6 @@ def test_missing_settings_fail_closed_until_an_administrator_enables_the_app(mon
     assert values["enable_external_ingestion"] is False
 
 
-
-
 def test_company_threshold_currency_field_uses_row_currency():
     path = (
         Path(__file__).resolve().parents[1]
