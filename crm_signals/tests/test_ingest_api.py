@@ -65,6 +65,14 @@ class TestCRMSignalWebhookIntegration(FrappeTestCase):
         settings.enable_daily_digest = 0
         settings.save(ignore_permissions=True)
 
+        for integration_user in (first_user, second_user):
+            self.assertIn("Sales User", frappe.get_roles(integration_user.name))
+            self.assertTrue(
+                frappe.has_permission(
+                    "CRM Signal", ptype="create", user=integration_user.name
+                )
+            )
+
         previous_user = frappe.session.user
         previous_form_dict = frappe.local.form_dict
         try:
