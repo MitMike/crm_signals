@@ -133,3 +133,11 @@ Production/target-site acceptance is not implied by these CI results. See [Proje
 - Correct the dashboard E2E Prettier formatting and remove the temporary CI diagnostic step.
 
 These corrections remain on the active PR branch until its required checks pass and the PR is merged.
+
+
+### 2026-11-01 — E2E navigation and settings synchronization (PR #19, unmerged)
+
+- Wait for Frappe Desk navigation after the session cookie is established, preventing subsequent test requests from racing the login redirect.
+- Await the settings form's custom-preset model update and commit the integer field before asserting the preset change.
+
+These changes remain on the active PR branch pending final CI and merge.
