@@ -37,6 +37,11 @@ This changelog records user-visible and operationally significant changes. It is
 - Final PR #32 head `93b536abef331d8b34b5b7b570fbb280a996bfb2` passed Python 3.10/3.11/3.12/3.14, lint/static, Semgrep and Bench v15/v16. Merge commit: `43fddfbbc46cac277a48c840251a7a2c963a8eb5`.
 - PR #42 merged a fail-closed field-level guard that checks the current user's permitted HD Ticket field names and marks affected measures unavailable instead of returning zero. Target-site app-version, Sales read-only role and active SLA calendar acceptance remain open.
 
+### Realtime source-document authorization — in PR #44 review
+
+- Require read access to the originating Quotation/Opportunity as well as the linked Lead/Customer and CRM Signal before queuing a notification that may contain source-derived values.
+- Fail closed for partially populated source DocType/name pairs; regression tests prove a Lead reader without Quotation access receives no source-derived notification.
+
 
 ## 2026-11-01 — Concurrent API idempotency and digest delivery hardening (merged in PR #23)
 
