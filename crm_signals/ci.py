@@ -123,7 +123,7 @@ def prepare_upgrade_site():
                 f"ALTER TABLE \`tabCRM Signal\` DROP COLUMN \`{fieldname}\`"
             )
     frappe.db.commit()
-    return {"legacy_records": len(LEGACY_SIGNAL_MESSAGES), "schema": "pre-source-event-identity"}
+    return {\n        "legacy_records": len(LEGACY_SIGNAL_MESSAGES),\n        "schema": "pre-source-event-identity",\n    }
 
 
 def verify_upgrade_site():
