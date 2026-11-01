@@ -44,7 +44,7 @@ Specification: [D3 Service Resolution/SLA](../specs/2026-11-01-pillar-d3-service
 
 ## H — Highlights: event-driven alerts
 
-**Status:** High-value Quotation signals and per-company threshold implementation are merged (PR #45). Every enabled Company still needs an approved threshold or explicit fallback approval during pilot configuration. VIP proposal-link tracking remains gated on privacy/consent and retention approval.
+**Status:** High-value Quotation signals and per-company threshold implementation are merged (PR #45); PR #49 merged the row-currency auto-fetch/display fix. Every enabled Company still needs an approved threshold or explicit fallback approval during pilot configuration. VIP proposal-link tracking remains gated on privacy/consent and retention approval.
 
 - High-value submitted Quotations use the Company's base total and an explicit Company-specific threshold when configured; the legacy site-wide threshold is a fallback only on exact currency match. No implicit FX conversion.
 - VIP proposal-link opens only from first-party tracked links or a provider with stable event IDs.
