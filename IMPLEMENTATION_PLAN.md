@@ -141,7 +141,7 @@ Exit criteria:
 - [ ] Sales User/Manager DocType and field-level permissions are tested; missing fields show unavailable.
 - [ ] Active SLA working hours, holiday list and timezone are verified against the Monday–Saturday assumption.
 - [x] Initial adapter unit/Bench v15/v16 and dashboard coverage passed in PR #32.
-- [ ] Field-level permission hardening passes Bench v15/v16 and merges.
+- [x] Field-level permission hardening merged in PR #42 and passed Bench v15/v16; target-site role policy remains open.
 
 ### Stage 3 — H Highlights
 
