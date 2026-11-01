@@ -12,6 +12,10 @@ MAX_SIGNAL_OUTBOX_RETRY_MINUTES = 60
 SIGNAL_OUTBOX_BATCH_SIZE = 100
 
 
+class SignalOutboxPersistenceError(RuntimeError):
+    """Raised when the event cannot be durably recorded with its source transaction."""
+
+
 def _is_duplicate_key_error(error):
     return error.__class__.__name__ in {"DuplicateEntryError", "UniqueValidationError"}
 
@@ -159,7 +163,7 @@ def enqueue_signal_event(
     lead=None,
     customer=None,
 ):
-    """Persist an idempotent event in the source transaction, then try immediate delivery."""
+    """Persist the event in the source transaction, then attempt immediate delivery."""
     payload = {
         "signal_type": signal_type,
         "message": message,
@@ -170,14 +174,20 @@ def enqueue_signal_event(
         "lead": lead,
         "customer": customer,
     }
-    outbox = _get_or_create_outbox(payload)
+    try:
+        outbox = _get_or_create_outbox(payload)
+    except Exception as error:
+        raise SignalOutboxPersistenceError(
+            "CRM Signal event could not be persisted to the transactional outbox."
+        ) from error
+
     if outbox.status == "Pending":
         process_signal_outbox_event(outbox.name)
     return outbox.name
 
 
 def process_pending_signal_outbox(limit=SIGNAL_OUTBOX_BATCH_SIZE):
-    """Retry due events in small committed batches; failed events remain visible to System Managers."""
+    """Retry due events in small committed batches without allowing old retries to starve new ones."""
     from frappe.utils import now_datetime
 
     names = frappe.get_all(
