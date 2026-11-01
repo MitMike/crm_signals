@@ -29,6 +29,27 @@ def _party_links(doctype, party_name):
     frappe.throw(f"Unsupported quotation party type: {doctype}", frappe.ValidationError)
 
 
+def _existing_signal_name(event_key, *, locking_read=False):
+    """Find the persisted signal; use a locking read after a unique-key race."""
+    if locking_read:
+        rows = frappe.db.sql(
+            """
+            SELECT name
+            FROM `tabCRM Signal`
+            WHERE source_event_key = %s
+            LIMIT 1
+            FOR UPDATE
+            """,
+            (event_key,),
+            as_dict=True,
+        )
+        return rows[0].name if rows else None
+
+    return frappe.db.get_value(
+        "CRM Signal", {"source_event_key": event_key}, "name"
+    )
+
+
 def insert_signal_once(
     signal_type,
     message,
@@ -43,9 +64,7 @@ def insert_signal_once(
     """Insert one signal per stable source event; return (document, created)."""
     event_key = build_source_event_key(source_doctype, source_name, source_event_id)
     if event_key:
-        existing_name = frappe.db.get_value(
-            "CRM Signal", {"source_event_key": event_key}, "name"
-        )
+        existing_name = _existing_signal_name(event_key)
         if existing_name:
             return frappe.get_doc("CRM Signal", existing_name), False
 
@@ -65,10 +84,15 @@ def insert_signal_once(
     try:
         signal.insert(ignore_permissions=ignore_permissions)
     except Exception as error:
-        if event_key and error.__class__.__name__ == "DuplicateEntryError":
-            existing_name = frappe.db.get_value(
-                "CRM Signal", {"source_event_key": event_key}, "name"
-            )
+        if event_key and error.__class__.__name__ in {
+            "DuplicateEntryError",
+            "UniqueValidationError",
+        }:
+            # MariaDB's duplicate-key exception is wrapped by Frappe as
+            # UniqueValidationError on supported v15/v16 versions. A
+            # locking read sees the winning row even under repeatable-read
+            # transaction isolation.
+            existing_name = _existing_signal_name(event_key, locking_read=True)
             if existing_name:
                 return frappe.get_doc("CRM Signal", existing_name), False
         raise
