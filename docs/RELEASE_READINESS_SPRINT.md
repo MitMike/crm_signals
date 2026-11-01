@@ -83,7 +83,7 @@
 | Date | Work | Evidence | Status |
 |---|---|---|---|
 | 2026-11-02 | PR #32 D3 merge | Final head `93b536ab` passed all 16 check runs; merge commit `43fddfb` | Complete — CI verified |
-| 2026-11-02 | PR #38 replay review | Bench exposed `frappe.has_role` and `get_comments` API assumptions; fixes and stronger authorization are committed | Validation pending |
+| 2026-11-02 | PR #38 replay review | Replaced unsupported `frappe.has_role` / `get_comments` assumptions, strengthened authorization and verified replay on Bench v15/v16; merged as `1640bdd4` | Complete — CI verified |
 | 2026-11-02 | PR #45 threshold merge | Company-specific amounts/currencies, exact-currency fallback and mismatch suppression merged; all required checks passed | Complete — CI verified |
 | 2026-11-02 | ADR-049 target baseline | Frappe v16.5 confirmed; v15/v16 matrix retained | Complete — merged |
 | 2026-11-02 | D3 field-level permissions | Fail-closed field permission guard merged in PR #42 and passed v15/v16 CI | Complete — CI verified |
