@@ -19,6 +19,7 @@ This changelog records user-visible and operationally significant changes. It is
 
 - Pin Frappe v16.5.0, ERPNext v16.5.0, Helpdesk v1.30.2 and the exact Telephony commit.
 - Install the real Helpdesk app in Bench and verify HD Ticket / HD Service Level Agreement DocTypes, required fields, permlevels and the Frappe permitted-field API.
+- Helpdesk v1.31.1 attempts to create `Notification Type` during installation, but the unmodified Frappe v16.5.0 tag lacks that DocType/controller; v1.30.2 is the compatible reference pin unless the target Frappe build supplies an upstream-compatible implementation.
 - Keep moving v15/v16 coverage and the v16 Playwright E2E lane.
 
 ### Per-company quotation thresholds — merged in PR #45
