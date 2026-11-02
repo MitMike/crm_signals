@@ -35,7 +35,7 @@ The following capabilities are present in the repository. "Implemented" means th
 | Authenticated POST ingestion | Event-ID idempotency and concurrent duplicate recovery merged in PR #19/#23 | Verify with a dedicated target-site integration user and deployment rate limits |
 | Quotation and Opportunity event hooks | Implemented; transactional outbox merged in PR #26 | Confirm target-site status/threshold policy; audited Failed-row replay merged in PR #38; per-company thresholds are in PR #45 merged |
 | Record-level Signal permissions | Implemented | Verify list, direct form, report, export and API on target roles |
-| Recipient-scoped realtime notifications | CI-verified on head `d2ac43e`; PR #54 ready for review | Stable delivery IDs, bounded retry, current permission rechecks and active-session dedupe; target-site Redis/worker recovery remains unverified |
+| Recipient-scoped realtime notifications | Implemented and CI-verified; PR #54 merged as `37ce600` | Stable delivery IDs, bounded retry, current permission rechecks and active-session dedupe; target-site Redis/worker recovery remains unverified |
 | Daily CRM digest | Per-recipient queue tracking and cross-worker serialization merged in PR #19/#23 | Verify target-site semantics, timezone, recipient policy and live scheduler/mail behavior |
 | CRM Signals Settings | Implemented and merged in PR #19 | Confirm the default Company currency, preset behavior and selected site configuration |
 | CRM Signals Desk Console | Implemented | Target-site permission and usability smoke test |
@@ -43,7 +43,7 @@ The following capabilities are present in the repository. "Implemented" means th
 | D2 Billing Realization | Implemented; return-metadata guard merged in PR #17 | Reconcile totals and currency basis against target-site reports |
 | D3 Service Resolution/SLA | Standard Frappe Helpdesk adapter and field-level guard merged in PR #32/#42; moving v15/v16 CI and exact Frappe v16.5.0 / ERPNext v16.5.0 / Helpdesk v1.28.0 reference lane passed in PR #50 | Confirm the pilot site's exact app versions, Sales read-only role/field permissions and active SLA calendar |
 | H Highlights | Partial; high-value Quotation events exist | Per-company threshold behavior merged in PR #45; target-site amounts and currency fallback still require approval. VIP allowlist/escalation and proposal-link tracking remain; tracking is gated on privacy/consent and retention approval |
-| E Explorer | Not implemented | Verify installed activity integrations and source adapters |
+| E Explorer | Core backend API plus field-level fail-closed checks in PR #57; latest-head CI rerun pending | Desk entry points, Playwright and optional-provider inventory remain |
 | V Vault | Not implemented | Metric registry, retention and source-visibility policy |
 | A Analysis | Not implemented | Approved metric/query registry and constrained intent mapping |
 
@@ -170,7 +170,11 @@ Exit criteria:
 **Priority:** P2  
 **Dependencies:** Stage 1 permission contract; verified integrations and source event identities.
 
+**Current slice:** PR #57 implements the first read-only backend adapters for CRM Signal, Quotation and Opportunity. It supports Lead, Customer, Opportunity, CRM Signal and High-Value Quote contexts, metadata-only summaries, bounded snapshot pagination and explicit field-level read checks for every context/filter/source field. The field-permission review fix is awaiting a fresh CI run. The prior head's merge was rejected because two duplicate Bench contexts from the stacked Desk branch were cancelled; a new unique head is required to clear the ruleset without bypass. No Desk UI or optional-provider adapter is included in this PR.
+
 Work:
+- [x] Add the initial read-only CRM Signal, Quotation and Opportunity adapters and bounded timeline API (PR #57; CI pending).
+- [ ] Add Desk entry points and Playwright coverage for Lead, Customer, Opportunity, CRM Signal and Highlight contexts.
 - Build an adapter registry for CRM Signal, Quotation, Opportunity and only those Communication/Event/call/WhatsApp sources verified on the target site.
 - Normalize source ID, event ID, timestamp, related party, safe summary and authorized source link.
 - Add stable pagination, deduplication and timezone-consistent sorting.
@@ -263,7 +267,7 @@ A slice is done only when all applicable items are complete:
 | D3 | [Service Resolution/SLA](specs/2026-11-01-pillar-d3-service-resolution-sla.md) | Adapter, exact v16.5.0 reference CI and aggregate fixture verified in PR #50/#53; pilot-site source/permission/SLA acceptance remains |
 | H | [Highlights](specs/2026-11-01-pillar-h-highlights.md) | Partial: high-value quotation signals and per-Company thresholds merged; VIP proposal tracking remains gated on privacy/consent and retention approval |
 | A | [Analysis](specs/2026-11-01-pillar-a-analysis.md) | Planned |
-| E | [Explorer](specs/2026-11-01-pillar-e-explorer.md) | Planned |
+| E | [Explorer](specs/2026-11-01-pillar-e-explorer.md) | Core backend in PR #57; Desk UI and optional adapters remain |
 | V | [Vault](specs/2026-11-01-pillar-v-vault.md) | Planned |
 
 ## 8. Release blockers and external inputs
