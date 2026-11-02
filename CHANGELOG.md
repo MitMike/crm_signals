@@ -14,8 +14,8 @@ This changelog records user-visible and operationally significant changes. It is
 ### Dashboard horizontal inset — PR #78 (pending CI)
 - Restore 24px horizontal padding and add a static regression assertion. UAT visual confirmation remains outstanding.
 
-### Regression-review PR template — PR #80 (pending CI)
-- Add a reusable checklist for bug-register search, regression tests/manual checks, root-cause review, and honest CI/UAT status. This is advisory, not an automated merge gate.
+### Regression-review PR template — PR #81 (canonical; prior CI passed, refresh required)
+- Add a reusable checklist for bug-register search, regression tests/manual checks, root-cause review, and honest CI/UAT status. This is advisory, not an automated merge gate. PR #80 was closed as superseded because its bug/fix registers were merged in PR #79 and its template content is carried by PR #81.
 
 ### Change-aware CI execution — PR #76 (merged and CI-verified as cec49e7)
 - Preserve stable required-check names while selecting Python, Bench and pinned Frappe v16.5.0 execution by changed runtime paths.
