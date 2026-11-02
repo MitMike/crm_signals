@@ -1,6 +1,6 @@
 # D1 — Sales Compass
 
-**Status:** Implemented; status-metadata safety fix is merged. PR #63 adds a read-only D1/D2 Bench query-contract smoke merged/CI-verified on Frappe v15/v16 and pinned v16.5.0. Target-site workflow/status validation remains.
+**Status:** Implemented; status-metadata safety fix and PR #63 read-only query-contract smoke are merged/CI-verified on Frappe v15/v16 and pinned v16.5.0. PR #67 adds real synthetic Lead/Opportunity aggregate deltas, terminal-stage exclusion and INR/USD pipeline grouping; code-complete, CI pending. Target-site workflow/status validation remains.
 
 ## Problem and user
 
@@ -61,6 +61,7 @@ The Executive Compass presents Lead creation and active Lead metrics; Opportunit
 | D1-AC8 | Sales User sees only records admitted by Frappe permissions and role access | Bench integration test |
 | D1-AC9 | Recent Opportunity links open the correct source form | Playwright E2E |
 | D1-AC10 | Empty and unavailable states render differently | Playwright E2E |
+| D1-AC11 | Real Lead and Opportunity aggregate deltas include active-only stages and currency-grouped pipeline while excluding terminal Opportunities | Disposable Bench fixture on Frappe v15/v16 and pinned v16.5.0 (PR #67; CI pending) |
 
 ## Existing implementation and tests
 
@@ -78,4 +79,4 @@ The Settings singleton supports optional per-company threshold rows. Each row de
 
 ## CI compatibility boundary
 
-PR #63 exercises the real permission-aware D1 query path and ERPNext aggregate queries on the supported Frappe v15/v16 Bench matrix and the pinned v16.5.0 reference lane. It verifies metadata/query availability and response shape without creating business records. It does not prove financial values, Sales User/Manager row-level behavior or target-site workflow semantics; those remain separate acceptance criteria.
+PR #63 exercises the real permission-aware D1 query path and ERPNext aggregate queries on the supported Frappe v15/v16 Bench matrix and the pinned v16.5.0 reference lane. PR #67 adds a disposable synthetic Lead/Opportunity fixture that checks recent/active counts, terminal-stage exclusion and INR/USD pipeline deltas using real Frappe DocTypes; its final-head CI is pending. The fixture rolls back synthetic records and does not prove target-site workflow semantics, Sales User/Manager role approval or pilot behavior.
