@@ -14,18 +14,24 @@ This changelog records user-visible and operationally significant changes. It is
 ### Dashboard horizontal inset — PR #78 (pending CI)
 - Restore 24px horizontal padding and add a static regression assertion. UAT visual confirmation remains outstanding.
 
-### Regression-review PR template — PR #80 (pending CI)
-- Add a reusable checklist for bug-register search, regression tests/manual checks, root-cause review, and honest CI/UAT status. This is advisory, not an automated merge gate.
+### Regression-review PR template — PR #81 (canonical; prior CI passed, refresh required)
+- Add a reusable checklist for bug-register search, regression tests/manual checks, root-cause review, and honest CI/UAT status. This is advisory, not an automated merge gate. PR #80 was closed as superseded because its bug/fix registers were merged in PR #79 and its template content is carried by PR #81.
 
-### Change-aware CI execution — PR #76 (pending final-head verification)
-- Select Python, Bench and pinned Frappe v16.5.0 execution by changed runtime paths while retaining the existing required check names, Security scanning, and full Bench coverage on main/manual runs.
-- Fail required gates when path detection fails; include package manifests/lockfiles, requirements and manifest files, app configuration and module metadata in integration/pinned-stack filters.
-- Initial workflow-only and temporary Python runtime-path validation passed. Every required Python/Bench gate now fails closed on detector errors. A second path audit added workflow-definition, workspace JSON, patch/fixture, MANIFEST.in and requirements coverage; the expanded final-head CI cycle is pending. Static regression tests now lock down the fail-closed Python/Bench gate expressions, selector coverage and Quality push scope. Quality runs on main pushes and every PR, avoiding duplicate full feature-branch push runs. Required check names and main/manual full Bench coverage remain unchanged.
+### Change-aware CI execution — PR #76 (merged and CI-verified as cec49e7)
+- Preserve stable required-check names while selecting Python, Bench and pinned Frappe v16.5.0 execution by changed runtime paths.
+- Fail closed in the lint, Python and Bench gates if path detection fails; cover workflow definitions, workspace/DocType JSON, patches/fixtures, manifests, requirements, app config and module metadata.
+- Restrict Quality push runs to main while retaining path-aware checks on every PR, preventing duplicate full feature-branch push runs.
+- Final head d6a6300 passed all 19 check runs: Quality, Security/Semgrep, Python 3.10/3.11/3.12/3.14, Bench v15/v16 + Playwright and pinned Frappe v16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0. Merged as cec49e7.
 
-### Immutable target-site deployment pin — PR #74
-- First-install and upgrade instructions now detach the app checkout to the exact approved 40-character commit SHA, verify it, and reconcile Python/Node requirements from that pinned tree before installation or migration.
-- The target-site acceptance record must retain that SHA with the exact Frappe, ERPNext and Helpdesk versions. A moving `main` branch is not a deployment revision.
-- **Follow-up required:** the merged first-install example still uses `bench get-app` before the SHA checkout; Bench installs dependencies/builds during `get-app`. Do not use that snippet until a focused correction switches to direct clone, pin/verify, then requirements/build and passes v15/v16/v16.5 Bench validation.
+
+### Immutable target-site deployment pin — PR #74 (merged as 1b57003)
+- Require the approved full commit SHA and detached checkout for first installs and upgrades.
+- The first-install order was subsequently found unsafe because Bench `get-app` installs the package/dependencies before returning; PR #82 corrects the sequence and adds supported-version Bench coverage. Do not use the old first-install snippet until that PR is CI-verified.
+
+### Pin-before-install operator sequence — PR #82 (code-complete; CI pending)
+- Replace `bench get-app crm_signals` with direct clone using remote `upstream`, checkout/detach and verify the approved SHA, then run `bench setup requirements crm_signals` before site installation, migration or build.
+- Correct upgrade instructions to inspect the Bench-created `upstream` remote rather than assuming `origin`.
+- Exercise the same local-clone/pin/requirements order in Frappe v15/v16 Bench CI and pinned Frappe v16.5.0; static tests guard the operator and workflow command order.
 
 ### D2 POS invoice settlement fixture — PR #69 (merged and CI-verified as efe7872)
 - Create a disposable POS Profile and company-specific Mode of Payment, then submit an `is_pos` Sales Invoice through ERPNext's normal lifecycle.

@@ -277,3 +277,88 @@ def test_change_aware_bench_filters_cover_frappe_metadata_and_workflows():
         assert "if: always()" in gate
         assert "needs.changes.result != 'success'" in gate
 
+
+def test_operator_installation_pins_source_before_bench_setup():
+    guide = (ROOT / "docs/ADMIN_GUIDE.md").read_text()
+    runbook = (ROOT / "docs/DEPLOYMENT_RUNBOOK.md").read_text()
+    acceptance = (ROOT / "docs/TARGET_SITE_ACCEPTANCE.md").read_text()
+
+    for document in [guide, runbook, acceptance]:
+        assert "\nbench get-app crm_signals\n" not in document
+
+    guide_first = guide.split("### First installation", 1)[1].split(
+        "### Upgrade an existing installation", 1
+    )[0]
+    assert "bench get-app crm_signals" not in guide_first
+    assert "git clone --origin upstream" in guide_first
+    assert (
+        guide_first.index("git clone --origin upstream")
+        < guide_first.index("checkout --detach")
+    )
+    assert (
+        guide_first.index("checkout --detach")
+        < guide_first.index("bench setup requirements crm_signals")
+    )
+    assert (
+        guide_first.index("bench setup requirements crm_signals")
+        < guide_first.index("install-app crm_signals")
+    )
+
+    guide_upgrade = guide.split("### Upgrade an existing installation", 1)[1].split(
+        "## Configure CRM Signals", 1
+    )[0]
+    assert "fetch upstream --tags" in guide_upgrade
+    assert "fetch origin" not in guide_upgrade
+    assert (
+        guide_upgrade.index("checkout --detach")
+        < guide_upgrade.index("bench setup requirements crm_signals")
+    )
+
+    runbook_first = runbook.split("For a first installation", 1)[1].split(
+        "For an existing installation", 1
+    )[0]
+    acceptance_first = acceptance.split(
+        "### First installation — pin before Bench setup", 1
+    )[1].split("### Existing installation upgrade", 1)[0]
+    for document, first_install in [
+        (runbook, runbook_first),
+        (acceptance, acceptance_first),
+    ]:
+        assert "git clone --origin upstream" in document
+        assert "fetch upstream --tags" in document
+        assert "bench setup requirements crm_signals" in document
+        assert "bench get-app crm_signals" in document
+        assert "rev-parse HEAD" in document
+        assert (
+            first_install.index("checkout --detach")
+            < first_install.index("bench setup requirements crm_signals")
+        )
+
+    for workflow_path in [
+        ROOT / ".github/workflows/bench-e2e.yml",
+        ROOT / ".github/workflows/bench-target-v16-5.yml",
+    ]:
+        workflow = workflow_path.read_text()
+        clone_command = (
+            'git clone --origin upstream "${{ github.workspace }}" apps/crm_signals'
+        )
+        checkout_command = (
+            'git -C apps/crm_signals checkout --detach "$CRM_SIGNALS_SHA"'
+        )
+        verify_command = (
+            'test "$(git -C apps/crm_signals rev-parse HEAD)" = "$CRM_SIGNALS_SHA"'
+        )
+        assert clone_command in workflow
+        assert checkout_command in workflow
+        assert verify_command in workflow
+        assert "bench setup requirements crm_signals" in workflow
+        assert "bench get-app --skip-assets crm_signals" not in workflow
+        assert workflow.index('test "${#CRM_SIGNALS_SHA}" -eq 40') < workflow.index(
+            clone_command
+        )
+        assert workflow.index(clone_command) < workflow.index(
+            checkout_command
+        ) < workflow.index(verify_command)
+        assert workflow.index(verify_command) < workflow.index(
+            "bench setup requirements crm_signals"
+        ) < workflow.index("bench --site test.local install-app crm_signals")

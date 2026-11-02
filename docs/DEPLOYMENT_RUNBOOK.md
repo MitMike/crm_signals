@@ -39,19 +39,34 @@ Use the backup location and restore options supported by the installed Bench ver
 ## 3. Deploy
 
 1. Resolve the approved full 40-character CRM Signals commit SHA from the release/change record. Do not deploy the moving `main` branch.
-2. Fetch the approved source and detach the app checkout to that exact commit:
+2. For a first installation, clone directly into the Bench app directory, detach and verify the approved SHA, then run Bench dependency setup:
 
 ```bash
-git -C apps/crm_signals fetch origin main --tags
-git -C apps/crm_signals checkout --detach <approved-commit-sha>
-test "$(git -C apps/crm_signals rev-parse HEAD)" = "<approved-commit-sha>"
+APP_SHA="<approved-commit-sha>"
+test "${#APP_SHA}" -eq 40
+git clone --origin upstream https://github.com/MitMike/crm_signals.git apps/crm_signals
+git -C apps/crm_signals fetch upstream --tags
+git -C apps/crm_signals checkout --detach "$APP_SHA"
+test "$(git -C apps/crm_signals rev-parse HEAD)" = "$APP_SHA"
+bench setup requirements crm_signals
+bench --site <site-name> install-app crm_signals
 ```
 
-3. Reconcile Python and Node dependencies from the pinned app tree:
+3. For an existing installation, inspect the Bench-managed remote, verify that it points to the approved CRM Signals repository, fetch, detach and verify the approved SHA before reconciling dependencies:
 
 ```bash
-bench setup requirements
+APP_SHA="<approved-commit-sha>"
+test "${#APP_SHA}" -eq 40
+git -C apps/crm_signals remote get-url upstream
+git -C apps/crm_signals fetch upstream --tags
+git -C apps/crm_signals checkout --detach "$APP_SHA"
+test "$(git -C apps/crm_signals rev-parse HEAD)" = "$APP_SHA"
+bench setup requirements crm_signals
 ```
+
+Bench-created app clones use the remote name `upstream`; do not assume `origin` exists. If an existing non-Bench clone uses another remote name, inspect `git remote -v`, verify the repository URL and substitute that remote explicitly. Stop if the remote does not identify the approved repository.
+
+`bench setup requirements crm_signals` installs the editable Python package and Node dependencies and synchronizes Bench app state from the pinned tree. Do not run `bench get-app crm_signals` in this pinned procedure: it installs the cloned tree before returning, so a later checkout cannot protect the initial dependency install or asset build.
 
 4. Record the verified `git -C apps/crm_signals rev-parse HEAD` output in the target-site acceptance record.
 5. Run the site migration:
@@ -72,7 +87,8 @@ bench build --app crm_signals
 bench restart
 ```
 
-8. Confirm the migration completed without errors and that the site starts normally. Do not proceed if the checked-out SHA differs from the approved SHA, schema sync, patch execution, asset build or worker startup failed.
+8. Confirm the migration completed without errors and that the site starts normally. Do not proceed if the checked-out SHA differs from the approved SHA, dependency setup, schema sync, patch execution, asset build or worker startup failed.
+
 
 ## 4. Post-deploy smoke tests
 
