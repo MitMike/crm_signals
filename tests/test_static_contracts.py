@@ -225,3 +225,12 @@ def test_deployment_runbook_documents_company_thresholds_and_explorer_smoke_test
     assert "Activity Timeline entry points from Lead, Customer, Opportunity and CRM Signal forms" in runbook
     assert "High-Value Quote signal must open the Highlight context" in runbook
     assert "The first release has one site-wide threshold currency" not in runbook
+
+
+
+def test_crm_signals_dashboard_retains_horizontal_inset():
+    stylesheet = (
+        APP_ROOT / "crm_signals/page/crm_signals_dashboard/crm_signals_dashboard.css"
+    ).read_text()
+    assert ".crm-signals-dashboard {" in stylesheet
+    assert "padding: 20px 24px 32px;" in stylesheet
