@@ -571,3 +571,9 @@ def verify_upgrade_site():
             frappe.throw(f"Legacy CRM Signal unexpectedly acquired an event key: {rows[0].name}")
 
     return {"status": "passed", "preserved_legacy_records": len(LEGACY_SIGNAL_MESSAGES)}
+
+def verify_sales_compass_aggregate_fixture():
+    """Run the disposable D1/D2 aggregate-value and permission fixture."""
+    from crm_signals.ci_sales_fixture import verify_sales_compass_aggregate_fixture as verify
+
+    return verify()
