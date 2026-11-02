@@ -2,7 +2,8 @@
 
 **Last reviewed:** 2026-11-02  
 **Repository:** [MitMike/crm_signals](https://github.com/MitMike/crm_signals)  
-**Supported framework coverage:** Frappe / ERPNext v15 and v16. **Primary deployment target:** Frappe v16.5; record the exact patch/build and installed ERPNext/Helpdesk versions.
+**Supported framework coverage:** Frappe / ERPNext v15 and v16. **Primary deployment target:** Frappe v16.5; record the exact patch/build and installed ERPNext/Helpdesk versions.  
+**Latest main:** [de8e78b](https://github.com/MitMike/crm_signals/commit/de8e78b8750370934b2608564fa63ecc4095f37f); **latest application feature baseline:** [c5720bf](https://github.com/MitMike/crm_signals/commit/c5720bfb3fbe8b554ec6febd549a8d5e58acc1d7).
 
 This is the execution plan and source of truth for delivery order, scope, dependencies, acceptance gates and exit criteria. The operational state is maintained in [docs/PROGRESS.md](docs/PROGRESS.md); durable choices are in [docs/DECISIONS.md](docs/DECISIONS.md); feature contracts are in [specs/](specs/).
 
@@ -71,7 +72,10 @@ Work:
 - Use npm ci in Quality Checks and Dependency Security Audit.
 - Run pip-audit and npm audit --audit-level=moderate on relevant dependency pull requests, weekly and on manual dispatch.
 - Keep Semgrep SARIF scanning and the Frappe v15/v16 Bench + Playwright matrix.
-- [x] PR #76 merged as `cec49e7` after all 19 final-head check runs passed. ADR-075 preserves required check names, uses fail-closed path detection, covers workflow/DocType/Page/workspace/patch/fixture/package/requirements/app-config/module paths, retains full main/manual Bench validation, and prevents duplicate feature-branch Quality push runs. A post-merge workspace-only PR must still confirm that stable required contexts pass when expensive suites are intentionally skipped.
+- [x] PR #76 merged as `cec49e7` after all 19 final-head check runs passed. ADR-075 preserves required check names, uses fail-closed path detection, covers workflow/DocType/Page/workspace/patch/fixture/package/requirements/app-config/module paths, retains full main/manual Bench validation, and prevents duplicate feature-branch Quality push runs. A docs-only PR should confirm that successful path detection allows Python/Bench execution to skip while stable required contexts pass. Workspace JSON intentionally remains in the Bench and pinned-stack selectors. PR #85 changed both workspace JSON and `tests/test_static_contracts.py`, so all four workflows ran; it did not prove the Python skip path. PR #89 is docs-only and is the current validation case for that optimization.
+- [x] PR #84 restored the 24px horizontal inset on the dashboard and merged as `b1f4ad7` after all four required workflows passed; desktop/mobile UAT remains open.
+- [x] PR #85 changed the Frappe workspace display label/title to GME CRM Signals, preserving technical identifiers and routes; merged as `5cc4308` after all four required workflows passed.
+- [x] PR #88 upgraded `actions/upload-artifact` from v4 to v7 in both workflow sites; merged as `de8e78b` after all four required workflows passed. The project currently uses GitHub-hosted runners; future self-hosted runners must satisfy Node 24 requirements.
 - Verify the existing main branch policy: required CI checks, PR-only updates, blocked force pushes/deletion and required review-thread resolution. Record allowed merge methods and the no-bypass emergency procedure.
 
 Exit criteria:
