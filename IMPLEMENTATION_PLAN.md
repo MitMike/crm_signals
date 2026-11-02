@@ -1,9 +1,9 @@
 # CRM Signals — Product and Engineering Delivery Plan
 
-**Last reviewed:** 2026-11-02  
+**Last reviewed:** 2026-11-03  
 **Repository:** [MitMike/crm_signals](https://github.com/MitMike/crm_signals)  
 **Supported framework coverage:** Frappe / ERPNext v15 and v16. **Primary deployment target:** Frappe v16.5; record the exact patch/build and installed ERPNext/Helpdesk versions.  
-**Latest main:** [331492c](https://github.com/MitMike/crm_signals/commit/331492c5be1e5e32105e6d64b710d2e861c0111a); **latest application feature baseline:** [c5720bf](https://github.com/MitMike/crm_signals/commit/c5720bfb3fbe8b554ec6febd549a8d5e58acc1d7).
+**Latest main:** [b18f504](https://github.com/MitMike/crm_signals/commit/b18f5045cb218b351bd9e3033577b03767847014); **latest application feature baseline:** [c5720bf](https://github.com/MitMike/crm_signals/commit/c5720bfb3fbe8b554ec6febd549a8d5e58acc1d7).
 
 This is the execution plan and source of truth for delivery order, scope, dependencies, acceptance gates and exit criteria. The operational state is maintained in [docs/PROGRESS.md](docs/PROGRESS.md); durable choices are in [docs/DECISIONS.md](docs/DECISIONS.md); feature contracts are in [specs/](specs/).
 
@@ -306,8 +306,11 @@ The following cannot be safely inferred from source code or CI and must be obser
 The project can continue implementing source-independent work while these inputs are pending. Site-dependent metrics or tracking must remain unavailable/disabled until they are validated.
 
 
-## 9. Repository maintenance snapshot — 2026-11-02
 
-Latest main at this review is [`331492c`](https://github.com/MitMike/crm_signals/commit/331492c5be1e5e32105e6d64b710d2e861c0111a). PR #89 merged as `ac6b253` after Quality, Security and Bench Integration/E2E passed; its docs-only change exercised the ADR-075 skip path. PR #7 upgraded `astral-sh/setup-uv` from v6 to v7 and merged as `331492c` after all 18 final-head check runs passed, including Frappe v15/v16 Bench + Playwright and the pinned Frappe v16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 lane.
+## 9. Repository maintenance snapshot — 2026-11-03
 
-The remaining open dependency PRs at this snapshot are #8 (setup-node v7) and #10 (setup-python v7), each one commit ahead and two behind main, and #9 (flit-core `>=3.4,<5`), one commit ahead and 52 behind. Existing green checks on those old heads are not current-base approval. Refresh one branch at a time, inspect the exact diff, and require all current-head contexts before merge. PR #9 additionally requires package-build/install compatibility evidence on the supported Python and Frappe lanes before merge.
+Latest main at this review is [`b18f504`](https://github.com/MitMike/crm_signals/commit/b18f5045cb218b351bd9e3033577b03767847014). PR #97 reconciled the maintenance snapshot after PR #94 and merged as `b18f504` after its final-head Quality, Security and Bench Integration/E2E checks passed. PR #8 (setup-node v7) and PR #94 (setup-python v7) are merged; PR #7 (setup-uv v7) remains merged as `331492c`.
+
+PR #96 is the only open pull request in this snapshot. It updates the build-system range to `flit_core >=3.4,<5` and adds explicit wheel/sdist build and isolated-install verification using flit-core v4 on Python 3.10 and 3.14. The package artifacts are built with the installed v4 backend; the wheel and source distribution are each installed in a clean virtual environment and imported. Final-head Quality, Security, Python, Frappe v15/v16 Bench + Playwright and pinned Frappe v16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 checks must pass before merge. Existing PR #96 checks on the pre-PR-97 base are not reusable; its branch is refreshed onto `b18f504`.
+
+The product baseline remains code-complete and reference-stack CI-verified for D1/D2, D3, Explorer and H-AC11. The pin-before-install operator procedure is CI-verified. Target-site configuration, effective-role permissions, financial reconciliation, Helpdesk SLA calendar, scheduler/mail/realtime/webhook operations, deployment rollback and dashboard desktop/mobile visual UAT remain open acceptance gates. No pilot verification is inferred from repository CI.
