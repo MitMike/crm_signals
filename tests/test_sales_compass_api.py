@@ -340,6 +340,31 @@ def test_customer_receipts_remain_available_without_sales_invoice_permission(mon
     assert any(query["doctype"] == "Payment Entry" for query in queries)
 
 
+def test_customer_receipts_survive_sales_invoice_query_permission_error(monkeypatch):
+    api, queries, frappe = load_sales_api(monkeypatch)
+    original_get_list = frappe.get_list
+    invoice_queries = 0
+
+    def get_list(doctype, *args, **kwargs):
+        nonlocal invoice_queries
+        if doctype == "Sales Invoice":
+            invoice_queries += 1
+            if invoice_queries == 2:
+                raise frappe.PermissionError()
+        return original_get_list(doctype, *args, **kwargs)
+
+    frappe.get_list = get_list
+    result = api.get_sales_compass_data()["billing"]
+
+    assert result["available"] is False
+    assert result["sales_invoice_unavailable_reason"]
+    assert result["invoiced_available"] is False
+    assert result["invoiced_by_currency"] == []
+    assert result["outstanding_available"] is False
+    assert result["customer_receipts_available"] is True
+    assert any(query["doctype"] == "Payment Entry" for query in queries)
+
+
 def test_billing_marks_payment_entry_receipts_unavailable_without_permission(monkeypatch):
     api, queries, _ = load_sales_api(monkeypatch, payment_read=False)
 
