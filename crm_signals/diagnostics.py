@@ -108,13 +108,22 @@ def _source_revision():
         module_file = getattr(module, "__file__", None)
         if not module_file:
             return {"available": False, "reason": "module_path_unavailable"}
-        app_path = str(Path(module_file).resolve().parent)
+        module_path = Path(module_file).resolve()
+        app_path = str(module_path.parent)
+        repository_path = module_path.parent.parent
         git_options = {
             "check": True,
             "capture_output": True,
             "text": True,
             "timeout": 5,
         }
+        root = subprocess.run(
+            ["git", "-C", app_path, "rev-parse", "--show-toplevel"],
+            **git_options,
+        )
+        git_root = (root.stdout or "").strip()
+        if not git_root or Path(git_root).resolve() != repository_path:
+            return {"available": False, "reason": "repository_root_mismatch"}
         status = subprocess.run(
             ["git", "-C", app_path, "status", "--porcelain", "--untracked-files=all"],
             **git_options,
