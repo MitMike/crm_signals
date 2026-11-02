@@ -198,7 +198,7 @@ class TestExplorerTimeline(FrappeTestCase):
             return [{"name": "LEAD-0001"}] if doctype == "Lead" else []
 
         with (
-            patch.object(frappe.session, "user", "Administrator"),
+            _as_administrator(),
             patch.object(frappe.db, "exists", side_effect=exists),
             patch.object(frappe, "has_permission", return_value=True),
             patch.object(frappe, "get_meta", return_value=_Meta()),
