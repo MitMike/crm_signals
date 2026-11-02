@@ -1,8 +1,8 @@
 # CRM Signals — Release-readiness completion sprint
 
 **Started:** 2026-11-01  
-**Last reviewed:** 2026-11-02  
-**Latest main at this review:** `331492c5be1e5e32105e6d64b710d2e861c0111a` (PR #7 setup-uv v7 merged and CI-verified; PR #89 docs reconciliation merged as `ac6b253`); **latest application feature baseline:** `c5720bfb3fbe8b554ec6febd549a8d5e58acc1d7`; **latest UI fix:** `b1f4ad71f368c346ce16126501982cfe2233c2b9` (PR #84 dashboard inset)
+**Last reviewed:** 2026-11-03  
+**Latest main at this review:** `b18f5045cb218b351bd9e3033577b03767847014` (PR #97 maintenance reconciliation merged; PR #94 setup-python v7 and PR #8 setup-node v7 merged); **latest application feature baseline:** `c5720bfb3fbe8b554ec6febd549a8d5e58acc1d7`; **latest UI fix:** `b1f4ad71f368c346ce16126501982cfe2233c2b9` (PR #84 dashboard inset)
 **Decision register:** [ADR-046](DECISIONS.md#adr-046--run-release-readiness-as-an-evidence-gated-sprint)  
 **Operating rule:** no item is complete without the evidence listed here. CI evidence and target-site evidence are separate.
 
@@ -14,7 +14,7 @@
 - [x] PR #88 upload-artifact v7 merged as `de8e78b`; final head `eed57d6` passed Quality, Security, Bench v15/v16 + Playwright and pinned v16.5.0.
 - [x] PR #89 documentation/ADR-075 skip-path reconciliation merged as `ac6b253`; final head `0967290` passed Quality, Security and Bench Integration/E2E.
 - [x] PR #7 setup-uv v7 merged as `331492c`; final head `a72c82c` passed all 18 check runs, including the supported Frappe v15/v16 Bench + Playwright and pinned v16.5.0 lane.
-- [ ] Dependabot PR #8 setup-node v7 and PR #10 setup-python v7 are each one commit ahead and two behind main `331492c`; refresh individually and require fresh final-head CI. PR #9 flit-core `>=3.4,<5` is one ahead and 52 behind; inspect and verify package build/install compatibility before merge.
+- [x] PR #8 setup-node v7 and PR #94 setup-python v7 are merged after refreshed final-head checks. PR #96 is the sole open maintenance PR; its flit-core `>=3.4,<5` change now includes ADR-081 wheel/sdist build and isolated-install coverage on Python 3.10 and 3.14. Require all current-head checks before merge.
 - [ ] PRs #75/#78 and #80/#81 are closed unmerged; #75/#78 are superseded by #85/#84. The optional regression-review template was not merged and is not a release gate.
 
 - [x] **P0 — Pin before install (ADR-077; PR #82 merged as `ac030b1`, CI-verified):** direct clone with `--origin upstream`, detach/verify the approved full SHA, then run `bench setup requirements crm_signals` before site install/migration/build. Final head `ef4dc09` passed Quality, Security, Frappe v15/v16 Bench + Playwright and pinned Frappe v16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0. Authorized staging rehearsal remains open.
@@ -118,3 +118,10 @@
 | 2026-11-02 | Explorer API/Desk/browser slice | PR #57/#59/#61; five context routes, late-response suppression and operator runbook safeguards; final head `902b38e4dd4713461acfb12dc837f5b2b84da7d8` passed all required checks and pinned Frappe v16.5.0 lane | Complete — CI verified; pilot acceptance open |
 | 2026-11-02 | D2 independent source permissions | PR #65 final head `315a49a52f70ecb888e6d9cc91a4c1f4e51535d7` passed all required checks plus pinned Frappe v16.5.0 lane; merged as `0cfeda4fb39f79722fdf733abd06a3460ebcdd4d` | Complete — CI verified; target-site role acceptance open |
 | 2026-11-02 | D1/D2 synthetic aggregate fixture | Final head `cfd7c5ec` passed all required checks; merged as `84ab2ce`; POS settlement/native-report reconciliation explicitly excluded | Complete — CI verified; target-site acceptance open |
+
+
+## 2026-11-03 maintenance update
+
+PR #97 merged as `b18f504` after Quality, Security and Bench Integration/E2E passed. PR #96 was refreshed onto that main head. The flit-core v4 compatibility change now has a direct artifact gate in Quality Checks: build wheel and sdist with flit-core v4, install each in a clean environment and import the package on Python 3.10 and 3.14. Final-head CI for PR #96 is pending; its earlier pre-refresh checks are not merge evidence. Frappe v15/v16 Bench + Playwright and pinned Frappe v16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 validation remain required.
+
+The application and operator guides remain code-complete and reference-stack CI-verified where stated above. The release decision remains **not approved for production sign-off** until the target-site preflight, real-user permission matrix, D1/D2 native-report reconciliation, Helpdesk SLA calendar, operational recovery and backup/restore/rollback rehearsal are recorded. Dashboard desktop/mobile visual UAT also remains open.
