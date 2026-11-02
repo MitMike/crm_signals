@@ -21,7 +21,7 @@ This changelog records user-visible and operationally significant changes. It is
 - Pin Frappe v16.5.0, ERPNext v16.5.0, Helpdesk v1.28.0 and the exact Telephony commit.
 - Install the real Helpdesk app in Bench and verify HD Ticket / HD Service Level Agreement DocTypes, required fields, permlevels and the Frappe permitted-field API.
 - Fix the D3 Helpdesk availability guard to check the physical `creation` system column with `frappe.db.has_column`; add a regression test where `Meta.has_field("creation")` is false but the database column exists.
-- Helpdesk v1.29.0/v1.30.2 desk builds require `@framework/ui` from `frappe/ui`, absent in the unmodified Frappe v16.5.0 tag; v1.31.1 also requires `Notification Type`. The exact reference lane therefore pins v1.28.0.
+- The inspected Helpdesk v1.29.0/v1.30.2/v1.31.1 desk manifests require `@framework/ui` from `frappe/ui`, absent in the unmodified Frappe v16.5.0 tag; v1.31.1 also requires `Notification Type`. The exact reference lane therefore pins v1.28.0.
 - Keep moving v15/v16 coverage and the v16 Playwright E2E lane.
 
 ### Per-company quotation thresholds — merged in PR #45
