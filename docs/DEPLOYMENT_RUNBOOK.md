@@ -70,7 +70,7 @@ Run these checks with named test accounts. Record the user, role, result and evi
 - Open CRM Signals Settings as System Manager; verify that a Sales User and non-sales user cannot read or edit it.
 - Confirm the master switch, external-ingestion switch, Quotation/Opportunity switches, threshold currency, statuses, digest time and recipients.
 - Confirm that the System Settings timezone is valid and that each configured recipient is an enabled System User.
-- Confirm that companies using a different base currency are not inadvertently enabled for the site-wide threshold policy.
+- Confirm each enabled Company has an approved Company-specific threshold or exact-currency legacy fallback; a currency mismatch suppresses the signal.
 
 ### Permissions and privacy
 
