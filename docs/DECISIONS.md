@@ -697,4 +697,13 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Rationale:** The formatter itself is the source of truth. A deterministic diff from the exact installed package removes guesswork while preserving the existing merge gate.
 - **Consequences:** Formatting failures become directly actionable in CI logs. H-AC11 remains code-complete but not CI-verified until the formatted source passes all final-head checks. This diagnostic does not imply pilot verification.
 - **Revisit criteria:** Apply the diff from the first successful diagnostic run. Keep the formatter check blocking. If logs still omit the diff, inspect the diagnostic step's failure and use an artifact or CI-equivalent formatter environment; do not make manual formatting guesses.
-- **Implementation update (2026-11-02):** The diagnostic ran on head `75d7ae9` and emitted exactly three Prettier 3.9.10 wrapping changes in `e2e/sahdev-dashboard.spec.ts`; the exact output was applied in commit `91fc89c`. PR #71 was then synchronized with PR #14's merged globals update on main (`567f458`) as `09d49f3`. Final-head CI on the synchronized branch is pending.
+- **Implementation update (2026-11-02):** The diagnostic ran on head `75d7ae9` and emitted exactly three Prettier 3.9.10 wrapping changes in `e2e/sahdev-dashboard.spec.ts`; the exact output was applied in commit `91fc89c`. PR #71 was synchronized with PR #14's globals update (`567f458`) as `09d49f3`, then passed all final-head Quality, Security, Python 3.10/3.11/3.12/3.14, Bench v15/v16 including Playwright, and pinned Frappe v16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 checks. PR #71 merged as `c5720bf`.
+
+
+## ADR-073 — Close duplicate POS/preflight documentation after consolidation
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-02
+- **Context:** PR #72 proposed a docs-only reconciliation for PR #69 POS settlement and PR #70 preflight evidence. The same evidence was already carried in PR #71's documentation update, alongside the H-AC11 source-link decision. PR #72's ADR-069 number collided with the H-AC11 ADR-069.
+- **Decision:** Keep the merged, consolidated documentation in PR #71. Preserve ADR-069 for High-Value Quote source-link authorization, ADR-070 for POS settlement, and ADR-068 for the read-only preflight report. Close PR #72 as superseded after PR #71 merges.
+- **Consequences:** No POS/preflight evidence is dropped; the decision register remains uniquely numbered and the progress/follow-up records have one authoritative update.
