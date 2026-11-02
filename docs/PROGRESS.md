@@ -16,6 +16,12 @@ ADR-068 is recorded. PR #70 adds a non-whitelisted Bench diagnostic and unit cov
 
 **State:** code-complete in PR #70 at head 8a599940; Quality, Security/Semgrep, Frappe v15/v16 Bench and pinned v16.5.0 checks are running. Do not call this CI-verified or pilot-verified until final-head checks pass and an authorized operator runs it on the target site. The report is an inventory aid, not an effective-permission or production-acceptance result.
 
+## H-AC11 source Quotation drill-down — code-complete, CI pending
+
+The CRM Signals dashboard now includes a source label and routes a High-Value Quote row to its originating Quotation only when the current user can read the CRM Signal source fields and that exact Quotation. Other source types are suppressed; permission or metadata errors fail closed, preserving the existing Lead/Customer/CRM Signal fallback. API tests cover field denial, document denial and non-Quotation sources; Playwright covers the visible source label and route.
+
+**State:** code-complete in PR #71; CI has not yet run on its final head. This closes the code path for H-AC11 only after CI passes. Target-site Sales User/Manager/non-sales permission checks remain pilot acceptance, not CI evidence.
+
 ## D2 source-permission isolation — PR #65 merged
 
 **Status: merged and CI-verified.** The billing API now evaluates Payment Entry receipts even when Sales Invoice read access is denied, resets partial invoice results after an invoice `PermissionError`, and preserves the existing `billing.available` meaning (Sales Invoice source availability). Regression tests cover both denied Sales Invoice access and a query-level permission exception while Payment Entry remains readable. Final-head Quality, Security/Semgrep, Python 3.10/3.11/3.12/3.14, Bench v15/v16 and pinned Frappe v16.5.0 / ERPNext v16.5.0 / Helpdesk v1.28.0 checks passed. Merge commit: `0cfeda4`. Target-site permission parity and finance reconciliation remain pilot gates.
