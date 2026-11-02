@@ -97,6 +97,8 @@ Record user IDs/roles only in the site's secured test record; do not add persona
 
 ## 5. D1/D2 data correctness and finance reconciliation
 
+**Automated evidence boundary:** PR #67 adds a disposable aggregate-value fixture for Frappe v15/v16 and the pinned Frappe v16.5.0 stack (final-head CI pending). It checks Lead/Opportunity deltas, invoice and party-account currency grouping, overdue/receipt/POS aggregate filters, and the independent Payment Entry/Sales Invoice DocType permission path. All synthetic records and temporary permissions are rolled back. The POS row models persisted aggregate fields only; it does not test POS settlement. This CI fixture does not reconcile financial values to native reports or prove real Sales User/Manager permissions. Complete the site checks below regardless of CI outcome.
+
 Use a fixed, approved date range and the site's native ERPNext reports as the comparison source. Record filters, company, currency, timezone and report run time. Reconcile by Company and currency; do not sum unlike currencies.
 
 | Metric | CRM Signals result | Native ERPNext report/result | Company/currency | Difference | Explanation / sign-off |
