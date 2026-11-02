@@ -170,7 +170,11 @@ Exit criteria:
 **Priority:** P2  
 **Dependencies:** Stage 1 permission contract; verified integrations and source event identities.
 
+**Current slice:** PR #57 implements the first read-only backend adapters for CRM Signal, Quotation and Opportunity. It supports Lead, Customer, Opportunity, CRM Signal and High-Value Quote contexts, permission-aware reads, metadata-only summaries and bounded snapshot pagination. CI is pending; no Desk UI or optional-provider adapter is claimed.
+
 Work:
+- [x] Add the initial read-only CRM Signal, Quotation and Opportunity adapters and bounded timeline API (PR #57; CI pending).
+- [ ] Add Desk entry points and Playwright coverage for Lead, Customer, Opportunity, CRM Signal and Highlight contexts.
 - Build an adapter registry for CRM Signal, Quotation, Opportunity and only those Communication/Event/call/WhatsApp sources verified on the target site.
 - Normalize source ID, event ID, timestamp, related party, safe summary and authorized source link.
 - Add stable pagination, deduplication and timezone-consistent sorting.
