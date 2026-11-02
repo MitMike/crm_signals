@@ -186,7 +186,11 @@ def process_signal_notification_delivery(delivery_name):
         return result
     if attempts >= MAX_SIGNAL_NOTIFICATION_ATTEMPTS:
         delivery.db_set(
-            {"status": "Failed", "next_retry_at": None},
+            {
+                "status": "Failed",
+                "last_error": "AttemptLimitReachedWithoutConfirmation",
+                "next_retry_at": None,
+            },
             update_modified=True,
         )
         return {"status": "failed", "name": delivery.name}
