@@ -2,7 +2,7 @@
 
 **Started:** 2026-11-01  
 **Last reviewed:** 2026-11-02  
-**Latest main:** `13341b756e2d2a92c9432f3c50ac77594e2483e9` (PR #70 preflight report); **latest functional baseline:** `13341b756e2d2a92c9432f3c50ac77594e2483e9`  
+**Latest main:** `efe78729881390cacba343749364ceccdcb7ffb2` (PR #69 POS settlement fixture); **latest functional baseline:** `efe78729881390cacba343749364ceccdcb7ffb2`  
 **Decision register:** [ADR-046](DECISIONS.md#adr-046--run-release-readiness-as-an-evidence-gated-sprint)  
 **Operating rule:** no item is complete without the evidence listed here. CI evidence and target-site evidence are separate.
 
