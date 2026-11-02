@@ -14,7 +14,7 @@ This changelog records user-visible and operationally significant changes. It is
 ### Explorer Desk page and form entry points — PR #58 (CI pending)
 - Add a role-restricted Customer Activity Timeline page and Activity Timeline buttons on Lead, Customer, Opportunity and CRM Signal forms.
 - Use the GET-only Explorer API, render escaped metadata-only summaries and authorized source links, and preserve cursor-based paging.
-- Add Playwright coverage for paging, source navigation and the Lead form entry point. PR #58 is stacked on PR #57 and must be retargeted after the backend merges.
+- Add Playwright coverage for paging and source navigation; static contract tests verify all four form hooks and Highlight routing. PR #58 is stacked on PR #57 and must be retargeted after the backend merges.
 
 ### Realtime notification reliability
 - Add a per-recipient delivery ledger with a stable SHA-256 ID, bounded retry/backoff and permission rechecks before each publish attempt.

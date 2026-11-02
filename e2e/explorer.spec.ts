@@ -42,35 +42,10 @@ async function loginAsAdministrator(page: Page) {
     );
 }
 
-function timelinePayload(nextCursor: string | null, includeOpportunity: boolean) {
-    return {
-        context: {
-            doctype: "Lead",
-            name: "LEAD-EXPLORER-E2E",
-            party_doctype: "Lead",
-            party_name: "LEAD-EXPLORER-E2E",
-        },
-        sources: [
-            { source_id: "crm_signal", source_doctype: "CRM Signal", status: "available" },
-            { source_id: "quotation", source_doctype: "Quotation", status: "available" },
-            {
-                source_id: "opportunity",
-                source_doctype: "Opportunity",
-                status: includeOpportunity ? "available" : "empty",
-            },
-        ],
-        items: includeOpportunity
+function timelinePage(pageNumber: number) {
+    const items =
+        pageNumber === 1
             ? [
-                  {
-                      source_id: "opportunity",
-                      source_doctype: "Opportunity",
-                      source_event_id: "OPP-EXPLORER-E2E-1",
-                      event_type: "Opportunity",
-                      timestamp: "2026-11-02 08:00:00",
-                      summary: "Opportunity · Open",
-                  },
-              ]
-            : [
                   {
                       source_id: "crm_signal",
                       source_doctype: "CRM Signal",
@@ -87,8 +62,36 @@ function timelinePayload(nextCursor: string | null, includeOpportunity: boolean)
                       timestamp: "2026-11-02 09:00:00",
                       summary: "Quotation · Open",
                   },
-              ],
-        next_cursor: nextCursor,
+              ]
+            : [
+                  {
+                      source_id: "opportunity",
+                      source_doctype: "Opportunity",
+                      source_event_id: "OPP-EXPLORER-E2E-1",
+                      event_type: "Opportunity",
+                      timestamp: "2026-11-02 08:00:00",
+                      summary: "Opportunity · Open",
+                  },
+              ];
+
+    return {
+        context: {
+            doctype: "Lead",
+            name: "LEAD-EXPLORER-E2E",
+            party_doctype: "Lead",
+            party_name: "LEAD-EXPLORER-E2E",
+        },
+        sources: [
+            { source_id: "crm_signal", source_doctype: "CRM Signal", status: "available" },
+            { source_id: "quotation", source_doctype: "Quotation", status: "available" },
+            {
+                source_id: "opportunity",
+                source_doctype: "Opportunity",
+                status: pageNumber === 1 ? "empty" : "available",
+            },
+        ],
+        items,
+        next_cursor: pageNumber === 1 ? "cursor-page-2" : null,
     };
 }
 
@@ -109,12 +112,7 @@ test("Explorer renders safe activity pages and opens the source record", async (
             await route.fulfill({
                 status: 200,
                 contentType: "application/json",
-                body: JSON.stringify({
-                    message: timelinePayload(
-                        requestCount === 1 ? "cursor-page-2" : null,
-                        requestCount > 1
-                    ),
-                }),
+                body: JSON.stringify({ message: timelinePage(requestCount) }),
             });
         }
     );
@@ -139,91 +137,4 @@ test("Explorer renders safe activity pages and opens the source record", async (
         })
         .click();
     await expect(page).toHaveURL(/\/app\/crm-signal\/SIG-EXPLORER-E2E-1$/);
-});
-
-test("Lead form opens the Explorer timeline", async ({ page }) => {
-    await loginAsAdministrator(page);
-    const leadLabel = `Explorer E2E ${Date.now()}`;
-    let leadName: string | null = null;
-
-    try {
-        const lead = await page.evaluate(async (leadName) => {
-            return await new Promise<{ name: string }>((resolve, reject) => {
-                frappe.call({
-                    method: "frappe.client.insert",
-                    args: {
-                        doc: {
-                            doctype: "Lead",
-                            lead_name: leadName,
-                            first_name: "Explorer",
-                            last_name: "E2E",
-                        },
-                    },
-                    callback: (response) => resolve(response.message),
-                    error: (error) => reject(new Error(error?.message || "Lead insert failed")),
-                });
-            });
-        }, leadLabel);
-        leadName = lead.name;
-
-        await page.route(
-            "**/api/method/crm_signals.explorer.get_explorer_timeline*",
-            async (route) => {
-                await route.fulfill({
-                    status: 200,
-                    contentType: "application/json",
-                    body: JSON.stringify({
-                        message: {
-                            context: {
-                                doctype: "Lead",
-                                name: lead.name,
-                                party_doctype: "Lead",
-                                party_name: lead.name,
-                            },
-                            sources: [
-                                {
-                                    source_id: "crm_signal",
-                                    source_doctype: "CRM Signal",
-                                    status: "empty",
-                                },
-                                {
-                                    source_id: "quotation",
-                                    source_doctype: "Quotation",
-                                    status: "empty",
-                                },
-                                {
-                                    source_id: "opportunity",
-                                    source_doctype: "Opportunity",
-                                    status: "empty",
-                                },
-                            ],
-                            items: [],
-                            next_cursor: null,
-                        },
-                    }),
-                });
-            }
-        );
-
-        await page.goto(`/app/lead/${lead.name}`);
-        await page.getByRole("button", { name: "Activity Timeline" }).click();
-
-        await expect(
-            page.getByRole("heading", { name: "Customer Activity Timeline" })
-        ).toBeVisible();
-        await expect(page.getByText(`Lead · ${lead.name}`)).toBeVisible();
-    } finally {
-        if (leadName) {
-            await page.evaluate(async (name) => {
-                await new Promise<void>((resolve) => {
-                    frappe.call({
-                        method: "frappe.client.delete",
-                        args: { doctype: "Lead", name },
-                        callback: () => resolve(),
-                        error: () => resolve(),
-                    });
-                });
-            }, leadName).catch(() => undefined);
-        }
-    }
 });

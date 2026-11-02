@@ -170,7 +170,7 @@ Exit criteria:
 **Priority:** P2  
 **Dependencies:** Stage 1 permission contract; verified integrations and source event identities.
 
-**Current slice:** PR #57 implements the read-only CRM Signal, Quotation and Opportunity backend with explicit field-level read checks; its latest-head CI is pending. Stacked PR #58 adds the role-restricted Desk page, Lead/Customer/Opportunity/CRM Signal form buttons, GET-only API calls, metadata-only rendering and cursor paging, with Playwright coverage for paging, source drill-down and the Lead entry point. PR #58 must be retargeted to `main` only after PR #57 merges. Optional providers remain deferred until target-site discovery.
+**Current slice:** PR #57 implements the read-only CRM Signal, Quotation and Opportunity backend with explicit field-level read checks; its latest-head CI is pending. Stacked PR #58 adds the role-restricted Desk page, Lead/Customer/Opportunity/CRM Signal form buttons, GET-only API calls, metadata-only rendering and cursor paging, with Playwright coverage for paging and source drill-down; static contract tests verify all four form entry points and Highlight routing. PR #58 must be retargeted to `main` only after PR #57 merges. Optional providers remain deferred until target-site discovery.
 
 Work:
 - [x] Add the initial read-only CRM Signal, Quotation and Opportunity adapters and bounded timeline API (PR #57; CI pending).
