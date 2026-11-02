@@ -20,6 +20,7 @@ def load_api(
     frappe.whitelist = lambda **kwargs: (lambda function: function)
     frappe.session = types.SimpleNamespace(user=user)
     frappe.__version__ = version
+
     def has_permission(doctype, *args, **kwargs):
         return source_allowed if doctype == "Quotation" else allowed
 
@@ -72,9 +73,9 @@ def load_api(
                 {
                     "name": "SIG-0001",
                     "creation": "2026-10-31 09:00:00",
-                    "signal_type": "Website Visit",
+                    "signal_type": "High-Value Quote",
                     "priority": "High",
-                    "message": "Visited pricing page",
+                    "message": "High-value quotation submitted",
                     "lead": "LEAD-0001",
                     "customer": None,
                     "is_read": 0,
