@@ -313,6 +313,9 @@ def _assert_d2(baseline, actual, invoices, payment_entry):
         frappe.throw("D2 fixture returned an unavailable aggregate section")
 
     snapshots = [_invoice_snapshot(name) for name in invoices]
+    usd_invoice = snapshots[2]
+    if usd_invoice.currency != "USD" or usd_invoice.party_account_currency == "USD":
+        frappe.throw("D2 fixture did not preserve the INR party-account currency for a USD invoice")
     expected_invoiced = {}
     expected_outstanding = {}
     for row in snapshots:
