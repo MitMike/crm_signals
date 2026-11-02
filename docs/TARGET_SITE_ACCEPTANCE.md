@@ -282,7 +282,26 @@ Complete one row for each proposed Communication, Event, ToDo, call or WhatsApp 
 
 Do not add an optional adapter until the installed provider/version, exact schema, stable event identity, relationship mapping and permission contract are recorded and reviewed. Until then, the source remains not connected.
 
-## 11. Release decision
+## 11. Dashboard horizontal-inset visual acceptance
+
+BUG-2026-001 / FIX-2026-001 restores the CRM Signals dashboard's desktop and mobile horizontal spacing. PR #100 adds a Playwright computed-style assertion (24px at 1440px; 12px at 390px) and is merged/CI-verified. This section records the separate staging visual check; the automated test does not prove that the target site's rebuilt assets are current or visually correct.
+
+- [ ] Confirm this is an authorized staging site and record the deployed full CRM Signals SHA, exact Frappe build, browser/version and test date/timezone.
+- [ ] Follow the approved deployment procedure to build the assets with bench build --app crm_signals, clear the relevant site/browser caches and restart services as required by the site's change process. Attach the build output. Do not run a visual test by changing production assets outside approved change control.
+- [ ] Sign in as System Manager and an approved Sales User who can access the dashboard. Open /app/crm-signals-dashboard at 100% browser zoom.
+- [ ] At a 1440 × 900 desktop viewport, confirm the dashboard wrapper has 24px left and right padding and the content/cards are not clipped or horizontally overflowing.
+- [ ] At a 390 × 844 mobile viewport, confirm the wrapper has 12px left and right padding and the content/cards remain readable without horizontal overflow.
+- [ ] Capture a full-page or clearly framed screenshot at each viewport. Include the deployed full SHA, browser/version, viewport, test role and timestamp in the evidence record; use synthetic or redacted data so customer and ticket information is not exposed.
+- [ ] If either inset is wrong, assets appear stale, or content overflows, leave the bug/fix UAT status open. Record the screenshot, build output, browser console errors and observed values; investigate the deployed SHA and asset/cache state before considering a code change. Do not patch CSS manually on the site.
+
+| Date / timezone | CRM Signals full SHA | Frappe build | Browser / version | Role | Viewport | Expected left/right | Observed left/right | Screenshot / evidence | Result |
+|---|---|---|---|---|---|---|---|---|---|
+| | | | | | 1440 × 900 | 24px / 24px | | | |
+| | | | | | 390 × 844 | 12px / 12px | | | |
+
+The test is complete only when both screenshots and observed values are reviewed and linked. Keep BUG-2026-001 / FIX-2026-001 marked UAT-open until then.
+
+## 12. Release decision
 
 | Gate | Status (Pass / Fail / Blocked) | Evidence link / artifact | Owner | Date |
 |---|---|---|---|---|
