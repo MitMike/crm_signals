@@ -38,6 +38,8 @@ jobs:
         run: npm ls @playwright/test eslint minimatch --all
       - name: ESLint and Oxlint
         run: npm run lint:js
+      - name: Print Prettier-formatted source drill-down test
+        run: npx prettier e2e/sahdev-dashboard.spec.ts | sed -n '/High-Value Quote activity/,/Sales User can open/p'
       - name: Check formatting of tooling and E2E tests
         run: npm run format:check
       - name: Compile Python
