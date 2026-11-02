@@ -24,7 +24,7 @@ PREFLIGHT_DOCTYPES = {
         "sla",
         "agreement_status",
     ),
-    "HD Service Level Agreement": ("agreement_status",),
+    "HD Service Level Agreement": (),
 }
 WORKFLOW_DOCTYPES = {"Lead", "Opportunity"}
 
@@ -55,8 +55,8 @@ def _company_thresholds(companies, settings):
         if override:
             amount = override.get("quotation_threshold")
             configured_currency = override.get("currency")
-            source = "company_override"
             effective = bool(currency and configured_currency == currency and amount is not None)
+            source = "company_override" if effective else "company_override_currency_mismatch"
         else:
             amount = legacy_amount
             configured_currency = legacy_currency
@@ -117,11 +117,17 @@ def _field_summary(field):
     return summary
 
 
-def _doctype_summary(doctype):
+def _doctype_summary(doctype, required_fields=()):
     if not frappe.db.exists("DocType", doctype):
-        return {"available": False, "fields": [], "role_read_permissions": []}
+        return {
+            "available": False,
+            "fields": [],
+            "required_fields": [{"fieldname": name, "present": False} for name in required_fields],
+            "role_read_permissions": [],
+        }
     meta = frappe.get_meta(doctype)
     fields = [_field_summary(field) for field in meta.fields]
+    fields_by_name = {field["fieldname"]: field for field in fields if field}
     permissions = []
     for permission in getattr(meta, "permissions", []) or []:
         role = _value(permission, "role")
@@ -137,6 +143,14 @@ def _doctype_summary(doctype):
         "available": True,
         "module": getattr(meta, "module", None),
         "fields": [field for field in fields if field],
+        "required_fields": [
+            {
+                "fieldname": name,
+                "present": name in fields_by_name,
+                "permlevel": fields_by_name[name]["permlevel"] if name in fields_by_name else None,
+            }
+            for name in required_fields
+        ],
         "role_read_permissions": permissions,
         "permission_boundary": "static DocPerm only; not effective user access",
     }
@@ -216,7 +230,8 @@ def get_site_preflight_report():
 
     installed_apps = sorted(frappe.get_installed_apps())
     doctype_reports = {
-        doctype: _doctype_summary(doctype) for doctype in PREFLIGHT_DOCTYPES
+        doctype: _doctype_summary(doctype, required_fields)
+        for doctype, required_fields in PREFLIGHT_DOCTYPES.items()
     }
     return {
         "report_version": 1,
