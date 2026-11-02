@@ -117,6 +117,10 @@ jobs:
         working-directory: /home/runner/frappe-bench
         run: bench --site test.local execute crm_signals.ci.verify_sales_compass_query_contract
 
+      - name: Verify D1/D2 aggregate values and independent permissions
+        working-directory: /home/runner/frappe-bench
+        run: bench --site test.local execute crm_signals.ci.verify_sales_compass_aggregate_fixture
+
       - name: Verify pinned Helpdesk schema and read-role contract
         working-directory: /home/runner/frappe-bench
         run: bench --site test.local execute crm_signals.ci.verify_helpdesk_schema

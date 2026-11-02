@@ -24,7 +24,7 @@ This file records known work that is intentionally not represented as complete. 
 
 - [x] **D2 independent source-permission fix (PR #65).** Merged as `0cfeda4`. Payment Entry customer receipts now run even when Sales Invoice access is denied; regression tests cover both the split-permission case and a query-level invoice `PermissionError` after a partial invoice result. Final-head Quality, Security/Semgrep, Python 3.10/3.11/3.12/3.14, Bench v15/v16 and pinned Frappe v16.5.0 / ERPNext v16.5.0 / Helpdesk v1.28.0 checks passed. The P0 target-site role matrix and native-report reconciliation remain open; CI does not prove the pilot's actual permissions or totals.
 
-- [ ] **D1/D2 synthetic aggregate-value fixture:** PR #63 adds a real read-only query-contract smoke, but deliberately creates no accounting records. Revisit when the Bench fixture can provision an isolated Company, chart of accounts, Customer, Item, Sales Invoice and Payment Entry on both Frappe v15 and v16; then assert invoice/POS/receipt/receivable/overdue deltas, currency grouping and permission behavior. Do not substitute this for target-site native-report reconciliation.
+- [x] **D1/D2 synthetic aggregate-value fixture (PR #67; CI-verified):** The fixture provisions a disposable setup-wizard Company/chart, Customer, Item, Lead, Opportunities, submitted Sales Invoices and an allocated Payment Entry on Frappe v15/v16 and the pinned v16.5.0 stack. It asserts aggregate deltas, INR/USD Opportunity and invoice grouping, party-account-currency receivables, overdue/POS/receipt filters and a real split-permission user. The POS row models persisted aggregate fields only; it does not test POS settlement. All synthetic records and temporary permissions are rolled back. Target-site native-report reconciliation and Sales User/Manager permission acceptance remain separate open gates.
 
 - [x] **Explorer backend field-permission review and merge (PR #57).** The final head `dda6eb88c0e8735645018de60275d9cf55d2d99d` passed Quality Checks, Security Scanning, Frappe v15/v16 Bench + Playwright and the pinned Frappe v16.5.0/ERPNext v16.5.0/Helpdesk v1.28.0 lane; merged as `ba631720`. The earlier cancelled-check head was not bypassed.
 
@@ -55,3 +55,7 @@ This file records known work that is intentionally not represented as complete. 
 ## Operating rule
 
 Do not close a follow-up because code compiles or a mocked unit test passes. Close it only with evidence from the relevant unit/Bench/E2E tests and, for site-dependent items, a recorded target-site validation result.
+
+## P2 — Dependency maintenance
+
+- [ ] **Refresh stale Dependabot PRs after PR #67:** open PRs #5–#8 and #10 (GitHub Actions major updates) are each one commit ahead and three commits behind current `main`; PRs #9, #13, #14 and #15 (flit-core, oxlint, globals and prettier) are each one commit ahead and 31 commits behind. All check runs on their existing heads currently pass, but those results do not validate the current base. Revisit by updating one branch at a time against current `main`, then require fresh Quality, Security, Bench v15/v16 and pinned Frappe v16.5.0 checks. Merge only green final heads; if a branch conflicts or its update repeatedly fails, close/recreate it and record the exact failure.
