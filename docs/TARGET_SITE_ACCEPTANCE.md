@@ -145,10 +145,16 @@ Use a fixed, approved date range and the site's native ERPNext reports as the co
 - [ ] In staging, use a controlled Failed outbox fixture to verify only a System Manager with outbox read access can replay; GET is rejected, only Failed rows are accepted, and attempt history/audit comment are preserved.
 - [ ] Verify a second replay is rejected while the row is Pending/Completed and that an enqueue failure leaves Pending for scheduled recovery.
 - [ ] Confirm mail provider delivery, bounce and suppression behavior.
-- [ ] Confirm realtime notifications reach only users who can read the CRM Signal, linked party and originating source DocType; publication is best-effort and is not a client receipt.
+- [ ] After deploying a release that includes PR #54, verify **CRM Signal Notification Delivery** is readable by System Managers only and cannot be created, edited or deleted through Desk.
+- [ ] Create a synthetic signal for an approved test recipient. Verify exactly one ledger row exists for the signal/recipient pair, the stable delivery ID is populated, and the ledger contains no copied message/source content.
+- [ ] Verify the initial row becomes Attempted, and record that this means only that Frappe queued an after-commit callback—not that Redis published the event or a browser received it.
+- [ ] In staging only, identify the dedicated Socket.IO Redis endpoint from the site's actual Bench configuration. Do not stop shared cache/queue Redis or disrupt production. Temporarily make only the Socket.IO endpoint unavailable, create a synthetic signal, restore the endpoint, and wait until next_retry_at is due. Verify the scheduler increments the attempt count, retains the same delivery ID and produces no duplicate toast in the active Desk session.
+- [ ] With a due Attempted row present, restart the scheduler/worker using the site's normal process manager. Verify scheduled recovery resumes after restart and capture the resulting ledger state.
+- [ ] After an initial attempt, revoke the recipient's eligibility (remove the relevant owner/ToDo assignment or originating DocType read access) before the next retry. Verify the row becomes Cancelled and no further realtime publish occurs.
+- [ ] Confirm Failed rows appear after the bounded retry budget is exhausted; inspect the recorded error type and Error Log without copying signal content into this evidence file.
 - [ ] Record monitoring, alert thresholds, log locations and on-call owner.
 
-Note: digest recipient failure isolation and digest queue idempotency are code-level safeguards; actual scheduler topology and mail-provider behavior still require this site test. Realtime publication is best-effort, and a queued event is not a client receipt.
+Note: digest recipient failure isolation and digest queue idempotency are code-level safeguards; actual scheduler topology and mail-provider behavior still require this site test. Realtime retry is bounded at-least-once. The stable delivery ID suppresses duplicate toasts only within the active Desk session; Attempted is not a Redis delivery receipt, browser receipt or human acknowledgement. Run Redis/worker fault injection only in an approved staging environment.
 
 ## 8. Settings and business semantics
 

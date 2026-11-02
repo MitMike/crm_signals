@@ -121,7 +121,7 @@ PR #23 merged as [d75b7f3](https://github.com/MitMike/crm_signals/commit/d75b7f3
 
 **Verification passed on final PR head `7ed0860`:** [Bench v15/v16 + Playwright](https://github.com/MitMike/crm_signals/actions/runs/41300667892), [Quality Checks](https://github.com/MitMike/crm_signals/actions/runs/41300667996) and [Security Scanning](https://github.com/MitMike/crm_signals/actions/runs/41300667997). Merge commit: `d75b7f3`.
 
-The transactional signal outbox is merged in PR #26 and CI-verified on Frappe v15/v16. Audited Failed-row replay merged in PR #38; durable realtime notification retry remains a separate follow-up. Company-specific quotation thresholds merged in PR #45; PR #49 fixes the child-row currency display/fetch behavior. The legacy site-wide threshold is a fallback only on an exact Company-currency match, with no implicit FX conversion. Target-site values, field-level permissions and production security remain external acceptance gates.
+The transactional signal outbox is merged in PR #26 and CI-verified on Frappe v15/v16. Audited Failed-row replay merged in PR #38. Durable per-recipient realtime notification retry merged in PR #54 as `37ce600`; final head `f1cbd3e` passed all eight required checks and the exact Frappe v16.5.0/ERPNext v16.5.0/Helpdesk v1.28.0 lane. Target-site Redis/worker/scheduler acceptance remains open. Company-specific quotation thresholds merged in PR #45; PR #49 fixes the child-row currency display/fetch behavior. The legacy site-wide threshold is a fallback only on an exact Company-currency match, with no implicit FX conversion. Target-site values, field-level permissions and production security remain external acceptance gates.
 
 ### Stage 2 — D3 Service Resolution/SLA
 
@@ -256,12 +256,12 @@ A slice is done only when all applicable items are complete:
 |---|---|---|
 | CRM Signals data, ingestion and access | [Core and access](specs/2026-11-01-crm-signals-core-and-access.md) | Baseline implemented; release hardening open |
 | Settings and core reliability | [Settings, presets and idempotency](specs/2026-11-01-settings-and-core-reliability.md) | PR #19 and concurrency hardening PR #23 merged; v15/v16 Bench, Playwright, quality and security passed |
-| Document events and realtime routing | [Events and notifications](specs/2026-11-01-crm-signals-events-and-notifications.md) | Settings and idempotency merged in PR #19; concurrent API duplicate recovery verified in PR #23 |
+| Document events and realtime routing | [Events and notifications](specs/2026-11-01-crm-signals-events-and-notifications.md) | Settings/idempotency merged in PR #19; concurrent API recovery in PR #23; durable per-recipient realtime retry merged in PR #54 and CI-verified; pilot recovery remains |
 | Daily digest | [Digest](specs/2026-11-01-crm-signals-daily-digest.md) | Per-recipient tracking and overlapping-worker serialization merged in PR #19/#23; live policy open |
 | D1 | [Sales Compass](specs/2026-11-01-pillar-d1-sales-compass.md) | Missing-status correction merged; target-site validation open |
 | D2 | [Billing Realization](specs/2026-10-31-pillar-d2-billing-realization.md) | Return-metadata guard merged; target-site reconciliation open |
-| D3 | [Service Resolution/SLA](specs/2026-11-01-pillar-d3-service-resolution-sla.md) | Adapter and exact v16.5.0 reference CI verified; pilot-site source/permission/SLA acceptance remains |
-| H | [Highlights](specs/2026-11-01-pillar-h-highlights.md) | Planned |
+| D3 | [Service Resolution/SLA](specs/2026-11-01-pillar-d3-service-resolution-sla.md) | Adapter, exact v16.5.0 reference CI and aggregate fixture verified in PR #50/#53; pilot-site source/permission/SLA acceptance remains |
+| H | [Highlights](specs/2026-11-01-pillar-h-highlights.md) | Partial: high-value quotation signals and per-Company thresholds merged; VIP proposal tracking remains gated on privacy/consent and retention approval |
 | A | [Analysis](specs/2026-11-01-pillar-a-analysis.md) | Planned |
 | E | [Explorer](specs/2026-11-01-pillar-e-explorer.md) | Planned |
 | V | [Vault](specs/2026-11-01-pillar-v-vault.md) | Planned |
