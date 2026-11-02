@@ -1,5 +1,11 @@
 # Changelog
 
+### setup-uv v7 dependency update — PR #7 (merged and CI-verified as `331492c`)
+
+- Updated `astral-sh/setup-uv@v6` to `@v7` in the Frappe v15/v16 Bench and pinned Frappe v16.5.0 workflows.
+- Final head `a72c82c` passed all 18 check runs, including Quality, Security/Semgrep, Python 3.10/3.11/3.12/3.14, Bench v15/v16 + Playwright and the pinned Frappe v16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 lane.
+- Merged as `331492c5be1e5e32105e6d64b710d2e861c0111a`. No application code or lockfile changed.
+
 This changelog records user-visible and operationally significant changes. It is not a substitute for commit history. Entries do not imply a production release unless explicitly stated.
 
 ### GME CRM Signals workspace label — PR #85 (merged and CI-verified as `5cc4308`)

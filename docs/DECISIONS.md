@@ -759,3 +759,14 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Consequences:** The administrator guide, deployment runbook and target-site acceptance kit use the corrected order. Both supported-version Bench workflows now clone the checked-out CI revision locally, detach/verify `GITHUB_SHA`, and run `bench setup requirements crm_signals` before site install/migration. A static contract test protects the documentation and workflow order. This is CI procedure coverage, not a target-site deployment or pilot acceptance.
 - **Sources:** [Bench app installation](https://github.com/frappe/bench/blob/develop/bench/app.py), [Bench get-app command](https://github.com/frappe/bench/blob/develop/bench/commands/make.py).
 - **Revisit criteria:** Re-audit if the supported Bench versions change the `get-app` install sequence, remote naming, or `setup requirements <app>` behavior. Keep the v15, v16 and pinned v16.5.0 sequence tests passing; never restore a post-install SHA checkout.
+
+
+## ADR-078 — Merge dependency updates only from current, fully verified heads
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-02
+- **Context:** Dependency PRs can retain green checks while their base branch advances. A green result on an old head does not prove that the proposed update integrates with current workflows, supported Frappe/ERPNext lines or the pinned Frappe v16.5.0 stack.
+- **Decision:** Refresh and review dependency PRs one at a time. Merge only after inspecting the exact diff, confirming the PR is based on current `main`, and verifying every required Quality, Security, dependency-audit, supported-version Bench and pinned-target check on the final head. Keep packaging-tool range changes separate from GitHub Action version bumps and require package build/install evidence for them.
+- **Rationale:** Isolated updates make regressions attributable and prevent stale CI evidence from being treated as current compatibility proof.
+- **Consequences:** PR #7's `setup-uv@v7` update merged as `331492c` after all 18 final-head checks passed. PRs #8/#10 require a fresh base and checks; PR #9 additionally requires packaging compatibility validation. No failing or pending check is bypassed.
+- **Revisit criteria:** Revisit if repository branch protection or the required check matrix changes. Do not relax final-head verification to reduce maintenance effort.

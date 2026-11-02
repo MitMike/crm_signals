@@ -2,7 +2,7 @@
 
 **Started:** 2026-11-01  
 **Last reviewed:** 2026-11-02  
-**Latest main:** `de8e78b8750370934b2608564fa63ecc4095f37f` (PR #88 upload-artifact v7 merged and CI-verified); **latest application feature baseline:** `c5720bfb3fbe8b554ec6febd549a8d5e58acc1d7`; **latest UI fix:** `b1f4ad71f368c346ce16126501982cfe2233c2b9` (PR #84 dashboard inset)
+**Latest main at this review:** `331492c5be1e5e32105e6d64b710d2e861c0111a` (PR #7 setup-uv v7 merged and CI-verified; PR #89 docs reconciliation merged as `ac6b253`); **latest application feature baseline:** `c5720bfb3fbe8b554ec6febd549a8d5e58acc1d7`; **latest UI fix:** `b1f4ad71f368c346ce16126501982cfe2233c2b9` (PR #84 dashboard inset)
 **Decision register:** [ADR-046](DECISIONS.md#adr-046--run-release-readiness-as-an-evidence-gated-sprint)  
 **Operating rule:** no item is complete without the evidence listed here. CI evidence and target-site evidence are separate.
 
@@ -12,8 +12,9 @@
 - [x] PR #84 dashboard inset fix merged as `b1f4ad7`; final head `f0e1909` passed Quality, Security, Bench v15/v16 and pinned v16.5.0. Desktop/mobile UAT after asset/cache refresh remains open.
 - [x] PR #85 GME workspace label merged as `5cc4308`; final head `b09a0cb` passed Quality, Security, Bench v15/v16 and pinned v16.5.0. Technical identifiers/routes are unchanged.
 - [x] PR #88 upload-artifact v7 merged as `de8e78b`; final head `eed57d6` passed Quality, Security, Bench v15/v16 + Playwright and pinned v16.5.0.
-- [ ] PR #89 is the current docs-only reconciliation and ADR-075 skip-path smoke. Quality and Security plus the stable Bench required workflow were queued at review time.
-- [ ] Dependabot PRs #7/#8/#10 are each one commit ahead and five behind main `de8e78b`; #9 is one ahead and 50 behind. Refresh individually and require fresh CI.
+- [x] PR #89 documentation/ADR-075 skip-path reconciliation merged as `ac6b253`; final head `0967290` passed Quality, Security and Bench Integration/E2E.
+- [x] PR #7 setup-uv v7 merged as `331492c`; final head `a72c82c` passed all 18 check runs, including the supported Frappe v15/v16 Bench + Playwright and pinned v16.5.0 lane.
+- [ ] Dependabot PR #8 setup-node v7 and PR #10 setup-python v7 are each one commit ahead and two behind main `331492c`; refresh individually and require fresh final-head CI. PR #9 flit-core `>=3.4,<5` is one ahead and 52 behind; inspect and verify package build/install compatibility before merge.
 - [ ] PRs #75/#78 and #80/#81 are closed unmerged; #75/#78 are superseded by #85/#84. The optional regression-review template was not merged and is not a release gate.
 
 - [x] **P0 — Pin before install (ADR-077; PR #82 merged as `ac030b1`, CI-verified):** direct clone with `--origin upstream`, detach/verify the approved full SHA, then run `bench setup requirements crm_signals` before site install/migration/build. Final head `ef4dc09` passed Quality, Security, Frappe v15/v16 Bench + Playwright and pinned Frappe v16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0. Authorized staging rehearsal remains open.
@@ -107,6 +108,8 @@
 
 | Date | Work | Evidence | Status |
 |---|---|---|---|
+| 2026-11-02 | PR #89 docs/ADR-075 skip-path | Final head `0967290` passed Quality, Security and Bench Integration/E2E; merged as `ac6b253` | Complete — CI verified |
+| 2026-11-02 | PR #7 setup-uv v7 | Final head `a72c82c` passed all 18 check runs, including v15/v16 Bench + Playwright and pinned v16.5.0; merged as `331492c` | Complete — CI verified |
 | 2026-11-02 | PR #32 D3 merge | Final head `93b536ab` passed all 16 check runs; merge commit `43fddfb` | Complete — CI verified |
 | 2026-11-02 | PR #38 replay review | Replaced unsupported `frappe.has_role` / `get_comments` assumptions, strengthened authorization and verified replay on Bench v15/v16; merged as `1640bdd4` | Complete — CI verified |
 | 2026-11-02 | PR #45 threshold merge | Company-specific amounts/currencies, exact-currency fallback and mismatch suppression merged; all required checks passed | Complete — CI verified |
