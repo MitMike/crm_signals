@@ -7,7 +7,8 @@ This changelog records user-visible and operationally significant changes. It is
 ### D2 independent source permissions — PR #65
 - Keep Payment Entry customer receipts available when Sales Invoice read access is denied, as required by the D2 source contract.
 - Clear partial Sales Invoice metrics after a permission exception and continue with the independent, permission-aware Payment Entry query.
-- Add a regression test for Sales Invoice denied / Payment Entry allowed. No role grants or financial calculation changes.
+- Add regression tests for Sales Invoice denied / Payment Entry allowed and for a query-level invoice permission exception after partial invoice results.
+- Final-head Quality, Security/Semgrep, Python 3.10/3.11/3.12/3.14, Bench v15/v16 and pinned Frappe v16.5.0 / ERPNext v16.5.0 / Helpdesk v1.28.0 checks passed; merged as `0cfeda4`. No role grants or financial calculation changes.
 
 ### D1/D2 real query-contract smoke — PR #63
 - Execute the read-only Sales Compass API against installed ERPNext DocTypes in the Frappe v15/v16 Bench matrix and pinned Frappe v16.5.0 / ERPNext v16.5.0 / Helpdesk v1.28.0 lane.
