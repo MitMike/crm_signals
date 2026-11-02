@@ -1,6 +1,6 @@
 # D2 — Billing Realization
 
-**Status:** Implemented; return-metadata safety guard, PR #63 query-contract smoke and PR #65 independent Payment Entry permission fix are merged/CI-verified on Frappe v15/v16 plus pinned v16.5.0. PR #67 adds a disposable real-value aggregate fixture for invoice, party-account receivable, POS, receipt and overdue filters plus a real Payment Entry-only permission user; CI-verified on Frappe v15/v16 and pinned v16.5.0. Target-site financial reconciliation and site-specific permission validation remain outstanding.
+**Status:** Implemented; return-metadata safety guard, PR #63 query-contract smoke and PR #65 independent Payment Entry permission fix are merged/CI-verified on Frappe v15/v16 plus pinned v16.5.0. PR #67 adds a disposable real-value aggregate fixture for invoice, party-account receivable, POS, receipt and overdue filters plus a real Payment Entry-only permission user; CI-verified on Frappe v15/v16 and pinned v16.5.0 (PR #67 merged as `84ab2ce`). Target-site financial reconciliation and site-specific permission validation remain outstanding.
 
 ## Problem and user
 
@@ -96,7 +96,7 @@ Display: total overdue count plus the eight oldest due invoices, with a direct l
 | D2-AC8 | An authenticated user can load the real Desk page and receive its billing payload | e2e/sahdev-dashboard.spec.ts |
 | D2-AC9 | Missing is_return metadata makes every return-sensitive Sales Invoice measure unavailable | Add metadata-absence tests for invoiced, POS, outstanding and overdue calculations |
 | D2-AC10 | Payment Entry customer receipts remain independently available when Sales Invoice read access is denied | Unit regression with invoice_read=False and payment_read=True; v15/v16 CI |
-| D2-AC11 | Real submitted invoices, an allocated Payment Entry and a POS-shaped row produce the expected invoice/POS/receipt/receivable/overdue deltas; a USD invoice's outstanding amount is grouped by its INR party-account currency; Payment Entry remains readable when Sales Invoice is denied | Disposable Bench fixture passed on Frappe v15/v16 and pinned v16.5.0 (PR #67). POS workflow is explicitly excluded. |
+| D2-AC11 | Real submitted invoices, an allocated Payment Entry and a POS-shaped row produce the expected invoice/POS/receipt/receivable/overdue deltas; a USD invoice's outstanding amount is grouped by its INR party-account currency; Payment Entry remains readable when Sales Invoice is denied | Disposable Bench fixture passed on Frappe v15/v16 and pinned v16.5.0 (PR #67 final head `cfd7c5ec`, merged as `84ab2ce`). POS workflow is explicitly excluded. |
 
 ## Risks and open validation
 

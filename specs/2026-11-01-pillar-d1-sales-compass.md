@@ -1,6 +1,6 @@
 # D1 — Sales Compass
 
-**Status:** Implemented; status-metadata safety fix and PR #63 read-only query-contract smoke are merged/CI-verified on Frappe v15/v16 and pinned v16.5.0. PR #67 adds real synthetic Lead/Opportunity aggregate deltas, terminal-stage exclusion and INR/USD pipeline grouping; CI-verified on Frappe v15/v16 and pinned v16.5.0. Target-site workflow/status validation remains.
+**Status:** Implemented; status-metadata safety fix and PR #63 read-only query-contract smoke are merged/CI-verified on Frappe v15/v16 and pinned v16.5.0. PR #67 adds real synthetic Lead/Opportunity aggregate deltas, terminal-stage exclusion and INR/USD pipeline grouping; CI-verified on Frappe v15/v16 and pinned v16.5.0 (PR #67 merged as `84ab2ce`). Target-site workflow/status validation remains.
 
 ## Problem and user
 
@@ -61,7 +61,7 @@ The Executive Compass presents Lead creation and active Lead metrics; Opportunit
 | D1-AC8 | Sales User sees only records admitted by Frappe permissions and role access | Bench integration test |
 | D1-AC9 | Recent Opportunity links open the correct source form | Playwright E2E |
 | D1-AC10 | Empty and unavailable states render differently | Playwright E2E |
-| D1-AC11 | Real Lead and Opportunity aggregate deltas include active-only stages and currency-grouped pipeline while excluding terminal Opportunities | Disposable Bench fixture passed on Frappe v15/v16 and pinned v16.5.0 (PR #67) |
+| D1-AC11 | Real Lead and Opportunity aggregate deltas include active-only stages and currency-grouped pipeline while excluding terminal Opportunities | Disposable Bench fixture passed on Frappe v15/v16 and pinned v16.5.0 (PR #67 final head `cfd7c5ec`, merged as `84ab2ce`) |
 
 ## Existing implementation and tests
 
