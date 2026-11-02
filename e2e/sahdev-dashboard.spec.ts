@@ -455,7 +455,7 @@ test("Realtime notifications suppress duplicate delivery IDs", async ({
             delivery_id: "e2e-stable-delivery-id",
             signal_type: "Website Visit",
             priority: "High",
-            message: "Duplicate suppression test",
+            message: "Duplicate suppression test"
         };
         try {
             crmSignals.handle_realtime_signal(payload);
