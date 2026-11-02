@@ -792,3 +792,14 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Rationale:** Editable installation alone does not prove that wheel and source distributions contain an installable package. Testing both artifact forms with the intended backend on both Python boundaries closes that gap without changing runtime dependencies or Frappe compatibility policy.
 - **Consequences:** PR #96 includes the package-artifact gate and the build-system range change. Only the refreshed final-head workflow results are valid merge evidence; prior PR #96 and superseded PR #93 checks are stale. Target-site and pilot acceptance remain separate.
 - **Revisit criteria:** Revisit if flit-core v4 changes artifact layout/build behavior, the supported Python floor/ceiling changes, package metadata gains runtime dependencies, or either artifact fails to build/install/import on a supported lane.
+
+
+## ADR-082 — Accept flit-core v4 after artifact and full-stack CI verification
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-03
+- **Context:** PR #96 widened the build-system constraint to `flit_core >=3.4,<5` and added explicit v4 wheel/source-distribution compatibility tests. The change was isolated and refreshed onto main `b18f504` before final validation.
+- **Decision:** Merge PR #96 only after every final-head check passed and the head remained current with main. The merge was performed with expected head `349bf71b0687c77e830fb8b054cedacabb16f61b`; GitHub confirmed merge commit `d0ab24b6a50184af99f4af638ae64ddd9a22d08a`.
+- **Evidence:** All 20 final-head check runs succeeded: Quality lint/static and Python 3.10/3.11/3.12/3.14; Security/Semgrep; Python and npm dependency audits; Frappe v15/v16 Bench integration including v16 Playwright; pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0. The explicit flit-core v4 wheel and sdist build/install/import checks passed on Python 3.10 and 3.14.
+- **Consequences:** The package build-system range is CI-verified for both supported Python boundaries and the supported Frappe reference matrix. This does not establish target-site deployment or pilot acceptance. The open PR queue was empty immediately after merge.
+- **Revisit criteria:** Revisit if the supported Python floor/ceiling, flit-core major version, package metadata/runtime dependencies, or supported Frappe/ERPNext matrix changes, or if downstream packaging/install evidence fails.

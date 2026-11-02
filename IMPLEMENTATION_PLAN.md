@@ -3,7 +3,7 @@
 **Last reviewed:** 2026-11-03  
 **Repository:** [MitMike/crm_signals](https://github.com/MitMike/crm_signals)  
 **Supported framework coverage:** Frappe / ERPNext v15 and v16. **Primary deployment target:** Frappe v16.5; record the exact patch/build and installed ERPNext/Helpdesk versions.  
-**Latest main:** [b18f504](https://github.com/MitMike/crm_signals/commit/b18f5045cb218b351bd9e3033577b03767847014); **latest application feature baseline:** [c5720bf](https://github.com/MitMike/crm_signals/commit/c5720bfb3fbe8b554ec6febd549a8d5e58acc1d7).
+**Latest main:** [d0ab24b](https://github.com/MitMike/crm_signals/commit/d0ab24b6a50184af99f4af638ae64ddd9a22d08a); **latest application feature baseline:** [c5720bf](https://github.com/MitMike/crm_signals/commit/c5720bfb3fbe8b554ec6febd549a8d5e58acc1d7).
 
 This is the execution plan and source of truth for delivery order, scope, dependencies, acceptance gates and exit criteria. The operational state is maintained in [docs/PROGRESS.md](docs/PROGRESS.md); durable choices are in [docs/DECISIONS.md](docs/DECISIONS.md); feature contracts are in [specs/](specs/).
 
@@ -314,3 +314,10 @@ Latest main at this review is [`b18f504`](https://github.com/MitMike/crm_signals
 PR #96 is the only open pull request in this snapshot. It updates the build-system range to `flit_core >=3.4,<5` and adds explicit wheel/sdist build and isolated-install verification using flit-core v4 on Python 3.10 and 3.14. The package artifacts are built with the installed v4 backend; the wheel and source distribution are each installed in a clean virtual environment and imported. Final-head Quality, Security, Python, Frappe v15/v16 Bench + Playwright and pinned Frappe v16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 checks must pass before merge. Existing PR #96 checks on the pre-PR-97 base are not reusable; its branch is refreshed onto `b18f504`.
 
 The product baseline remains code-complete and reference-stack CI-verified for D1/D2, D3, Explorer and H-AC11. The pin-before-install operator procedure is CI-verified. Target-site configuration, effective-role permissions, financial reconciliation, Helpdesk SLA calendar, scheduler/mail/realtime/webhook operations, deployment rollback and dashboard desktop/mobile visual UAT remain open acceptance gates. No pilot verification is inferred from repository CI.
+
+
+## 10. Maintenance update — 2026-11-03
+
+PR #96 (flit-core v4 build-system compatibility) merged as `d0ab24b6a50184af99f4af638ae64ddd9a22d08a` after all 20 final-head checks passed on `349bf71b0687c77e830fb8b054cedacabb16f61b`. The checks cover Python 3.10/3.11/3.12/3.14, Security/Semgrep, Python/npm dependency audits, Frappe v15/v16 Bench + Playwright, and the pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 lane. The dedicated flit-core v4 wheel and sdist build/install/import checks passed on Python 3.10 and 3.14. No open PRs remained immediately after merge.
+
+This closes the current dependency-maintenance queue. It does not close target-site acceptance: the authorized v16.5 staging preflight, effective-role tests, D1/D2 reconciliation, Helpdesk SLA confirmation, operational recovery checks, rollback rehearsal and dashboard desktop/mobile visual UAT remain open. Keep code-complete, reference-stack CI-verified and pilot-verified states distinct.
