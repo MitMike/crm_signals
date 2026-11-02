@@ -328,3 +328,8 @@ This closes the current dependency-maintenance queue. It does not close target-s
 Current main is `1a27166bfe988c860b3527af5bba9a0299e1e30f` (PR #98). Its final-head documentation-only checks passed, including required Quality, Security and Bench v15/v16 validation; test-surface detection correctly skipped runtime execution for this docs-only diff. No open PRs remained immediately after merge.
 
 The PR #96 packaging change remains reference-stack CI-verified. This documentation merge does not change pilot status: dashboard desktop/mobile visual UAT and target-site v16.5 preflight, role permissions, financial reconciliation, Helpdesk SLA, operational recovery and rollback rehearsal remain outstanding.
+
+
+## 12. Dashboard inset regression prevention — 2026-11-03
+
+PR #99 reconciled the post-PR #98 documentation and merged as `6a46c26b3a58a3ea035d7e53b15bc2f8839e2bb5` after all 13 final-head checks passed. The next focused change is PR #100: a Playwright assertion for the CRM Signals dashboard wrapper's computed horizontal padding at desktop (1440px: 24px each side) and mobile (390px: 12px each side). This closes the automated regression-prevention gap recorded by BUG-2026-001 / FIX-2026-001; it does not close manual visual UAT or target-site acceptance.
