@@ -2,7 +2,7 @@
 
 **Started:** 2026-11-01  
 **Last reviewed:** 2026-11-02  
-**Baseline:** `main` at `aeea9599b11f17bff0ef5bbd7904f44f23567e3e`  
+**Baseline:** `main` at `0cfeda4fb39f79722fdf733abd06a3460ebcdd4d`  
 **Decision register:** [ADR-046](DECISIONS.md#adr-046--run-release-readiness-as-an-evidence-gated-sprint)  
 **Operating rule:** no item is complete without the evidence listed here. CI evidence and target-site evidence are separate.
 
@@ -19,6 +19,7 @@
 - [x] [PR #36](https://github.com/MitMike/crm_signals/pull/36) merged as `e57d94ea`; ADR-049 sets Frappe v16.5 as the primary target while retaining v15/v16 CI coverage.
 - [x] [PR #42](https://github.com/MitMike/crm_signals/pull/42) merged D3 field-level permission hardening as `17eca3f6cb493fb8729632e0902c07ccb776b6a5`; Quality, Security and Bench v15/v16 passed.
 - [x] [PR #57](https://github.com/MitMike/crm_signals/pull/57), [PR #59](https://github.com/MitMike/crm_signals/pull/59) and [PR #61](https://github.com/MitMike/crm_signals/pull/61) merged Explorer core adapters, Desk entry points, five-context Playwright coverage and operator runbook safeguards. PR #61 final head `902b38e4dd4713461acfb12dc837f5b2b84da7d8` passed all required v15/v16 checks and the pinned Frappe v16.5.0 lane; merge commit `6ef9642b63c24053fb437f67d9d4fb47e360c80a`.
+- [x] [PR #65](https://github.com/MitMike/crm_signals/pull/65) fixes D2 source-permission independence: Payment Entry receipts remain visible when Sales Invoice access is denied, and partial invoice results are cleared after a query-level PermissionError. Final head `315a49a52f70ecb888e6d9cc91a4c1f4e51535d7` passed Quality, Security/Semgrep, Python 3.10/3.11/3.12/3.14, Bench v15/v16 and pinned Frappe v16.5.0 / ERPNext v16.5.0 / Helpdesk v1.28.0; merged as `0cfeda4fb39f79722fdf733abd06a3460ebcdd4d`.
 
 **Merge gate:** all required checks pass on the final PR head; review threads resolved; no target-site claims inferred from CI.
 
@@ -72,9 +73,10 @@
 
 ## Current blockers and known evidence
 
-- PR #63 is code-complete but not CI-verified. It executes the real D1/D2 query path on Frappe v15/v16 and pinned v16.5.0 without creating business records, and restricts Bench push runs to `main` to avoid duplicate PR-branch matrices. It is not a financial reconciliation or target-site permission test.
+- PR #63 is merged and CI-verified: it executes the real D1/D2 query path on Frappe v15/v16 and pinned v16.5.0 without creating business records, and restricts Bench push runs to `main` to avoid duplicate PR-branch matrices. It is not a financial reconciliation or target-site permission test.
+- PR #65 is merged and CI-verified: Payment Entry receipt access is independent from Sales Invoice access, including query-level invoice permission exceptions. It does not replace target-site role validation or financial reconciliation.
 
-- `main` baseline is `aeea9599b11f17bff0ef5bbd7904f44f23567e3e`; PR #32 D3, PR #38 replay, PR #42 field guard, PR #44 source permission, PR #57/#59/#61 Explorer, PR #61 operator-runbook safeguards and PR #62 status reconciliation are merged. PR #63 adds D1/D2 query compatibility smoke coverage; final-head CI is pending.
+- `main` baseline is `0cfeda4fb39f79722fdf733abd06a3460ebcdd4d`; PR #32 D3, PR #38 replay, PR #42 field guard, PR #44 source permission, PR #57/#59/#61 Explorer, PR #61 operator-runbook safeguards, PR #62 status reconciliation, PR #63 D1/D2 query smoke and PR #65 independent D2 source permissions are merged and CI-verified.
 - PR #38 replay is merged after both Frappe v15/v16 Bench jobs passed.
 - PR #45 threshold feature is merged; only target-site Company-by-Company amount and fallback approval remains.
 - PR #36 ADR-049 is merged; its final required checks passed.
@@ -91,3 +93,4 @@
 | 2026-11-02 | ADR-049 target baseline | Frappe v16.5 confirmed; v15/v16 matrix retained | Complete — merged |
 | 2026-11-02 | D3 field-level permissions | Fail-closed field permission guard merged in PR #42 and passed v15/v16 CI | Complete — CI verified |
 | 2026-11-02 | Explorer API/Desk/browser slice | PR #57/#59/#61; five context routes, late-response suppression and operator runbook safeguards; final head `902b38e4dd4713461acfb12dc837f5b2b84da7d8` passed all required checks and pinned Frappe v16.5.0 lane | Complete — CI verified; pilot acceptance open |
+| 2026-11-02 | D2 independent source permissions | PR #65 final head `315a49a52f70ecb888e6d9cc91a4c1f4e51535d7` passed all required checks plus pinned Frappe v16.5.0 lane; merged as `0cfeda4fb39f79722fdf733abd06a3460ebcdd4d` | Complete — CI verified; target-site role acceptance open |
