@@ -71,7 +71,7 @@ Work:
 - Use npm ci in Quality Checks and Dependency Security Audit.
 - Run pip-audit and npm audit --audit-level=moderate on relevant dependency pull requests, weekly and on manual dispatch.
 - Keep Semgrep SARIF scanning and the Frappe v15/v16 Bench + Playwright matrix.
-- [ ] PR #76 proposes changed-path execution while preserving the required check names; ADR-075 requires fail-closed path detection and Bench/pinned coverage for workflow definitions, DocType/Page/workspace JSON, patch/fixture metadata, package manifests, requirements, app config and module metadata. Workflow-definition changes also run the Python and JavaScript quality suites. Merge only after final-head validation on workflow and runtime paths, then verify a workspace-only change publishes successful stable required contexts.
+- [ ] PR #76 proposes changed-path execution while preserving the required check names; ADR-075 requires fail-closed path detection and Bench/pinned coverage for workflow definitions, DocType/Page/workspace JSON, patch/fixture metadata, package manifests, requirements, app config and module metadata. Workflow-definition changes also run the Python and JavaScript quality suites. Static regression tests protect all required gate expressions and selector coverage. Merge only after final-head validation on workflow and runtime paths, then verify a workspace-only change publishes successful stable required contexts.
 - Verify the existing main branch policy: required CI checks, PR-only updates, blocked force pushes/deletion and required review-thread resolution. Record allowed merge methods and the no-bypass emergency procedure.
 
 Exit criteria:
