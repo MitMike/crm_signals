@@ -1,6 +1,6 @@
 # H — Highlights and event-driven sales alerts
 
-**Status:** Design specified; implementation planned after CRM Signals event idempotency and settings hardening.
+**Status:** Partially implemented. High-value Quotation alerts and per-Company thresholds are implemented in PR #45/#49; this branch adds direct hook-level regression coverage for threshold equality, below-threshold suppression and missing currency basis. VIP allowlist/escalation behavior remains pending a product-owner decision. Proposal-link tracking remains gated on privacy, consent and retention approval.
 
 ## Problem and users
 
@@ -19,7 +19,7 @@ Sales users and managers need high-priority alerts for high-value quotations and
 
 - Trigger on Quotation submission only.
 - Default threshold: 200,000 in the Company default currency, preserving the current numeric default but removing the hard-coded INR assumption.
-- Use grand_total and the quotation's actual currency after confirming it matches Company default currency. If the currency basis cannot be established, do not trigger a misleading monetary alert.
+- Compare `base_grand_total` with the matching Company's base-currency threshold. If the base total is unavailable, use `grand_total` only when the Quotation transaction currency exactly matches the Company's base currency. Never perform implicit FX conversion; if the currency basis cannot be established, suppress the alert. Display the Quotation's transaction-currency amount in the human-readable signal message.
 - Comparison is greater than or equal to the threshold.
 - A quotation creates at most one high-value event for its submission identity. Replaying the hook does not create another signal.
 
@@ -37,9 +37,9 @@ The link record binds an opaque random token to a Quotation and, when available,
 
 ## Configuration and recipients
 
-Create CRM Signals Settings fields for the high-value threshold, VIP Customer allowlist, notification cooldown and escalation recipients. Only System Manager can edit them.
+The Company-specific quotation threshold table is implemented and restricted through the System Manager-only CRM Signals Settings singleton. The VIP Customer allowlist, proposal-link cooldown and escalation-recipient fields are not implemented. Their exact trigger and routing semantics must be approved before adding fields or recipients; do not reinterpret the existing quotation alert as VIP engagement.
 
-Recipients are the linked Lead/Customer owner, active ToDo assignees and explicitly configured escalation recipients. Resolve to enabled System Users with read permission on the linked party. No site-wide broadcast.
+Current high-value Quotation recipients are the linked Lead/Customer owner and active ToDo assignees, restricted to enabled System Users who can read the CRM Signal, linked party and originating source document. Explicit escalation recipients remain a separate follow-up. No site-wide broadcast.
 
 ## Data model
 
@@ -67,4 +67,4 @@ Do not store full IP addresses or create browser fingerprints. Apply a documente
 
 ## Dependencies and rollout
 
-Depends on CRM Signals Settings, source-event idempotency and recipient permission tests. Ship high-value quote alerts first. Ship proposal-link tracking only after a privacy review and a working first-party link flow exist. Do not label arbitrary link opens as VIP engagement.
+The high-value Quotation portion is implemented and can ship independently after target-site Company thresholds and recipient behavior are accepted. VIP allowlist/escalation behavior requires a product-owner decision. Proposal-link tracking depends on CRM Signals Settings, stable event identity, scanner classification and recipient permission checks; ship it only after privacy/consent and retention approval and a working first-party link flow. Do not label arbitrary link opens as VIP engagement.
