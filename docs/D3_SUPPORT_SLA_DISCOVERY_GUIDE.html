@@ -97,11 +97,14 @@ for d in sorted(candidates, key=lambda x: (x.module or "", x.name or "")):
     print("\\n---", d.name, "| module:", d.module, "| custom:", d.custom, "---")
     try:
         meta = frappe.get_meta(d.name)
+        for permission in (getattr(meta, "permissions", []) or []):
+            print("ROLE", permission.role, "| read:", permission.read, "| permlevel:", permission.permlevel)
         for field in meta.fields:
             print(
                 field.fieldname,
                 "| label:", field.label,
                 "| type:", field.fieldtype,
+                "| permlevel:", getattr(field, "permlevel", 0) or 0,
                 "| options:", field.options or ""
             )
     except Exception as exc:
@@ -109,7 +112,7 @@ for d in sorted(candidates, key=lambda x: (x.module or "", x.name or "")):
 
 print("\\n=== END: metadata only; no ticket records were read ===")</pre>
 <button type="button" onclick="copyScript()">Copy discovery script</button><span id="copyStatus" class="muted" aria-live="polite"></span>
-<p>Copy the output into your internal worksheet. If the list is very long, share only the likely ticket and SLA DocTypes plus their field lists.</p></li>
+<p>Copy the output into your internal worksheet. If the list is very long, share only the likely ticket and SLA DocTypes plus their field lists.</p><p><strong>Permission caveat:</strong> the role and permlevel output is configured DocType metadata, not an effective-permission check for a particular user. Verify actual HD Ticket and SLA read access as the target site’s Sales User and Sales Manager accounts.</p></li>
 <li><strong>Check the Support / Helpdesk screen in Desk.</strong><p>Open the support app your team actually uses. Find one example ticket manually. Note the DocType name (often visible in the URL or from the DocType list), the status choices, and which status values mean “finished”. Do not copy the customer's details.</p></li>
 <li><strong>Find the real resolution timestamp.</strong><p>Ask the Support owner: “When a ticket is solved, which field records the actual solved date and time? What happens if it is reopened?” Write the exact field name. Do not assume <code>modified</code> is the resolution time.</p></li>
 <li><strong>Find the SLA rule and clock.</strong><p>Ask where the SLA policy is configured and how a ticket is linked to it. Record the SLA DocType, policy field, deadline field, and native result/status that says compliant or breached. Also record whether waiting states pause the clock.</p></li>
