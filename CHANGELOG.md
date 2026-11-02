@@ -9,10 +9,10 @@ This changelog records user-visible and operationally significant changes. It is
 - Assert ERPNext-calculated `paid_amount` settles `grand_total`; keep the setup and invoice inside the fixture rollback boundary.
 - This does not simulate browser checkout, POS Opening/Closing, cash drawers or inventory movements; target-site native-report reconciliation remains separate.
 
-### High-Value Quote source drill-down — PR #71 (code-complete; CI revalidation in progress)
+### High-Value Quote source drill-down — PR #71 (code-complete; final-head CI pending)
 - Return source_doctype/source_name only when the current user can read both CRM Signal source fields, the signal is a High-Value Quote sourced from Quotation, and the exact Quotation is readable.
 - Suppress other source identifiers and fail closed on permission/metadata errors; the Desk row opens the Quotation while retaining existing party/Signal fallbacks.
-- Add API permission-denial tests and Playwright coverage for the Console source route. A controlled revalidation with the updated, locked Prettier 3.9.10 still failed formatting; ADR-072 adds a failure-only CI diff diagnostic. Keep the required formatting check blocking and do not merge until the exact diff is applied and all final-head checks pass. Target-site role acceptance remains open.
+- Add API permission-denial tests and Playwright coverage for the Console source route. ADR-072's failure-only CI diagnostic emitted the exact Prettier 3.9.10 diff; its three wrapping changes were applied in commit `91fc89c`. The branch is synchronized with latest main `567f458`; final-head checks are pending. Keep formatting blocking and do not merge until all required checks pass. Target-site role acceptance remains open.
 
 ### Read-only target-site preflight report — PR #70 (merged and CI-verified as 13341b7)
 - Add a non-whitelisted Bench command to inventory installed app versions when importable, site timezone, Company currencies and threshold source/currency, active Lead/Opportunity workflow states, relevant DocType fields/Select options/permlevels and static DocPerm rows.
