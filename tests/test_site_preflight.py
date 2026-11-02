@@ -221,7 +221,9 @@ def test_preflight_source_revision_fails_closed_for_dirty_checkout(monkeypatch):
 
     result = diagnostics._source_revision()
     assert result == {"available": False, "reason": "working_tree_dirty"}
-    assert len(commands) == 1
+    assert len(commands) == 2
+    assert commands[0][-2:] == ["rev-parse", "--show-toplevel"]
+    assert commands[1][-3:] == ["status", "--porcelain", "--untracked-files=all"]
     assert "private.py" not in repr(result)
 
 
