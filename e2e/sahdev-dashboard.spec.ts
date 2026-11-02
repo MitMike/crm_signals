@@ -1,6 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 
 const dashboardMethod = "**/api/method/crm_signals.api.get_sales_compass_data*";
+const crmSignalsDashboardMethod = "**/api/method/crm_signals.api.get_dashboard_data*";
 
 async function loginAs(page: Page, username: string, password: string) {
     await page.goto("/login");
@@ -348,12 +349,12 @@ test("CRM Signals dashboard loads its live API", async ({ page }) => {
     ).toBeVisible();
 });
 
-test("High-Value Quote activity opens its permitted source Quotation", async ({ page }) => {
+test(
+    "High-Value Quote activity opens its permitted source Quotation",
+    async ({ page }) => {
     await loginAsAdministrator(page);
-    await page.route(
-        "**/api/method/crm_signals.api.get_dashboard_data*",
-        (route) =>
-            route.fulfill({
+    await page.route(crmSignalsDashboardMethod, (route) =>
+        route.fulfill({
                 status: 200,
                 contentType: "application/json",
                 body: JSON.stringify({
@@ -381,7 +382,7 @@ test("High-Value Quote activity opens its permitted source Quotation", async ({ 
                         ]
                     }
                 })
-            })
+        })
     );
 
     await page.goto("/app/crm-signals-dashboard");
@@ -391,8 +392,8 @@ test("High-Value Quote activity opens its permitted source Quotation", async ({ 
     await expect(signal).toContainText("Quotation: QTN-HIGHLIGHT-E2E");
     await signal.click();
     await expect(page).toHaveURL(/\/app\/quotation\/QTN-HIGHLIGHT-E2E/);
-});
-
+    }
+);
 
 test("Sales User can open the Executive Compass", async ({ page }) => {
     await loginAsAdministrator(page);
