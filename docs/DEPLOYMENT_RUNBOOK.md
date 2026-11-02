@@ -10,14 +10,14 @@ Record the following before scheduling a change:
 - Installed Frappe and ERPNext versions, plus all installed apps.
 - CRM Signals revision currently deployed and revision to be deployed.
 - Database engine and backup/restore procedure for the site.
-- Company default currencies, including any company-specific differences.
+- Company default currencies and the approved Company-specific quotation thresholds or exact-currency legacy fallback.
 - System Settings timezone.
 - Opportunity statuses and terminal Lead statuses used by the live workflows.
 - Sales User, Sales Manager, System Manager and non-sales test accounts.
 - Approved digest recipients and business owner for the stale-Lead definition.
 - Dedicated integration user, API credential owner, gateway/TLS/rate-limit configuration and secret-rotation contact.
 
-Do not enable quotation threshold signals across companies with different base currencies. The first release has one site-wide threshold currency.
+Configure and approve a threshold for each enabled Company in that Company's base currency. A Company-specific row takes precedence. The legacy site-wide threshold is a fallback only when its currency exactly matches that Company's base currency; no implicit FX conversion occurs, and a mismatch suppresses the signal. Record the approved amount and currency for every enabled Company in the target-site acceptance record.
 
 ## 2. Before deployment
 
@@ -88,6 +88,12 @@ Run these checks with named test accounts. Record the user, role, result and evi
 - Repeat the exact request with the same integration identity and event ID; verify that the original signal is returned and no second notification is sent.
 - Verify Guest rejection, ingestion switch behavior, invalid fields and link validation.
 - Do not use Administrator API credentials for integrations.
+
+### Explorer activity timeline
+
+- Verify the Activity Timeline entry points from Lead, Customer, Opportunity and CRM Signal forms; a High-Value Quote signal must open the Highlight context.
+- Run the context, role and field-permission matrix in [Target-Site Acceptance Kit](TARGET_SITE_ACCEPTANCE.md#10-e-explorer-activity-timeline-acceptance) with Sales User, Sales Manager, System Manager and non-sales accounts.
+- Verify GET-only paging, source drill-down, and distinct empty, unavailable and not-connected states. Confirm unreadable context/source fields or records do not leak summaries or links.
 
 ### Digest and operations
 
