@@ -22,6 +22,8 @@ This file records known work that is intentionally not represented as complete. 
 
 - [x] **D1/D2 real query-contract smoke in Bench CI (PR #63).** Merged as `0a7de966`; the read-only Sales Compass API executes against installed ERPNext DocTypes on Frappe v15/v16 and the pinned Frappe v16.5.0 / ERPNext v16.5.0 / Helpdesk v1.28.0 lane. Quality, Security, Semgrep, Python, Bench and pinned-target checks passed. This is compatibility evidence only, not a financial-value fixture or target-site reconciliation.
 
+- [ ] **D2 independent source-permission fix (PR #65).** Code is complete: the Payment Entry customer-receipt query now runs even when Sales Invoice access is denied, with a regression test for the split-permission case. Final-head Quality/Security/Bench CI is pending. After merge, retain the P0 target-site role matrix and native-report reconciliation; CI does not prove the pilot's actual permissions or totals.
+
 - [ ] **D1/D2 synthetic aggregate-value fixture:** PR #63 adds a real read-only query-contract smoke, but deliberately creates no accounting records. Revisit when the Bench fixture can provision an isolated Company, chart of accounts, Customer, Item, Sales Invoice and Payment Entry on both Frappe v15 and v16; then assert invoice/POS/receipt/receivable/overdue deltas, currency grouping and permission behavior. Do not substitute this for target-site native-report reconciliation.
 
 - [x] **Explorer backend field-permission review and merge (PR #57).** The final head `dda6eb88c0e8735645018de60275d9cf55d2d99d` passed Quality Checks, Security Scanning, Frappe v15/v16 Bench + Playwright and the pinned Frappe v16.5.0/ERPNext v16.5.0/Helpdesk v1.28.0 lane; merged as `ba631720`. The earlier cancelled-check head was not bypassed.
