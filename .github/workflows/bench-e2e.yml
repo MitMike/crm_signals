@@ -35,6 +35,13 @@ jobs:
               - 'tests/**'
               - 'pyproject.toml'
               - 'setup.py'
+              - 'package.json'
+              - 'package-lock.json'
+              - 'MANIFEST.in'
+              - 'requirements*.txt'
+              - 'requirements/**'
+              - 'crm_signals/config/**'
+              - 'crm_signals/modules.txt'
 
   bench-validation-runtime:
     name: Bench integration execution (${{ matrix.frappe_branch }}, ${{ matrix.python-version }}, ${{ matrix.run_e2e }})
@@ -236,7 +243,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Require Bench execution when runtime files changed
-        if: (github.event_name != 'pull_request' || needs.changes.outputs.bench == 'true') && needs.bench-validation-runtime.result != 'success'
+        if: >-
+          (github.event_name == 'pull_request' && needs.changes.result != 'success') ||
+          ((github.event_name != 'pull_request' || needs.changes.outputs.bench == 'true') &&
+           needs.bench-validation-runtime.result != 'success')
         run: exit 1
 
   bench-v16-required:
