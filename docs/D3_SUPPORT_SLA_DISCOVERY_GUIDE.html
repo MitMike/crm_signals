@@ -74,8 +74,8 @@ details{border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin
 import frappe
 
 print("\\n=== INSTALLED APPS ===")
-frappe_path = frappe.get_app_path("frappe")
-print("frappe/ui package present:", os.path.isdir(os.path.join(frappe_path, "ui")))
+frappe_source_path = frappe.get_app_source_path("frappe")
+print("frappe/ui package present:", os.path.isdir(os.path.join(frappe_source_path, "ui")))
 print("Notification Type DocType present:", bool(frappe.db.exists("DocType", "Notification Type")))
 for app in sorted(frappe.get_installed_apps()):
     print(app)
