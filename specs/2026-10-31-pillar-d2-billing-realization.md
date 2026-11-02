@@ -1,6 +1,6 @@
 # D2 — Billing Realization
 
-**Status:** Implemented; return-metadata safety guard is merged. PR #63 adds a read-only D1/D2 Bench query-contract smoke on Frappe v15/v16 and pinned v16.5.0 (final-head CI pending). Target-site financial reconciliation and site-specific permission validation remain outstanding.
+**Status:** Implemented; return-metadata safety guard and PR #63 read-only D1/D2 Bench query-contract smoke are merged and CI-verified on Frappe v15/v16 plus pinned v16.5.0. PR #65 fixes independent Payment Entry source access when Sales Invoice is unavailable; final-head CI is pending. Target-site financial reconciliation and site-specific permission validation remain outstanding.
 
 ## Problem and user
 
@@ -76,6 +76,7 @@ Display: total overdue count plus the eight oldest due invoices, with a direct l
 ## Permissions
 
 - Check read permission independently for Sales Invoice and Payment Entry.
+- Payment Entry customer receipts remain available when the user can read Payment Entry but cannot read Sales Invoice; invoice, POS, receivable and overdue measures remain unavailable in that case.
 - Use permission-aware frappe.get_list calls for all reads so standard DocType and user-specific query permissions are applied.
 - Never use frappe.get_all, raw SQL or ignore_permissions for these metrics.
 - When a source is unavailable, render "Not available for your account"; do not show zero as if the query succeeded.
@@ -94,6 +95,7 @@ Display: total overdue count plus the eight oldest due invoices, with a direct l
 | D2-AC7 | Frappe v16 aggregate fields use structured COUNT/SUM syntax | Frappe v16 aggregate unit test |
 | D2-AC8 | An authenticated user can load the real Desk page and receive its billing payload | e2e/sahdev-dashboard.spec.ts |
 | D2-AC9 | Missing is_return metadata makes every return-sensitive Sales Invoice measure unavailable | Add metadata-absence tests for invoiced, POS, outstanding and overdue calculations |
+| D2-AC10 | Payment Entry customer receipts remain independently available when Sales Invoice read access is denied | Unit regression with invoice_read=False and payment_read=True; v15/v16 CI |
 
 ## Risks and open validation
 
