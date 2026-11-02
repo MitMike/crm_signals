@@ -283,6 +283,9 @@ def test_operator_installation_pins_source_before_bench_setup():
     runbook = (ROOT / "docs/DEPLOYMENT_RUNBOOK.md").read_text()
     acceptance = (ROOT / "docs/TARGET_SITE_ACCEPTANCE.md").read_text()
 
+    for document in [guide, runbook, acceptance]:
+        assert "\\nbench get-app crm_signals\\n" not in document
+
     guide_first = guide.split("### First installation", 1)[1].split(
         "### Upgrade an existing installation", 1
     )[0]
@@ -350,6 +353,12 @@ def test_operator_installation_pins_source_before_bench_setup():
         assert verify_command in workflow
         assert "bench setup requirements crm_signals" in workflow
         assert "bench get-app --skip-assets crm_signals" not in workflow
+        assert workflow.index('test "${#CRM_SIGNALS_SHA}" -eq 40') < workflow.index(
+            clone_command
+        )
         assert workflow.index(clone_command) < workflow.index(
             checkout_command
-        ) < workflow.index("bench setup requirements crm_signals")
+        ) < workflow.index(verify_command)
+        assert workflow.index(verify_command) < workflow.index(
+            "bench setup requirements crm_signals"
+        ) < workflow.index("bench --site test.local install-app crm_signals")
