@@ -2,6 +2,94 @@
 
 This changelog records user-visible and operationally significant changes. It is not a substitute for commit history. Entries do not imply a production release unless explicitly stated.
 
+## Unreleased — Transactional signal outbox, durable realtime retry, D3 Helpdesk, Highlights, Explorer and D1/D2 CI contracts (PR #26, #32, #54, #57, #59, #60, #63, #65, #67)
+
+### Read-only target-site preflight report — PR #70 (CI pending)
+- Add a non-whitelisted Bench command to inventory installed app versions when importable, site timezone, Company currencies and threshold source/currency, active Lead/Opportunity workflow states, relevant DocType fields/Select options/permlevels and static DocPerm rows.
+- Omit recipient email addresses, credentials and business-document rows; perform no writes.
+- Add tests for exact-currency threshold behavior, workflow/field metadata, missing Helpdesk fields and recipient-address omission.
+- Record ADR-068 and document the command in the administrator guide and target-site acceptance kit. Code is complete; final-head CI and target-site execution remain pending.
+
+### D2 independent source permissions — PR #65
+- Keep Payment Entry customer receipts available when Sales Invoice read access is denied, as required by the D2 source contract.
+- Clear partial Sales Invoice metrics after a permission exception and continue with the independent, permission-aware Payment Entry query.
+- Add regression tests for Sales Invoice denied / Payment Entry allowed and for a query-level invoice permission exception after partial invoice results.
+- Final-head Quality, Security/Semgrep, Python 3.10/3.11/3.12/3.14, Bench v15/v16 and pinned Frappe v16.5.0 / ERPNext v16.5.0 / Helpdesk v1.28.0 checks passed; merged as `0cfeda4`. No role grants or financial calculation changes.
+
+### D1/D2 synthetic aggregate-value fixture — PR #67
+- Add disposable Bench records for Lead/Opportunity and submitted Sales Invoice/Payment Entry aggregate-delta assertions.
+- Verify INR/USD pipeline and invoice currency groups, party-account-currency receivables, overdue drill-down, POS-shaped paid totals and independent Payment Entry-only read access.
+- Roll back all synthetic records and temporary permissions. The POS row models persisted aggregate fields only; POS settlement, native-report reconciliation and target-site role acceptance remain separate.
+- Final head `cfd7c5ec64786e394374d31ba7b89354565a2070` passed all required checks on Frappe v15/v16 and pinned Frappe v16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0; merged as `84ab2ce0b4ce1a9614882635e4c085092cf2a0c5`.
+
+### D1/D2 real query-contract smoke — PR #63
+- Execute the read-only Sales Compass API against installed ERPNext DocTypes in the Frappe v15/v16 Bench matrix and pinned Frappe v16.5.0 / ERPNext v16.5.0 / Helpdesk v1.28.0 lane.
+- Verify Lead, Opportunity, Sales Invoice and Payment Entry response sections and required availability/shape contracts without creating business records or writing to the database.
+- Restrict Bench workflow push runs to `main` while retaining PR and manual-dispatch validation, preventing duplicate feature-branch Bench runs.
+- Final-head Quality, Security, Semgrep, Python, Bench v15/v16 and pinned-target checks passed. Merge commit: `0a7de966`.
+- This is schema/query compatibility evidence only; target-site permission acceptance and D1/D2 native-report financial reconciliation remain open.
+
+
+### H Highlights quotation contract — PR #60
+- Add unit regressions for Company-base-currency threshold equality, below-threshold suppression, transaction-currency message display and fail-closed behavior when a foreign-currency Quotation has no base total.
+- Align the H specification with the implemented Company-currency comparison and distinguish the shipped high-value Quotation alert from deferred VIP escalation and proposal-link tracking.
+- Record ADR-061: do not invent VIP trigger/recipient policy, and do not implement proposal tracking before privacy/consent and retention approval.
+
+### Explorer core timeline API — PR #57 (merged; CI verified)
+- Add read-only CRM Signal, Quotation and Opportunity adapters for Lead/Customer-centered activity timelines.
+- Resolve Lead, Customer, Opportunity, CRM Signal and High-Value Quote contexts through permission-aware reads; re-check source-document access before returning a Desk route.
+- Check field-level read access for every context, filter, source and summary field; fail closed when Frappe would otherwise omit a required field.
+- Return metadata-only summaries with deterministic ordering and bounded snapshot pagination; do not copy message bodies, amounts, recordings or attachments.
+- Defer Communication/Event/ToDo and call/WhatsApp adapters until the target-site provider and schema inventory is recorded (ADR-059).
+
+
+### Explorer Desk timeline UI — PR #59 (merged as `6b381fe`; final-head CI verified)
+- Add a role-restricted Customer Activity Timeline page and Activity Timeline buttons on Lead, Customer, Opportunity and CRM Signal forms; High-Value Quote signals open the Highlight context.
+- Add GET cursor paging, refresh, safely escaped metadata summaries, source navigation and distinct source states.
+- Ignore late responses from earlier contexts when users navigate while a request is still in flight.
+- Add static contract coverage and Playwright coverage for authenticated Lead-context paging and source drill-down; optional provider adapters and pilot role acceptance remain deferred.
+- Final PR head `4bc7893513253d40ee60bb3a00b7c70827041eb9` passed all eight required ruleset contexts and the pinned Frappe v16.5.0 / ERPNext v16.5.0 / Helpdesk v1.28.0 lane.
+### Realtime notification reliability
+- Add a per-recipient delivery ledger with a stable SHA-256 ID, bounded retry/backoff and permission rechecks before each publish attempt.
+- Add the stable ID to realtime payloads and suppress duplicate alerts within the active Desk session.
+- Report `Attempted` as queued for after-commit publication only; Redis delivery, browser receipt and human acknowledgement remain unconfirmed.
+- Target-site Redis outage, worker-restart and scheduler acceptance remain open.
+
+### Added
+- Persist Quotation and Opportunity source events in a dedicated idempotent outbox with scheduled retries, bounded exponential backoff and a terminal Failed state visible to System Managers.
+- Add Bench coverage for delivery recovery, retry exhaustion, batch fairness, concurrent outbox processing, concurrent duplicate enqueue and immutable outbox permissions.
+- Add a beginner-friendly D3 Support & SLA discovery guide with a metadata-only Bench script, business-calendar/permission/retention questions, KPI sign-off and an interactive completion checklist.
+
+### Changed
+- Abort a Quotation submit or Opportunity update if its outbox event cannot be persisted in the source transaction. Failures to materialize the CRM Signal after persistence remain retryable and do not block the source document.
+- Keep outbox payload and delivery state read-only to administrators; inspect failures through the outbox and Error Log.
+
+### Operational note
+- Terminal Failed rows can be replayed only through the POST-only, System Manager/read-permission-gated action merged in PR #38; attempt history and an audit Comment are preserved. Realtime notification retry remains separate and is not provided by the signal outbox.
+
+### Exact Frappe v16.5.0 / Helpdesk v1.28.0 compatibility lane — merged in PR #50
+
+- Pin Frappe v16.5.0, ERPNext v16.5.0, Helpdesk v1.28.0 and the exact Telephony commit.
+- Install the real Helpdesk app in Bench and verify HD Ticket / HD Service Level Agreement DocTypes, required fields, permlevels and the Frappe permitted-field API.
+- Fix the D3 Helpdesk availability guard to check the physical `creation` system column with `frappe.db.has_column`; add a regression test where `Meta.has_field("creation")` is false but the database column exists.
+- The inspected Helpdesk v1.29.0/v1.30.2/v1.31.1 desk manifests require `@framework/ui` from `frappe/ui`, absent in the unmodified Frappe v16.5.0 tag; v1.31.1 also requires `Notification Type`. The exact reference lane therefore pins v1.28.0.
+- Keep moving v15/v16 coverage and the v16 Playwright E2E lane.
+
+### Per-company quotation thresholds — merged in PR #45
+
+- Add optional Company-specific threshold rows with an explicitly approved non-negative amount and currency derived from Company metadata.
+- Use the legacy site-wide threshold only when its currency exactly matches the Company's base currency; never perform implicit FX conversion.
+- If a Company's base currency changes, require the administrator to remove/re-add the row and enter a newly approved amount.
+- PR #49 binds the Currency field to the child row's fetched Company base currency so the symbol/value displays correctly before saving.
+
+### D3 Service Resolution/SLA — merged in PR #32
+
+- Add aggregate-only Frappe Helpdesk metrics from standard `HD Ticket` and `HD Service Level Agreement` metadata: rolling ticket creation/resolution cohorts, current Open/Paused backlog, native resolution duration and Fulfilled/Failed SLA outcomes.
+- Check ticket and SLA DocType read permissions independently; do not return ticket identifiers, subjects, comments, contact details or raw records to the dashboard.
+- Keep due/paused SLA states out of the Fulfilled/Failed compliance denominator and count tickets without an SLA separately.
+- Final PR #32 head `93b536abef331d8b34b5b7b570fbb280a996bfb2` passed Python 3.10/3.11/3.12/3.14, lint/static, Semgrep and Bench v15/v16. Merge commit: `43fddfbbc46cac277a48c840251a7a2c963a8eb5`.
+- PR #42 merged a fail-closed field-level guard that checks the current user's permitted HD Ticket fields and marks affected measures unavailable instead of returning zero. PR #44 additionally requires read access to the originating source DocType before source-derived notification content is queued. Target-site app-version, Sales read-only role and active SLA calendar acceptance remain open.
+
 ## 2026-11-01 — Concurrent API idempotency and digest delivery hardening (merged in PR #23)
 
 ### Changed
@@ -157,3 +245,10 @@ Included in PR #19's merge commit [a495919](https://github.com/MitMike/crm_signa
 - Await the settings form's custom-preset model update and commit the integer field before asserting the preset change.
 
 Included in PR #19's merge commit [a495919](https://github.com/MitMike/crm_signals/commit/a49591947a89b011cc1770be176c1f11571b131b); the final v16 Playwright suite passed.
+
+
+### Explorer browser coverage and operator runbook hardening — PR #61 (merged as `6ef9642`; final-head CI verified)
+- Add Playwright coverage for all five supported timeline context routes and for discarding a late response after the user changes context.
+- Correct the deployment runbook to require Company-specific base-currency thresholds (or an exact-currency legacy fallback) and add Explorer role/context smoke tests.
+- Final head `902b38e4dd4713461acfb12dc837f5b2b84da7d8` passed all eight required contexts and the pinned Frappe v16.5.0 / ERPNext v16.5.0 / Helpdesk v1.28.0 lane.
+- Keep target-site role/field-permission acceptance and optional-provider discovery separate from CI verification.

@@ -415,3 +415,242 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Rationale:** Use the database as the serialization point across processes and workers. An in-process mutex would not protect multiple Frappe workers or hosts.
 - **Consequences:** The two-connection Bench test synchronizes two workers before the lock and proves a single queue request for the same recipient/date. This does not prove delivery after the Email Queue is created or replace target-site scheduler/mail testing.
 - **Evidence:** Merged in PR #23 as `d75b7f3`; [Bench v15/v16 + Playwright](https://github.com/MitMike/crm_signals/actions/runs/41300667892), [Quality](https://github.com/MitMike/crm_signals/actions/runs/41300667996) and [Security](https://github.com/MitMike/crm_signals/actions/runs/41300667997) passed.
+
+
+## ADR-046 — Run release readiness as an evidence-gated sprint
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-01
+- **Context:** The core feature set and concurrency hardening are merged, while target-site acceptance and reliability/roadmap work remain open. A transactional outbox implementation is already under review in PR #26 and has failed its latest Frappe v15/v16 Bench validation.
+- **Decision:** Sequence work by release risk: (1) repair and validate PR #26 before merge; (2) prepare a target-site acceptance kit and execute all source-independent release checks; (3) collect target-site evidence for configuration, permissions, financial reconciliation, scheduler/mail, integration credentials and backup/restore; (4) then implement D3 and complete H under their documented source/privacy gates; (5) defer E, V and A until their dependencies are approved. Do not duplicate work already present in an open PR.
+- **Rationale:** Durable event persistence and correct retry behavior are more important to release confidence than starting additional dashboard surfaces. Site-specific values and policies must be observed, not guessed.
+- **Consequences:** PR #26 remains unmergeable until Frappe v15 and v16 Bench suites pass. Target-site sign-off remains blocked until actual installation and business evidence is recorded. Realtime notification retry is tracked separately from the source-event outbox.
+- **Evidence:** PR #26 check runs on head `a63b3b60f909ebc0e62d5bfde383aa6224ba36b2`; latest failures include `test_two_workers_enqueue_the_same_source_event_once` (MariaDB lock wait timeout), `test_two_workers_process_one_outbox_event_once` (missing source-event key in fixture), and `test_worker_filters_future_retries_before_applying_batch_limit` (missing source-event key in fixture).
+
+
+## ADR-047 — Defer outbox delivery until after the source transaction commits
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-01
+- **Context:** PR #26's two-connection enqueue race consistently timed out while the winning request attempted signal delivery before committing its outbox row. A competing request waited on the unique source-event key while the first transaction still performed delivery work.
+- **Decision:** Persist the outbox row in the source transaction, register immediate background delivery with `frappe.enqueue(..., enqueue_after_commit=True)`, and retain the once-per-minute pending-outbox scheduler as recovery if queue submission or delivery fails. Do not run signal materialization synchronously inside the source transaction.
+- **Rationale:** Keep the source event and outbox row atomic while moving nonessential delivery work outside the transaction. This should shorten unique-key lock duration and prevent delivery latency from holding competing idempotent inserts. Queue failure must not lose the durable row; the scheduler remains the fallback.
+- **Validation:** PR #26 passed Quality Checks, Security Scanning and Bench Integration/E2E on synchronized final head `222e70ec71164dab4448f7319525042323a357b4`; Frappe v15/v16 race tests verified one outbox row, one CRM Signal and one notification dispatch. All three workflows passed before squash merge `b0364a74affa823977af74d1907781d1533e60c0`.
+
+
+## ADR-048 — Use standard Frappe Helpdesk as the initial D3 source
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-02
+- **Context:** The project owner confirmed the support system is Frappe Helpdesk and that its standard/default configuration is in use. The initial SLA working-week assumption is Monday–Saturday.
+- **Decision:** Implement D3 against the standard HD Ticket and HD Service Level Agreement DocTypes. Use HD Ticket.status_category for Open/Paused/Resolved lifecycle aggregation, resolution_date and native resolution_time for resolution measures, and native agreement_status values Fulfilled/Failed for SLA compliance. Check runtime metadata and independent ticket/SLA read permissions. Return aggregate-only data. Scope created/resolved/SLA outcomes to the rolling 30-day cohort; keep current backlog unbounded by date.
+- **Calendar rule:** Monday–Saturday is the agreed initial business-week assumption, but do not overwrite Helpdesk configuration or recalculate deadlines. The active SLA's configured working-hours rows, holiday list and timezone are authoritative. A target-site mismatch must be recorded and resolved during acceptance.
+- **Rationale:** This delivers a useful adapter without fabricating SLA results or bypassing Helpdesk's own calendar and lifecycle engine.
+- **Consequences:** Sites without the Helpdesk DocTypes or required fields receive unavailable metrics. Tickets without an applicable SLA are counted separately and excluded from compliance. Paused, First Response Due and Resolution Due are excluded from the fulfilled/failed denominator. Target-site version, permissions and calendar validation remain mandatory.
+
+## ADR-049 — Treat Frappe v16.5 as the target-site compatibility baseline
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-02
+- **Context:** The deployment owner confirmed the target instance runs Frappe v16.5. The repository's automated compatibility matrix covers Frappe v15 and v16, but generic v16 coverage does not by itself prove the exact target site's installed apps, patches, customizations, permissions or configuration.
+- **Decision:** Use Frappe v16.5 as the primary target for configuration guidance, API/schema compatibility review and acceptance instructions. Retain v15 coverage as a supported compatibility matrix unless a separate product decision removes it. Do not claim live-site acceptance from CI; capture the observed Frappe, ERPNext and Helpdesk app versions before configuration and explicitly label every site-dependent check.
+- **Rationale:** A confirmed target version is stronger evidence than a generic supported-major assumption. Targeting the exact v16.5 baseline reduces ambiguity in the operator guide while preserving the existing cross-version support commitment.
+- **Consequences:** The operator guide will identify Frappe v16.5 as the expected target, request the exact patch build and ERPNext/Helpdesk app versions, and distinguish framework compatibility from site-specific acceptance. No production sign-off is implied.
+
+## ADR-050 — Provide an audited System Manager replay for terminal outbox failures
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-02
+- **Context:** The transactional signal outbox retries transient delivery failures with bounded backoff, but exhausted events remain in a terminal Failed state. Operators could inspect those rows but could not safely replay them without direct database intervention.
+- **Decision:** Add a POST-only System Manager form action that also requires read permission on CRM Signal Outbox. Lock the row and allow replay only from Failed. Atomically return it to Pending, clear the retry gate, preserve the original attempt count and last error, increment replay count, record the latest actor/time, add a document Comment for each replay, and enqueue the existing idempotent worker after commit. Require explicit UI confirmation; do not expose direct status editing.
+- **Rationale:** Manual recovery must be explicit, attributable and use the same idempotent delivery path as automatic retries. It must not erase evidence or permit a second replay while the row is Pending/Completed.
+- **Consequences:** A failed enqueue leaves a durable Pending row for the scheduled worker. The stable source-event key prevents duplicate CRM Signals. Realtime notification delivery remains a separate reliability concern.
+- **Validation:** Bench tests cover non-System-Manager denial, missing outbox read permission, replay state, preserved attempt history, audit metadata/comment and after-commit enqueue. Required Frappe v15/v16 CI remains the merge gate.
+
+
+## ADR-051 — Support explicit per-company quotation alert thresholds
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-02
+- **Context:** The first settings version applies one site-wide quotation threshold in the default Company's currency. Multi-company sites may have different base currencies and different materiality thresholds; comparing base totals against one currency's threshold is invalid.
+- **Decision:** Add an optional Company Threshold child table. Each row is keyed by Company, requires an explicitly entered non-negative threshold (including explicit zero), and derives its currency from that Company's configured default currency. Do not silently inherit the site-wide numeric amount into a new Company row. Evaluate the Quotation's base total against the matching Company row. For companies without an override, retain the legacy site-wide threshold only when its currency exactly matches the Company's base currency. Never convert currencies implicitly.
+- **Rationale:** Company-specific thresholds avoid false positives/negatives without introducing an unapproved exchange-rate source or conversion policy.
+- **Consequences:** Existing single-company configurations continue to work. Multi-company administrators should configure an override for every Company that needs a threshold distinct from the legacy site-wide value. If a Company's base currency changes, reject the stale row until the administrator removes/re-adds it and enters a newly approved amount; do not silently reinterpret the same number in a different currency.
+- **Validation:** Unit coverage verifies company-specific currency derivation and threshold selection, rejects mismatched override currencies, and preserves the exact-currency fallback. Bench migration and v15/v16 validation are the merge gate.
+
+## ADR-052 — Treat Helpdesk field-level permissions as metric availability gates
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-02
+- **Context:** Standard Frappe Helpdesk places `status_category`, `resolution_date`, `resolution_time` and `sla` at permlevel 7, and `agreement_status` at permlevel 8. Frappe v15/v16 `get_list` filters fields the current user cannot read instead of necessarily failing the query. A DocType-level read check alone can therefore turn hidden lifecycle fields into misleading zero/empty aggregates.
+- **Decision:** Before each D3 aggregate, inspect the current user's permitted HD Ticket field names at read permission level. Compute backlog, resolution and SLA metrics only when every field required by that measure is readable. Keep independent metrics available when their fields are permitted; otherwise return the measure as unavailable (`null`/availability false), never as zero. Do not automatically grant Helpdesk permlevels to Sales roles.
+- **Rationale:** Availability must reflect the data the current user is authorized to read. Silent field removal is not evidence of zero tickets, and granting permlevel 7/8 broadly may expose additional Helpdesk fields outside the aggregate dashboard.
+- **Consequences:** The operator guide must explicitly test HD Ticket field-level access for Sales User/Manager. A site may show ticket creation counts while backlog, resolution or SLA measures remain unavailable until an authorized least-privilege policy is approved.
+- **Evidence:** [Frappe v16 permitted-field filtering](https://github.com/frappe/frappe/blob/version-16/frappe/model/db_query.py) and [Frappe Helpdesk HD Ticket field permlevels](https://github.com/frappe/helpdesk/blob/main/helpdesk/helpdesk/doctype/hd_ticket/hd_ticket.json).
+
+## ADR-053 — Do not treat Frappe realtime queueing as delivery confirmation
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-02
+- **Context:** Frappe v16 `publish_realtime(after_commit=True)` queues a callback and returns before Redis publication. The after-commit flush calls `emit_via_redis`, which suppresses `redis.exceptions.ConnectionError`. The current CRM Signals try/except therefore cannot detect a Redis outage, and its `sent` count represents a queued callback rather than confirmed publication or user receipt.
+- **Decision:** Do not add retry logic by merely wrapping `frappe.publish_realtime` in another try/except, and do not describe a queued event as delivered. Keep realtime as best-effort until a durable per-recipient delivery boundary is implemented. Any future retry must persist a stable delivery ID, re-check recipient permissions, use bounded at-least-once attempts and client-side duplicate suppression, and distinguish published/attempted from human-delivered.
+- **Rationale:** A retry without a stable idempotency boundary can duplicate toasts; a retry that trusts the current API's return/exception behavior can silently lose events while claiming success.
+- **Consequences:** Superseded by ADR-058. PR #54 implements the durable per-recipient ledger, stable delivery IDs, bounded retries, permission rechecks and active-session duplicate suppression; required CI and target-site Redis/worker recovery tests remain open. Do not promise guaranteed human receipt without client acknowledgement.
+- **Evidence:** [Frappe v16 realtime implementation](https://github.com/frappe/frappe/blob/v16.5.0/frappe/realtime.py).
+
+## ADR-054 — Require source-document read access before realtime signal delivery
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-02
+- **Context:** CRM Signal notifications include a message derived from the originating Quotation/Opportunity. The existing recipient filter checked read access to the linked Lead/Customer and CRM Signal, but did not check the source document. A user could therefore receive a message containing source-derived values without permission to read the source record.
+- **Decision:** A realtime recipient must be a related owner/assignee, an enabled System User, and have read access to the CRM Signal, every linked Lead/Customer, and the originating source document when present. If source DocType/name is partially populated, fail closed. Do not send a partial message that may still contain source data.
+- **Rationale:** A notification is not an authorization grant. Requiring access to every record that can contribute content is safer than sending to a user who can read only one related record.
+- **Consequences:** Users who can read a Lead but not its source Quotation/Opportunity will not receive that source-derived notification. Manual signals without a source link continue to use the linked party and CRM Signal permissions. Target-site permission parity must include source DocTypes.
+- **Validation:** Regression tests cover a parent reader without source-document read permission and malformed partial source identity; Frappe v15/v16 CI is the merge gate.
+
+## ADR-055 — Pin an exact Frappe v16.5.0 + Helpdesk compatibility lane
+
+- **Status:** Superseded by ADR-056
+- **Date:** 2026-11-02
+- **Context:** The deployment owner confirmed Frappe v16.5 as the target. The existing CI matrix uses the moving 'version-16' branch, which verifies major-version compatibility but not the exact v16.5 patch or the installed Helpdesk schema. D3 depends on standard HD Ticket and HD Service Level Agreement metadata and Helpdesk field permlevels.
+- **Evidence:** Frappe tag [v16.5.0](https://github.com/frappe/frappe/tree/v16.5.0) requires Python >=3.14,<3.15; ERPNext tag [v16.5.0](https://github.com/frappe/erpnext/tree/v16.5.0) supports Frappe >=16.0.0,<17.0.0; Helpdesk [v1.31.1](https://github.com/frappe/helpdesk/tree/v1.31.1) supports Frappe >=15.123.1,<17.0.0 and declares Telephony as a required app; Telephony commit [9447577500a25d242088398157b72c654fa34b20](https://github.com/frappe/telephony/commit/9447577500a25d242088398157b72c654fa34b20) supports Frappe through the v16 line. Helpdesk v1.31.1 defines status_category, resolution_date, resolution_time and sla at permlevel 7, and agreement_status at permlevel 8.
+- **Decision:** Add a separate path-filtered Bench workflow pinned to Frappe v16.5.0, ERPNext v16.5.0, Helpdesk v1.31.1 and the exact Telephony commit above. Run it for application/test changes and manual dispatch, not docs-only changes. Keep the existing v15/v16 workflow and required-check contexts unchanged. The pinned workflow must install the real Helpdesk app and verify required DocTypes, field permlevels, Frappe's permitted-field API and default read-role boundaries at each relevant permlevel without reading ticket/customer records.
+- **Consequences:** The exact lane provides reproducible framework/app compatibility evidence and catches Helpdesk schema or permission-level drift on code changes without adding the installation cost to docs-only pull requests. Existing v15/v16 required-check contexts remain unchanged. It is not proof that the pilot site uses these exact app versions or has the required Sales-role permissions, SLA calendar, timezone or customizations; record the site's observed versions and run the live acceptance checklist separately.
+
+
+## ADR-056 — Pin the Helpdesk release that installs on Frappe v16.5.0
+
+- **Status:** Superseded by ADR-057
+- **Recorded:** 2026-11-02
+- **Context:** The first exact-stack workflow failed before CRM Signals tests ran. Installing Helpdesk v1.31.1 on Frappe v16.5.0 reaches `helpdesk.setup.install.after_install`, then `setup_comments_and_notifications` / `add_notification_types`, which calls `frappe.get_doc({"doctype": "Notification Type", ...})`. Frappe v16.5.0 does not ship that DocType/controller, so controller resolution raises `ImportError: No module named 'frappe.core.doctype.notification_type'`. The newer moving Frappe `version-16` branch contains Notification Type under `frappe.desk`, but that is not evidence for the exact v16.5.0 tag. Helpdesk v1.30.2 does not run this post-install Notification Type setup and its standard HD Ticket/SLA schema contains the D3 fields.
+- **Evidence:** Failed job [41360465445](https://github.com/MitMike/crm_signals/actions/runs/41360465445) log shows the full install stack and missing module. Frappe [v16.5.0 tree](https://github.com/frappe/frappe/tree/v16.5.0) lacks the Notification Type controller. Helpdesk [v1.30.2 setup](https://github.com/frappe/helpdesk/tree/v1.30.2/helpdesk/setup) installs without that step. Its HD Ticket fields `status_category`, `resolution_date`, `resolution_time`, `sla` and `agreement_status` are at permlevel 0; read roles are System Manager, Agent, Agent Manager, HD Customer and HD Customer Manager. HD Service Level Agreement read roles are System Manager and Agent Manager. Frappe v16.5.0 includes `Meta.get_permitted_fieldnames`.
+- **Decision:** Keep the exact Frappe/ERPNext v16.5.0 lane, but pin Helpdesk v1.30.2 and verify its actual field/role contract. Do not patch the framework, monkey-patch Helpdesk, skip its post-install step, or weaken the real install check to force v1.31.1 through. Keep the D3 adapter permission-aware: on v1.30.2 the fields are permlevel 0, while the adapter must continue to honor whichever field permissions the installed Helpdesk version actually defines.
+- **Rationale:** A reproducible installable stack is more useful than a nominal dependency range that fails in the real install path. The target-site operator must still capture the installed Helpdesk version; if the pilot has v1.31.1, treat it as a separate compatibility issue and do not assume the v1.30.2 lane proves it.
+- **Consequences:** The pinned lane proves compatibility for Frappe/ERPNext v16.5.0 + Helpdesk v1.30.2 only. It does not prove the pilot site's Helpdesk version, permissions or SLA configuration. Revisit if Frappe v16.5.x patch versions or Helpdesk releases change the Notification Type dependency.
+
+## ADR-057 — Pin the Helpdesk v16.5.0 reference below the framework UI dependency boundary
+
+- **Status:** Accepted
+- **Date:** 2026-11-02
+- **Context:** The exact Frappe v16.5.0 tag does not contain the frappe/ui package directory. The inspected Helpdesk v1.29.0/v1.30.2/v1.31.1 desk packages link @framework/ui to ../../frappe/ui, but the unmodified Frappe v16.5.0 tag lacks that package directory. The exact v1.30.2 reference run fails when Helpdesk's after-migrate asset build resolves vite.config.js; v1.29.0 and v1.31.1 were not separately run. Helpdesk v1.31.1 also adds an install-time Notification Type dependency absent from the tag. The v1.28.0 Helpdesk tag retains all D3-required HD Ticket fields and SLA metadata at permlevel 0, supports Frappe >=15.109.0,<17.0.0, requires Telephony, and does not import @framework/ui in its desk build.
+- **Decision:** Pin the exact Frappe v16.5.0 + ERPNext v16.5.0 compatibility workflow to Helpdesk v1.28.0 and the pinned Telephony commit. Do not patch upstream app code or skip Helpdesk asset hooks to make a mismatched stack pass. Keep the existing moving v15/v16 matrix and make the pilot operator record the exact installed patch/app versions.
+- **Consequences:** The v1.28.0 reference validates the D3 adapter against a real compatible Helpdesk schema. If the pilot uses Helpdesk v1.29.0 or newer, verify that its exact Frappe build supplies the frappe/ui package; if it uses v1.31.1, also verify the Notification Type DocType/controller. Otherwise stop and resolve the upstream version compatibility before installing. The adapter continues to inspect actual field permissions rather than hard-code permlevels.
+- **Evidence:** [Frappe v16.5.0 tree](https://github.com/frappe/frappe/tree/v16.5.0), [Helpdesk v1.28.0 desk package](https://github.com/frappe/helpdesk/blob/v1.28.0/desk/package.json), [Helpdesk v1.28.0 hooks](https://github.com/frappe/helpdesk/blob/v1.28.0/helpdesk/hooks.py), [Helpdesk v1.28.0 HD Ticket metadata](https://github.com/frappe/helpdesk/blob/v1.28.0/helpdesk/helpdesk/doctype/hd_ticket/hd_ticket.json), [Helpdesk v1.30.2 desk package](https://github.com/frappe/helpdesk/blob/v1.30.2/desk/package.json), [Helpdesk v1.31.1 install notification setup](https://github.com/frappe/helpdesk/blob/v1.31.1/helpdesk/setup/comments.py).
+
+
+## ADR-058 — Persist recipient-scoped realtime notification attempts
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-02
+- **Context:** Frappe v16 queues `publish_realtime(after_commit=True)` before Redis publication and suppresses Redis connection errors in the after-commit emitter. A synchronous try/except cannot detect those failures. Retrying without a stable identity can produce duplicate toasts, while marking a queued callback as delivered overstates the evidence.
+- **Decision:** Persist one `CRM Signal Notification Delivery` row per signal/recipient pair, keyed by a deterministic SHA-256 ID. Store only the signal link, recipient and operational delivery state; do not copy message/source content. Re-resolve the eligible recipient set and re-check the existing CRM Signal, linked-party and source-document permissions before every publish attempt. Use bounded at-least-once retries with exponential backoff. Include the stable ID in the realtime payload and suppress duplicate IDs in the active Desk session. The `Attempted` state means only that Frappe accepted the after-commit publish callback; it is not proof of Redis delivery, browser receipt or human acknowledgement.
+- **Rationale:** A durable per-recipient ledger makes unobservable Redis failures and worker restarts retryable without creating a second logical delivery. Permission revocation must stop later attempts.
+- **Consequences:** Delivery may be attempted more than once. Client deduplication applies within the active browser session; it does not provide exactly-once or cross-device human delivery. The scheduler retries at most ten times with a 60-minute delay cap; exhausted rows become Failed, and rows whose recipient is no longer eligible become Cancelled.
+- **Validation:** Bench tests cover stable identity, retry, publish failure/backoff, permission revocation and payload minimization; Playwright verifies duplicate-toast suppression. Pilot acceptance must still inject Redis unavailability and worker restart on the target site.
+
+
+## ADR-059 — Ship Explorer first with verified core ERPNext adapters only
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-02
+- **Context:** The Explorer specification calls for a Lead/Customer-centered timeline with explicit source adapters, stable event identity, deterministic pagination and source-record permission checks. The target site's installed Communication, Event, call and WhatsApp providers have not yet been inventoried. Guessing their DocTypes or fields would create false availability and could expose content outside the source application's permissions.
+- **Decision:** Implement the first backend slice for the app's own CRM Signal plus standard ERPNext Quotation and Opportunity records. Support Lead, Customer, Opportunity and CRM Signal contexts; treat a High-Value Quote CRM Signal as the current Highlight context until H has a separate data model. Do not add Communication, Event, ToDo, call or WhatsApp adapters until their installed/configured providers and exact schemas are recorded from the target site. Use permission-aware `frappe.get_list` reads, check the linked party and each source record, and omit rows/links the current user cannot read. Return only metadata and short status/type summaries; never copy message bodies, amounts, recordings or attachments. Use source DocType + source document name as the stable event identity, order by creation then source/event ID, and use a bounded snapshot cursor with per-source offsets. Keep the API read-only and compatible with Frappe v15/v16.
+- **Rationale:** The three initial sources are part of the already-supported CRM/ERPNext contract and can be tested on both supported framework lines without assuming optional integrations. A source that is absent or unreadable must remain visibly not connected/unavailable, not silently appear as an empty timeline.
+- **Consequences:** This decision defines the core adapter/API scope. The Desk entry points and initial Lead-context Playwright flow are merged in PR #59; all-context browser coverage is tracked in PR #61. Optional activity integrations and target-site source inventory remain separate follow-ups. The cursor is bound to the context, page size and current user; it stabilizes ordering against new inserts but does not freeze source updates, deletions or permission changes. Every page re-resolves context and rechecks source permissions.
+- **Revisit criteria:** Add an optional adapter only after the pilot operator records the installed app/provider, exact version, DocType, required fields, stable event ID, relationship mapping and permission contract in the target-site discovery record.
+
+
+## ADR-060 — Enforce field-level read access in Explorer adapters
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-02
+- **Context:** Frappe v15/v16 permission-aware `get_list` reads can silently omit fields that the current user cannot read at their configured permlevel. A DocType-level read check therefore does not prove that an Explorer adapter may use its relationship, filter or summary fields. ADR-052 established the same fail-closed rule for D3 Helpdesk metrics.
+- **Decision:** Before resolving a context or querying a source adapter, inspect `Meta.get_permitted_fieldnames(user=frappe.session.user, permission_type="read")`. Every field used for context resolution, filters, source selection or summaries must be readable. If a context field is not readable, reject the context as unavailable; if a source field is not readable, mark only that source unavailable. Never use Administrator/system reads or infer a missing value. The CRM Signal adapter checks only the Lead or Customer relation field used by the current timeline, plus signal type and priority.
+- **Rationale:** A field silently removed by Frappe is not a valid empty value. Explicit checks prevent misleading summaries and hidden-field inference while preserving independent sources the user can read.
+- **Consequences:** A user may see a timeline with one source unavailable while other sources remain available. The target site's Sales User/Manager field-permission matrix remains a pilot acceptance requirement; no permission level is granted automatically.
+- **Validation:** Bench tests cover unreadable Opportunity relationship fields, the High-Value Quote filter field, unreadable CRM Signal summary fields and party-specific relation selection. Retain the Frappe v15/v16 matrix and exact v16.5.0 / ERPNext v16.5.0 / Helpdesk v1.28.0 reference lane.
+
+## ADR-061 — Keep VIP escalation semantics and proposal tracking behind explicit approvals
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-02
+- **Context:** The H specification defines a high-value Quotation alert, an admin-managed VIP Customer allowlist, escalation recipients and tracked proposal-link opens. The current product behavior implements the Company-currency quotation alert and the existing permission-filtered Lead/Customer owner and active-assignee recipients. It does not define whether VIP membership changes the threshold, creates an alert for every activity, changes recipients, or only scopes proposal-link tracking. Adding fields or routing rules without resolving this would silently invent business policy. Proposal-link tracking also introduces personal-data processing and retention obligations.
+- **Decision:** Keep the current high-value Quotation behavior unchanged. Do not add a VIP allowlist or escalation-recipient field until the product owner approves (1) which events the VIP rule applies to, (2) whether VIP membership affects threshold or priority, (3) who receives escalation and whether it replaces or supplements current recipients, and (4) the cooldown/deduplication behavior. Do not implement or enable proposal-link tracking until the site owner/security/privacy approvers record the privacy notice, lawful basis/consent requirement, retained event fields, retention period, deletion process and scanner-classification policy. Never infer human intent from ambiguous or automated opens.
+- **Rationale:** Alert routing is business behavior, and link tracking is privacy-sensitive. Safe code cannot compensate for missing policy decisions.
+- **Consequences:** High-value Quotation alerts remain an independent implemented slice. VIP escalation and proposal-link tracking stay explicitly open; no extra Settings fields or link/event DocTypes are created prematurely.
+- **Revisit criteria:** A signed product decision for VIP triggers and recipient routing, and an approved privacy/retention record for proposal tracking.
+
+
+## ADR-062 — Keep Explorer authorization in the server API
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-02
+- **Context:** The Explorer Desk page is visible only to the configured Sales User, Sales Manager and System Manager roles, but a whitelisted method can be called directly without opening that page. Hiding a page or button is not an authorization boundary. The timeline contains links and metadata derived from CRM Signal, Quotation and Opportunity records.
+- **Decision:** Treat the Desk page role list as navigation and usability control only. The GET API remains the authorization boundary: authenticate the caller, resolve the context through permission-aware reads, require read access to every context/filter/summary field, and re-check permission on each source row before returning its metadata or link. Keep the API read-only; do not trust client-supplied source routes or use Administrator/system reads to fill gaps. The UI must escape every displayed value and navigate only using the authorized source DocType/name returned by the server.
+- **Rationale:** A user can invoke a whitelisted endpoint independently of Desk navigation. Authorization must therefore be enforced on every request and every source record, not inferred from the page's role metadata.
+- **Consequences:** Page-role visibility improves discoverability but does not replace DocType, field-level or row-level checks. Target-site Sales User/Manager and non-sales API tests remain required; no role or field permission is granted automatically.
+- **Validation:** The API's context/source permission tests and the v15/v16 Bench plus pinned v16.5 reference lanes remain merge gates. The UI's escaped rendering, GET-only paging and source drill-down are covered by Playwright.
+
+
+## ADR-063 — Gate Analysis and Vault on accepted metric and retention policy
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-02
+- **Context:** Analysis (A) depends on a versioned registry derived from D1/D2/D3/H definitions, and its specification requires D1/D2 target-site reconciliation before the first catalog is exposed. Vault (V) depends on stable D1/D2 definitions plus an approved source-visibility and retention policy. CI fixtures prove code behavior on reference stacks; they do not establish the pilot site's finance semantics, reporting population or retention obligations.
+- **Decision:** Do not expose Analysis query intents or enable Vault snapshot scheduling until D1/D2 definitions are reconciled against native ERPNext reports and signed by Sales/Finance, with currency basis, date windows, filters, groupings and source permissions recorded. Vault additionally requires an approved reporting population/source-visibility policy, explicit retention period, deletion/pruning owner, audit requirements and a tested dry-run boundary. After sign-off, build a versioned server-owned metric registry and deterministic intent templates; arbitrary generated SQL/Python remains prohibited. Register D3/H metrics only after their own source contracts are accepted.
+- **Rationale:** A technically correct aggregate can still be semantically wrong for a site's accounting setup or expose data outside the approved reporting population. Retention is a policy decision, not a safe default.
+- **Consequences:** A and V remain planned/blocked; no new query endpoint, snapshot DocType or scheduled capture is enabled by this decision. The existing D1/D2 dashboards remain independently usable subject to target-site acceptance.
+- **Revisit criteria:** Attach signed D1/D2 metric definitions and native-report variance evidence, the approved source DocType/field permission matrix, currency/timezone semantics, and (for Vault) the retention/deletion schedule, responsible owner, audit record and dry-run pruning results.
+
+
+## ADR-064 — Exercise D1/D2 aggregate query compatibility in Bench CI
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-02
+- **Context:** D1/D2 unit coverage uses mocked Frappe APIs. The supported-version Bench workflow installs ERPNext on Frappe v15/v16, but did not explicitly execute the Sales Compass D1/D2 aggregate query path. The pinned v16.5.0 lane called the dashboard API only to assert D3 Helpdesk metrics, leaving ERPNext D1/D2 query compatibility implicit.
+- **Decision:** Add a read-only CI smoke check that runs `get_sales_compass_data()` as Administrator after ERPNext installation on Frappe v15/v16 and the pinned Frappe v16.5.0 / ERPNext v16.5.0 / Helpdesk v1.28.0 lane. Assert that the Lead, Opportunity, Sales Invoice and Payment Entry metric sections and their required response shapes are available. Create no business records and perform no writes.
+- **Rationale:** Real metadata and database aggregation queries catch schema/API incompatibilities that mocked tests cannot. Avoiding synthetic accounting documents keeps this check independent of company/account/customer setup and prevents it from being mistaken for a financial reconciliation.
+- **Consequences:** This proves query-path compatibility on reference stacks only. It does not verify metric values, Sales User/Manager row or field visibility, custom workflows, currency conventions, or native-report reconciliation. Those remain target-site acceptance gates. A separate synthetic financial fixture may be added only when it can create valid, isolated ERPNext accounting records on both supported framework lines.
+- **Revisit criteria:** Revisit when a reusable test fixture can provision an isolated Company, chart of accounts, Customer, Item, submitted Sales Invoice and Payment Entry on Frappe v15/v16 without depending on the target site's accounting setup. Then assert invoice/POS/receipt/receivable/overdue aggregation deltas and permission behavior; keep live financial reconciliation separate.
+
+
+## ADR-065 — Avoid duplicate Bench runs on feature-branch pushes
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-02
+- **Context:** The Bench matrix ran for both `push` and `pull_request` events on the same feature-branch commit. The duplicate runs competed under separate concurrency groups; repeated branch updates produced cancelled or stale required Bench contexts, as previously observed during Explorer integration and again while validating PR #63.
+- **Decision:** Restrict the Bench Integration and E2E workflow's `push` trigger to `main`. Continue running it for every pull request and allow explicit `workflow_dispatch` on other refs. The pinned Frappe v16.5.0 workflow remains pull-request/path filtered and manually dispatchable.
+- **Rationale:** One authoritative Bench run per PR head avoids duplicate database/app installs, reduces runner contention and prevents a push-triggered duplicate from cancelling the required PR context. Main still receives a Bench run after merge.
+- **Consequences:** Feature-branch pushes no longer start a second Bench matrix; PR checks remain the merge gate. This changes CI scheduling only, not supported-version coverage.
+- **Revisit criteria:** Revisit only if a separate branch-push validation requirement is introduced that is not already satisfied by pull-request checks or main-branch pushes.
+
+
+## ADR-066 — Keep D2 source permissions independent
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-02
+- **Context:** The D2 specification requires independent read-permission checks for Sales Invoice and Payment Entry. `_get_sales_billing_data()` returned as soon as Sales Invoice metadata/read access was unavailable, suppressing customer receipts even when the requesting user had Payment Entry read access. This contradicted the source contract and the UI's independently rendered metric cards.
+- **Decision:** Evaluate Sales Invoice metrics and Payment Entry customer receipts independently. A denied or unavailable Sales Invoice source must leave invoice, POS, receivable and overdue measures unavailable, but must not prevent a permission-aware Payment Entry receipt query. If a Sales Invoice query raises `PermissionError`, clear any partial invoice results and continue with Payment Entry. Preserve the existing `billing.available` flag as the Sales Invoice source-availability indicator for compatibility; `customer_receipts_available` remains the receipt-card authority.
+- **Rationale:** The two DocTypes are distinct sources with distinct permissions and currency semantics. Suppressing a permitted Payment Entry aggregate because a different source is denied hides authorized data; bypassing either source's permission checks would be unsafe.
+- **Consequences:** A user may see customer receipts while invoice-related D2 cards show unavailable. No roles are granted, no cross-source join is added, and no financial calculation changes. Unit regression coverage runs in the supported Frappe v15/v16 test matrix.
+- **Revisit criteria:** Revisit only if the D2 response schema or source model changes. Target-site Sales User/Manager permissions and native-report reconciliation remain separate pilot acceptance.
+
+## ADR-067 — Verify D1/D2 aggregate values and source permissions with disposable Bench records
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-02
+- **Context:** ADR-064's read-only query smoke proved D1/D2 schema compatibility but did not prove aggregate deltas, transaction-currency versus party-account-currency grouping, overdue selection, POS receipt filters or the independent Sales Invoice/Payment Entry permission contract. The earlier revisit condition is now addressable on disposable Bench sites: the CI workflow can complete the ERPNext setup wizard and provision a Company, chart of accounts, Customer, Item and submitted accounting documents on Frappe v15/v16 and the pinned v16.5.0 stack.
+- **Decision:** Add a Bench-only synthetic fixture that runs the real D1/D2 API before and after creating one Lead, active and terminal Opportunities in two currencies, submitted Sales Invoices, an allocated Payment Entry and a POS-shaped invoice row. Assert exact aggregate deltas, currency groups, party-account-currency receivables, overdue drill-down and a dedicated user who can read Payment Entry but not Sales Invoice. Commit only the one-time ERPNext setup baseline; roll back every synthetic record and permission change. Model the POS aggregate fields directly and explicitly do not claim to test POS settlement or the accounting workflow.
+- **Rationale:** Real DocTypes, MariaDB aggregation and Frappe permission checks provide stronger evidence than mocks while keeping all business records isolated from a target site. A USD invoice against the Company's INR receivable account verifies that invoice value and outstanding balance use different currency bases.
+- **Consequences:** The fixture runs in the Frappe v15/v16 Bench matrix and the exact Frappe v16.5.0 / ERPNext v16.5.0 / Helpdesk v1.28.0 lane. It is CI evidence for query values and DocType-level source permissions only; it is not a native-report reconciliation, POS workflow test, Sales User/Manager role approval or pilot sign-off.
+- **Revisit criteria:** Revisit if supported ERPNext versions change the Sales Invoice/Payment Entry lifecycle, if the disposable setup cannot be rolled back cleanly, or if the D1/D2 response contract changes. Keep target-site finance reconciliation and role/field-permission acceptance open.
+
+## ADR-068 — Provide a non-whitelisted, read-only target-site preflight report
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-02
+- **Context:** The v16.5 operator kit requires a repeatable inventory of installed app versions, Company currencies and thresholds, workflow statuses, support DocTypes/fields, and static role permissions. The existing D3 worksheet script discovers support metadata but leaves most of the release preflight manual. The repository has no authorized target-site session, so no live configuration or permission result can be inferred here.
+- **Decision:** Add a bench-execute-only diagnostic function that returns a bounded metadata/configuration report. It must not be whitelisted as an HTTP method, create/update/delete records, read Lead/Customer/ticket/invoice/payment rows, include API credentials or recipient email addresses, or change settings. Include installed app versions when importable, Company base currencies and configured threshold source/amount/currency, site timezone, configured Opportunity statuses and relevant DocType/field/permlevel metadata. Show static DocPerm role grants separately from effective user access; never present them as permission-parity proof.
+- **Rationale:** A reproducible, metadata-only report reduces operator transcription errors without granting a new remote data-export surface or guessing site-specific policy. Explicitly separating static role grants from effective user checks prevents the report from being mistaken for acceptance evidence.
+- **Consequences:** The command is available only to a Bench operator with server-side access. The output is an inventory aid, not a pass/fail certification; an authorized operator must still run the target-site persona matrix, native-report reconciliation, SLA calendar checks and operational rehearsal. The report exposes Company names and configured threshold amounts to the operator, so it must be reviewed and shared only through the site's approved channel.
+- **Revisit criteria:** Revisit if a whitelisted self-service diagnostics endpoint is requested, if new data categories are proposed, or if the Frappe/ERPNext metadata APIs change. Any remote endpoint or expansion into transactional/customer data requires a separate security and privacy decision.

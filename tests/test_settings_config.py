@@ -1,8 +1,10 @@
 """Unit tests for CRM Signals configuration parsing and presets."""
 
 import importlib
+import json
 import sys
 import types
+from pathlib import Path
 
 
 def load_settings(monkeypatch):
@@ -53,6 +55,91 @@ def test_company_currency_comes_from_company_metadata(monkeypatch):
     assert settings.get_company_default_currency("Example Ltd") == "USD"
 
 
+def test_company_threshold_rows_derive_company_currency(monkeypatch):
+    settings = load_settings(monkeypatch)
+    frappe = sys.modules["frappe"]
+    currencies = {"Default Company": "USD", "Company A": "USD", "Company B": "EUR"}
+    frappe.db.get_value = lambda doctype, name, field=None, **kwargs: currencies.get(name) if doctype == "Company" else None
+    rows = [
+        types.SimpleNamespace(company="Company A", quotation_threshold=100000, currency=None),
+        types.SimpleNamespace(company="Company B", quotation_threshold=50000, currency=None),
+    ]
+    doc = types.SimpleNamespace(
+        quotation_threshold=200000, threshold_currency=None, company_thresholds=rows,
+        enable_quotation_signals=1, enable_opportunity_signals=1,
+        opportunity_trigger_statuses="Replied", lead_stale_days=3,
+        digest_time="08:30:00", digest_extra_recipients="",
+    )
+    settings.validate_settings_document(doc)
+    assert [row.currency for row in rows] == ["USD", "EUR"]
+
+
+def test_company_threshold_requires_an_explicit_amount(monkeypatch):
+    settings = load_settings(monkeypatch)
+    frappe = sys.modules["frappe"]
+    currencies = {"Default Company": "USD", "Company A": "USD"}
+    frappe.db.get_value = lambda doctype, name, field=None, **kwargs: (
+        currencies.get(name) if doctype == "Company" else None
+    )
+    row = types.SimpleNamespace(
+        company="Company A",
+        quotation_threshold=None,
+        currency=None,
+    )
+    doc = types.SimpleNamespace(
+        quotation_threshold=200000,
+        threshold_currency=None,
+        company_thresholds=[row],
+        enable_quotation_signals=1,
+        enable_opportunity_signals=1,
+        opportunity_trigger_statuses="Replied",
+        lead_stale_days=3,
+        digest_time="08:30:00",
+        digest_extra_recipients="",
+    )
+
+    try:
+        settings.validate_settings_document(doc)
+    except frappe.ValidationError as error:
+        assert "explicitly set" in str(error)
+    else:
+        raise AssertionError("A Company threshold row must require an explicit amount")
+
+
+def test_company_currency_change_requires_threshold_reapproval(monkeypatch):
+    settings = load_settings(monkeypatch)
+    frappe = sys.modules["frappe"]
+    currencies = {"Default Company": "USD", "Company A": "EUR"}
+    frappe.db.get_value = lambda doctype, name, field=None, **kwargs: (
+        currencies.get(name) if doctype == "Company" else None
+    )
+    row = types.SimpleNamespace(
+        company="Company A",
+        quotation_threshold=100000,
+        currency="USD",
+    )
+    doc = types.SimpleNamespace(
+        quotation_threshold=200000,
+        threshold_currency=None,
+        company_thresholds=[row],
+        enable_quotation_signals=1,
+        enable_opportunity_signals=1,
+        opportunity_trigger_statuses="Replied",
+        lead_stale_days=3,
+        digest_time="08:30:00",
+        digest_extra_recipients="",
+    )
+
+    try:
+        settings.validate_settings_document(doc)
+    except frappe.ValidationError as error:
+        message = str(error).casefold()
+        assert "currency changed" in message
+        assert "remove and re-add" in message
+    else:
+        raise AssertionError("A Company currency change must require threshold reapproval")
+
+
 def test_extra_digest_recipient_must_be_an_enabled_system_user(monkeypatch):
     settings = load_settings(monkeypatch)
     frappe = sys.modules["frappe"]
@@ -64,6 +151,7 @@ def test_extra_digest_recipient_must_be_an_enabled_system_user(monkeypatch):
     doc = types.SimpleNamespace(
         quotation_threshold=200000,
         threshold_currency=None,
+        company_thresholds=[],
         enable_quotation_signals=1,
         enable_opportunity_signals=1,
         opportunity_trigger_statuses="Replied",
@@ -148,3 +236,18 @@ def test_missing_settings_fail_closed_until_an_administrator_enables_the_app(mon
     assert values["enabled"] is False
     assert values["enable_external_ingestion"] is False
 
+
+def test_company_threshold_currency_field_uses_row_currency():
+    path = (
+        Path(__file__).resolve().parents[1]
+        / "crm_signals"
+        / "crm_signals"
+        / "doctype"
+        / "crm_signal_company_threshold"
+        / "crm_signal_company_threshold.json"
+    )
+    doctype = json.loads(path.read_text(encoding="utf-8"))
+    fields = {field["fieldname"]: field for field in doctype["fields"]}
+
+    assert fields["quotation_threshold"]["options"] == "currency"
+    assert fields["currency"]["fetch_from"] == "company.default_currency"

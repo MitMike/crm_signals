@@ -1,6 +1,10 @@
 # E — Explorer and customer interaction timeline
 
-**Status:** Design specified; integration adapters and target-site source inventory remain.
+**Status:** Core backend merged in PR #57 as `ba631720`; Desk page and form entry points merged in PR #59 as `6b381fe`; five-context browser coverage and operator-runbook hardening merged in PR #61 as `6ef9642`. PR #61 final head `902b38e4dd4713461acfb12dc837f5b2b84da7d8` passed the v15/v16 Bench + Playwright matrix, all required checks and pinned Frappe v16.5.0 lane. Optional-source inventory and target-site role/context acceptance remain.
+
+The first release is deliberately limited to CRM Signal, Quotation and Opportunity. It supports Lead/Customer/Opportunity/CRM Signal contexts and treats a High-Value Quote CRM Signal as the current Highlight context. Communication, Event, ToDo, call and WhatsApp adapters are deferred until their installed providers and exact schemas are observed on the target site (ADR-059).
+
+The implemented Desk page shows safely escaped metadata summaries, source availability states and authorized source navigation. It fetches the timeline with GET cursor pagination and ignores late responses from a prior context after navigation. PR #59's Playwright test covers authenticated Lead-context loading, paging and source drill-down. PR #61 adds and CI-verifies a browser matrix for Lead, Customer, Opportunity, CRM Signal and Highlight routes plus a late-response regression. Static contract tests cover the form action registrations. The browser suite does not click every form action against real pilot documents or prove target-site role visibility; those remain acceptance checks.
 
 ## Problem and users
 
@@ -46,6 +50,7 @@ Deduplicate by source ID plus stable source event ID. Do not deduplicate solely 
 ## Permissions and availability
 
 - Fetch through permission-aware source APIs or adapter-specific permission checks.
+- Check field-level read access for every field used to resolve a context, apply a filter, select a source row or build a summary. Frappe may silently omit fields the user cannot read.
 - Re-check read permissions before rendering a source link.
 - A source that is not installed/configured is "not connected"; a source with no matching activity is an empty result; a source denied by permission is unavailable. These states are distinct.
 - Never fall back to Administrator/system permission bypass for a user timeline.
@@ -65,6 +70,7 @@ Deduplicate by source ID plus stable source event ID. Do not deduplicate solely 
 | E-AC8 | Timeline opens from Lead, Customer, Opportunity, Signal and Highlight contexts | Playwright E2E |
 | E-AC9 | All timestamps display consistently in the site timezone | Timezone tests |
 | E-AC10 | Frappe v15 and v16 are supported for each installed adapter | Bench matrix |
+| E-AC11 | Hidden context/filter/source fields fail closed without being treated as empty values | Role-specific Bench tests |
 
 ## Dependencies and rollout
 

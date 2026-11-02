@@ -1,32 +1,38 @@
 # Project Progress
 
-**Last reviewed:** 2026-11-01  
+**Last reviewed:** 2026-11-02  
 **Repository:** [MitMike/crm_signals](https://github.com/MitMike/crm_signals)  
-**Main baseline:** [d75b7f3](https://github.com/MitMike/crm_signals/commit/d75b7f3591d2a863b0af6b8f88ad2a91e9bfd25f)  
-**Completed implementation:** PR #19 delivered settings/presets and core idempotency; PR #21 validated the legacy-schema migration; [PR #23](https://github.com/MitMike/crm_signals/pull/23) merged as [d75b7f3](https://github.com/MitMike/crm_signals/commit/d75b7f3591d2a863b0af6b8f88ad2a91e9bfd25f), closing concurrent API-idempotency and digest-queue races.  
-**Next acceptance:** target-site validation and the explicitly deferred reliability/roadmap work remain open; green CI does not constitute production sign-off.
+**Latest main:** [2cc7725](https://github.com/MitMike/crm_signals/commit/2cc7725d4e36f53d492139187fa6cd9adf663f0f) (PR #68 documentation reconciliation); **latest functional baseline:** [84ab2ce](https://github.com/MitMike/crm_signals/commit/84ab2ce0b4ce1a9614882635e4c085092cf2a0c5)  
+**Completed implementation:** PR #19 delivered settings/presets and core idempotency; PR #21 validated the legacy-schema migration; PR #23 closed concurrent API-idempotency and digest-queue races; PR #26 merged the transactional signal outbox; PR #32 merged the standard Frappe Helpdesk D3 adapter; PR #38 merged audited Failed-row replay; PR #42 merged D3 field-level permission hardening; PR #44 merged source-document notification authorization; PR #45 merged per-Company quotation thresholds; PR #49 corrected Company-currency display/fetch; PR #50 fixed the D3 system creation-column guard and added the exact Frappe v16.5.0 / Helpdesk v1.28.0 compatibility lane; PR #51 merged the Frappe v16.5 pilot operator kit; PR #53 merged the D3 aggregate fixture; PR #54 merged durable per-recipient realtime retry; PR #55 merged the staging realtime-recovery acceptance checks; PR #56 merged the pilot-status reconciliation as `704997e88a52071c15f95e5985703dc00bc10f03`; PR #57 merged the Explorer core API as `ba6317204784868a39d7c91ead01959663c9a33a`; PR #59 merged the Explorer Desk UI as `6b381fe4c7164c099cbd841086bf79566cb72ed1`; PR #61 merged five-context browser coverage and operator-runbook hardening as `6ef9642b63c24053fb437f67d9d4fb47e360c80a`; PR #62 reconciled post-Explorer status/decision records as `aeea9599b11f17bff0ef5bbd7904f44f23567e3e`; PR #63 merged read-only D1/D2 query-contract Bench smoke coverage as `0a7de966ea0639c86a59d7df28dbad343fa13488`; PR #65 fixed independent Payment Entry source permissions and merged as `0cfeda4fb39f79722fdf733abd06a3460ebcdd4d`; PR #66 reconciled the plan/progress/decision/follow-up records and merged as `e82c34f1afee054b2103d316c06a078290b97a39`; PR #67 added the D1/D2 synthetic aggregate-value fixture and merged as `84ab2ce0b4ce1a9614882635e4c085092cf2a0c5`; PR #68 reconciled D1/D2 progress and operator records and merged as `2cc7725d4e36f53d492139187fa6cd9adf663f0f`  
+**Next acceptance:** complete the target-site Frappe v16.5 pilot: exact app versions, per-Company threshold amounts/currencies, the custom read-only Helpdesk role, D1/D2 reconciliation, Helpdesk SLA calendar, scheduler/mail/realtime, and backup/restore/rollback. CI-verified work is not pilot-verified.
 
 This file is the operational source of truth. [IMPLEMENTATION_PLAN.md](../IMPLEMENTATION_PLAN.md) is the roadmap, [DECISIONS.md](DECISIONS.md) is the durable decision register, [FOLLOW_UPS.md](FOLLOW_UPS.md) tracks deferred issues, and [specs/](../specs/) holds feature contracts.
 
 ## Current status
 
-| Workstream | Status | Evidence / next action |
-|---|---|---|
-| CRM Signals core | Implemented; PR #19 merged | Target-site permission, upgrade and deployment checks remain |
-| Signals Console | Implemented | Validate actual target-site roles and list/form/report/export/API behavior |
-| D1 Sales Compass | Implemented; correctness fix merged | PR #17 merged as `fed496f`; target-site workflow/status validation remains |
-| D2 Billing Realization | Implemented; safety fix merged | PR #17 requires `is_return` for return-sensitive measures; target-site financial reconciliation remains |
-| File/function standards | Merged | PR #18 merged as `f51fbce`; limits, checker, pre-commit and CI enforcement are on main |
-| Settings + presets | Merged in PR #19 | Settings singleton, validation, Balanced/Sales Focused/Executive presets and administrator guide; confirm target-site defaults before activation |
-| Event identity/idempotency | Runtime merged in PR #19; migration rehearsal merged in PR #21; concurrent recovery merged in PR #23 | Unique SHA-256 source-event key; legacy-schema migration passed on Frappe v15/v16; final two-connection API race test passed on both supported versions. One created response, one deduplicated response and one notification dispatch. |
-| Digest hardening | Core merged in PR #19; cross-worker serialization merged in PR #23 | Site-timezone schedule, permission-aware per-user email and per-recipient queue markers; Settings row lock plus recheck prevents overlapping workers queuing the same recipient/date; v15/v16 Bench tests passed. Target-site scheduler/mail acceptance remains open. |
-| Notification failure isolation | Merged in PR #19 | Recipient failures are logged and do not block other recipients or source-document saves; automated retry/outbox remains deferred |
-| D3 Service Resolution/SLA | Specified; not implemented | Discover target-site support/SLA application and source semantics before adapter implementation |
-| H Highlights | Partial/planned | Finish idempotent events, recipient controls, verified proposal tracking and privacy approval |
-| E Explorer | Planned | Inventory installed activity integrations and implement only verified source adapters |
-| V Vault | Planned | Approve metric registry, source visibility and retention before enabling snapshots |
-| A Analysis | Planned | Approved metric registry and constrained server-owned queries; no model-generated SQL |
-| Repository security/CI | Merged | PR #11 security/dependency hardening; PR #18 maintainability guardrails; main ruleset active |
+## Read-only target-site preflight report — code-complete, CI pending
+
+ADR-068 is recorded. PR #70 adds a non-whitelisted Bench diagnostic and unit coverage for app-version discovery, Company currency/threshold reporting without FX conversion, active Lead/Opportunity workflow states, required DocType fields, Select options, static DocPerm rows, missing D3 fields and omission of digest recipient addresses. The command performs metadata/configuration reads only; it does not read transaction, ticket or customer rows or write data.
+
+**State:** code-complete in PR #70 at head 8a599940; Quality, Security/Semgrep, Frappe v15/v16 Bench and pinned v16.5.0 checks are running. Do not call this CI-verified or pilot-verified until final-head checks pass and an authorized operator runs it on the target site. The report is an inventory aid, not an effective-permission or production-acceptance result.
+
+## D2 source-permission isolation — PR #65 merged
+
+**Status: merged and CI-verified.** The billing API now evaluates Payment Entry receipts even when Sales Invoice read access is denied, resets partial invoice results after an invoice `PermissionError`, and preserves the existing `billing.available` meaning (Sales Invoice source availability). Regression tests cover both denied Sales Invoice access and a query-level permission exception while Payment Entry remains readable. Final-head Quality, Security/Semgrep, Python 3.10/3.11/3.12/3.14, Bench v15/v16 and pinned Frappe v16.5.0 / ERPNext v16.5.0 / Helpdesk v1.28.0 checks passed. Merge commit: `0cfeda4`. Target-site permission parity and finance reconciliation remain pilot gates.
+
+
+## D1/D2 synthetic aggregate-value fixture — PR #67 merged (CI-verified)
+
+**Status: CI-verified.** The disposable Bench fixture completes the ERPNext setup wizard when needed, provisions a Customer and non-stock Item, creates a Lead and three Opportunities (including a terminal status and two currencies), submits four Sales Invoices and an allocated Payment Entry, and asserts D1/D2 aggregate deltas against a pre-fixture baseline. It also creates a dedicated Payment Entry reader with no Sales Invoice read permission to exercise the split-source behavior through real Frappe permissions. Final PR head `cfd7c5ec64786e394374d31ba7b89354565a2070` passed all 15 check runs: Quality, Security/Semgrep, Python 3.10/3.11/3.12/3.14, Frappe v15/v16 Bench and the pinned Frappe v16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 lane. Merged to main as `84ab2ce0b4ce1a9614882635e4c085092cf2a0c5`.
+
+The USD invoice is deliberately posted against the Company's INR receivable account so invoice value and outstanding balance are checked against their separate currency bases. The POS-shaped row sets the persisted `is_pos`, `paid_amount` and `outstanding_amount` fields directly; POS payment workflow/accounting is not tested. The one-time setup-wizard baseline is committed to the disposable CI database, but all synthetic records and temporary permissions are rolled back. This is not financial reconciliation or pilot acceptance.
+
+**Next gate:** target-site native-report reconciliation, actual Sales User/Manager permissions, and operational pilot acceptance.
+
+
+**D1/D2 Bench query-contract coverage — PR #63 merged (2026-11-02):** The real Sales Compass API now runs read-only in the Frappe v15/v16 Bench matrix and the pinned Frappe v16.5.0 / ERPNext v16.5.0 / Helpdesk v1.28.0 lane. The PR's final-head Quality, Security, Semgrep, Python, Bench v15/v16 and pinned-target checks passed. This verifies query/schema compatibility only; it does not establish financial totals, role-specific target-site visibility or native-report reconciliation. Merge commit: `0a7de966`.
+
+
 
 ## Completed reliability hardening — PR #23
 
@@ -61,6 +67,15 @@ GitHub ruleset [Protect main](https://github.com/MitMike/crm_signals/rules/26282
 - Dependency Security Audit is active, but is not one of the eight required branch contexts.
 
 [Issue #12](https://github.com/MitMike/crm_signals/issues/12) was closed after ruleset verification.
+
+
+## Durable transactional signal outbox — PR #26 merged
+
+- PR [#26](https://github.com/MitMike/crm_signals/pull/26) merged to `main` as `b0364a74affa823977af74d1907781d1533e60c0`.
+- Final synchronized head: `222e70ec71164dab4448f7319525042323a357b4` (based on main after PR #28).
+- Quality Checks, Security Scanning and Bench Integration/E2E all passed on that exact head; Bench covered Frappe v15/v16 and the concurrent enqueue/process idempotency cases.
+- Source events and outbox rows commit atomically; delivery is queued after commit, with the scheduled pending-event worker retained as recovery. Retry is bounded and terminal failures are visible to System Managers.
+- **Still open:** audited operator replay for terminal Failed rows (PR #38 merged) and durable realtime notification retry. These are not included in the merged outbox scope.
 
 ## Stage 1 — release readiness and core hardening
 
@@ -103,9 +118,9 @@ GitHub ruleset [Protect main](https://github.com/MitMike/crm_signals/rules/26282
 ## Explicitly deferred
 
 See [FOLLOW_UPS.md](FOLLOW_UPS.md) for issues that should not be silently treated as complete:
-- Retryable outbox/reconciliation for signal-creation failures. Current hooks log failures and preserve the source transaction; they do not yet guarantee automatic retry after a transient database failure.
-- Per-company quotation thresholds for multi-company sites with different base currencies.
-- D3 source discovery, H privacy/consent decisions, E integration inventory, V retention and A metric-registry work.
+- Target-site acceptance for durable realtime retry (engineering implementation in PR #54); audited terminal Failed-row replay for the transactional signal outbox is merged in PR #38.
+- Multi-company quotation thresholds merged in PR #45; target-site Company amounts and exact-currency fallback approval remain; no implicit FX conversion.
+- D3 field-level permission hardening and target-site acceptance; H privacy/consent decisions, E integration inventory, V retention and A metric-registry work.
 
 ## Completed branch work — PR #21
 
@@ -133,3 +148,21 @@ For each change:
 4. Update [CHANGELOG.md](../CHANGELOG.md) for user-visible or operationally significant changes.
 5. Reconcile this file after merge and attach commit/CI evidence.
 6. Put blocked or intentionally deferred work in [FOLLOW_UPS.md](FOLLOW_UPS.md), with an owner/trigger and reason.
+
+
+## D3 adapter merged — Frappe Helpdesk
+
+- Merge: PR #32 as `43fddfbbc46cac277a48c840251a7a2c963a8eb5`; CI verified on Frappe v15/v16.
+- Source schema verified against Helpdesk v1.28.0 reference: HD Ticket, HD Ticket Status, HD Service Level Agreement; ticket fields include status_category, resolution_date, resolution_time, sla and agreement_status at permlevel 0. Later Helpdesk releases may move fields to higher levels.
+- API aggregates ticket creation, current Open/Paused backlog, resolved cohort, native resolution duration and SLA fulfilled/failed outcomes. Ticket and SLA permissions are checked independently; payload contains no ticket subjects, comments, contacts or identifiers.
+- SLA outcome counts use the same rolling 30-day created-ticket cohort; only Fulfilled/Failed are eligible. No-SLA tickets are counted separately.
+- Monday–Saturday is the agreed business-week assumption; configured Helpdesk SLA hours and holiday lists are not overridden.
+- Field-level fail-closed permission guard merged in PR #42; exact Frappe v16.5.0/ERPNext v16.5.0/Helpdesk v1.28.0 CI merged and passed in PR #50. Pilot-site versions and role/SLA acceptance remain. The first run exposed a malformed MariaDB client config; the here-doc correction is in place.
+- Remaining: capture the pilot site's exact app versions, configure the approved custom read-only Helpdesk role for Sales, and verify the active SLA calendar, hours and holiday list.
+
+
+## Resolved PR #57 merge gate — cancelled duplicate Bench checks
+
+- **Evidence:** GitHub rejected the earlier merge attempt on head `7f9d840226e6d6db1a435b8c1cc629e70dc63eca` because two required Bench contexts were cancelled by a push run on the stacked Desk branch. A new unique head `dda6eb88c0e8735645018de60275d9cf55d2d99d` then passed all eight required contexts and the pinned Frappe v16.5.0 / ERPNext v16.5.0 / Helpdesk v1.28.0 lane; PR #57 merged as `ba631720`.
+- **Decision:** Do not bypass the main ruleset or retry stale shared-SHA runs. The original stacked PR #58 was closed unmerged; PR #59 is its clean replacement based on `main`.
+- **Revisit criteria:** No further action is required for PR #57. If a future PR produces duplicate or cancelled contexts, inspect the push and pull-request run sources and require successful final-head contexts before merging. Never bypass branch protection.

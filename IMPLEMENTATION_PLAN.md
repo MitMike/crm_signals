@@ -1,8 +1,8 @@
 # CRM Signals — Product and Engineering Delivery Plan
 
-**Last reviewed:** 2026-11-01  
+**Last reviewed:** 2026-11-02  
 **Repository:** [MitMike/crm_signals](https://github.com/MitMike/crm_signals)  
-**Supported framework target:** Frappe / ERPNext v15 and v16
+**Supported framework coverage:** Frappe / ERPNext v15 and v16. **Primary deployment target:** Frappe v16.5; record the exact patch/build and installed ERPNext/Helpdesk versions.
 
 This is the execution plan and source of truth for delivery order, scope, dependencies, acceptance gates and exit criteria. The operational state is maintained in [docs/PROGRESS.md](docs/PROGRESS.md); durable choices are in [docs/DECISIONS.md](docs/DECISIONS.md); feature contracts are in [specs/](specs/).
 
@@ -31,19 +31,20 @@ The following capabilities are present in the repository. "Implemented" means th
 | Capability | Code status | Remaining acceptance |
 |---|---|---|
 | Frappe app packaging and Pilot discovery metadata | Implemented | Run the actual Pilot import flow on the intended site |
+| Read-only target-site preflight inventory | PR #70 code-complete; final-head CI pending | Run on the authorized v16.5 target and review the report; effective user permissions and site acceptance remain manual |
 | CRM Signal DocType and validation | Implemented | Validate installed schema, roles and customizations |
 | Authenticated POST ingestion | Event-ID idempotency and concurrent duplicate recovery merged in PR #19/#23 | Verify with a dedicated target-site integration user and deployment rate limits |
-| Quotation and Opportunity event hooks | Implemented; settings/idempotency merged in PR #19 | Confirm target-site status and threshold policy; durable outbox remains deferred |
+| Quotation and Opportunity event hooks | Implemented; transactional outbox merged in PR #26 | Confirm target-site status/threshold policy; audited Failed-row replay merged in PR #38; per-company thresholds are in PR #45 merged |
 | Record-level Signal permissions | Implemented | Verify list, direct form, report, export and API on target roles |
-| Recipient-scoped realtime notifications | Implemented | Validate target-site assignments/permissions and failure isolation |
+| Recipient-scoped realtime notifications | Implemented and CI-verified; PR #54 merged as `37ce600` | Stable delivery IDs, bounded retry, current permission rechecks and active-session dedupe; target-site Redis/worker recovery remains unverified |
 | Daily CRM digest | Per-recipient queue tracking and cross-worker serialization merged in PR #19/#23 | Verify target-site semantics, timezone, recipient policy and live scheduler/mail behavior |
 | CRM Signals Settings | Implemented and merged in PR #19 | Confirm the default Company currency, preset behavior and selected site configuration |
 | CRM Signals Desk Console | Implemented | Target-site permission and usability smoke test |
-| D1 Sales Compass | Implemented; missing-status fix merged in PR #17 | Verify target-site status semantics and role visibility |
-| D2 Billing Realization | Implemented; return-metadata guard merged in PR #17 | Reconcile totals and currency basis against target-site reports |
-| D3 Service Resolution/SLA | Not implemented | Discover and map the installed support/SLA source first |
-| H Highlights | Partially present for quote events | Settings/idempotency foundation merged in PR #19/#23; VIP link tracking still needs privacy/consent and retention approval |
-| E Explorer | Not implemented | Verify installed activity integrations and source adapters |
+| D1 Sales Compass | Implemented; PR #63 query-contract smoke and PR #67 synthetic Lead/Opportunity aggregate fixture are merged/CI-verified on Frappe v15/v16 and pinned v16.5.0 (PR #67 merge `84ab2ce`) | Verify target-site workflow/status semantics and role visibility |
+| D2 Billing Realization | Implemented; PR #63 query smoke, PR #65 independent source-permission fix and PR #67 synthetic invoice/POS/receipt/receivable/overdue fixture are merged/CI-verified on Frappe v15/v16 and pinned v16.5.0 (PR #67 merge `84ab2ce`) | Reconcile totals/currency and validate Sales User/Manager permissions on the target site |
+| D3 Service Resolution/SLA | Standard Frappe Helpdesk adapter and field-level guard merged in PR #32/#42; moving v15/v16 CI and exact Frappe v16.5.0 / ERPNext v16.5.0 / Helpdesk v1.28.0 reference lane passed in PR #50 | Confirm the pilot site's exact app versions, Sales read-only role/field permissions and active SLA calendar |
+| H Highlights | Partial; high-value Quotation events exist | Per-company threshold behavior merged in PR #45; target-site amounts and currency fallback still require approval. VIP allowlist/escalation and proposal-link tracking remain; tracking is gated on privacy/consent and retention approval |
+| E Explorer | Core API, Desk UI and five-context browser coverage merged in PR #57/#59/#61; final-head CI verified | Target-site role/field-permission acceptance and optional-provider inventory remain |
 | V Vault | Not implemented | Metric registry, retention and source-visibility policy |
 | A Analysis | Not implemented | Approved metric/query registry and constrained intent mapping |
 
@@ -121,44 +122,50 @@ PR #23 merged as [d75b7f3](https://github.com/MitMike/crm_signals/commit/d75b7f3
 
 **Verification passed on final PR head `7ed0860`:** [Bench v15/v16 + Playwright](https://github.com/MitMike/crm_signals/actions/runs/41300667892), [Quality Checks](https://github.com/MitMike/crm_signals/actions/runs/41300667996) and [Security Scanning](https://github.com/MitMike/crm_signals/actions/runs/41300667997). Merge commit: `d75b7f3`.
 
-The first release uses one site-wide threshold currency. Multi-company overrides, durable signal outbox/reconciliation and durable realtime retry remain explicitly deferred in docs/FOLLOW_UPS.md. Target-site values and production security remain external acceptance gates.
+The transactional signal outbox is merged in PR #26 and CI-verified on Frappe v15/v16. Audited Failed-row replay merged in PR #38. Durable per-recipient realtime notification retry merged in PR #54 as `37ce600`; final head `f1cbd3e` passed all eight required checks and the exact Frappe v16.5.0/ERPNext v16.5.0/Helpdesk v1.28.0 lane. Target-site Redis/worker/scheduler acceptance remains open. Company-specific quotation thresholds merged in PR #45; PR #49 fixes the child-row currency display/fetch behavior. The legacy site-wide threshold is a fallback only on an exact Company-currency match, with no implicit FX conversion. Target-site values, field-level permissions and production security remain external acceptance gates.
 
 ### Stage 2 — D3 Service Resolution/SLA
 
 **Priority:** P1  
-**Dependencies:** Stage 1 target-site discovery and source permission review.
+**Dependencies:** Stage 1 permission contract; owner-confirmed standard Frappe Helpdesk source; target-site version, field-level permission and SLA-calendar acceptance.
 
 Work:
-- Inventory installed support applications and authoritative ticket/SLA DocTypes.
-- Map ticket status, creation timestamp, resolution timestamp, SLA deadline/outcome, pause state, business calendar, timezone and permissions.
-- Implement source-specific adapters behind a normalized D3 metric contract.
+- Verify the target site has the standard `HD Ticket` and `HD Service Level Agreement` schema; record exact app versions and required fields.
+- Map ticket lifecycle, resolution timestamp, native SLA outcomes, pause behavior, business calendar, timezone and DocType/field-level permissions.
+- Maintain the merged Helpdesk adapter behind a normalized D3 metric contract; unavailable fields must remain unavailable, never silently become zero.
 - Add permission-aware ticket volume, open backlog, resolutions, resolution duration and SLA compliance.
 - Keep missing/unsupported sources visibly unavailable.
 
 Exit criteria:
-- [ ] D3 discovery map is completed against the target site.
-- [ ] Business owner approves cohort and SLA definitions.
-- [ ] Unit and Bench tests cover lifecycle, pause/calendar behavior, permissions and edge cases.
-- [ ] Dashboard and Playwright tests cover values, unavailable and empty states.
-- [ ] Frappe/ERPNext v15 and v16 CI remains green.
+- [ ] Target-site record confirms Frappe v16.5 patch, ERPNext/Helpdesk versions and required DocTypes/fields.
+- [ ] Business owner approves created/resolved cohorts and SLA denominator semantics.
+- [ ] Sales User/Manager DocType and field-level permissions are tested; missing fields show unavailable.
+- [ ] Active SLA working hours, holiday list and timezone are verified against the Monday–Saturday assumption.
+- [x] Initial adapter unit/Bench v15/v16 and dashboard coverage passed in PR #32.
+- [x] Field-level permission hardening merged in PR #42 and passed Bench v15/v16; target-site role policy remains open.
 
 ### Stage 3 — H Highlights
 
 **Priority:** P1  
 **Dependencies:** Stage 1 settings, recipient permissions and idempotency.
 
+**Current implementation:** High-value Quotation alerts and Company-specific base-currency thresholds are implemented (PR #45/#49). The hook compares the Company base total with the Company threshold, falls back to transaction total only on an exact currency match, emits on submission at `>=` threshold and preserves the Quotation transaction amount in the message. Current recipients remain the linked party owner and active ToDo assignees, constrained to enabled System Users with read permission. PR #60 adds direct hook-level regression coverage. VIP membership and escalation routing are not defined well enough to implement safely; ADR-061 records the required product decision. Proposal-link tracking remains blocked by privacy/consent and retention approval.
+
 Work:
-- Make high-value quotation threshold configurable in Company default currency.
-- Reuse CRM Signals for the quote alert and preserve source links.
-- Add VIP Customer allowlist and escalation routing.
-- Add first-party proposal-link tokens stored as hashes; support expiry and revocation.
-- Accept stable provider event IDs; deduplicate opens and throttle alert delivery.
-- Exclude known scanners/previews from human-engagement alerts; never fingerprint browsers.
-- Complete privacy/consent review before enabling proposal-link tracking.
+- [x] Implement Company-specific quotation thresholds (PR #45/#49) with no implicit FX conversion and exact-currency fallback only.
+- [x] Reuse CRM Signals for submitted-Quotation alerts, preserve source links and use stable submission event identity.
+- [x] Route current quote alerts through existing owner/active-assignee recipients after enabled-user and source/party permission checks.
+- [x] Add direct regression coverage for threshold equality, below-threshold suppression, base-total selection and same-currency fallback (PR #60).
+- [ ] Confirm Company-by-Company threshold amounts/currencies and recipient behavior on the target site.
+- [ ] Add the admin-managed VIP Customer allowlist and escalation routing only after the product owner approves the triggering events, priority/threshold effect, recipients and cooldown (ADR-061).
+- [ ] Add first-party proposal-link tokens stored as hashes, expiry and revocation only after privacy/consent and retention approval.
+- [ ] Accept stable provider event IDs; deduplicate opens and throttle alert delivery.
+- [ ] Exclude known scanners/previews from human-engagement alerts; never fingerprint browsers.
+- [ ] Complete privacy/consent review and retention configuration before enabling proposal-link tracking.
 
 Exit criteria:
-- [ ] Quote threshold, currency and recipient behavior pass multi-currency Bench tests.
-- [ ] Replayed events create one signal/alert.
+- [ ] Target-site threshold, currency and recipient behavior pass multi-company Bench acceptance.
+- [x] The code-level quotation hook is covered for threshold equality and suppression below threshold; existing outbox tests cover source-event deduplication/replay.
 - [ ] Link tokens are opaque, expiring and revocable.
 - [ ] Scanner, ambiguous and human event classifications pass tests.
 - [ ] Privacy/consent approval and retention configuration are recorded.
@@ -169,23 +176,33 @@ Exit criteria:
 **Priority:** P2  
 **Dependencies:** Stage 1 permission contract; verified integrations and source event identities.
 
+**Current implementation:** PR #57 is merged as `ba631720` after Quality Checks, Security Scanning, the Frappe v15/v16 Bench + Playwright matrix and the pinned Frappe v16.5.0 / ERPNext v16.5.0 / Helpdesk v1.28.0 lane passed on its final head. It provides read-only CRM Signal, Quotation and Opportunity adapters for Lead, Customer, Opportunity, CRM Signal and High-Value Quote contexts, metadata-only summaries, bounded snapshot pagination and fail-closed field-level permission checks. PR #59 is merged as `6b381fe` after all eight required ruleset contexts and the pinned Frappe v16.5.0 / ERPNext v16.5.0 / Helpdesk v1.28.0 lane passed on final head `4bc7893513253d40ee60bb3a00b7c70827041eb9`. It adds the role-restricted Desk timeline page, form entry points, GET cursor paging, stale-response protection and Lead-context browser coverage. PR #61 merged as `6ef9642`; final head `902b38e4dd4713461acfb12dc837f5b2b84da7d8` passed all eight required contexts and the pinned v16.5.0 lane. It adds Playwright route coverage for all five contexts, stale-response suppression and operator runbook contracts. Optional providers remain deferred until the target-site inventory is recorded.
+
 Work:
-- Build an adapter registry for CRM Signal, Quotation, Opportunity and only those Communication/Event/call/WhatsApp sources verified on the target site.
-- Normalize source ID, event ID, timestamp, related party, safe summary and authorized source link.
-- Add stable pagination, deduplication and timezone-consistent sorting.
-- Re-check permissions for every source row and link.
-- Do not duplicate full source messages, recordings or attachments.
+- [x] Merge the read-only CRM Signal, Quotation and Opportunity adapters and bounded timeline API (PR #57; CI verified).
+- [x] Add the role-restricted Desk timeline page and Activity Timeline form actions (PR #59; merged and CI-verified).
+- [x] Add GET cursor paging, source navigation, distinct source states and stale-response protection (PR #59; merged and CI-verified).
+- [x] Add authenticated Playwright coverage for all five context routes and late-response suppression (PR #61; merged and CI-verified).
+- [x] Maintain an explicit registry for the supported CRM Signal, Quotation and Opportunity sources; defer all optional provider adapters until site inventory.
+- [x] Normalize source ID, event ID, timestamp, related party, safe summary and authorized source link for the first three sources.
+- [x] Add stable snapshot pagination, deduplication and deterministic timestamp/source ordering.
+- [x] Re-check permissions for every source row and link, including required field-level read access.
+- [x] Keep message bodies, amounts, recordings and attachments out of the timeline payload.
+- [ ] Add Communication/Event/ToDo/call/WhatsApp adapters only after target-site provider, schema, identity and permission inventory is approved.
 
 Exit criteria:
 - [ ] Installed/configured adapters and versions are recorded.
-- [ ] Each adapter has contract, permission and compatibility tests.
-- [ ] Duplicate IDs, equal timestamps, pagination and unavailable states pass tests.
-- [ ] Playwright covers timeline entry points and source drill-downs.
+- [x] The initial adapters have contract, field-permission and compatibility tests; v15/v16 Bench and pinned v16.5 reference tests pass.
+- [x] Duplicate IDs, equal timestamps, pagination and unavailable states pass unit/Bench tests.
+- [x] Browser E2E verifies authenticated GET routes for Lead, Customer, Opportunity, CRM Signal and Highlight, paging/source drill-down and late-response suppression (PR #59/#61; CI verified).
+- [ ] Verify actual form-action clicks and role-specific visibility with real target-site Sales User/Manager/non-sales accounts; static registration contracts do not replace live permission tests.
 
 ### Stage 5 — V Vault
 
 **Priority:** P2  
 **Dependencies:** Stable D1/D2 definitions; D3/H metrics only after they are accepted; approved retention and source-visibility policy.
+
+**Status:** Blocked. D1/D2 have not been reconciled against the target site's native reports, and no source-visibility or retention/deletion policy has been approved. Keep snapshot scheduling disabled.
 
 Work:
 - Register approved metrics with definition versions.
@@ -207,6 +224,8 @@ Exit criteria:
 **Priority:** P2  
 **Dependencies:** Stable D1/D2/D3/H metric registry; Stage 1 permission contract.
 
+**Status:** Blocked until Sales/Finance approve the D1/D2 metric definitions, currency/date/filter semantics and target-site source permission matrix. Do not expose query intents before that evidence exists.
+
 Work:
 - Start with a deterministic catalog of approved sales questions.
 - Map text to a constrained metric ID, date range, filter and grouping.
@@ -226,7 +245,7 @@ Exit criteria:
 
 - Stage 0 is a prerequisite for all merges.
 - Stage 1 hardens the shared CRM Signals data, event and permission contract.
-- D3 requires target-site support application discovery; it does not assume a standard ticket DocType.
+- D3 uses the standard Frappe Helpdesk adapter when that app is installed; the discovery guide and read-only preflight verify the pilot's exact Helpdesk version, ticket fields and SLA policy before enabling site acceptance.
 - H depends on settings, idempotency and recipient permission checks.
 - E depends on source adapter discovery and permission-safe event identities.
 - V depends on accepted metric definitions and an explicit retention/source-visibility policy.
@@ -255,14 +274,14 @@ A slice is done only when all applicable items are complete:
 |---|---|---|
 | CRM Signals data, ingestion and access | [Core and access](specs/2026-11-01-crm-signals-core-and-access.md) | Baseline implemented; release hardening open |
 | Settings and core reliability | [Settings, presets and idempotency](specs/2026-11-01-settings-and-core-reliability.md) | PR #19 and concurrency hardening PR #23 merged; v15/v16 Bench, Playwright, quality and security passed |
-| Document events and realtime routing | [Events and notifications](specs/2026-11-01-crm-signals-events-and-notifications.md) | Settings and idempotency merged in PR #19; concurrent API duplicate recovery verified in PR #23 |
+| Document events and realtime routing | [Events and notifications](specs/2026-11-01-crm-signals-events-and-notifications.md) | Settings/idempotency merged in PR #19; concurrent API recovery in PR #23; durable per-recipient realtime retry merged in PR #54 and CI-verified; pilot recovery remains |
 | Daily digest | [Digest](specs/2026-11-01-crm-signals-daily-digest.md) | Per-recipient tracking and overlapping-worker serialization merged in PR #19/#23; live policy open |
-| D1 | [Sales Compass](specs/2026-11-01-pillar-d1-sales-compass.md) | Missing-status correction merged; target-site validation open |
-| D2 | [Billing Realization](specs/2026-10-31-pillar-d2-billing-realization.md) | Return-metadata guard merged; target-site reconciliation open |
-| D3 | [Service Resolution/SLA](specs/2026-11-01-pillar-d3-service-resolution-sla.md) | Discovery spec ready; source mapping gated |
-| H | [Highlights](specs/2026-11-01-pillar-h-highlights.md) | Planned |
+| D1 | [Sales Compass](specs/2026-11-01-pillar-d1-sales-compass.md) | Implemented; PR #63 query-contract smoke and PR #67 synthetic aggregate-value fixture merged/CI-verified on v15/v16 and pinned v16.5.0; target-site validation open |
+| D2 | [Billing Realization](specs/2026-10-31-pillar-d2-billing-realization.md) | Implemented; PR #63 query smoke, PR #65 independent permission fix and PR #67 synthetic aggregate-value fixture merged/CI-verified on v15/v16 and pinned v16.5.0; target-site reconciliation open |
+| D3 | [Service Resolution/SLA](specs/2026-11-01-pillar-d3-service-resolution-sla.md) | Adapter, exact v16.5.0 reference CI and aggregate fixture verified in PR #50/#53; pilot-site source/permission/SLA acceptance remains |
+| H | [Highlights](specs/2026-11-01-pillar-h-highlights.md) | Partial: high-value quotation signals and per-Company thresholds merged; VIP proposal tracking remains gated on privacy/consent and retention approval |
 | A | [Analysis](specs/2026-11-01-pillar-a-analysis.md) | Planned |
-| E | [Explorer](specs/2026-11-01-pillar-e-explorer.md) | Planned |
+| E | [Explorer](specs/2026-11-01-pillar-e-explorer.md) | Core API, Desk UI and five-context browser coverage merged and CI-verified; target-site role/source acceptance remains |
 | V | [Vault](specs/2026-11-01-pillar-v-vault.md) | Planned |
 
 ## 8. Release blockers and external inputs

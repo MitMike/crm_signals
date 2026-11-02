@@ -1,6 +1,6 @@
 # D2 — Billing Realization
 
-**Status:** Merged to main on 2026-10-31 in feature commit [467f12c](https://github.com/MitMike/crm_signals/commit/467f12cc60c009643b4a8d9c592aae6ca300b501). Quality Checks, Security Scanning and Bench Integration/E2E passed on the subsequent main head [b55cce6](https://github.com/MitMike/crm_signals/commit/b55cce6469bbe7c1603c49175651eafa7259d879). Return-metadata safety is being enforced in Stage 1 branch `fix/stage1-metric-correctness`; target-site financial reconciliation and site-specific permission validation remain outstanding.
+**Status:** Implemented; return-metadata safety guard, PR #63 query-contract smoke and PR #65 independent Payment Entry permission fix are merged/CI-verified on Frappe v15/v16 plus pinned v16.5.0. PR #67 adds a disposable real-value aggregate fixture for invoice, party-account receivable, POS, receipt and overdue filters plus a real Payment Entry-only permission user; CI-verified on Frappe v15/v16 and pinned v16.5.0 (PR #67 merged as `84ab2ce`). Target-site financial reconciliation and site-specific permission validation remain outstanding.
 
 ## Problem and user
 
@@ -76,6 +76,7 @@ Display: total overdue count plus the eight oldest due invoices, with a direct l
 ## Permissions
 
 - Check read permission independently for Sales Invoice and Payment Entry.
+- Payment Entry customer receipts remain available when the user can read Payment Entry but cannot read Sales Invoice; invoice, POS, receivable and overdue measures remain unavailable in that case.
 - Use permission-aware frappe.get_list calls for all reads so standard DocType and user-specific query permissions are applied.
 - Never use frappe.get_all, raw SQL or ignore_permissions for these metrics.
 - When a source is unavailable, render "Not available for your account"; do not show zero as if the query succeeded.
@@ -94,6 +95,8 @@ Display: total overdue count plus the eight oldest due invoices, with a direct l
 | D2-AC7 | Frappe v16 aggregate fields use structured COUNT/SUM syntax | Frappe v16 aggregate unit test |
 | D2-AC8 | An authenticated user can load the real Desk page and receive its billing payload | e2e/sahdev-dashboard.spec.ts |
 | D2-AC9 | Missing is_return metadata makes every return-sensitive Sales Invoice measure unavailable | Add metadata-absence tests for invoiced, POS, outstanding and overdue calculations |
+| D2-AC10 | Payment Entry customer receipts remain independently available when Sales Invoice read access is denied | Unit regression with invoice_read=False and payment_read=True; v15/v16 CI |
+| D2-AC11 | Real submitted invoices, an allocated Payment Entry and a POS-shaped row produce the expected invoice/POS/receipt/receivable/overdue deltas; a USD invoice's outstanding amount is grouped by its INR party-account currency; Payment Entry remains readable when Sales Invoice is denied | Disposable Bench fixture passed on Frappe v15/v16 and pinned v16.5.0 (PR #67 final head `cfd7c5ec`, merged as `84ab2ce`). POS workflow is explicitly excluded. |
 
 ## Risks and open validation
 
@@ -101,3 +104,8 @@ Display: total overdue count plus the eight oldest due invoices, with a direct l
 - ERPNext customizations may alter DocType field availability. The API checks metadata and marks unsupported sections unavailable.
 - Live financial totals must be reconciled against Sales Invoice and Payment Entry reports on the target site before managers rely on them.
 - The Stage 1 correction makes invoiced, POS receipt, outstanding receivable and overdue Sales Invoice measures unavailable when is_return metadata is absent. It does not run a Sales Invoice aggregate without the return exclusion filter. Payment Entry customer receipts remain independently available when their own source and permissions are available.
+
+
+## CI compatibility boundary
+
+PR #63 exercises the real Sales Invoice and Payment Entry aggregate queries against installed ERPNext DocTypes on Frappe v15/v16 and the pinned v16.5.0 reference lane. PR #67 adds submitted synthetic Sales Invoices and an allocated Payment Entry, then checks aggregate deltas for invoice currency, party-account currency, receipts, POS paid amount and overdue drill-down. It also verifies the independent source-permission behavior with a real Frappe user and Custom DocPerm. The full Frappe v15/v16 and pinned v16.5.0 workflows passed. The POS-shaped row sets persisted aggregate fields directly; POS payment workflow/accounting is not tested. The fixture rolls back all synthetic records and permissions. None of this replaces native ERPNext report reconciliation or target-site Sales User/Manager permission validation.

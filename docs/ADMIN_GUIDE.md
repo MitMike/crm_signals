@@ -6,6 +6,26 @@ CRM Signals is an extension to ERPNext CRM. It creates contextual signal records
 
 For release, backup, migration, smoke-test and rollback procedures, follow the [Deployment and rollback runbook](DEPLOYMENT_RUNBOOK.md).
 
+## Target version
+
+The deployment owner confirmed **Frappe v16.5** as the target baseline. The pinned reference stack for compatibility testing is Frappe v16.5.0 + ERPNext v16.5.0 + Helpdesk v1.28.0 (with the pinned Telephony dependency). Before installation, capture the exact patch/build from `bench version`, plus the installed ERPNext and Helpdesk app versions from `bench --site <site-name> list-apps`; do not assume the pilot uses the same Helpdesk release. The repository retains Frappe/ERPNext v15 and moving v16 CI coverage. The exact Frappe v16.5.0/ERPNext v16.5.0/Helpdesk v1.28.0 lane passed and merged in PR #50; CI does not prove the live site's installed versions, permissions or configuration.
+
+## Before configuring Helpdesk metrics
+
+Use the [D3 Support & SLA discovery worksheet](D3_SUPPORT_SLA_DISCOVERY_GUIDE.html) first to record the site's exact app versions, ticket lifecycle, SLA policy, business hours, holidays, timezone, roles and retention settings. Then follow the [Frappe v16.5 support configuration guide](CRM_SIGNALS_SUPPORT_CONFIGURATION_GUIDE.html) and complete the [target-site acceptance checklist](TARGET_SITE_ACCEPTANCE.md). Download the HTML guides and open them locally in a browser; GitHub's file viewer shows their source.
+
+## Read-only target-site preflight report
+
+After deploying a CRM Signals revision that contains the diagnostic command, run it from the Bench server as an authorized operator:
+
+```bash
+bench --site <site-name> execute crm_signals.diagnostics.get_site_preflight_report
+```
+
+The report inventories the Frappe and installed-app versions (where the app exposes a Python version attribute), site timezone, Company names/base currencies, effective quotation-threshold source and currency, active Lead/Opportunity workflows and states, relevant DocType fields/Select options/field permlevels, and static DocPerm rows for Sales User, Sales Manager and System Manager. It omits recipient email addresses, credentials and business-document rows. Review the output and share it only through the site's approved channel because it includes Company names and configured threshold amounts.
+
+The report is server-side only and read-only. Static DocPerm rows are not effective user permissions; the report does not replace the real-user permission matrix, finance/native-report reconciliation, Helpdesk SLA calendar review, or staging operational rehearsal. A missing app version is reported as unknown, not inferred.
+
 ## Installation and upgrade
 
 Install from the app repository using the site's normal Bench/Pilot process:
@@ -20,13 +40,15 @@ bench restart
 
 For an existing installation, deploy the approved app revision and run `bench --site <site-name> migrate`, then build assets and restart workers. Take a database and files backup first. Follow your site's normal maintenance window and rollback process.
 
+For the pilot, install only after the required pull requests are merged and CI is green. Record the exact CRM Signals revision with `git -C apps/crm_signals rev-parse HEAD` and attach it to the acceptance record. Do not leave a production deployment tracking a moving `main` branch; use an approved release tag or pinned commit. After installation, capture `bench version` and `bench --site <site-name> list-apps` again so the installed state is evidenced.
+
 ## Configure CRM Signals
 
 1. Sign in as a System Manager.
 2. Open **CRM Signals Settings** from the Desk search/awesome bar.
 3. Select a starter preset: **Balanced**, **Sales Focused** or **Executive**.
 4. Review every value. Presets are starting points, not recommended policy for every company.
-5. Confirm the threshold currency matches the default Company's currency.
+5. Configure a threshold for each enabled Company: add a Company-specific row where needed, or use the legacy site-wide threshold only when its currency exactly matches that Company's base currency.
 6. Replace Opportunity trigger statuses with exact values used by the site's workflow.
 7. Set the Lead not-modified window and site-local digest time.
 8. Add optional additional recipients using enabled System User email addresses, one per line.
@@ -43,7 +65,7 @@ The master switch and external ingestion are off by default. Complete the site p
 | Lead not-modified window | 3 days | 2 days | 5 days |
 | Digest time | 08:30 | 08:00 | 08:30 |
 
-The amount is interpreted in the threshold currency shown in Settings. The starter values do not imply INR or any other currency. The first release uses one site-wide threshold currency; multi-company sites with different base currencies need a separate per-company policy before enabling threshold alerts for all companies.
+The amount is interpreted in the Company's base currency. Optional Company-specific rows in CRM Signals Settings take precedence and derive their currency from the selected Company's default currency. If a Company has no override, the legacy site-wide threshold is used only when its currency exactly matches that Company's base currency. There is no implicit FX conversion; a currency mismatch safely suppresses the quotation signal. The starter values do not imply INR or any other currency.
 
 Selecting a preset applies its starting values. You can edit any field afterwards; the preset indicator changes to **Custom**. Selecting another preset again replaces the preset-controlled fields.
 
@@ -51,7 +73,7 @@ Selecting a preset applies its starting values. You can edit any field afterward
 
 - **Enable CRM Signals:** master switch for event-generated signals.
 - **Enable authenticated external ingestion:** enables the POST endpoint for approved integrations.
-- **High-value Quotation threshold:** compares a submitted Quotation's base total with the configured Company-currency threshold. The message displays the Quotation's own transaction currency.
+- **High-value Quotation threshold:** compares a submitted Quotation's base total with the matching Company's base-currency threshold. A Company-specific row takes precedence; the legacy threshold is a fallback only for an exact currency match. The message displays the Quotation's own transaction currency.
 - **Opportunity trigger statuses:** exact status names that generate an event when an Opportunity transitions into one of them.
 - **Lead not-modified window:** reports Leads whose modified timestamp is older than the configured number of days. It does not prove there was no call, email or meeting.
 - **Digest time:** evaluated against the timezone in System Settings. The scheduler checks each minute; delivery can be delayed by worker/scheduler load.
@@ -64,11 +86,51 @@ Open **CRM Signals** workspace, then select **CRM Signals Dashboard** (route `/a
 
 The `is_read` flag is a shared team acknowledgement in this release, not an individual read receipt or private inbox.
 
+Realtime notifications now have a per-recipient delivery ledger. A System Manager can inspect **CRM Signal Notification Delivery** to review the signal, recipient, attempt count and current status. The scheduler retries due Pending/Attempted rows at most ten times with exponential backoff capped at 60 minutes. `Attempted` means Frappe queued an after-commit publish callback; it does not prove Redis publication, browser receipt or human acknowledgement. `Failed` means the retry budget was exhausted without delivery confirmation; `Cancelled` means the signal disappeared or the recipient is no longer eligible. The Desk client suppresses repeated stable delivery IDs within the active browser session. This is at-least-once retry, not exactly-once or human-delivery confirmation. Until the target site's Redis outage and worker-restart tests pass, use the CRM Signals console and configured digest as the durable places to review signals.
+
+## Using the Activity Timeline (Explorer)
+
+Open a Lead, Customer, Opportunity or CRM Signal record in Desk and select **Activity Timeline** from the form actions. The page opens the customer's activity timeline. A CRM Signal with type **High-Value Quote** opens the Highlight context. The page is available to Sales User, Sales Manager and System Manager roles, and the API still enforces each user's record and field permissions.
+
+The first release includes CRM Signals, Quotations and Opportunities only. Each source is shown with its current state: available, no matching activity, unavailable or not connected. Select **Open source** on an item to navigate to its authoritative ERPNext record through normal Desk permissions. Select **Load more activity** to fetch the next bounded page; **Refresh** starts a new timeline snapshot.
+
+The timeline deliberately shows short, escaped metadata summaries. It does not copy quotation amounts, message bodies, comments, recordings or attachments into the page. Communication, Event, ToDo, call and WhatsApp sources are not implied to be connected; those adapters are deferred until the target site's installed provider, schema, stable event identity and field-level permissions are recorded. A missing or unreadable source must not be treated as an empty result.
+
 ## S.A.H.D.E.V. dashboards
 
-Open **S.A.H.D.E.V. Executive Compass** (route `/app/sahdev-dashboard`). D1 shows Lead and Opportunity indicators. D2 shows invoice, customer receipt, POS receipt, receivable and overdue measures. Monetary values remain grouped by their source currency. Missing schema or permissions must show as unavailable rather than zero.
+Open **S.A.H.D.E.V. Executive Compass** (route `/app/sahdev-dashboard`). D1 shows Lead and Opportunity indicators. D2 shows invoice, customer receipt, POS receipt, receivable and overdue measures. Monetary values remain grouped by their source currency. Sales Invoice and Payment Entry access are independent: a user who can read Payment Entry but not Sales Invoice can still see customer receipts while invoice/POS/receivable/overdue measures remain unavailable. Missing schema or permissions must show as unavailable rather than zero.
 
-D3 Service Resolution/SLA is not enabled until the installed support application's DocTypes, SLA lifecycle and permissions are discovered and verified.
+**D1/D2 reference CI evidence:** PR #63 runs the real Sales Compass query contract against installed ERPNext DocTypes, and PR #67 adds disposable Lead/Opportunity, Sales Invoice and Payment Entry records to assert aggregate deltas, INR/USD grouping, party-account-currency receivables, overdue/receipt/POS filters and the independent Sales Invoice/Payment Entry permission path. PR #67 merged after the Frappe v15/v16 matrix and pinned Frappe v16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 checks passed. This is reference-stack evidence only. **Do not run the CI fixture on a pilot or production site:** it creates synthetic accounting and CRM records and a temporary user/role before rolling them back; on a clean disposable Bench site it also commits the one-time setup-wizard baseline. The POS row models persisted aggregate fields, not POS settlement, and the fixture does not replace native-report finance reconciliation or target-site Sales User/Manager permission testing.
+
+D3 Service Resolution/SLA is implemented for the standard Frappe Helpdesk schema. It reads aggregate-only metrics from `HD Ticket` and checks `HD Service Level Agreement` read access. It requires ticket DocType read permission and field-level read permission for the fields used by each measure: `status_category`, `resolution_date`, `resolution_time`, `sla` and `agreement_status`. In the Helpdesk v1.28.0 reference these fields are permlevel 0; later releases may move them to higher permlevels. Inspect the installed metadata and do not grant extra levels automatically; review the complete Helpdesk field set with the security owner. A measure whose fields are not readable is shown as unavailable, not zero. The active Helpdesk SLA policy's working hours, holiday list and timezone remain authoritative; Monday–Saturday is the agreed initial working-week assumption to verify against the site.
+
+For the Helpdesk v1.28.0 reference schema, all required D3 HD Ticket fields (`status_category`, `resolution_date`, `resolution_time`, `sla`, `agreement_status`) are permlevel 0. Base HD Ticket read is granted to System Manager, Agent, Agent Manager, HD Customer and HD Customer Manager; HD Service Level Agreement read is limited to System Manager and Agent Manager. ERPNext Sales User/Manager are not default Helpdesk readers. Do not assign Agent/Agent Manager just for dashboard visibility because they also grant ticket mutation privileges. If Sales needs D3, create a dedicated read-only role with base HD Ticket read and HD Service Level Agreement read only if SLA metrics are approved. For later Helpdesk versions, inspect and grant only the required additional field permlevels. Verify the installed Helpdesk version's metadata before applying this map. Helpdesk v1.29.0 and later link `@framework/ui` to `apps/frappe/ui`, which the unmodified Frappe v16.5.0 tag does not contain; Helpdesk v1.31.1 also calls the `Notification Type` DocType during installation, absent from that tag. Use v1.28.0 for this reference stack or verify the exact Frappe build supplies the required UI package and, for v1.31.1, Notification Type.
+
+#### Configure a read-only Sales role
+
+1. Create a custom role such as **CRM Signals Helpdesk Read**.
+2. In Role Permission Manager, add **Read only** for `HD Ticket` at permlevel 0. For later Helpdesk versions, inspect installed field permlevels and add only the approved additional read levels.
+3. Add **Read only** for `HD Service Level Agreement` at permlevel 0 only if Sales is approved to see SLA metrics.
+4. Do not grant Create, Write, Delete, Submit, Cancel or Amend. Do not assign the Agent/Agent Manager roles solely to expose the dashboard.
+5. Assign the custom role to the approved Sales User/Manager accounts, then run the permission preflight for each role and test the dashboard as those users.
+
+If the role lacks `HD Service Level Agreement` read access, the ticket metrics can remain available while SLA metrics are reported as unavailable. Missing permission must never be interpreted as zero tickets or 100% SLA compliance.
+
+## Pilot validation checklist
+
+Run these tests on staging with synthetic records before enabling the app on production:
+
+1. **Settings:** save a reviewed preset, confirm the master and external-ingestion switches remain off until explicitly enabled, and verify the saved values after reload.
+2. **Quotation thresholds:** create test Quotations above and below the configured threshold for each enabled Company. Include two Companies with different base currencies. Verify the matching Company override is used and that a currency mismatch without an override creates no signal; do not expect FX conversion.
+3. **Opportunity signals:** move a test Opportunity into one configured trigger status and confirm one signal. Move it between unconfigured statuses and confirm no signal. Repeat a transition/retry with the same source event and confirm no duplicate.
+4. **D1/D2 dashboard:** verify Lead/Opportunity counts against the site's workflow values. Reconcile invoice totals, Payment Entry receipts, separate POS receipts and open receivables against native ERPNext reports by Company and currency. Never add unlike currencies. Test D2 source permissions independently: with Sales Invoice read denied and Payment Entry read allowed, customer receipts must remain visible; with Payment Entry read denied, only the receipt card is unavailable.
+5. **Permissions:** test Sales User, Sales Manager, System Manager and a non-sales user in list, direct form, dashboard/API, report, export and print. A notification is not permission to read a record.
+6. **Digest:** verify site timezone, scheduled time, recipient list, per-recipient content and duplicate-run behavior. Check the scheduler, workers and mail queue.
+7. **D3 Helpdesk:** use the [Support & SLA setup guide](CRM_SIGNALS_SUPPORT_CONFIGURATION_GUIDE.html). Test Open, Paused, Resolved, no-SLA, Fulfilled and Failed fixtures; verify the SLA denominator excludes due/paused states and that field-level permission gaps display as unavailable.
+8. **External ingestion:** use a dedicated integration System User over HTTPS, test authentication failure, rate limiting and duplicate `source_event_id`, and prove credential rotation rejects the old secret.
+9. **Operations:** rehearse migrate, scheduler, mail, realtime, backup, restore and rollback using the [Target-Site Acceptance Kit](TARGET_SITE_ACCEPTANCE.md) and [Deployment runbook](DEPLOYMENT_RUNBOOK.md).
+
+Record exact app versions, the tested commit, test user roles, date/timezone, expected and observed values, and evidence links. Do not copy customer or ticket content into the evidence record. CI success is not pilot acceptance.
 
 ## External signal ingestion
 
@@ -98,9 +160,17 @@ A stable `source_event_id` is strongly recommended. When `source_doctype` and `s
 - **No Quotation alert:** verify the master/Quotation switches, Company currency, Quotation company, base total and configured threshold.
 - **No Opportunity alert:** verify the switch and exact status spelling; only transitions into configured statuses generate signals.
 - **No digest:** verify scheduler and workers, site timezone, enabled System User Sales Managers, additional recipients and the last queued date.
-- **No realtime notification:** verify the linked Lead/Customer owner and active ToDo assignees, and confirm each recipient can read both the linked party and CRM Signal; there is intentionally no site-wide broadcast.
+- **No realtime notification:** verify the linked Lead/Customer owner and active ToDo assignees, and confirm each recipient can read the linked party, CRM Signal and originating source DocType (for example, Quotation or Opportunity). Then inspect **CRM Signal Notification Delivery** as System Manager: Pending/Attempted rows are retried by the minute scheduler, Failed rows have exhausted ten attempts, and Cancelled rows are no longer eligible. `Attempted` means only that Frappe queued an after-commit callback; it is not proof of Redis publication or browser receipt. There is intentionally no site-wide broadcast.
 - **Signal not visible:** check CRM Signal role permissions and linked-party ownership/assignment. A notification is not an authorization grant.
 - **Duplicate external event:** send a stable source event ID and use the same integration user for retries.
+
+## Signal outbox and failed events
+
+Quotation and Opportunity events are recorded in the CRM Signal Outbox as part of the source document transaction. If CRM Signal creation fails after that record is saved, the app retries automatically from the minute scheduler. Retries use bounded exponential backoff: 1, 2, 4, 8, 16, 32 and then at most 60 minutes. The worker processes at most 100 due events per run. After ten failed attempts, the event is marked **Failed**.
+
+The **CRM Signal Outbox** DocType is restricted to System Managers. Review its status, source document, attempt count, last-attempt time and last error type. The detailed exception is recorded in Error Log. A Failed row is not automatically retried. A System Manager with CRM Signal Outbox read permission can use **Replay Failed Event** on the row; the action requires confirmation, accepts only Failed rows, preserves the original attempt count/last error, increments replay count, records actor/time and an audit Comment, and queues the existing idempotent worker after commit. If queueing is unavailable, the row remains Pending for the scheduled worker. Do not edit outbox rows or database tables manually to force a retry.
+
+Outbox persistence is part of the source transaction. If the app cannot persist the outbox row, the Quotation submit or Opportunity update is rejected rather than silently losing the event. A failure to create the downstream CRM Signal after the outbox row exists does not block the source document; it is retried asynchronously. Realtime notification dispatch uses the separate **CRM Signal Notification Delivery** ledger; it is not retried by the transactional signal outbox. The minute scheduler retries due Pending/Attempted recipient rows with bounded exponential backoff (ten attempts, capped at 60 minutes). Frappe v16's after-commit Redis emitter suppresses Redis connection errors, so `Attempted` means only that the callback was queued—not that Redis published it or a browser received it. System Managers can inspect the ledger and Error Log; use the CRM Signals console/digest for durable review. This is at-least-once retry, not exactly-once or human-delivery confirmation.
 
 ## Production acceptance checklist
 

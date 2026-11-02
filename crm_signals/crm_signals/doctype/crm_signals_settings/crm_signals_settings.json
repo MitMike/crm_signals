@@ -14,6 +14,7 @@
   "enable_quotation_signals",
   "quotation_threshold",
   "threshold_currency",
+  "company_thresholds",
   "section_break_opportunities",
   "enable_opportunity_signals",
   "opportunity_trigger_statuses",
@@ -83,7 +84,14 @@
    "label": "Threshold currency",
    "options": "Currency",
    "read_only": 1,
-   "description": "Automatically follows the default Company's currency. This first release uses one site-wide threshold currency."
+   "description": "Automatically follows the default Company's currency. Used as a fallback only when it matches the Quotation Company's base currency; no currency conversion is performed."
+  },
+  {
+   "fieldname": "company_thresholds",
+   "fieldtype": "Table",
+   "label": "Company-specific quotation thresholds",
+   "options": "CRM Signal Company Threshold",
+   "description": "Optional per-company override. Each threshold is compared in that Company's base currency; the site-wide threshold is used only when currencies match."
   },
   {
    "fieldname": "section_break_opportunities",

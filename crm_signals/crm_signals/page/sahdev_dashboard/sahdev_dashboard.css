@@ -181,7 +181,8 @@
 }
 
 
-.sahdev-billing-section {
+.sahdev-billing-section,
+.sahdev-service-section {
     margin-top: 32px;
 }
 .sahdev-section-intro {

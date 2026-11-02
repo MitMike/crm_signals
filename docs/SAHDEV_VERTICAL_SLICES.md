@@ -13,7 +13,7 @@ This roadmap tracks capability status and dependencies. The complete project del
 - Recent Opportunities with a direct Desk drill-down.
 - Lead and Opportunity reads use permission-aware Frappe list APIs.
 
-**Remaining:** Remove fallback behavior that counts all Leads/Opportunities as active when status metadata is missing. Confirm terminal statuses and custom workflows on the target site. Validate role and data visibility with real Sales User and Sales Manager accounts.
+**Remaining:** The missing-status fallback was removed in PR #17. Confirm terminal statuses and custom workflows on the target site, then validate role and data visibility with real Sales User and Sales Manager accounts.
 
 Specification: [D1 Sales Compass](../specs/2026-11-01-pillar-d1-sales-compass.md).
 
@@ -26,26 +26,27 @@ Specification: [D1 Sales Compass](../specs/2026-11-01-pillar-d1-sales-compass.md
 - Overdue: count and oldest eight submitted, non-return invoices with a positive outstanding amount and a due date before today.
 - Every source uses permission-aware Frappe list APIs. Unlike currencies are never added together.
 
-**Remaining:** Require return metadata to guarantee exclusion semantics. Reconcile values against native Sales Invoice and Payment Entry reports on the target site. Validate invoice, party-account and receiving-account currency behavior.
+**Remaining:** The return-metadata guard was merged in PR #17. Reconcile values against native Sales Invoice and Payment Entry reports on the target site. Validate invoice, party-account and receiving-account currency behavior.
 
 Specification: [D2 Billing Realization](../specs/2026-10-31-pillar-d2-billing-realization.md).
 
-### D3. Service Resolution/SLA — discovery spec ready, implementation gated
+### D3. Service Resolution/SLA — adapter and exact reference CI verified; pilot acceptance open
 
-- Discover the installed support application and authoritative ticket DocType.
-- Map ticket lifecycle, resolution timestamp, SLA policy/deadline/outcome, pause behavior, business calendar, timezone and permissions.
-- Provide ticket volume, open backlog, resolved volume, resolution time and SLA compliance only when the source semantics are verified.
-- Keep unconfigured or inaccessible data visibly unavailable; do not substitute generic ticket counts.
+- PR #32 adds the standard Frappe Helpdesk adapter using HD Ticket and HD Service Level Agreement metadata.
+- Dashboard aggregates ticket creation, current Open/Paused backlog, resolved cohort, native resolution_time and Fulfilled/Failed SLA outcomes.
+- SLA outcomes/no-SLA counts use the rolling 30-day created-ticket cohort; only Fulfilled/Failed are eligible for compliance. Due/paused states are excluded.
+- Ticket/SLA DocType permissions are checked independently; the payload contains aggregates only.
+- Monday–Saturday is the agreed initial assumption, but the active Helpdesk SLA's working hours, holiday list and timezone remain authoritative.
 
-**Gate:** Do not assume ERPNext Issue, Frappe Helpdesk HD Ticket or a custom DocType. Complete the discovery map against the intended site before implementing the adapter.
+**Remaining:** confirm the pilot's exact Frappe v16.5 patch and installed ERPNext/Helpdesk versions; verify the Sales User/Manager read-only role on HD Ticket and HD Service Level Agreement, inspecting actual field permlevels for that Helpdesk release (the v1.28.0 reference fields are all permlevel 0); validate each active SLA calendar on the target site. The fail-closed field-level permission correction merged in PR #42, and the exact v16.5.0/Helpdesk v1.28.0 reference lane passed in PR #50. Do not treat CI as pilot acceptance.
 
 Specification: [D3 Service Resolution/SLA](../specs/2026-11-01-pillar-d3-service-resolution-sla.md).
 
 ## H — Highlights: event-driven alerts
 
-**Status:** Design specified; implementation planned after CRM Signals settings, recipient permissions and event idempotency.
+**Status:** High-value Quotation signals and per-company threshold implementation are merged in PR #45; PR #49 fixes Company-currency display/fetch. Target-site Company amounts/fallback policy still require explicit approval. VIP proposal-link tracking remains gated on privacy/consent and retention approval.
 
-- High-value submitted Quotations using Company currency and an admin-configured threshold.
+- High-value submitted Quotations use the Company's base currency and an admin-configured threshold; per-company overrides merged in PR #45. Each enabled Company requires an explicitly approved amount.
 - VIP proposal-link opens only from first-party tracked links or a provider with stable event IDs.
 - Escalation to enabled, related users with source-record read permission.
 - Idempotency, bot/scanner exclusion, alert cooldown and privacy/consent controls.

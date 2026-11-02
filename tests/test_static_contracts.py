@@ -189,3 +189,39 @@ def test_sahdev_billing_realization_page_and_permission_aware_api():
     assert '"party_account_currency", "outstanding_amount"' in api
     assert 'ignore_permissions=True' not in api
     assert 'frappe.db.sql(' not in api
+    
+def test_explorer_page_and_form_entry_points_are_registered():
+    hooks = (APP_ROOT / "hooks.py").read_text()
+    for doctype in ["Lead", "Customer", "Opportunity", "CRM Signal"]:
+        assert f'"{doctype}": "public/js/crm_signals_explorer.js"' in hooks
+
+    page_root = APP_ROOT / "crm_signals/page/crm_signals_explorer"
+    page_json = json.loads((page_root / "crm_signals_explorer.json").read_text())
+    page_script = (page_root / "crm_signals_explorer.js").read_text()
+    assert page_json["page_name"] == "crm-signals-explorer"
+    assert page_json["module"] == "Crm Signals"
+    assert {item["role"] for item in page_json["roles"]} == {
+        "Sales User",
+        "Sales Manager",
+        "System Manager",
+    }
+    assert (page_root / "crm_signals_explorer.css").is_file()
+    assert 'frappe.pages["crm-signals-explorer"]' in page_script
+    assert 'method: "crm_signals.explorer.get_explorer_timeline"' in page_script
+    assert 'type: "GET"' in page_script
+    assert "isCurrentRequest" in page_script
+
+    form_script = (APP_ROOT / "public/js/crm_signals_explorer.js").read_text()
+    assert 'frappe.set_route("crm-signals-explorer", contextDoctype, frm.doc.name)' in form_script
+    assert '"High-Value Quote"' in form_script
+
+
+def test_deployment_runbook_documents_company_thresholds_and_explorer_smoke_tests():
+    runbook = (ROOT / "docs/DEPLOYMENT_RUNBOOK.md").read_text()
+    assert "A Company-specific row takes precedence" in runbook
+    assert "legacy site-wide threshold is a fallback only when its currency exactly matches" in runbook
+    assert "no implicit FX conversion occurs" in runbook
+    assert "each enabled Company has an approved Company-specific threshold or exact-currency legacy fallback" in runbook
+    assert "Activity Timeline entry points from Lead, Customer, Opportunity and CRM Signal forms" in runbook
+    assert "High-Value Quote signal must open the Highlight context" in runbook
+    assert "The first release has one site-wide threshold currency" not in runbook

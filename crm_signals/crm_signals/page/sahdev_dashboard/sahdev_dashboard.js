@@ -93,12 +93,14 @@ class SahdevSalesCompass {
         const leads = data.leads || {};
         const opportunities = data.opportunities || {};
         const billing = data.billing || {};
+        const service = data.service || {};
 
         const cardHtml = this.renderMetricCards(leads, opportunities);
         const stageHtml = this.renderStageList(opportunities);
         const recentHtml = this.renderRecentOpportunities(opportunities);
         const billingHtml = this.renderBillingSection(billing);
-        this.body.html(this.renderDashboardLayout(cardHtml, stageHtml, recentHtml, billingHtml));
+        const serviceHtml = this.renderServiceSection(service);
+        this.body.html(this.renderDashboardLayout(cardHtml, stageHtml, recentHtml, billingHtml, serviceHtml));
     }
 
     renderPipelineValue(opportunities) {
@@ -332,7 +334,50 @@ class SahdevSalesCompass {
             "</section>";
     }
 
-    renderDashboardLayout(cardHtml, stageHtml, recentHtml, billingHtml) {
+
+    renderServiceSection(service) {
+        if (!service.available) {
+            return '<section class="sahdev-service-section">' +
+                '<div class="sahdev-eyebrow">' + __("S.A.H.D.E.V. · PILLAR D3") + "</div>" +
+                '<h3>' + __("Service resolution & SLA") + "</h3>" +
+                '<div class="sahdev-empty">' + __("Frappe Helpdesk ticket data is unavailable or you do not have permission to read it.") + "</div>" +
+                "</section>";
+        }
+        const value = (available, item) => available && item !== null && item !== undefined
+            ? this.number(item) : "—";
+        const cards = [
+            [__("Tickets created · 30 days"), value(true, service.created_last_30_days)],
+            [__("Open backlog"), value(service.backlog_available, service.open_backlog)],
+            [__("Paused backlog"), value(service.backlog_available, service.paused_backlog)],
+            [__("Resolved · 30 days"), value(service.resolved_available, service.resolved_last_30_days)],
+            [__("Avg. SLA resolution · business hours"), value(service.resolution_time_available, service.average_resolution_hours)],
+            [__("SLA compliance"), service.sla_available && service.sla_compliance_percent !== null
+                ? this.number(service.sla_compliance_percent) + "%" : "—"]
+        ].map(([label, metric]) =>
+            '<section class="sahdev-metric-card"><div class="sahdev-metric-label">' +
+            this.escape(label) + '</div><div class="sahdev-metric-value">' +
+            this.escape(metric) + "</div></section>"
+        ).join("");
+        const slaNote = service.sla_available
+            ? this.escape(service.sla_eligible) + " " + __("eligible SLA outcomes") + " · " +
+                this.escape(service.sla_fulfilled) + " " + __("fulfilled") + " · " +
+                this.escape(service.sla_failed) + " " + __("failed") + " · " +
+                this.escape(service.sla_unconfigured) + " " + __("tickets without an SLA")
+            : __("SLA outcome is unavailable; ticket metrics remain independent.");
+        return '<section class="sahdev-service-section">' +
+            '<div class="sahdev-section-intro"><div><div class="sahdev-eyebrow">' +
+            __("S.A.H.D.E.V. · PILLAR D3") + "</div><h3>" +
+            __("Service resolution & SLA") + "</h3><p>" +
+            __("Frappe Helpdesk · rolling 30-day ticket cohorts · SLA business-hours duration") +
+            "</p></div></div>" +
+            '<div class="sahdev-billing-metrics">' + cards + "</div>" +
+            '<div class="sahdev-billing-note">' + slaNote + " · " +
+            __("SLA outcomes count only Fulfilled and Failed tickets; paused and due states are excluded from the compliance denominator.") +
+            " " + __("Resolution duration is measured from SLA attachment in configured business hours, excluding hold time. The Helpdesk policy calendar and holiday list remain authoritative.") +
+            "</div></section>";
+    }
+
+    renderDashboardLayout(cardHtml, stageHtml, recentHtml, billingHtml, serviceHtml) {
         return '<div class="sahdev-intro">' +
             '<div><div class="sahdev-eyebrow">' + __("S.A.H.D.E.V. · PILLAR D") + "</div>" +
             '<h3>' + __("Executive Compass") + "</h3>" +
@@ -342,7 +387,7 @@ class SahdevSalesCompass {
             '<div class="sahdev-metrics">' + cardHtml + "</div>" +
             '<div class="sahdev-follow-on-note">' +
             '<strong>' + __("Scope of this slice") + "</strong> " +
-            __("This dashboard now combines CRM sales with the first billing realization slice. Service-ticket SLA metrics remain a separate follow-on slice.") +
+            __("This dashboard combines CRM sales, billing realization and permission-filtered Helpdesk service metrics when those sources are available.") +
             "</div>" +
             '<div class="sahdev-panels">' +
             '<section class="sahdev-panel">' +
@@ -355,6 +400,7 @@ class SahdevSalesCompass {
             "</section>" +
             "</div>" +
             billingHtml +
+            serviceHtml +
             '<div class="sahdev-footer">' +
             __("Pipeline totals are grouped by transaction currency. Terminal statuses are excluded from active counts and pipeline value.") +
             "</div>";

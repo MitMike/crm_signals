@@ -56,6 +56,7 @@ def load_events(monkeypatch, *, existing_name=None, duplicate_on_insert=False):
         "opportunity_trigger_statuses": ["Replied"],
         "quotation_threshold": 200000,
         "threshold_currency": "USD",
+        "company_thresholds": [],
     }
     monkeypatch.setitem(sys.modules, "crm_signals.settings", settings)
     monkeypatch.delitem(sys.modules, "crm_signals.events", raising=False)
@@ -148,11 +149,108 @@ def test_quotation_threshold_requires_matching_site_currency(monkeypatch):
         grand_total=1350,
     )
 
-    assert module._company_threshold_value(quotation, {"threshold_currency": None}) is None
-    assert (
-        module._company_threshold_value(quotation, {"threshold_currency": "USD"}) is None
+    assert module._company_threshold_policy(quotation, {"threshold_currency": None}) is None
+    assert module._company_threshold_policy(quotation, {"threshold_currency": "USD"}) is None
+    assert module._company_threshold_policy(quotation, {"threshold_currency": "EUR", "quotation_threshold": 200000}) == {
+        "amount": 1234.5, "threshold": 200000.0
+    }
+    assert module._company_threshold_policy(
+        quotation,
+        {
+            "threshold_currency": "USD",
+            "quotation_threshold": 200000,
+            "company_thresholds": [{"company": "Example Ltd", "currency": "EUR", "quotation_threshold": 750}],
+        },
+    ) == {"amount": 1234.5, "threshold": 750.0}
+
+    assert module._company_threshold_policy(
+        quotation,
+        {
+            "threshold_currency": "EUR",
+            "quotation_threshold": 200000,
+            "company_thresholds": [{"company": "Example Ltd", "currency": "USD", "quotation_threshold": 750}],
+        },
+    ) is None
+
+def test_submitted_quotation_at_company_base_currency_threshold_emits_high_signal(monkeypatch):
+    module, _, _, _, _, _ = load_events(monkeypatch)
+    emitted = []
+    module.enqueue_signal_event = lambda **values: emitted.append(values)
+    quotation = types.SimpleNamespace(
+        name="QTN-AT-THRESHOLD",
+        company="Example Ltd",
+        currency="EUR",
+        base_grand_total=200000,
+        grand_total=180000,
+        quotation_to="Lead",
+        party_name=None,
+        modified="2026-11-02 10:00:00",
     )
-    assert (
-        module._company_threshold_value(quotation, {"threshold_currency": "EUR"})
-        == 1234.5
+
+    module.on_quotation_submit(quotation)
+
+    assert len(emitted) == 1
+    assert emitted[0]["signal_type"] == "High-Value Quote"
+    assert emitted[0]["priority"] == "High"
+    assert emitted[0]["source_doctype"] == "Quotation"
+    assert emitted[0]["source_name"] == "QTN-AT-THRESHOLD"
+    assert emitted[0]["source_event_id"] == "submit:2026-11-02 10:00:00"
+    assert "EUR 180,000.00" in emitted[0]["message"]
+
+
+def test_submitted_quotation_below_company_base_currency_threshold_emits_nothing(monkeypatch):
+    module, _, _, _, _, _ = load_events(monkeypatch)
+    emitted = []
+    module.enqueue_signal_event = lambda **values: emitted.append(values)
+    quotation = types.SimpleNamespace(
+        name="QTN-BELOW-THRESHOLD",
+        company="Example Ltd",
+        currency="USD",
+        base_grand_total=199999.99,
+        grand_total=199999.99,
+        quotation_to="Lead",
+        party_name=None,
+        modified="2026-11-02 10:05:00",
     )
+
+    module.on_quotation_submit(quotation)
+
+    assert emitted == []
+
+
+def test_foreign_currency_quotation_without_company_base_total_fails_closed(monkeypatch):
+    module, _, _, _, _, _ = load_events(monkeypatch)
+    emitted = []
+    module.enqueue_signal_event = lambda **values: emitted.append(values)
+    quotation = types.SimpleNamespace(
+        name="QTN-NO-BASE-TOTAL",
+        company="Example Ltd",
+        currency="EUR",
+        grand_total=250000,
+        quotation_to="Lead",
+        party_name=None,
+        modified="2026-11-02 10:10:00",
+    )
+
+    module.on_quotation_submit(quotation)
+
+    assert emitted == []
+
+def test_company_currency_grand_total_is_used_when_base_total_is_missing(monkeypatch):
+    module, _, _, _, _, _ = load_events(monkeypatch)
+    emitted = []
+    module.enqueue_signal_event = lambda **values: emitted.append(values)
+    quotation = types.SimpleNamespace(
+        name="QTN-COMPANY-CURRENCY-FALLBACK",
+        company="Example Ltd",
+        currency="USD",
+        grand_total=200000,
+        quotation_to="Lead",
+        party_name=None,
+        modified="2026-11-02 10:15:00",
+    )
+
+    module.on_quotation_submit(quotation)
+
+    assert len(emitted) == 1
+    assert emitted[0]["message"].endswith("(USD 200,000.00)")

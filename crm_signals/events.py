@@ -4,6 +4,7 @@ import frappe
 
 from crm_signals.event_identity import build_source_event_key
 from crm_signals.settings import get_company_default_currency, get_signal_settings
+from crm_signals.signal_outbox import SignalOutboxPersistenceError, enqueue_signal_event
 
 
 def _log_error(title):
@@ -114,19 +115,36 @@ def insert_signal_once(
     return signal, True
 
 
-def _company_threshold_value(doc, settings):
-    """Compare in the Company's base currency, not the Quote's transaction currency."""
-    company_currency = get_company_default_currency(getattr(doc, "company", None))
-    threshold_currency = settings.get("threshold_currency")
-    if not company_currency or not threshold_currency or threshold_currency != company_currency:
+def _company_threshold_policy(doc, settings):
+    """Resolve a threshold in the Quotation Company's base currency."""
+    company = getattr(doc, "company", None)
+    company_currency = get_company_default_currency(company)
+    if not company_currency:
         return None
+    overrides = {
+        row.get("company"): row
+        for row in (settings.get("company_thresholds") or [])
+        if row.get("company")
+    }
+    policy = overrides.get(company)
+    if policy:
+        if policy.get("currency") != company_currency:
+            return None
+        threshold = float(policy.get("quotation_threshold") or 0)
+    else:
+        threshold_currency = settings.get("threshold_currency")
+        if not threshold_currency or threshold_currency != company_currency:
+            return None
+        threshold = float(settings.get("quotation_threshold") or 0)
 
     base_total = getattr(doc, "base_grand_total", None)
     if base_total is not None:
-        return float(base_total)
-    if getattr(doc, "currency", None) == company_currency:
-        return float(getattr(doc, "grand_total", 0) or 0)
-    return None
+        amount = float(base_total)
+    elif getattr(doc, "currency", None) == company_currency:
+        amount = float(getattr(doc, "grand_total", 0) or 0)
+    else:
+        return None
+    return {"amount": amount, "threshold": threshold}
 
 
 def on_quotation_submit(doc, method=None):
@@ -136,8 +154,8 @@ def on_quotation_submit(doc, method=None):
         if not settings["enabled"] or not settings["enable_quotation_signals"]:
             return
 
-        amount = _company_threshold_value(doc, settings)
-        if amount is None or amount < float(settings["quotation_threshold"] or 0):
+        policy = _company_threshold_policy(doc, settings)
+        if policy is None or policy["amount"] < policy["threshold"]:
             return
 
         links = _party_links(
@@ -147,7 +165,8 @@ def on_quotation_submit(doc, method=None):
         currency = getattr(doc, "currency", None)
         value = float(doc.grand_total or 0)
         formatted_amount = f"{currency} {value:,.2f}" if currency else f"{value:,.2f}"
-        insert_signal_once(
+
+        enqueue_signal_event(
             signal_type="High-Value Quote",
             message=f"High-value quotation {doc.name} submitted for {party} ({formatted_amount})",
             priority="High",
@@ -156,6 +175,9 @@ def on_quotation_submit(doc, method=None):
             source_event_id=f"submit:{getattr(doc, 'modified', None) or doc.name}",
             **links,
         )
+    except SignalOutboxPersistenceError:
+        _log_error("CRM Signals could not persist a submitted Quotation event")
+        raise
     except Exception:
         _log_error("CRM Signals failed to process a submitted Quotation")
 
@@ -177,7 +199,8 @@ def on_opportunity_update(doc, method=None):
         previous_status = str(getattr(before, "status", "") or "") if before else ""
         lead = getattr(doc, "party_name", None) if getattr(doc, "opportunity_from", None) == "Lead" else None
         customer = getattr(doc, "party_name", None) if getattr(doc, "opportunity_from", None) == "Customer" else None
-        insert_signal_once(
+
+        enqueue_signal_event(
             signal_type="Opportunity Activity",
             message=f"Opportunity {doc.name} status updated to {current_status}",
             priority="Medium",
@@ -190,5 +213,8 @@ def on_opportunity_update(doc, method=None):
                 f"{getattr(doc, 'modified', None) or ''}"
             ),
         )
+    except SignalOutboxPersistenceError:
+        _log_error("CRM Signals could not persist an Opportunity event")
+        raise
     except Exception:
         _log_error("CRM Signals failed to process an Opportunity status change")

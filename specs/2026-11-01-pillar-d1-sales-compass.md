@@ -1,6 +1,6 @@
 # D1 — Sales Compass
 
-**Status:** Implemented baseline; status-metadata safety fix is in branch `fix/stage1-metric-correctness` and awaiting CI/merge. Target-site workflow/status validation remains.
+**Status:** Implemented; status-metadata safety fix and PR #63 read-only query-contract smoke are merged/CI-verified on Frappe v15/v16 and pinned v16.5.0. PR #67 adds real synthetic Lead/Opportunity aggregate deltas, terminal-stage exclusion and INR/USD pipeline grouping; CI-verified on Frappe v15/v16 and pinned v16.5.0 (PR #67 merged as `84ab2ce`). Target-site workflow/status validation remains.
 
 ## Problem and user
 
@@ -61,6 +61,7 @@ The Executive Compass presents Lead creation and active Lead metrics; Opportunit
 | D1-AC8 | Sales User sees only records admitted by Frappe permissions and role access | Bench integration test |
 | D1-AC9 | Recent Opportunity links open the correct source form | Playwright E2E |
 | D1-AC10 | Empty and unavailable states render differently | Playwright E2E |
+| D1-AC11 | Real Lead and Opportunity aggregate deltas include active-only stages and currency-grouped pipeline while excluding terminal Opportunities | Disposable Bench fixture passed on Frappe v15/v16 and pinned v16.5.0 (PR #67 final head `cfd7c5ec`, merged as `84ab2ce`) |
 
 ## Existing implementation and tests
 
@@ -69,3 +70,13 @@ Implementation is in crm_signals.api.get_sales_compass_data and crm_signals/crm_
 ## Known correctness hardening
 
 The baseline code treated every Lead/Opportunity as active when the corresponding status field was absent. The Stage 1 correction now marks Lead active count, Opportunity active count, stage distribution and active pipeline unavailable when their required status metadata is missing; total/created counts and recent Opportunity rows remain available where their independent fields/permissions permit. Confirm the terminal-status list with the target site and allow explicit configuration for custom workflows.
+
+
+### Multi-company quotation thresholds
+
+The Settings singleton supports optional per-company threshold rows. Each row derives its currency from Company metadata and is evaluated against the Quotation's base total. If a Company has no override, the legacy site-wide threshold is applied only when its currency matches that Company's base currency. No automatic currency conversion is performed. Administrators must validate each Company's threshold before enabling its quotation alerts.
+
+
+## CI compatibility boundary
+
+PR #63 exercises the real permission-aware D1 query path and ERPNext aggregate queries on the supported Frappe v15/v16 Bench matrix and the pinned v16.5.0 reference lane. PR #67 adds a disposable synthetic Lead/Opportunity fixture that checks recent/active counts, terminal-stage exclusion and INR/USD pipeline deltas using real Frappe DocTypes; the full Frappe v15/v16 and pinned v16.5.0 workflows passed. The fixture rolls back synthetic records and does not prove target-site workflow semantics, Sales User/Manager role approval or pilot behavior.

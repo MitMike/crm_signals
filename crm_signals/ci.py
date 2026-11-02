@@ -146,6 +146,404 @@ def prepare_upgrade_site():
     }
 
 
+def verify_sales_compass_query_contract():
+    """Exercise real D1/D2 ERPNext aggregate queries without writing business records.
+
+    This is a compatibility/schema smoke test, not a financial reconciliation:
+    it verifies the installed DocTypes and permission-aware query paths, while
+    target-site values and role-specific visibility remain separate acceptance.
+    """
+    from crm_signals.api import get_sales_compass_data
+
+    previous_user = frappe.session.user
+    try:
+        frappe.set_user("Administrator")
+        result = get_sales_compass_data()
+        leads = result.get("leads", {})
+        opportunities = result.get("opportunities", {})
+        billing = result.get("billing", {})
+
+        checks = {
+            "Lead 30-day and active metrics": (
+                leads.get("available")
+                and leads.get("active_available")
+                and leads.get("created_last_30_days") is not None
+                and leads.get("active") is not None
+            ),
+            "Opportunity totals, stages and currency-grouped pipeline": (
+                opportunities.get("available")
+                and opportunities.get("status_available")
+                and opportunities.get("stages_available")
+                and opportunities.get("pipeline_value_available")
+                and opportunities.get("total_count") is not None
+                and opportunities.get("active_count") is not None
+                and isinstance(opportunities.get("pipeline_by_currency"), list)
+                and isinstance(opportunities.get("recent"), list)
+            ),
+            "Sales Invoice invoiced, receivable, POS and overdue metrics": (
+                billing.get("available")
+                and billing.get("invoiced_available")
+                and billing.get("outstanding_available")
+                and billing.get("pos_receipts_available")
+                and billing.get("overdue_available")
+                and billing.get("overdue_count") is not None
+                and isinstance(billing.get("invoiced_by_currency"), list)
+                and isinstance(billing.get("outstanding_by_currency"), list)
+                and isinstance(billing.get("pos_receipts_by_currency"), list)
+                and isinstance(billing.get("overdue_invoices"), list)
+            ),
+            "Payment Entry customer receipts": (
+                billing.get("customer_receipts_available")
+                and isinstance(billing.get("customer_receipts_by_currency"), list)
+            ),
+        }
+        failed = [label for label, passed in checks.items() if not passed]
+        if failed:
+            frappe.throw(
+                "D1/D2 Sales Compass query contract failed: " + "; ".join(failed)
+            )
+
+        return {
+            "status": "passed",
+            "framework_version": frappe.__version__,
+            "checks": list(checks),
+            "writes_business_records": False,
+            "financial_reconciliation": False,
+        }
+    finally:
+        frappe.set_user(previous_user)
+
+
+def verify_helpdesk_schema():
+    """Verify the pinned Helpdesk v1.28.0 metric contract without reading ticket records."""
+    required_fields = {
+        "status_category": 0,
+        "resolution_date": 0,
+        "resolution_time": 0,
+        "sla": 0,
+        "agreement_status": 0,
+    }
+    for doctype in ("HD Ticket", "HD Service Level Agreement"):
+        if not frappe.db.exists("DocType", doctype):
+            frappe.throw(f"Pinned Helpdesk app did not install required DocType: {doctype}")
+
+    ticket_meta = frappe.get_meta("HD Ticket")
+    if not frappe.db.has_column("HD Ticket", "creation"):
+        frappe.throw("HD Ticket is missing the standard creation timestamp column")
+
+    mismatches = []
+    for fieldname, expected_permlevel in required_fields.items():
+        field = ticket_meta.get_field(fieldname)
+        if not field:
+            mismatches.append(f"{fieldname}: missing")
+            continue
+        actual_permlevel = int(field.permlevel or 0)
+        if actual_permlevel != expected_permlevel:
+            mismatches.append(
+                f"{fieldname}: expected permlevel {expected_permlevel}, found {actual_permlevel}"
+            )
+    if mismatches:
+        frappe.throw("Pinned Helpdesk field contract changed: " + "; ".join(mismatches))
+
+    permitted_fields = set(
+        ticket_meta.get_permitted_fieldnames(
+            user="Administrator",
+            permission_type="read",
+        )
+    )
+    missing_permitted = sorted(set(required_fields) - permitted_fields)
+    if missing_permitted:
+        frappe.throw(
+            "Administrator cannot read required HD Ticket fields: " + ", ".join(missing_permitted)
+        )
+
+    sla_meta = frappe.get_meta("HD Service Level Agreement")
+    if not sla_meta.has_field("service_level"):
+        frappe.throw("HD Service Level Agreement is missing service_level")
+
+    def read_roles(meta, permlevel):
+        return {
+            permission.role
+            for permission in meta.permissions
+            if permission.read and int(permission.permlevel or 0) == permlevel
+        }
+
+    expected_ticket_roles = {
+        0: {"System Manager", "Agent", "Agent Manager", "HD Customer", "HD Customer Manager"},
+    }
+    for permlevel, expected_roles in expected_ticket_roles.items():
+        actual_roles = read_roles(ticket_meta, permlevel)
+        if actual_roles != expected_roles:
+            frappe.throw(
+                f"HD Ticket read roles changed at permlevel {permlevel}: "
+                f"expected {sorted(expected_roles)}, found {sorted(actual_roles)}"
+            )
+
+    expected_sla_roles = {"System Manager", "Agent Manager"}
+    actual_sla_roles = read_roles(sla_meta, 0)
+    if actual_sla_roles != expected_sla_roles:
+        frappe.throw(
+            "HD Service Level Agreement read roles changed: "
+            f"expected {sorted(expected_sla_roles)}, found {sorted(actual_sla_roles)}"
+        )
+
+    # Exercise the real D3 aggregate path on the pinned Frappe/Helpdesk stack.
+    # The API returns only aggregate metrics; no ticket rows or identifiers are emitted.
+    from crm_signals.api import get_sales_compass_data
+
+    # bench execute does not guarantee an Administrator session; make the
+    # reference-stack smoke test's permission context explicit.
+    frappe.set_user("Administrator")
+    service_metrics = get_sales_compass_data().get("service", {})
+    required_metrics = (
+        "available",
+        "backlog_available",
+        "resolved_available",
+        "resolution_time_available",
+        "sla_available",
+    )
+    unavailable = [key for key in required_metrics if not service_metrics.get(key)]
+    if unavailable:
+        frappe.throw(
+            "CRM Signals D3 aggregate smoke test failed; unavailable metrics: "
+            + ", ".join(unavailable)
+        )
+
+    return {
+        "status": "passed",
+        "ticket_fields": sorted(required_fields),
+        "field_permlevels": required_fields,
+        "ticket_read_roles": {level: sorted(roles) for level, roles in expected_ticket_roles.items()},
+        "sla_read_roles": sorted(expected_sla_roles),
+        "aggregate_smoke_test": "passed",
+        "sla_doctype": "HD Service Level Agreement",
+    }
+
+
+def _d3_ci_status_names():
+    status_names = {}
+    for category in ("Open", "Paused", "Resolved"):
+        rows = frappe.get_all(
+            "HD Ticket Status",
+            filters={"category": category, "enabled": 1},
+            pluck="name",
+            order_by="name asc",
+            limit_page_length=1,
+        )
+        if not rows:
+            frappe.throw(
+                f"Helpdesk has no enabled HD Ticket Status for category {category}"
+            )
+        status_names[category] = rows[0]
+    return status_names
+
+
+def _d3_ci_baseline_resolution_stats(period_start):
+    from crm_signals.api import _dashboard_aggregate_field
+
+    filters = {
+        "resolution_date": [">=", period_start],
+        "status_category": "Resolved",
+        "resolution_time": [">", 0],
+    }
+    count_rows = frappe.get_list(
+        "HD Ticket",
+        fields=[_dashboard_aggregate_field("COUNT", "name", "total")],
+        filters=filters,
+        limit_page_length=1,
+    )
+    average_rows = frappe.get_list(
+        "HD Ticket",
+        fields=[
+            _dashboard_aggregate_field(
+                "AVG", "resolution_time", "average_resolution_seconds"
+            )
+        ],
+        filters=filters,
+        limit_page_length=1,
+    )
+    count = int((count_rows[0].get("total") if count_rows else 0) or 0)
+    average_seconds = float(
+        (
+            average_rows[0].get("average_resolution_seconds")
+            if average_rows
+            else 0
+        )
+        or 0
+    )
+    return count, average_seconds
+
+
+def _d3_ci_create_tickets(status_names, sla_name, now, ticket_names):
+    fixtures = (
+        ("Open", "Resolution Due", None, True),
+        ("Open", None, None, False),
+        ("Paused", "Paused", None, True),
+        ("Resolved", "Fulfilled", 7200, True),
+        ("Resolved", "Fulfilled", 1800, True),
+        ("Resolved", "Failed", 3600, True),
+    )
+    previous_initial_sync = getattr(frappe.flags, "initial_sync", False)
+    frappe.flags.initial_sync = True
+    try:
+        for index, (category, agreement_status, resolution_seconds, has_sla) in enumerate(
+            fixtures, start=1
+        ):
+            ticket = frappe.get_doc(
+                {
+                    "doctype": "HD Ticket",
+                    "subject": f"CRM Signals CI D3 aggregate fixture {index}",
+                }
+            ).insert(ignore_permissions=True)
+            ticket_names.append(ticket.name)
+            frappe.db.set_value(
+                "HD Ticket",
+                ticket.name,
+                {
+                    "status": status_names[category],
+                    "status_category": category,
+                    "resolution_date": now if category == "Resolved" else None,
+                    "resolution_time": resolution_seconds,
+                    "sla": sla_name if has_sla else None,
+                    "agreement_status": agreement_status,
+                },
+            )
+    finally:
+        frappe.flags.initial_sync = previous_initial_sync
+
+
+def _d3_ci_assert_metrics(actual, baseline, baseline_resolution_count, baseline_average_seconds):
+    expected_metrics = {
+        "created_last_30_days": int(baseline["created_last_30_days"] or 0) + 6,
+        "open_backlog": int(baseline["open_backlog"] or 0) + 2,
+        "paused_backlog": int(baseline["paused_backlog"] or 0) + 1,
+        "resolved_last_30_days": int(baseline["resolved_last_30_days"] or 0) + 3,
+        "sla_eligible": int(baseline["sla_eligible"] or 0) + 3,
+        "sla_fulfilled": int(baseline["sla_fulfilled"] or 0) + 2,
+        "sla_failed": int(baseline["sla_failed"] or 0) + 1,
+        "sla_unconfigured": int(baseline["sla_unconfigured"] or 0) + 1,
+    }
+    mismatches = [
+        f"{key}: expected {expected}, found {actual.get(key)}"
+        for key, expected in expected_metrics.items()
+        if actual.get(key) != expected
+    ]
+
+    expected_average_hours = round(
+        (
+            baseline_average_seconds * baseline_resolution_count
+            + 7200
+            + 1800
+            + 3600
+        )
+        / (baseline_resolution_count + 3)
+        / 3600,
+        2,
+    )
+    if actual.get("average_resolution_hours") != expected_average_hours:
+        mismatches.append(
+            "average_resolution_hours: "
+            f"expected {expected_average_hours}, found "
+            f"{actual.get('average_resolution_hours')}"
+        )
+
+    expected_compliance = round(
+        (int(baseline["sla_fulfilled"] or 0) + 2)
+        * 100
+        / (int(baseline["sla_eligible"] or 0) + 3),
+        1,
+    )
+    if actual.get("sla_compliance_percent") != expected_compliance:
+        mismatches.append(
+            "sla_compliance_percent: "
+            f"expected {expected_compliance}, found "
+            f"{actual.get('sla_compliance_percent')}"
+        )
+
+    required_available = (
+        "available",
+        "backlog_available",
+        "resolved_available",
+        "resolution_time_available",
+        "sla_available",
+    )
+    mismatches.extend(
+        f"{key} is unavailable"
+        for key in required_available
+        if not actual.get(key)
+    )
+    if mismatches:
+        frappe.throw(
+            "D3 synthetic aggregate fixture failed: " + "; ".join(mismatches)
+        )
+
+    return {
+        "expected_deltas": expected_metrics,
+        "average_resolution_hours": expected_average_hours,
+        "sla_compliance_percent": expected_compliance,
+    }
+
+
+def verify_helpdesk_aggregate_fixture():
+    """Verify D3 aggregate values against six disposable real HD Ticket documents.
+
+    SLA outcomes are synthetic field values for the aggregate contract only;
+    this does not simulate the Helpdesk SLA engine or approve a site calendar.
+    """
+    from frappe.utils import add_days, now_datetime, nowdate
+
+    from crm_signals.api import get_sales_compass_data
+
+    previous_user = frappe.session.user
+    ticket_names = []
+    try:
+        frappe.set_user("Administrator")
+        period_start = add_days(nowdate(), -30)
+        baseline = get_sales_compass_data().get("service", {})
+        if not baseline.get("available"):
+            frappe.throw("D3 baseline metrics are unavailable before the fixture")
+
+        baseline_resolution_count, baseline_average_seconds = (
+            _d3_ci_baseline_resolution_stats(period_start)
+        )
+        sla_name = frappe.db.get_value(
+            "HD Service Level Agreement", {"enabled": 1}, "name"
+        )
+        if not sla_name:
+            frappe.throw(
+                "D3 aggregate fixture requires at least one enabled Helpdesk SLA"
+            )
+        _d3_ci_create_tickets(
+            _d3_ci_status_names(), sla_name, now_datetime(), ticket_names
+        )
+        frappe.db.commit()
+
+        actual = get_sales_compass_data().get("service", {})
+        summary = _d3_ci_assert_metrics(
+            actual,
+            baseline,
+            baseline_resolution_count,
+            baseline_average_seconds,
+        )
+        return {
+            "status": "passed",
+            "synthetic_tickets": len(ticket_names),
+            "sla_engine_tested": False,
+            **summary,
+        }
+    finally:
+        try:
+            if ticket_names:
+                placeholders = ", ".join(["%s"] * len(ticket_names))
+                frappe.db.sql(
+                    f"DELETE FROM `tabHD Ticket` WHERE name IN ({placeholders})",
+                    tuple(ticket_names),
+                )
+                frappe.db.commit()
+        finally:
+            frappe.set_user(previous_user)
+
+
 def verify_upgrade_site():
     """Assert migrate restored new fields without losing legacy signal rows."""
     missing = [
@@ -173,3 +571,10 @@ def verify_upgrade_site():
             frappe.throw(f"Legacy CRM Signal unexpectedly acquired an event key: {rows[0].name}")
 
     return {"status": "passed", "preserved_legacy_records": len(LEGACY_SIGNAL_MESSAGES)}
+
+
+def verify_sales_compass_aggregate_fixture():
+    """Run the disposable D1/D2 aggregate-value and permission fixture."""
+    from crm_signals.ci_sales_fixture import verify_sales_compass_aggregate_fixture as verify
+
+    return verify()

@@ -8,12 +8,19 @@ app_include_js = "/assets/crm_signals/js/crm_signals_desk.js"
 
 doctype_js = {
     "CRM Signals Settings": "public/js/crm_signals_settings.js",
+    "CRM Signal Outbox": "public/js/crm_signal_outbox.js",
+    "Lead": "public/js/crm_signals_explorer.js",
+    "Customer": "public/js/crm_signals_explorer.js",
+    "Opportunity": "public/js/crm_signals_explorer.js",
+    "CRM Signal": "public/js/crm_signals_explorer.js",
 }
 
 scheduler_events = {
     "cron": {
         "* * * * *": [
-            "crm_signals.tasks.send_daily_signals_digest"
+            "crm_signals.tasks.send_daily_signals_digest",
+            "crm_signals.signal_outbox.process_pending_signal_outbox",
+            "crm_signals.realtime_delivery.process_pending_signal_notification_deliveries",
         ]
     }
 }
