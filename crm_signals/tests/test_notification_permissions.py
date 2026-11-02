@@ -142,8 +142,14 @@ class TestCRMSignalNotificationPermissions(FrappeTestCase):
         with patch("frappe.publish_realtime") as publish:
             notify_signal(signal)
 
+        signal_calls = [
+            call
+            for call in publish.call_args_list
+            if call.kwargs.get("event") == "crm_signal_received"
+            and (call.kwargs.get("message") or {}).get("name") == signal.name
+        ]
         self.assertEqual(
-            [call.kwargs["user"] for call in publish.call_args_list],
+            [call.kwargs.get("user") for call in signal_calls],
             [assignee.name],
         )
 

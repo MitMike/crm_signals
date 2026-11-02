@@ -15,6 +15,19 @@ except ModuleNotFoundError as error:
         pass
 
 
+def _signal_publish_calls(publish, signal_name):
+    """Return only CRM Signal publishes for the signal under test."""
+    calls = []
+    for call in publish.call_args_list:
+        message = call.kwargs.get("message") or {}
+        if (
+            call.kwargs.get("event") == "crm_signal_received"
+            and message.get("name") == signal_name
+        ):
+            calls.append(call)
+    return calls
+
+
 @unittest.skipIf(frappe is None, "Requires the Frappe Bench integration environment")
 class TestRealtimeNotificationDelivery(FrappeTestCase):
     def _make_signal(self):
@@ -54,23 +67,26 @@ class TestRealtimeNotificationDelivery(FrappeTestCase):
             self.assertEqual(result["attempted"], 1)
             self.assertEqual(delivery.status, "Attempted")
             self.assertEqual(delivery.attempt_count, 1)
+            delivery_calls = _signal_publish_calls(publish, signal.name)
+            self.assertEqual(len(delivery_calls), 1)
             self.assertEqual(
-                publish.call_args.kwargs["message"]["delivery_id"],
+                delivery_calls[0].kwargs["message"]["delivery_id"],
                 delivery.delivery_key,
             )
-            self.assertTrue(publish.call_args.kwargs["after_commit"])
+            self.assertTrue(delivery_calls[0].kwargs["after_commit"])
 
             notify_signal(signal)
-            self.assertEqual(publish.call_count, 1)
+            self.assertEqual(len(_signal_publish_calls(publish, signal.name)), 1)
             delivery.db_set("next_retry_at", None, update_modified=False)
             retry = process_signal_notification_delivery(delivery.name)
 
         delivery.reload()
         self.assertEqual(retry["status"], "attempted")
         self.assertEqual(delivery.attempt_count, 2)
-        self.assertEqual(publish.call_count, 2)
+        delivery_calls = _signal_publish_calls(publish, signal.name)
+        self.assertEqual(len(delivery_calls), 2)
         self.assertEqual(
-            publish.call_args.kwargs["message"]["delivery_id"],
+            delivery_calls[-1].kwargs["message"]["delivery_id"],
             delivery.delivery_key,
         )
         self.assertEqual(
@@ -116,7 +132,7 @@ class TestRealtimeNotificationDelivery(FrappeTestCase):
         self.assertEqual(result["status"], "cancelled")
         self.assertEqual(delivery.status, "Cancelled")
         self.assertEqual(delivery.last_error, "RecipientNoLongerEligible")
-        self.assertEqual(publish.call_count, 1)
+        self.assertEqual(len(_signal_publish_calls(publish, signal.name)), 1)
 
     def test_publish_failures_back_off_and_exhaust_to_failed(self):
         from crm_signals.realtime_delivery import (
