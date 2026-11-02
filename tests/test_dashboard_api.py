@@ -214,3 +214,21 @@ def test_dashboard_hides_quotation_source_when_document_permission_check_fails(m
 
     assert result["recent"][0]["source_doctype"] is None
     assert result["recent"][0]["source_name"] is None
+
+
+def test_dashboard_checks_permission_for_the_exact_quotation_source(monkeypatch):
+    api, _, frappe = load_api(monkeypatch)
+    original_has_permission = frappe.has_permission
+    checked_sources = []
+
+    def record_quotation_permission(doctype, *args, **kwargs):
+        if doctype == "Quotation":
+            checked_sources.append(kwargs.get("doc"))
+        return original_has_permission(doctype, *args, **kwargs)
+
+    frappe.has_permission = record_quotation_permission
+    result = api.get_dashboard_data()
+
+    assert checked_sources == ["QTN-0001"]
+    assert result["recent"][0]["source_doctype"] == "Quotation"
+    assert result["recent"][0]["source_name"] == "QTN-0001"
