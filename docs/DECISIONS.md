@@ -590,3 +590,14 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Rationale:** A user can invoke a whitelisted endpoint independently of Desk navigation. Authorization must therefore be enforced on every request and every source record, not inferred from the page's role metadata.
 - **Consequences:** Page-role visibility improves discoverability but does not replace DocType, field-level or row-level checks. Target-site Sales User/Manager and non-sales API tests remain required; no role or field permission is granted automatically.
 - **Validation:** The API's context/source permission tests and the v15/v16 Bench plus pinned v16.5 reference lanes remain merge gates. The UI's escaped rendering, GET-only paging and source drill-down are covered by Playwright.
+
+
+## ADR-063 — Gate Analysis and Vault on accepted metric and retention policy
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-02
+- **Context:** Analysis (A) depends on a versioned registry derived from D1/D2/D3/H definitions, and its specification requires D1/D2 target-site reconciliation before the first catalog is exposed. Vault (V) depends on stable D1/D2 definitions plus an approved source-visibility and retention policy. CI fixtures prove code behavior on reference stacks; they do not establish the pilot site's finance semantics, reporting population or retention obligations.
+- **Decision:** Do not expose Analysis query intents or enable Vault snapshot scheduling until D1/D2 definitions are reconciled against native ERPNext reports and signed by Sales/Finance, with currency basis, date windows, filters, groupings and source permissions recorded. Vault additionally requires an approved reporting population/source-visibility policy, explicit retention period, deletion/pruning owner, audit requirements and a tested dry-run boundary. After sign-off, build a versioned server-owned metric registry and deterministic intent templates; arbitrary generated SQL/Python remains prohibited. Register D3/H metrics only after their own source contracts are accepted.
+- **Rationale:** A technically correct aggregate can still be semantically wrong for a site's accounting setup or expose data outside the approved reporting population. Retention is a policy decision, not a safe default.
+- **Consequences:** A and V remain planned/blocked; no new query endpoint, snapshot DocType or scheduled capture is enabled by this decision. The existing D1/D2 dashboards remain independently usable subject to target-site acceptance.
+- **Revisit criteria:** Attach signed D1/D2 metric definitions and native-report variance evidence, the approved source DocType/field permission matrix, currency/timezone semantics, and (for Vault) the retention/deletion schedule, responsible owner, audit record and dry-run pruning results.
