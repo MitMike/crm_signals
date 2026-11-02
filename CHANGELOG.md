@@ -9,7 +9,7 @@ This changelog records user-visible and operationally significant changes. It is
 - Assert ERPNext-calculated `paid_amount` settles `grand_total`; keep the setup and invoice inside the fixture rollback boundary.
 - This does not simulate browser checkout, POS Opening/Closing, cash drawers or inventory movements; target-site native-report reconciliation remains separate.
 
-### High-Value Quote source drill-down — PR #71 (final-head CI pending)
+### High-Value Quote source drill-down — PR #71 (code-complete; CI blocked by Prettier)
 - Return source_doctype/source_name only when the current user can read both CRM Signal source fields, the signal is a High-Value Quote sourced from Quotation, and the exact Quotation is readable.
 - Suppress other source identifiers and fail closed on permission/metadata errors; the Desk row opens the Quotation while retaining existing party/Signal fallbacks.
 - Add API permission-denial tests and Playwright coverage for the Console source route. Target-site role acceptance remains open.
