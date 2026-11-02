@@ -120,11 +120,14 @@ A green reference CI result is not a substitute for any of these site-specific g
 
 
 
-## Latest repository review — 2026-11-03 (main `135e648`, after PR #102)
+## Latest repository review — 2026-11-03 (main `5dbda02`, after PR #103)
 
 - [x] PR #100 dashboard inset browser guard merged as `9c4febf`; all 18 final-head checks passed, including Bench v15/v16 and v16 Playwright.
 - [x] PR #101 target-site visual-UAT kit and documentation reconciliation merged as `0772afde`.
 - [x] PR #102 stale dependency follow-up reconciliation merged as `135e648`; all 16 final-head check runs completed: 15 succeeded and the integration-test change detector was skipped as expected for the documentation-only diff.
-- [x] Live open-PR search returned zero at this main baseline.
-- [ ] **Read-only preflight SHA capture (ADR-086):** implementation and tests are on branch `ops/preflight-source-sha-20261103`; require final-head Python, Quality, Security, Bench v15/v16 + Playwright and pinned v16.5.0 checks before merge. The report must fail closed if the exact revision cannot be obtained.
-- [ ] **Dashboard visual UAT and target-site pilot:** still blocked by the absence of an authorized staging session and target-site evidence. The revisit criteria above remain unchanged.
+- [x] PR #103 read-only source SHA preflight merged as `5dbda0291358350d5a720127a7d526145d3e3c60`; all 18 final-head check runs passed, including Bench v15/v16 + Playwright and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0.
+- [x] Live open-PR search returned zero after PR #103 merged.
+- [x] **Read-only preflight SHA capture (ADR-086):** code-complete and CI-verified. It reports a full SHA only for a clean checkout; operators must match it to the approved release SHA.
+- [ ] **Dashboard visual UAT and target-site pilot:** still blocked by the absence of an authorized staging session and target-site evidence. The exact revisit criteria above remain unchanged.
+
+The PR's CI result does not establish that a customer site has the approved SHA, clean checkout, rebuilt assets, correct effective permissions, reconciled D1/D2 figures, validated Helpdesk SLA, or passed recovery/rollback rehearsal. No pilot verification is claimed.
