@@ -2,7 +2,7 @@
 
 **Started:** 2026-11-01  
 **Last reviewed:** 2026-11-02  
-**Baseline:** `main` at `84ab2ce0b4ce1a9614882635e4c085092cf2a0c5`  
+**Latest functional baseline:** `84ab2ce0b4ce1a9614882635e4c085092cf2a0c5` (PR #67; subsequent PR #68 is documentation-only)  
 **Decision register:** [ADR-046](DECISIONS.md#adr-046--run-release-readiness-as-an-evidence-gated-sprint)  
 **Operating rule:** no item is complete without the evidence listed here. CI evidence and target-site evidence are separate.
 
