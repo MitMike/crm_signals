@@ -1,15 +1,16 @@
 frappe.provide("crm_signals");
+const crmSignals = window.crm_signals;
 
-crm_signals.seen_delivery_ids = crm_signals.seen_delivery_ids || new Set();
+crmSignals.seen_delivery_ids = crmSignals.seen_delivery_ids || new Set();
 
-crm_signals.handle_realtime_signal = function(data) {
+crmSignals.handle_realtime_signal = function(data) {
     if (!data || !data.signal_type || !data.message) return;
     if (data.delivery_id) {
-        if (crm_signals.seen_delivery_ids.has(data.delivery_id)) return;
-        crm_signals.seen_delivery_ids.add(data.delivery_id);
-        if (crm_signals.seen_delivery_ids.size > 500) {
-            const oldest = crm_signals.seen_delivery_ids.values().next().value;
-            crm_signals.seen_delivery_ids.delete(oldest);
+        if (crmSignals.seen_delivery_ids.has(data.delivery_id)) return;
+        crmSignals.seen_delivery_ids.add(data.delivery_id);
+        if (crmSignals.seen_delivery_ids.size > 500) {
+            const oldest = crmSignals.seen_delivery_ids.values().next().value;
+            crmSignals.seen_delivery_ids.delete(oldest);
         }
     }
 
@@ -25,5 +26,5 @@ crm_signals.handle_realtime_signal = function(data) {
 };
 
 $(document).on("app_ready", function() {
-    frappe.realtime.on("crm_signal_received", crm_signals.handle_realtime_signal);
+    frappe.realtime.on("crm_signal_received", crmSignals.handle_realtime_signal);
 });
