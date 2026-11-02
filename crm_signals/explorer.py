@@ -88,7 +88,7 @@ def _resolve_party(context_doctype, context_name):
     return party_doctype, party_name
 
 
-def _decode_cursor(cursor, page_length):
+def _decode_cursor(cursor, page_length, context_key):
     if not cursor:
         return {
             "as_of": str(now_datetime()),
@@ -108,6 +108,8 @@ def _decode_cursor(cursor, page_length):
 
     offsets = payload.get("offsets")
     as_of = payload.get("as_of")
+    if not isinstance(as_of, str) or not as_of or len(as_of) > 40:
+        frappe.throw(_("Invalid timeline cursor"), frappe.ValidationError)
     try:
         get_datetime(as_of)
     except (TypeError, ValueError):
@@ -116,9 +118,8 @@ def _decode_cursor(cursor, page_length):
     if (
         payload.get("version") != 1
         or payload.get("page_length") != page_length
-        or not isinstance(as_of, str)
-        or not as_of
-        or len(as_of) > 40
+        or payload.get("context") != context_key
+        or payload.get("user") != frappe.session.user
         or not isinstance(offsets, dict)
         or set(offsets) != set(SOURCE_IDS)
     ):
@@ -136,11 +137,13 @@ def _decode_cursor(cursor, page_length):
     return {"as_of": as_of, "offsets": offsets}
 
 
-def _encode_cursor(as_of, offsets, page_length):
+def _encode_cursor(as_of, offsets, page_length, context_key):
     payload = {
         "version": 1,
         "as_of": as_of,
         "page_length": page_length,
+        "context": context_key,
+        "user": frappe.session.user,
         "offsets": offsets,
     }
     raw = json.dumps(payload, separators=(",", ":"), sort_keys=True).encode("utf-8")
@@ -312,7 +315,8 @@ def get_explorer_timeline(context_doctype, context_name, page_length=20, cursor=
             frappe.ValidationError,
         )
 
-    cursor_state = _decode_cursor(cursor, page_length)
+    context_key = f"{context_doctype}:{context_name}"
+    cursor_state = _decode_cursor(cursor, page_length, context_key)
     party_doctype, party_name = _resolve_party(context_doctype, context_name)
 
     source_pages = {}
@@ -341,7 +345,7 @@ def get_explorer_timeline(context_doctype, context_name, page_length=20, cursor=
         page_length,
     )
     next_cursor = (
-        _encode_cursor(cursor_state["as_of"], next_offsets, page_length)
+        _encode_cursor(cursor_state["as_of"], next_offsets, page_length, context_key)
         if has_more
         else None
     )
