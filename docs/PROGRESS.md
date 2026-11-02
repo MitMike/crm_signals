@@ -182,3 +182,10 @@ For each change:
 - **Evidence:** GitHub rejected the earlier merge attempt on head `7f9d840226e6d6db1a435b8c1cc629e70dc63eca` because two required Bench contexts were cancelled by a push run on the stacked Desk branch. A new unique head `dda6eb88c0e8735645018de60275d9cf55d2d99d` then passed all eight required contexts and the pinned Frappe v16.5.0 / ERPNext v16.5.0 / Helpdesk v1.28.0 lane; PR #57 merged as `ba631720`.
 - **Decision:** Do not bypass the main ruleset or retry stale shared-SHA runs. The original stacked PR #58 was closed unmerged; PR #59 is its clean replacement based on `main`.
 - **Revisit criteria:** No further action is required for PR #57. If a future PR produces duplicate or cancelled contexts, inspect the push and pull-request run sources and require successful final-head contexts before merging. Never bypass branch protection.
+
+
+## GME CRM Signals workspace branding — PR #75 (code-complete; CI pending)
+
+- The Frappe workspace label and title are changed to GME CRM Signals; technical identifiers, routes, icon, links and shortcuts remain unchanged.
+- The initial PR #75 CI failure was not a runtime defect: the static contract test still asserted the old title CRM Signals. The test now asserts both the new label and title.
+- Final-head Quality, Security, Frappe v15/v16 Bench and pinned v16.5.0 checks must pass before merge. No launcher-tile behavior is claimed.

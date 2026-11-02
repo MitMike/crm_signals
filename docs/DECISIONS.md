@@ -718,3 +718,14 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Rationale:** A deployment must be reproducible, auditable and restorable to the exact source revision that passed the release gate.
 - **Consequences:** The operator guide and deployment runbook now make commit pinning and SHA verification explicit. The target-site acceptance record must retain the verified CRM Signals SHA alongside exact Frappe/ERPNext/Helpdesk versions. This documentation change does not claim a target-site deployment or pilot verification.
 - **Revisit criteria:** Revisit only when release automation publishes and verifies immutable, signed release tags; until then, use the approved full commit SHA.
+
+
+## ADR-076 — Use GME CRM Signals as the workspace display name
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-02
+- **Context:** The requested Desk workspace branding is GME CRM Signals, while the existing Frappe workspace displayed CRM Signals.
+- **Decision:** Change only the workspace label and title to GME CRM Signals. Preserve the technical workspace/module/page identifiers, routes, icon, links and shortcuts; do not claim this creates or fixes a separate app-launcher tile.
+- **Rationale:** The user-facing label can change without migrating identifiers or breaking existing navigation.
+- **Consequences:** The workspace JSON and static contract test now require both label and title to equal GME CRM Signals. The change does not alter application permissions, data or navigation targets.
+- **Revisit criteria:** Revisit only if a separate launcher-tile requirement or a further branding change is approved.
