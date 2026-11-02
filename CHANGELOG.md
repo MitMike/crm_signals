@@ -6,16 +6,20 @@ This changelog records user-visible and operationally significant changes. It is
 
 ### Bug/fix evidence registers — PR #79 (merged as 7904a70)
 - Add durable bug and fix registers with stable IDs, root-cause/reproduction evidence, regression prevention, and separate merged/CI-verified/UAT-verified states.
-- Record the dashboard horizontal-inset regression as BUG-2026-001 / FIX-2026-001; its CSS fix remains in PR #78 and still requires UAT visual verification.
+- Record the dashboard horizontal-inset regression as BUG-2026-001 / FIX-2026-001; the focused CSS fix is in PR #84 and desktop/mobile UAT remains outstanding.
 
-### GME CRM Signals workspace label — PR #75 (pending CI)
-- Rename only the workspace display label/title; preserve technical identifiers, routes and shortcuts. Update the static contract test for the new label/title.
+### GME CRM Signals workspace label — PR #85 (code-complete; final-head CI pending after rebase)
+- Change only the workspace display label/title to GME CRM Signals while preserving technical identifiers, routes, icon and shortcuts.
+- Assert both label and title in the static contract test; no separate app-launcher tile is implied. The earlier PR #75 branch was closed because it also carried stale deployment documentation.
 
-### Dashboard horizontal inset — PR #78 (pending CI)
-- Restore 24px horizontal padding and add a static regression assertion. UAT visual confirmation remains outstanding.
+### Dashboard horizontal inset — PR #84 (code-complete; final-head CI running)
+- Restore 24px horizontal padding and add a static regression assertion. Desktop/mobile target Desk visual UAT remains outstanding; PR #78 was closed as superseded.
 
-### Regression-review PR template — PR #81 (canonical; prior CI passed, refresh required)
-- Add a reusable checklist for bug-register search, regression tests/manual checks, root-cause review, and honest CI/UAT status. This is advisory, not an automated merge gate. PR #80 was closed as superseded because its bug/fix registers were merged in PR #79 and its template content is carried by PR #81.
+### Regression-review PR template — PR #86 (merged and CI-verified as `966c31a`)
+- Add a reusable checklist for bug-register search, regression tests/manual checks, root-cause review, and honest CI/UAT status. This is advisory, not an automated merge gate. Earlier PR #81 was closed as superseded; PR #80 was already closed after its registers moved to PR #79.
+
+### actions/upload-artifact v7 — PR #87 (code-complete; final-head CI running)
+- Upgrade the Playwright and Python coverage artifact upload steps to `actions/upload-artifact@v7` on current main. Quality and Security passed; Bench v15/v16 and pinned Frappe v16.5.0 checks are running. The earlier Dependabot PR #6 was closed as superseded.
 
 ### Change-aware CI execution — PR #76 (merged and CI-verified as cec49e7)
 - Preserve stable required-check names while selecting Python, Bench and pinned Frappe v16.5.0 execution by changed runtime paths.
