@@ -24,7 +24,7 @@ jobs:
     container:
       image: semgrep/semgrep
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Scan Python application code
         run: semgrep scan --error --config p/python --config p/security-audit --sarif --output semgrep.sarif crm_signals
       - name: Upload Semgrep findings
