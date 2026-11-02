@@ -572,6 +572,7 @@ def verify_upgrade_site():
 
     return {"status": "passed", "preserved_legacy_records": len(LEGACY_SIGNAL_MESSAGES)}
 
+
 def verify_sales_compass_aggregate_fixture():
     """Run the disposable D1/D2 aggregate-value and permission fixture."""
     from crm_signals.ci_sales_fixture import verify_sales_compass_aggregate_fixture as verify
