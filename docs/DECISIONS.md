@@ -623,3 +623,14 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Rationale:** One authoritative Bench run per PR head avoids duplicate database/app installs, reduces runner contention and prevents a push-triggered duplicate from cancelling the required PR context. Main still receives a Bench run after merge.
 - **Consequences:** Feature-branch pushes no longer start a second Bench matrix; PR checks remain the merge gate. This changes CI scheduling only, not supported-version coverage.
 - **Revisit criteria:** Revisit only if a separate branch-push validation requirement is introduced that is not already satisfied by pull-request checks or main-branch pushes.
+
+
+## ADR-066 — Keep D2 source permissions independent
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-02
+- **Context:** The D2 specification requires independent read-permission checks for Sales Invoice and Payment Entry. `_get_sales_billing_data()` returned as soon as Sales Invoice metadata/read access was unavailable, suppressing customer receipts even when the requesting user had Payment Entry read access. This contradicted the source contract and the UI's independently rendered metric cards.
+- **Decision:** Evaluate Sales Invoice metrics and Payment Entry customer receipts independently. A denied or unavailable Sales Invoice source must leave invoice, POS, receivable and overdue measures unavailable, but must not prevent a permission-aware Payment Entry receipt query. If a Sales Invoice query raises `PermissionError`, clear any partial invoice results and continue with Payment Entry. Preserve the existing `billing.available` flag as the Sales Invoice source-availability indicator for compatibility; `customer_receipts_available` remains the receipt-card authority.
+- **Rationale:** The two DocTypes are distinct sources with distinct permissions and currency semantics. Suppressing a permitted Payment Entry aggregate because a different source is denied hides authorized data; bypassing either source's permission checks would be unsafe.
+- **Consequences:** A user may see customer receipts while invoice-related D2 cards show unavailable. No roles are granted, no cross-source join is added, and no financial calculation changes. Unit regression coverage runs in the supported Frappe v15/v16 test matrix.
+- **Revisit criteria:** Revisit only if the D2 response schema or source model changes. Target-site Sales User/Manager permissions and native-report reconciliation remain separate pilot acceptance.
