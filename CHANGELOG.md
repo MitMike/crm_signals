@@ -4,7 +4,7 @@ This changelog records user-visible and operationally significant changes. It is
 
 ## Unreleased — Transactional signal outbox, durable realtime retry, D3 Helpdesk, Highlights, Explorer and D1/D2 CI contracts (PR #26, #32, #54, #57, #59, #60, #63, #65, #67, #69, #70, #71)
 
-### D2 POS invoice settlement fixture — PR #69 (final-head CI pending)
+### D2 POS invoice settlement fixture — PR #69 (merged and CI-verified as efe7872)
 - Create a disposable POS Profile and company-specific Mode of Payment, then submit an `is_pos` Sales Invoice through ERPNext's normal lifecycle.
 - Assert ERPNext-calculated `paid_amount` settles `grand_total`; keep the setup and invoice inside the fixture rollback boundary.
 - This does not simulate browser checkout, POS Opening/Closing, cash drawers or inventory movements; target-site native-report reconciliation remains separate.
