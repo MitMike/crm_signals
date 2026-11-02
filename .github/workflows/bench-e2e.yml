@@ -36,7 +36,8 @@ jobs:
               - 'pyproject.toml'
               - 'setup.py'
 
-  bench-validation:
+  bench-validation-runtime:
+    name: Bench integration execution (${{ matrix.frappe_branch }}, ${{ matrix.python-version }}, ${{ matrix.run_e2e }})
     needs: changes
     if: always() && (github.event_name != 'pull_request' || needs.changes.outputs.bench == 'true')
     runs-on: ubuntu-latest
@@ -227,3 +228,24 @@ jobs:
           cat bench_start.log || true
           echo "=== Frappe logs ==="
           cat logs/*.log || true
+
+  bench-v15-required:
+    name: bench-validation (version-15, 3.11, false)
+    needs: [changes, bench-validation-runtime]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require Bench execution when runtime files changed
+        if: (github.event_name != 'pull_request' || needs.changes.outputs.bench == 'true') && needs.bench-validation-runtime.result != 'success'
+        run: exit 1
+
+  bench-v16-required:
+    name: bench-validation (version-16, 3.14, true)
+    needs: [changes, bench-validation-runtime]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require Bench execution when runtime files changed
+        if: (github.event_name != 'pull_request' || needs.changes.outputs.bench == 'true') && needs.bench-validation-runtime.result != 'success'
+        run: exit 1
+
