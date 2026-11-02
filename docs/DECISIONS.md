@@ -814,3 +814,14 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Rationale:** The regression is a deterministic CSS contract. Computed-style assertions directly fail if either horizontal inset is removed or changed, without introducing brittle screenshot diffs or requiring site-specific visual assets.
 - **Consequences:** The browser suite now protects the exact desktop/mobile inset values. CI verification is separate from manual staging UAT; BUG-2026-001 / FIX-2026-001 remain UAT-pending until the approved site assets are rebuilt and screenshots are reviewed.
 - **Revisit criteria:** Update the expected values only after an intentional layout change is approved and the desktop/mobile design is revalidated. Do not treat this automated check as pilot acceptance.
+
+
+## ADR-084 — Route browser E2E changes through Bench validation
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-03
+- **Context:** PR #100 added a Playwright regression test under `e2e/`. Review of the first PR check run found that the change-aware Bench selector covered `tests/**` and app paths but omitted `e2e/**` and `playwright.config.ts`. An E2E-only change could therefore pass lint/format checks while skipping the workflow that actually executes Playwright.
+- **Decision:** Add `e2e/**` and `playwright.config.ts` to the Bench integration-change selector. Add static contract assertions that both paths remain covered. The existing Frappe v16 matrix continues to execute Playwright; the v15 job remains a non-browser integration lane. Keep the pinned v16.5.0 workflow scoped to application/runtime compatibility paths.
+- **Rationale:** Browser tests must execute when browser tests or their runner configuration change. Formatting/linting alone does not prove the test runs or passes.
+- **Consequences:** PR #100 now makes its own Playwright change trigger the v15/v16 Bench workflow, including the v16 browser suite. This path-selection correction is independently protected by a static contract test. Final-head CI remains the verification gate.
+- **Revisit criteria:** Revisit if the browser suite moves, Playwright configuration changes location, or Bench job selection is redesigned. Any selector change must preserve a successful E2E-only trigger.
