@@ -171,8 +171,8 @@ For each change:
 - Remaining: capture the pilot site's exact app versions, configure the approved custom read-only Helpdesk role for Sales, and verify the active SLA calendar, hours and holiday list.
 
 
-## PR #57 merge gate — cancelled duplicate Bench checks
+## Resolved PR #57 merge gate — cancelled duplicate Bench checks
 
-- **Evidence:** GitHub rejected the first merge attempt on head `7f9d840226e6d6db1a435b8c1cc629e70dc63eca` with HTTP 405: `2 of 8 required status checks are cancelled`. The PR-triggered Bench v15/v16 run `41403029061` passed both jobs, the exact Frappe v16.5.0 / Helpdesk v1.28.0 lane `41403028893` passed, and the other required Python/lint/Semgrep contexts passed. The two cancelled contexts came from push run `41403173818` on the stacked Desk branch at the same SHA. A rerun attempt on that old run was cancelled again by branch concurrency.
-- **Decision:** Do not bypass the main ruleset and do not retry the stale shared-SHA run again. Create a new unique PR #57 head with this blocker recorded, let its own push/PR workflows finish, and merge only when all eight required contexts are successful on that head and the exact target lane passes.
-- **Revisit criteria:** Recheck the new head's check-run rollup and the active ruleset. If any required context is cancelled or missing, rerun it on the new head; if GitHub still reports cancelled checks despite successful same-head runs, stop and diagnose the workflow concurrency/duplicate-context configuration rather than bypass protection. Retarget stacked PR #58 only after PR #57 is merged.
+- **Evidence:** GitHub rejected the earlier merge attempt on head `7f9d840226e6d6db1a435b8c1cc629e70dc63eca` because two required Bench contexts were cancelled by a push run on the stacked Desk branch. A new unique head `dda6eb88c0e8735645018de60275d9cf55d2d99d` then passed all eight required contexts and the pinned Frappe v16.5.0 / ERPNext v16.5.0 / Helpdesk v1.28.0 lane; PR #57 merged as `ba631720`.
+- **Decision:** Do not bypass the main ruleset or retry stale shared-SHA runs. The original stacked PR #58 was closed unmerged; PR #59 is its clean replacement based on `main`.
+- **Revisit criteria:** No further action is required for PR #57. If a future PR produces duplicate or cancelled contexts, inspect the push and pull-request run sources and require successful final-head contexts before merging. Never bypass branch protection.
