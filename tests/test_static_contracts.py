@@ -284,7 +284,7 @@ def test_operator_installation_pins_source_before_bench_setup():
     acceptance = (ROOT / "docs/TARGET_SITE_ACCEPTANCE.md").read_text()
 
     for document in [guide, runbook, acceptance]:
-        assert "\\nbench get-app crm_signals\\n" not in document
+        assert "\nbench get-app crm_signals\n" not in document
 
     guide_first = guide.split("### First installation", 1)[1].split(
         "### Upgrade an existing installation", 1
