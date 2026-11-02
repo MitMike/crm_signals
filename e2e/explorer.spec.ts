@@ -147,3 +147,145 @@ test("Explorer renders safe activity pages and opens the source record", async (
     const sourceUrl = /\/desk\/crm-signals\/crm-signal\/SIG-EXPLORER-E2E-1$/;
     await expect(page).toHaveURL(sourceUrl);
 });
+
+
+test("Explorer routes every supported context through the GET timeline API", async ({ page }) => {
+    await loginAsAdministrator(page);
+    const contexts = [
+        { doctype: "Lead", name: "LEAD-EXPLORER-MATRIX" },
+        { doctype: "Customer", name: "CUSTOMER-EXPLORER-MATRIX" },
+        { doctype: "Opportunity", name: "OPP-EXPLORER-MATRIX" },
+        { doctype: "CRM Signal", name: "SIG-EXPLORER-MATRIX" },
+        { doctype: "Highlight", name: "SIG-HIGHLIGHT-MATRIX" }
+    ];
+    const requests: { doctype: string | null; name: string | null; pageLength: string | null }[] = [];
+
+    await page.route(
+        "**/api/method/crm_signals.explorer.get_explorer_timeline*",
+        async (route) => {
+            expect(route.request().method()).toBe("GET");
+            const requestUrl = new URL(route.request().url());
+            const doctype = requestUrl.searchParams.get("context_doctype");
+            const name = requestUrl.searchParams.get("context_name");
+            const pageLength = requestUrl.searchParams.get("page_length");
+            requests.push({ doctype, name, pageLength });
+
+            await route.fulfill({
+                status: 200,
+                contentType: "application/json",
+                body: JSON.stringify({
+                    message: {
+                        context: {
+                            doctype,
+                            name,
+                            party_doctype: doctype === "Customer" ? "Customer" : "Lead",
+                            party_name: name
+                        },
+                        sources: [],
+                        items: [],
+                        next_cursor: null
+                    }
+                })
+            });
+        }
+    );
+
+    for (const context of contexts) {
+        await page.goto(
+            `/app/crm-signals-explorer/${encodeURIComponent(context.doctype)}/${encodeURIComponent(context.name)}`
+        );
+        await expect(
+            page.getByText(`${context.doctype} · ${context.name}`, { exact: true })
+        ).toBeVisible();
+    }
+
+    expect(requests).toEqual(
+        contexts.map((context) => ({
+            doctype: context.doctype,
+            name: context.name,
+            pageLength: "20"
+        }))
+    );
+});
+
+test("Explorer ignores a late response after the user changes timeline context", async ({ page }) => {
+    await loginAsAdministrator(page);
+    let releaseStaleResponse: (() => Promise<void>) | undefined;
+    let signalStaleRequestStarted: (() => void) | undefined;
+    const staleRequestStarted = new Promise<void>((resolve) => {
+        signalStaleRequestStarted = resolve;
+    });
+
+    const responseFor = (doctype: string, name: string, summary: string) => ({
+        message: {
+            context: {
+                doctype,
+                name,
+                party_doctype: doctype === "Customer" ? "Customer" : "Lead",
+                party_name: name
+            },
+            sources: [],
+            items: [
+                {
+                    source_id: "crm_signal",
+                    source_doctype: "CRM Signal",
+                    source_event_id: `SIG-${name}`,
+                    event_type: "CRM Signal",
+                    timestamp: "2026-11-02 10:00:00",
+                    summary
+                }
+            ],
+            next_cursor: null
+        }
+    });
+
+    await page.route(
+        "**/api/method/crm_signals.explorer.get_explorer_timeline*",
+        async (route) => {
+            expect(route.request().method()).toBe("GET");
+            const requestUrl = new URL(route.request().url());
+            const doctype = requestUrl.searchParams.get("context_doctype") || "";
+            const name = requestUrl.searchParams.get("context_name") || "";
+
+            if (name === "LEAD-EXPLORER-STALE") {
+                await new Promise<void>((resolve) => {
+                    releaseStaleResponse = async () => {
+                        await route.fulfill({
+                            status: 200,
+                            contentType: "application/json",
+                            body: JSON.stringify(responseFor(doctype, name, "Stale response marker"))
+                        });
+                        resolve();
+                    };
+                    signalStaleRequestStarted?.();
+                });
+                return;
+            }
+
+            await route.fulfill({
+                status: 200,
+                contentType: "application/json",
+                body: JSON.stringify(responseFor(doctype, name, "Current response marker"))
+            });
+        }
+    );
+
+    await page.goto("/app/crm-signals-explorer/Lead/LEAD-EXPLORER-STALE");
+    await staleRequestStarted;
+    await page.evaluate(() => {
+        (window as any).frappe.set_route(
+            "crm-signals-explorer",
+            "Customer",
+            "CUSTOMER-EXPLORER-CURRENT"
+        );
+    });
+
+    await expect(page.getByText("Customer · CUSTOMER-EXPLORER-CURRENT")).toBeVisible();
+    await expect(page.getByText("Current response marker")).toBeVisible();
+    if (!releaseStaleResponse) {
+        throw new Error("The stale timeline request was not captured");
+    }
+    await releaseStaleResponse();
+    await expect(page.getByText("Stale response marker")).toHaveCount(0);
+    await expect(page.getByText("Current response marker")).toBeVisible();
+});
