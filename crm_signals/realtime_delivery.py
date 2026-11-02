@@ -124,40 +124,23 @@ def _notification_payload(signal, delivery):
     }
 
 
-def process_signal_notification_delivery(delivery_name):
-    """Publish one due delivery; Attempted never means human-delivered."""
-    from frappe.utils import get_datetime, now_datetime
-
-    delivery = frappe.get_doc(
-        "CRM Signal Notification Delivery", delivery_name, for_update=True
-    )
-    if delivery.status not in ACTIVE_DELIVERY_STATUSES:
-        return {"status": "skipped", "name": delivery.name}
-
-    now = now_datetime()
-    retry_at = get_datetime(delivery.next_retry_at) if delivery.next_retry_at else None
-    if retry_at and retry_at > now:
-        return {"status": "not_due", "name": delivery.name}
+def _load_eligible_signal(delivery, attempts, now):
     if not frappe.db.exists("CRM Signal", delivery.signal):
-        return _cancel_delivery(delivery, "SignalUnavailable")
+        return None, _cancel_delivery(delivery, "SignalUnavailable")
 
     signal = frappe.get_doc("CRM Signal", delivery.signal)
     from crm_signals.notifications import get_signal_recipients
 
-    attempts = int(delivery.attempt_count or 0)
     try:
-        if delivery.recipient not in get_signal_recipients(signal):
-            return _cancel_delivery(delivery, "RecipientNoLongerEligible")
+        eligible = delivery.recipient in get_signal_recipients(signal)
     except Exception as error:
-        return _record_delivery_failure(delivery, attempts + 1, error, now)
+        return None, _record_delivery_failure(delivery, attempts + 1, error, now)
+    if not eligible:
+        return None, _cancel_delivery(delivery, "RecipientNoLongerEligible")
+    return signal, None
 
-    if attempts >= MAX_SIGNAL_NOTIFICATION_ATTEMPTS:
-        delivery.db_set(
-            {"status": "Failed", "next_retry_at": None},
-            update_modified=True,
-        )
-        return {"status": "failed", "name": delivery.name}
 
+def _attempt_delivery(signal, delivery, attempts, now):
     attempts += 1
     delivery.db_set(
         {
@@ -181,6 +164,33 @@ def process_signal_notification_delivery(delivery_name):
         return _record_delivery_failure(delivery, attempts, error, now)
     return {"status": "attempted", "name": delivery.name}
 
+
+def process_signal_notification_delivery(delivery_name):
+    """Publish one due delivery; Attempted never means human-delivered."""
+    from frappe.utils import get_datetime, now_datetime
+
+    delivery = frappe.get_doc(
+        "CRM Signal Notification Delivery", delivery_name, for_update=True
+    )
+    if delivery.status not in ACTIVE_DELIVERY_STATUSES:
+        return {"status": "skipped", "name": delivery.name}
+
+    now = now_datetime()
+    retry_at = get_datetime(delivery.next_retry_at) if delivery.next_retry_at else None
+    if retry_at and retry_at > now:
+        return {"status": "not_due", "name": delivery.name}
+
+    attempts = int(delivery.attempt_count or 0)
+    signal, result = _load_eligible_signal(delivery, attempts, now)
+    if result:
+        return result
+    if attempts >= MAX_SIGNAL_NOTIFICATION_ATTEMPTS:
+        delivery.db_set(
+            {"status": "Failed", "next_retry_at": None},
+            update_modified=True,
+        )
+        return {"status": "failed", "name": delivery.name}
+    return _attempt_delivery(signal, delivery, attempts, now)
 
 def dispatch_signal_notifications(signal):
     """Persist each eligible recipient before attempting its realtime publish."""
