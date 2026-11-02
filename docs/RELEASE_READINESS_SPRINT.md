@@ -2,7 +2,7 @@
 
 **Started:** 2026-11-01  
 **Last reviewed:** 2026-11-02  
-**Latest functional baseline:** `84ab2ce0b4ce1a9614882635e4c085092cf2a0c5` (PR #67; subsequent PR #68 is documentation-only)  
+**Latest main:** `2cc7725d4e36f53d492139187fa6cd9adf663f0f` (PR #68 documentation-only); **latest functional baseline:** `84ab2ce0b4ce1a9614882635e4c085092cf2a0c5` (PR #67)  
 **Decision register:** [ADR-046](DECISIONS.md#adr-046--run-release-readiness-as-an-evidence-gated-sprint)  
 **Operating rule:** no item is complete without the evidence listed here. CI evidence and target-site evidence are separate.
 
@@ -19,6 +19,8 @@
 - [x] [PR #36](https://github.com/MitMike/crm_signals/pull/36) merged as `e57d94ea`; ADR-049 sets Frappe v16.5 as the primary target while retaining v15/v16 CI coverage.
 - [x] [PR #42](https://github.com/MitMike/crm_signals/pull/42) merged D3 field-level permission hardening as `17eca3f6cb493fb8729632e0902c07ccb776b6a5`; Quality, Security and Bench v15/v16 passed.
 - [x] [PR #57](https://github.com/MitMike/crm_signals/pull/57), [PR #59](https://github.com/MitMike/crm_signals/pull/59) and [PR #61](https://github.com/MitMike/crm_signals/pull/61) merged Explorer core adapters, Desk entry points, five-context Playwright coverage and operator runbook safeguards. PR #61 final head `902b38e4dd4713461acfb12dc837f5b2b84da7d8` passed all required v15/v16 checks and the pinned Frappe v16.5.0 lane; merge commit `6ef9642b63c24053fb437f67d9d4fb47e360c80a`.
+- [x] [PR #68](https://github.com/MitMike/crm_signals/pull/68) reconciles D1/D2 fixture status across the plan, progress and operator records; final-head checks passed and it merged as 2cc7725.
+- [ ] Read-only target-site preflight report (ADR-068): code-complete on the current feature branch; final-head CI and merge are pending. Static DocPerm rows are not effective permission acceptance.
 - [x] [PR #65](https://github.com/MitMike/crm_signals/pull/65) fixes D2 source-permission independence: Payment Entry receipts remain visible when Sales Invoice access is denied, and partial invoice results are cleared after a query-level PermissionError. Final head `315a49a52f70ecb888e6d9cc91a4c1f4e51535d7` passed Quality, Security/Semgrep, Python 3.10/3.11/3.12/3.14, Bench v15/v16 and pinned Frappe v16.5.0 / ERPNext v16.5.0 / Helpdesk v1.28.0; merged as `0cfeda4fb39f79722fdf733abd06a3460ebcdd4d`.
 
 **Merge gate:** all required checks pass on the final PR head; review threads resolved; no target-site claims inferred from CI.
