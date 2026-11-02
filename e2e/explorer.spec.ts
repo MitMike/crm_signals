@@ -139,6 +139,6 @@ test("Explorer opens paged activity sources", async ({ page }) => {
     });
     await sourceButton.click();
 
-    const sourceUrl = /\\/app\\/crm-signal\\/SIG-EXPLORER-E2E-1$/;
+    const sourceUrl = new RegExp("/app/crm-signal/SIG-EXPLORER-E2E-1$");
     await expect(page).toHaveURL(sourceUrl);
 });
