@@ -137,6 +137,7 @@ def _source_revision():
         return {"available": False, "reason": "invalid_revision"}
     return {"available": True, "commit_sha": revision}
 
+
 def _field_summary(field):
     fieldname = _value(field, "fieldname")
     if not fieldname:
