@@ -16,7 +16,7 @@ This file records known work that is intentionally not represented as complete. 
 
 ## Repository maintenance
 
-- [ ] **Dependabot refresh (reviewed 2026-11-02 against main `0cfeda4`):** all nine open PRs (#5–#10, #13–#15) have green check runs on their existing heads, including Quality, Semgrep, Bench v15/v16 and the pinned v16.5.0 lane where triggered. They are stale: PRs #5–#8 and #10 are one commit ahead / two behind `main`; PRs #9, #13, #14 and #15 are one ahead / 30 behind. Do not merge on stale CI. Revisit after Dependabot refreshes each branch to `behind_by=0`, then require all contexts on the new final head. Keep these maintenance PRs separate; do not batch-merge.
+- [ ] **Dependabot refresh (reviewed 2026-11-02 against main `2cc7725`):** all nine open PRs (#5–#10, #13–#15) have green check runs on their existing heads: #5 has 17, #6 has 15, #7 has 15, #8 has 17, #10 has 17, and #9/#13/#14/#15 have 18 each. All are stale against current main. PRs #5/#6/#7/#8/#10 are each one commit ahead and one behind; PRs #9/#13/#14/#15 are each one ahead and 33 behind. Do not merge on stale CI. Revisit after refreshing each branch to `behind_by=0`, then require all ruleset contexts on its new final head. Keep these maintenance PRs separate and re-check after every main update.
 
 ## P1 — engineering reliability improvements
 
@@ -60,4 +60,4 @@ Do not close a follow-up because code compiles or a mocked unit test passes. Clo
 
 ## P2 — Dependency maintenance
 
-- [ ] **Refresh remaining Dependabot PRs against the functional baseline `84ab2ce`:** PRs #5, #6, #7, #8 and #10 (GitHub Actions major updates) are each one commit ahead and zero commits behind `main`. PR #6 has all 15 current-head checks green; PRs #5, #7, #8 and #10 still have Bench/pinned/Python checks queued or in progress, so do not merge yet. PRs #9, #13, #14 and #15 (flit-core, oxlint, globals and prettier) are each one commit ahead and 32 commits behind; all 18 checks on each old head are green but stale. Revisit after current-head CI completes for #5/#7/#8/#10 and Dependabot refreshes the four diverged branches to `behind_by=0`. Require the eight ruleset contexts on each final head and merge one at a time; re-check the remaining branches after every main update. Do not infer current compatibility from green stale-head checks.
+- [ ] **Refresh remaining Dependabot PRs against current main `2cc7725`:** PRs #5/#6/#7/#8/#10 are each one commit ahead and one behind; all their existing-head check runs currently pass (15–17 runs per PR). PRs #9/#13/#14/#15 are each one ahead and 33 behind; all 18 existing-head check runs per PR pass but are stale. Refresh one branch at a time against current main, require all eight ruleset contexts on the new final head, and re-check the remaining branches after every main update. Do not merge based on stale-head CI.
