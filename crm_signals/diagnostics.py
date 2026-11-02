@@ -10,13 +10,13 @@ import frappe
 
 TARGET_ROLES = ("Sales User", "Sales Manager", "System Manager")
 PREFLIGHT_DOCTYPES = {
-    "CRM Signal": (),
+    "CRM Signal": ("signal_type", "priority", "lead", "customer", "source_doctype", "source_name", "source_event_id"),
     "Lead": ("status",),
-    "Customer": (),
+    "Customer": ("customer_name",),
     "Opportunity": ("status",),
-    "Quotation": ("status",),
-    "Sales Invoice": (),
-    "Payment Entry": (),
+    "Quotation": ("quotation_to", "party_name", "status", "grand_total", "currency"),
+    "Sales Invoice": ("is_return", "docstatus", "currency", "grand_total", "outstanding_amount", "is_pos", "paid_amount", "posting_date", "due_date", "customer"),
+    "Payment Entry": ("docstatus", "payment_type", "party_type", "party", "paid_amount", "received_amount", "posting_date", "paid_from_account_currency", "paid_to_account_currency"),
     "HD Ticket": (
         "status_category",
         "resolution_date",
