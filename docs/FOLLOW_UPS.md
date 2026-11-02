@@ -105,4 +105,4 @@ This snapshot supersedes the older dependency queue entries above. A green CI re
 
 ## P1 — dashboard visual regression prevention
 
-- [x] **BUG-2026-001 / FIX-2026-001 automated guard (ADR-083; PR #100):** add a Playwright check on the rendered CRM Signals dashboard that asserts 24px horizontal padding at 1440px and 12px at 390px. Code is complete; final-head CI is the verification gate. This does not close the separate desktop/mobile staging UAT item above.
+- [ ] **BUG-2026-001 / FIX-2026-001 automated guard (ADR-083/084; PR #100):** add a Playwright check on the rendered CRM Signals dashboard that asserts 24px horizontal padding at 1440px and 12px at 390px. The Bench selector now includes `e2e/**` and `playwright.config.ts`, protected by static tests, so this change triggers the v16 browser lane. Code is complete; final-head CI is pending. This does not close the separate desktop/mobile staging UAT item above.
