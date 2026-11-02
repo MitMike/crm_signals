@@ -686,3 +686,14 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Rationale:** Repeated manual guesses have not made progress; a formatter-generated diff is the next evidence-bearing action.
 - **Consequences:** The source link remains unmerged and unavailable on main until CI passes. Target-site Sales User/Manager/non-sales permission acceptance remains separate.
 - **Revisit criteria:** An environment with the repository's locked Prettier 3.2.5 and Node version is available, or CI can expose the exact formatted file/diff. If neither is available, leave the PR blocked and continue with independent work.
+
+
+## ADR-072 — Print exact formatter diffs when Quality formatting fails
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-02
+- **Context:** PR #71's H-AC11 Playwright test failed Prettier on three source heads under Prettier 3.2.5. PR #15 then upgraded the locked development dependency to Prettier 3.9.10 and merged as `5fc32b0`; PR #71 was synchronized with that main commit as `966b833`, but Quality still reported only `e2e/sahdev-dashboard.spec.ts` as unformatted (runs `41448226026` and duplicate `41448219829`). The current environment has no network access to install the locked npm package, and the existing CI log does not include the formatter output.
+- **Decision:** Keep `npm run format:check` as a blocking required check. Add a failure-only step to Quality that runs the same locally installed, lockfile-pinned Prettier against the checked tooling/E2E files and prints a unified diff for each mismatch. The diagnostic must not write or auto-fix files, change the required-check result, or bypass formatting. Apply the exact emitted diff to the source branch, then rerun every required final-head context and the pinned Frappe v16.5.0 lane.
+- **Rationale:** The formatter itself is the source of truth. A deterministic diff from the exact installed package removes guesswork while preserving the existing merge gate.
+- **Consequences:** Formatting failures become directly actionable in CI logs. H-AC11 remains code-complete but not CI-verified until the formatted source passes all final-head checks. This diagnostic does not imply pilot verification.
+- **Revisit criteria:** Apply the diff from the first successful diagnostic run. Keep the formatter check blocking. If logs still omit the diff, inspect the diagnostic step's failure and use an artifact or CI-equivalent formatter environment; do not make manual formatting guesses.
