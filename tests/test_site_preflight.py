@@ -122,6 +122,7 @@ def test_preflight_includes_workflow_states_and_static_field_permissions(monkeyp
     assert [state["state"] for state in workflow["states"]] == ["Qualified", "Converted"]
 
     lead = report["doctypes"]["Lead"]
+    assert lead["required_fields"] == [{"fieldname": "status", "present": True, "permlevel": 1}]
     assert lead["fields"][0]["permlevel"] == 1
     assert lead["fields"][0]["options"] == ["Open", "Closed"]
     assert lead["role_read_permissions"] == [
