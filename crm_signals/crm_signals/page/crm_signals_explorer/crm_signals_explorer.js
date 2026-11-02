@@ -107,15 +107,19 @@ class CRMSignalsExplorer {
             this.body.find(".crm-explorer-load-more").prop("disabled", true);
         }
 
+        const args = {
+            context_doctype: this.context.doctype,
+            context_name: this.context.name,
+            page_length: 20
+        };
+        if (cursor) {
+            args.cursor = cursor;
+        }
+
         frappe.call({
             method: "crm_signals.explorer.get_explorer_timeline",
             type: "GET",
-            args: {
-                context_doctype: this.context.doctype,
-                context_name: this.context.name,
-                page_length: 20,
-                cursor: cursor
-            },
+            args: args,
             callback: (response) => {
                 if (!response.message) {
                     this.showError(__("Unable to load the activity timeline. Check your access and refresh."));

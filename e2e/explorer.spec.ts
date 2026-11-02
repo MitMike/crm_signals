@@ -105,10 +105,12 @@ test(
             "**/api/method/crm_signals.explorer.get_explorer_timeline*",
             async (route) => {
                 requestCount += 1;
-                if (requestCount === 2) {
-                    expect(
-                        new URL(route.request().url()).searchParams.get("cursor")
-                    ).toBe("cursor-page-2");
+                expect(route.request().method()).toBe("GET");
+                const requestUrl = new URL(route.request().url());
+                if (requestCount === 1) {
+                    expect(requestUrl.searchParams.has("cursor")).toBe(false);
+                } else {
+                    expect(requestUrl.searchParams.get("cursor")).toBe("cursor-page-2");
                 }
 
                 await route.fulfill({
