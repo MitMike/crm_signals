@@ -39,11 +39,11 @@ The following capabilities are present in the repository. "Implemented" means th
 | Daily CRM digest | Per-recipient queue tracking and cross-worker serialization merged in PR #19/#23 | Verify target-site semantics, timezone, recipient policy and live scheduler/mail behavior |
 | CRM Signals Settings | Implemented and merged in PR #19 | Confirm the default Company currency, preset behavior and selected site configuration |
 | CRM Signals Desk Console | Implemented | Target-site permission and usability smoke test |
-| D1 Sales Compass | Implemented; missing-status fix merged in PR #17 | Verify target-site status semantics and role visibility |
-| D2 Billing Realization | Implemented; return-metadata guard merged in PR #17 | Reconcile totals and currency basis against target-site reports |
+| D1 Sales Compass | Implemented; status-metadata safety fix merged in PR #17; PR #63 adds a read-only Bench query-contract smoke (CI pending) | Verify target-site workflow/status semantics and role visibility |
+| D2 Billing Realization | Implemented; return-metadata guard merged in PR #17; PR #63 adds a read-only Bench query-contract smoke (CI pending) | Reconcile totals and currency basis against target-site reports |
 | D3 Service Resolution/SLA | Standard Frappe Helpdesk adapter and field-level guard merged in PR #32/#42; moving v15/v16 CI and exact Frappe v16.5.0 / ERPNext v16.5.0 / Helpdesk v1.28.0 reference lane passed in PR #50 | Confirm the pilot site's exact app versions, Sales read-only role/field permissions and active SLA calendar |
 | H Highlights | Partial; high-value Quotation events exist | Per-company threshold behavior merged in PR #45; target-site amounts and currency fallback still require approval. VIP allowlist/escalation and proposal-link tracking remain; tracking is gated on privacy/consent and retention approval |
-| E Explorer | Core backend API plus field-level fail-closed checks in PR #57; latest-head CI rerun pending | Desk entry points, Playwright and optional-provider inventory remain |
+| E Explorer | Core API, Desk UI and five-context browser coverage merged in PR #57/#59/#61; final-head CI verified | Target-site role/field-permission acceptance and optional-provider inventory remain |
 | V Vault | Not implemented | Metric registry, retention and source-visibility policy |
 | A Analysis | Not implemented | Approved metric/query registry and constrained intent mapping |
 
@@ -275,12 +275,12 @@ A slice is done only when all applicable items are complete:
 | Settings and core reliability | [Settings, presets and idempotency](specs/2026-11-01-settings-and-core-reliability.md) | PR #19 and concurrency hardening PR #23 merged; v15/v16 Bench, Playwright, quality and security passed |
 | Document events and realtime routing | [Events and notifications](specs/2026-11-01-crm-signals-events-and-notifications.md) | Settings/idempotency merged in PR #19; concurrent API recovery in PR #23; durable per-recipient realtime retry merged in PR #54 and CI-verified; pilot recovery remains |
 | Daily digest | [Digest](specs/2026-11-01-crm-signals-daily-digest.md) | Per-recipient tracking and overlapping-worker serialization merged in PR #19/#23; live policy open |
-| D1 | [Sales Compass](specs/2026-11-01-pillar-d1-sales-compass.md) | Missing-status correction merged; target-site validation open |
-| D2 | [Billing Realization](specs/2026-10-31-pillar-d2-billing-realization.md) | Return-metadata guard merged; target-site reconciliation open |
+| D1 | [Sales Compass](specs/2026-11-01-pillar-d1-sales-compass.md) | Implemented; PR #63 adds v15/v16 + pinned v16.5 read-only query-contract smoke (CI pending); target-site validation open |
+| D2 | [Billing Realization](specs/2026-10-31-pillar-d2-billing-realization.md) | Implemented; PR #63 adds v15/v16 + pinned v16.5 read-only query-contract smoke (CI pending); target-site reconciliation open |
 | D3 | [Service Resolution/SLA](specs/2026-11-01-pillar-d3-service-resolution-sla.md) | Adapter, exact v16.5.0 reference CI and aggregate fixture verified in PR #50/#53; pilot-site source/permission/SLA acceptance remains |
 | H | [Highlights](specs/2026-11-01-pillar-h-highlights.md) | Partial: high-value quotation signals and per-Company thresholds merged; VIP proposal tracking remains gated on privacy/consent and retention approval |
 | A | [Analysis](specs/2026-11-01-pillar-a-analysis.md) | Planned |
-| E | [Explorer](specs/2026-11-01-pillar-e-explorer.md) | Core backend in PR #57; Desk UI and optional adapters remain |
+| E | [Explorer](specs/2026-11-01-pillar-e-explorer.md) | Core API, Desk UI and five-context browser coverage merged and CI-verified; target-site role/source acceptance remains |
 | V | [Vault](specs/2026-11-01-pillar-v-vault.md) | Planned |
 
 ## 8. Release blockers and external inputs

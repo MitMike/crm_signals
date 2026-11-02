@@ -16,9 +16,11 @@ This file records known work that is intentionally not represented as complete. 
 
 ## Repository maintenance
 
-- [ ] **Dependabot refresh:** PRs #5–#10 and #13–#15 each have green Quality Checks, Security Scanning and Bench v15/v16 on their current heads; Dependency Security Audit also passed where triggered. However, every branch is diverged from `main` (one commit ahead, 26 behind as of 2026-11-02). Do not merge on stale CI. Refresh/rebase each onto current `main` and rerun all required contexts; if a branch cannot be refreshed cleanly, close/recreate it. Revisit only when the branch is up to date (`behind_by=0`) and all required checks pass on its final head. Keep these maintenance PRs separate; do not batch-merge.
+- [ ] **Dependabot refresh:** PRs #5–#10 and #13–#15 each have green Quality Checks, Security Scanning and Bench v15/v16 on their current heads; Dependency Security Audit also passed where triggered. However, every branch is diverged from `main` (one commit ahead, 27 behind at the PR #63 base `aeea959`). Do not merge on stale CI. Refresh/rebase each onto current `main` and rerun all required contexts; if a branch cannot be refreshed cleanly, close/recreate it. Revisit only when the branch is up to date (`behind_by=0`) and all required checks pass on its final head. Keep these maintenance PRs separate; do not batch-merge.
 
 ## P1 — engineering reliability improvements
+
+- [ ] **D1/D2 synthetic aggregate-value fixture:** PR #63 adds a real read-only query-contract smoke, but deliberately creates no accounting records. Revisit when the Bench fixture can provision an isolated Company, chart of accounts, Customer, Item, Sales Invoice and Payment Entry on both Frappe v15 and v16; then assert invoice/POS/receipt/receivable/overdue deltas, currency grouping and permission behavior. Do not substitute this for target-site native-report reconciliation.
 
 - [x] **Explorer backend field-permission review and merge (PR #57).** The final head `dda6eb88c0e8735645018de60275d9cf55d2d99d` passed Quality Checks, Security Scanning, Frappe v15/v16 Bench + Playwright and the pinned Frappe v16.5.0/ERPNext v16.5.0/Helpdesk v1.28.0 lane; merged as `ba631720`. The earlier cancelled-check head was not bypassed.
 

@@ -2,10 +2,10 @@
 
 ## What runs automatically
 
-Every push and pull request runs the main code and compatibility checks:
+Every push and pull request runs the main code checks. Bench compatibility runs on every pull request and on pushes to `main` (not on the same feature-branch commit twice):
 
 - **Quality Checks:** Ruff lint, ESLint, Oxlint, Prettier checks for E2E/tooling files, Python compile, configuration validation and pytest across Python 3.10, 3.11, 3.12 and 3.14. Coverage is published as a build artifact. Ruff formatting is applied locally through the pre-commit formatter hook.
-- **Bench Integration and E2E:** creates real Frappe + ERPNext sites on v15/Python 3.11 and v16/Python 3.14, installs this app, migrates the site and runs the Python suite inside the Bench environment. The v16 lane also starts Frappe and runs the Playwright browser test.
+- **Bench Integration and E2E:** creates real Frappe + ERPNext sites on v15/Python 3.11 and v16/Python 3.14, installs this app, migrates the site and runs the Python suite inside the Bench environment. The v16 lane also starts Frappe and runs the Playwright browser test. It now also runs a read-only D1/D2 Sales Compass query-contract smoke against real ERPNext DocTypes on both supported lines; the separate pinned Frappe v16.5.0 lane runs the same check alongside the Helpdesk D3 contract and aggregate fixture.
 - **Security Scanning:** runs Semgrep against application Python code and uploads SARIF findings to GitHub code scanning.
 
 The **Dependency Security Audit** workflow runs on pull requests that change dependency-related files, weekly, and on manual dispatch. It runs `pip-audit` for Python and `npm audit` for JavaScript tooling; moderate- and higher-severity npm findings fail the audit.

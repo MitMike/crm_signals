@@ -601,3 +601,25 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Rationale:** A technically correct aggregate can still be semantically wrong for a site's accounting setup or expose data outside the approved reporting population. Retention is a policy decision, not a safe default.
 - **Consequences:** A and V remain planned/blocked; no new query endpoint, snapshot DocType or scheduled capture is enabled by this decision. The existing D1/D2 dashboards remain independently usable subject to target-site acceptance.
 - **Revisit criteria:** Attach signed D1/D2 metric definitions and native-report variance evidence, the approved source DocType/field permission matrix, currency/timezone semantics, and (for Vault) the retention/deletion schedule, responsible owner, audit record and dry-run pruning results.
+
+
+## ADR-064 — Exercise D1/D2 aggregate query compatibility in Bench CI
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-02
+- **Context:** D1/D2 unit coverage uses mocked Frappe APIs. The supported-version Bench workflow installs ERPNext on Frappe v15/v16, but did not explicitly execute the Sales Compass D1/D2 aggregate query path. The pinned v16.5.0 lane called the dashboard API only to assert D3 Helpdesk metrics, leaving ERPNext D1/D2 query compatibility implicit.
+- **Decision:** Add a read-only CI smoke check that runs `get_sales_compass_data()` as Administrator after ERPNext installation on Frappe v15/v16 and the pinned Frappe v16.5.0 / ERPNext v16.5.0 / Helpdesk v1.28.0 lane. Assert that the Lead, Opportunity, Sales Invoice and Payment Entry metric sections and their required response shapes are available. Create no business records and perform no writes.
+- **Rationale:** Real metadata and database aggregation queries catch schema/API incompatibilities that mocked tests cannot. Avoiding synthetic accounting documents keeps this check independent of company/account/customer setup and prevents it from being mistaken for a financial reconciliation.
+- **Consequences:** This proves query-path compatibility on reference stacks only. It does not verify metric values, Sales User/Manager row or field visibility, custom workflows, currency conventions, or native-report reconciliation. Those remain target-site acceptance gates. A separate synthetic financial fixture may be added only when it can create valid, isolated ERPNext accounting records on both supported framework lines.
+- **Revisit criteria:** Revisit when a reusable test fixture can provision an isolated Company, chart of accounts, Customer, Item, submitted Sales Invoice and Payment Entry on Frappe v15/v16 without depending on the target site's accounting setup. Then assert invoice/POS/receipt/receivable/overdue aggregation deltas and permission behavior; keep live financial reconciliation separate.
+
+
+## ADR-065 — Avoid duplicate Bench runs on feature-branch pushes
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-02
+- **Context:** The Bench matrix ran for both `push` and `pull_request` events on the same feature-branch commit. The duplicate runs competed under separate concurrency groups; repeated branch updates produced cancelled or stale required Bench contexts, as previously observed during Explorer integration and again while validating PR #63.
+- **Decision:** Restrict the Bench Integration and E2E workflow's `push` trigger to `main`. Continue running it for every pull request and allow explicit `workflow_dispatch` on other refs. The pinned Frappe v16.5.0 workflow remains pull-request/path filtered and manually dispatchable.
+- **Rationale:** One authoritative Bench run per PR head avoids duplicate database/app installs, reduces runner contention and prevents a push-triggered duplicate from cancelling the required PR context. Main still receives a Bench run after merge.
+- **Consequences:** Feature-branch pushes no longer start a second Bench matrix; PR checks remain the merge gate. This changes CI scheduling only, not supported-version coverage.
+- **Revisit criteria:** Revisit only if a separate branch-push validation requirement is introduced that is not already satisfied by pull-request checks or main-branch pushes.

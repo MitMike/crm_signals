@@ -2,6 +2,8 @@ name: Bench Integration and E2E
 
 on:
   push:
+    branches:
+      - main
   pull_request:
   workflow_dispatch:
 
@@ -97,6 +99,10 @@ jobs:
           bench --site test.local set-config allow_tests true
           bench --site test.local set-config host_name "http://test.local:8000"
           bench --site test.local migrate
+
+      - name: Verify D1/D2 Sales Compass query contract
+        working-directory: /home/runner/frappe-bench
+        run: bench --site test.local execute crm_signals.ci.verify_sales_compass_query_contract
 
       - name: Exercise upgrade from the pre-event-identity CRM Signal schema
         working-directory: /home/runner/frappe-bench

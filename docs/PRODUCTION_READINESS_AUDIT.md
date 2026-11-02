@@ -2,13 +2,13 @@
 
 **Audit date:** 2026-11-02  
 **Repository:** MitMike/crm_signals  
-**Base:** `main` at `cab1796d6432800d229a7cf1512b3be45f72b5bc` (PR #51 merged)  
-**Implementation under audit:** PRs #19/#21/#23/#26/#32/#38/#42/#44/#45/#49/#50/#51, all merged; latest main baseline `cab1796`  
+**Base:** `main` at `aeea9599b11f17bff0ef5bbd7904f44f23567e3e` (PR #62 merged)  
+**Implementation under audit:** PRs #19/#21/#23/#26/#32/#38/#42/#44/#45/#49/#50/#51/#53/#54/#55/#56/#57/#59/#60/#61/#62, all merged; latest main baseline `aeea959`  
 **Decision:** **Not approved for production sign-off.** PR #19, PR #21 and PR #23 are merged; supported-version CI passes. Target-site acceptance and the roadmap's external discovery/policy inputs remain outstanding. Durable realtime retry is implemented on PR #54 and CI-verified on head `d2ac43e`; target-site Redis/worker recovery evidence remains open. The transactional outbox and audited Failed-row replay are already implemented.
 
 ## 2026-11-02 follow-up status
 
-This is a historical audit of the earlier PR #19/#23 baseline. The following later changes supersede the affected open findings:
+This is a historical audit of the earlier PR #19/#23 baseline. The following later changes supersede the affected open findings. PR #62 reconciles the Explorer and policy-gated roadmap status; PR #63 adds a read-only D1/D2 Bench query-contract smoke and is pending final-head CI. This smoke is not a financial reconciliation.
 
 - **Signal outbox:** transactional source-event outbox merged in PR #26; audited System Manager replay for terminal Failed rows merged in PR #38. The old P1 replay gap is closed; target-site backup/restore and operational monitoring remain P0 acceptance.
 - **Realtime authorization and retry:** source-document read checks merged in PR #44. PR #54 implements the ADR-053 per-recipient ledger, stable delivery ID, bounded retry, permission recheck and active-session deduplication. `Attempted` means the after-commit callback was queued, not that Redis or a browser confirmed delivery. Required CI passed on head `d2ac43e`; target-site Redis/worker recovery tests remain open.

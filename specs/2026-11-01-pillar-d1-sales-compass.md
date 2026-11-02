@@ -1,6 +1,6 @@
 # D1 — Sales Compass
 
-**Status:** Implemented baseline; status-metadata safety fix is in branch `fix/stage1-metric-correctness` and awaiting CI/merge. Target-site workflow/status validation remains.
+**Status:** Implemented; status-metadata safety fix is merged. PR #63 adds a read-only D1/D2 Bench query-contract smoke on Frappe v15/v16 and pinned v16.5.0 (final-head CI pending). Target-site workflow/status validation remains.
 
 ## Problem and user
 
@@ -74,3 +74,8 @@ The baseline code treated every Lead/Opportunity as active when the correspondin
 ### Multi-company quotation thresholds
 
 The Settings singleton supports optional per-company threshold rows. Each row derives its currency from Company metadata and is evaluated against the Quotation's base total. If a Company has no override, the legacy site-wide threshold is applied only when its currency matches that Company's base currency. No automatic currency conversion is performed. Administrators must validate each Company's threshold before enabling its quotation alerts.
+
+
+## CI compatibility boundary
+
+PR #63 exercises the real permission-aware D1 query path and ERPNext aggregate queries on the supported Frappe v15/v16 Bench matrix and the pinned v16.5.0 reference lane. It verifies metadata/query availability and response shape without creating business records. It does not prove financial values, Sales User/Manager row-level behavior or target-site workflow semantics; those remain separate acceptance criteria.
