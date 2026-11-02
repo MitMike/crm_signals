@@ -13,7 +13,7 @@ ACTIVE_DELIVERY_STATUSES = {"Pending", "Attempted"}
 
 def build_delivery_key(signal_name, recipient):
     """Return a stable identifier for one signal and one recipient."""
-    return sha256(f"{signal_name}\x1f{recipient}".encode("utf-8")).hexdigest()
+    return sha256(f"{signal_name}\x1f{recipient}".encode()).hexdigest()
 
 
 def _load_delivery_by_key_for_update(delivery_key):
