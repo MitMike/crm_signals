@@ -2,7 +2,15 @@
 
 This changelog records user-visible and operationally significant changes. It is not a substitute for commit history. Entries do not imply a production release unless explicitly stated.
 
-## Unreleased — Transactional signal outbox, durable realtime retry, D3 Helpdesk, Highlights and Explorer (PR #26, #32, #54, #57, #59, #60)
+## Unreleased — Transactional signal outbox, durable realtime retry, D3 Helpdesk, Highlights, Explorer and D1/D2 CI contracts (PR #26, #32, #54, #57, #59, #60, #63)
+
+### D1/D2 real query-contract smoke — PR #63
+- Execute the read-only Sales Compass API against installed ERPNext DocTypes in the Frappe v15/v16 Bench matrix and pinned Frappe v16.5.0 / ERPNext v16.5.0 / Helpdesk v1.28.0 lane.
+- Verify Lead, Opportunity, Sales Invoice and Payment Entry response sections and required availability/shape contracts without creating business records or writing to the database.
+- Restrict Bench workflow push runs to `main` while retaining PR and manual-dispatch validation, preventing duplicate feature-branch Bench runs.
+- Final-head Quality, Security, Semgrep, Python, Bench v15/v16 and pinned-target checks passed. Merge commit: `0a7de966`.
+- This is schema/query compatibility evidence only; target-site permission acceptance and D1/D2 native-report financial reconciliation remain open.
+
 
 ### H Highlights quotation contract — PR #60
 - Add unit regressions for Company-base-currency threshold equality, below-threshold suppression, transaction-currency message display and fail-closed behavior when a foreign-currency Quotation has no base total.
