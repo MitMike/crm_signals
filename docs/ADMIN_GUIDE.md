@@ -34,6 +34,7 @@ For a first installation, clone the repository and immediately check out the exa
 bench get-app https://github.com/MitMike/crm_signals
 git -C apps/crm_signals checkout --detach <approved-commit-sha>
 test "$(git -C apps/crm_signals rev-parse HEAD)" = "<approved-commit-sha>"
+bench setup requirements
 bench --site <site-name> install-app crm_signals
 bench --site <site-name> migrate
 bench build --app crm_signals
@@ -46,6 +47,7 @@ For an existing installation, take a database and files backup first, then fetch
 git -C apps/crm_signals fetch origin main --tags
 git -C apps/crm_signals checkout --detach <approved-commit-sha>
 test "$(git -C apps/crm_signals rev-parse HEAD)" = "<approved-commit-sha>"
+bench setup requirements
 bench --site <site-name> migrate
 bench build --app crm_signals
 bench restart

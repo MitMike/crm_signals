@@ -5,7 +5,7 @@ This changelog records user-visible and operationally significant changes. It is
 ## Unreleased — Transactional signal outbox, durable realtime retry, D3 Helpdesk, Highlights, Explorer and D1/D2 CI contracts (PR #26, #32, #54, #57, #59, #60, #63, #65, #67, #69, #70, #71)
 
 ### Immutable target-site deployment pin — PR #74
-- First-install and upgrade instructions now detach the app checkout to the exact approved 40-character commit SHA and verify it before installation or migration.
+- First-install and upgrade instructions now detach the app checkout to the exact approved 40-character commit SHA, verify it, and reconcile Python/Node requirements from that pinned tree before installation or migration.
 - The target-site acceptance record must retain that SHA with the exact Frappe, ERPNext and Helpdesk versions. A moving `main` branch is not a deployment revision.
 
 ### D2 POS invoice settlement fixture — PR #69 (merged and CI-verified as efe7872)
