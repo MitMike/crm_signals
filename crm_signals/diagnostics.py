@@ -101,7 +101,6 @@ def _app_version(app):
     return {"app": app, "version": str(version) if version else None}
 
 
-
 def _source_revision():
     """Return the exact checked-out CRM Signals revision without exposing Git errors."""
     try:
