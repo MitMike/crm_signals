@@ -175,12 +175,12 @@ Exit criteria:
 **Priority:** P2  
 **Dependencies:** Stage 1 permission contract; verified integrations and source event identities.
 
-**Current implementation:** PR #57 is merged as `ba631720` after Quality Checks, Security Scanning, the Frappe v15/v16 Bench + Playwright matrix and the pinned Frappe v16.5.0 / ERPNext v16.5.0 / Helpdesk v1.28.0 lane passed on its final head. It provides read-only CRM Signal, Quotation and Opportunity adapters for Lead, Customer, Opportunity, CRM Signal and High-Value Quote contexts, metadata-only summaries, bounded snapshot pagination and fail-closed field-level permission checks. PR #59 adds the role-restricted Desk timeline page, form entry points, GET cursor paging, stale-response protection and first browser coverage. Optional providers remain deferred until the target-site inventory is recorded.
+**Current implementation:** PR #57 is merged as `ba631720` after Quality Checks, Security Scanning, the Frappe v15/v16 Bench + Playwright matrix and the pinned Frappe v16.5.0 / ERPNext v16.5.0 / Helpdesk v1.28.0 lane passed on its final head. It provides read-only CRM Signal, Quotation and Opportunity adapters for Lead, Customer, Opportunity, CRM Signal and High-Value Quote contexts, metadata-only summaries, bounded snapshot pagination and fail-closed field-level permission checks. PR #59 is merged as `6b381fe` after all eight required ruleset contexts and the pinned Frappe v16.5.0 / ERPNext v16.5.0 / Helpdesk v1.28.0 lane passed on final head `4bc7893513253d40ee60bb3a00b7c70827041eb9`. It adds the role-restricted Desk timeline page, form entry points, GET cursor paging, stale-response protection and Lead-context browser coverage. PR #61 adds a five-context route matrix and stale-response regression; CI is pending. Optional providers remain deferred until the target-site inventory is recorded.
 
 Work:
 - [x] Merge the read-only CRM Signal, Quotation and Opportunity adapters and bounded timeline API (PR #57; CI verified).
-- [x] Add the role-restricted Desk timeline page and Activity Timeline form actions (PR #59).
-- [x] Add GET cursor paging, source navigation, distinct source states and stale-response protection (PR #59).
+- [x] Add the role-restricted Desk timeline page and Activity Timeline form actions (PR #59; merged and CI-verified).
+- [x] Add GET cursor paging, source navigation, distinct source states and stale-response protection (PR #59; merged and CI-verified).
 - [x] Maintain an explicit registry for the supported CRM Signal, Quotation and Opportunity sources; defer all optional provider adapters until site inventory.
 - [x] Normalize source ID, event ID, timestamp, related party, safe summary and authorized source link for the first three sources.
 - [x] Add stable snapshot pagination, deduplication and deterministic timestamp/source ordering.
@@ -192,7 +192,7 @@ Exit criteria:
 - [ ] Installed/configured adapters and versions are recorded.
 - [x] The initial adapters have contract, field-permission and compatibility tests; v15/v16 Bench and pinned v16.5 reference tests pass.
 - [x] Duplicate IDs, equal timestamps, pagination and unavailable states pass unit/Bench tests.
-- [ ] Browser E2E covers every Lead, Customer, Opportunity, CRM Signal and Highlight form-entry path and role-specific visibility on the target site; current Playwright coverage proves timeline paging and source drill-down from a Lead context.
+- [ ] Browser E2E covers every Lead, Customer, Opportunity, CRM Signal and Highlight form-entry path and role-specific visibility on the target site; PR #61 adds the route-context matrix and late-response regression (CI pending), while real role visibility remains a pilot check.
 
 ### Stage 5 — V Vault
 
