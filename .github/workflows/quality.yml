@@ -39,7 +39,23 @@ jobs:
       - name: ESLint and Oxlint
         run: npm run lint:js
       - name: Check formatting of tooling and E2E tests
+        id: format_check
         run: npm run format:check
+      - name: Print exact Prettier diff when formatting fails
+        if: failure() && steps.format_check.outcome == 'failure'
+        run: |
+          mapfile -d '' files < <(find e2e -type f -name '*.ts' -print0)
+          files+=(eslint.config.mjs playwright.config.ts)
+          for file in "${files[@]}"; do
+            formatted="$(mktemp)"
+            npx prettier "$file" > "$formatted"
+            if ! cmp -s "$file" "$formatted"; then
+              echo "::group::Prettier diff: $file"
+              diff -u --label "$file (committed)" --label "$file (Prettier output)" "$file" "$formatted" || true
+              echo "::endgroup::"
+            fi
+            rm -f "$formatted"
+          done
       - name: Compile Python
         run: python -m compileall -q crm_signals tests scripts
       - name: Validate JSON, YAML and TOML
