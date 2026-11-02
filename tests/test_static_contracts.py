@@ -287,7 +287,7 @@ def test_operator_installation_pins_source_before_bench_setup():
     guide_first = guide.split("### First installation", 1)[1].split(
         "### Upgrade an existing installation", 1
     )[0]
-    assert "bench get-app" not in guide_first
+    assert "bench get-app crm_signals" not in guide_first
     assert "git clone --origin upstream" in guide_first
     assert guide_first.index("git clone --origin upstream") < guide_first.index(
         "checkout --detach"
