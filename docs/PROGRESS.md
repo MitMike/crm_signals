@@ -236,3 +236,11 @@ PR #7 updates `astral-sh/setup-uv@v6` to `@v7` in `.github/workflows/bench-e2e.y
 - **Open pull requests:** none at this snapshot (checked after PR #96 merge).
 - **Packaging status:** build-system range `flit_core >=3.4,<5` is merged and CI-verified. This establishes reference CI package compatibility, not a production deployment or pilot.
 - **Next work:** continue source-independent product work only where contracts are approved; otherwise prioritize target-site evidence collection and dashboard desktop/mobile visual UAT. Do not treat absent site inputs as implementation-complete.
+
+
+## Documentation merge reconciliation — 2026-11-03
+
+- [PR #98](https://github.com/MitMike/crm_signals/pull/98) merged as [`1a27166`](https://github.com/MitMike/crm_signals/commit/1a27166bfe988c860b3527af5bba9a0299e1e30f) after all 13 final-head check runs completed successfully. Docs-only selectors correctly skipped Python and Bench runtime execution; Python unit tests, lint/static checks, Semgrep, Bench v15/v16 validation (including v16 Playwright) all passed.
+- **Current main:** `1a27166bfe988c860b3527af5bba9a0299e1e30f`.
+- **Open pull requests:** none at this snapshot.
+- This closes the documentation reconciliation for PR #96 / ADR-082. No product or pilot status is upgraded by this merge.
