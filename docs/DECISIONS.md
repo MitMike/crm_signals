@@ -579,3 +579,14 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Rationale:** Alert routing is business behavior, and link tracking is privacy-sensitive. Safe code cannot compensate for missing policy decisions.
 - **Consequences:** High-value Quotation alerts remain an independent implemented slice. VIP escalation and proposal-link tracking stay explicitly open; no extra Settings fields or link/event DocTypes are created prematurely.
 - **Revisit criteria:** A signed product decision for VIP triggers and recipient routing, and an approved privacy/retention record for proposal tracking.
+
+
+## ADR-062 — Keep Explorer authorization in the server API
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-02
+- **Context:** The Explorer Desk page is visible only to the configured Sales User, Sales Manager and System Manager roles, but a whitelisted method can be called directly without opening that page. Hiding a page or button is not an authorization boundary. The timeline contains links and metadata derived from CRM Signal, Quotation and Opportunity records.
+- **Decision:** Treat the Desk page role list as navigation and usability control only. The GET API remains the authorization boundary: authenticate the caller, resolve the context through permission-aware reads, require read access to every context/filter/summary field, and re-check permission on each source row before returning its metadata or link. Keep the API read-only; do not trust client-supplied source routes or use Administrator/system reads to fill gaps. The UI must escape every displayed value and navigate only using the authorized source DocType/name returned by the server.
+- **Rationale:** A user can invoke a whitelisted endpoint independently of Desk navigation. Authorization must therefore be enforced on every request and every source record, not inferred from the page's role metadata.
+- **Consequences:** Page-role visibility improves discoverability but does not replace DocType, field-level or row-level checks. Target-site Sales User/Manager and non-sales API tests remain required; no role or field permission is granted automatically.
+- **Validation:** The API's context/source permission tests and the v15/v16 Bench plus pinned v16.5 reference lanes remain merge gates. The UI's escaped rendering, GET-only paging and source drill-down are covered by Playwright.
