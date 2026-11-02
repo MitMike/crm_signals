@@ -206,7 +206,29 @@ Create synthetic tickets only in staging. Allow the Helpdesk SLA engine to set n
 
 Expected compliance is `Fulfilled / (Fulfilled + Failed)`. With no eligible outcomes, show unavailable (—), not 0%. Average resolution duration uses positive Helpdesk `resolution_time` values converted from seconds to business hours; it is not elapsed time from ticket creation. SLA policy working hours, holiday list and timezone are authoritative.
 
-## 10. Release decision
+## 10. Explorer timeline acceptance
+
+Record the enabled source set and test the timeline with real Sales User and Sales Manager accounts, not Administrator alone.
+
+- [ ] Confirm the first-release source set is CRM Signal, Quotation and Opportunity; record optional activity providers separately and leave unverified adapters disabled.
+- [ ] Verify the form entry points from saved Lead, Customer, Opportunity and linked CRM Signal records; verify High-Value Quote uses the Highlight context.
+- [ ] Confirm field-level read access for the fields actually used by each source: CRM Signal relation field plus `signal_type`/`priority`; Quotation `quotation_to`/`party_name`/`status`; Opportunity `opportunity_from`/`party_name`/`status`.
+- [ ] Confirm hidden context/filter fields reject the context and hidden source fields mark only that source unavailable; do not interpret omitted fields as empty values or zero activity.
+- [ ] Verify the distinct Available, No matching activity, Unavailable and Not connected states.
+- [ ] Verify stable paging, equal-timestamp ordering, no duplicate source event IDs and site-timezone display.
+- [ ] Verify source drill-down uses the user's normal source-document permission and that no message bodies, amounts, recordings or attachments are returned or copied.
+
+| Context / source | User role | Required fields readable? | Expected state | Observed state | Evidence |
+|---|---|---|---|---|---|
+| Lead | | | | | |
+| Customer | | | | | |
+| Opportunity | | | | | |
+| CRM Signal | | | | | |
+| High-Value Quote / Highlight | | | | | |
+| Quotation source | | | | | |
+| Opportunity source | | | | | |
+
+## 11. Release decision
 
 | Gate | Status (Pass / Fail / Blocked) | Evidence link / artifact | Owner | Date |
 |---|---|---|---|---|

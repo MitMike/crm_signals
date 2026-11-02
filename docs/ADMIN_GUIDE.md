@@ -94,6 +94,27 @@ For the Helpdesk v1.28.0 reference schema, all required D3 HD Ticket fields (`st
 
 If the role lacks `HD Service Level Agreement` read access, the ticket metrics can remain available while SLA metrics are reported as unavailable. Missing permission must never be interpreted as zero tickets or 100% SLA compliance.
 
+## Explorer activity timeline
+
+Open the **Activity Timeline** button from a saved Lead, Customer, Opportunity or linked CRM Signal. A High-Value Quote CRM Signal opens the same timeline through the Highlight context. The role-restricted page is **Customer Activity Timeline** (route `/app/crm-signals-explorer/<context-doctype>/<context-name>`) and is available to Sales User, Sales Manager and System Manager.
+
+The first release reads only CRM Signal, Quotation and Opportunity. Communication, Event, ToDo, call and WhatsApp sources are not enabled by assumption; add them only after the installed provider, version, DocType, fields, stable event ID, relationship mapping and permissions are recorded in the target-site discovery inventory.
+
+Source states are intentionally distinct:
+- **Available:** the source can be read for this context.
+- **No matching activity:** the source is readable but has no matching rows in the current snapshot.
+- **Unavailable:** the source or required context/source fields are not readable, or its required schema is missing.
+- **Not connected:** the source DocType/app is not installed.
+
+Frappe may silently omit fields hidden by field-level permissions. Explorer checks the current user's permitted field names before using relationship, filter or summary fields; it does not treat a hidden field as an empty value and does not switch to Administrator reads. If a source is unavailable, review its required field permissions with the security owner rather than granting broad roles or permlevels. Source links are rechecked by the normal Desk form permission path when opened. The timeline contains only metadata and short summaries; full message bodies, quotation amounts, recordings and attachments remain in their source records.
+
+For staging acceptance, use Sales User and Sales Manager accounts and verify:
+1. The Activity Timeline button appears only on saved, linked records; an unlinked CRM Signal or an Opportunity without a Lead/Customer relationship does not offer the entry point.
+2. A High-Value Quote signal resolves through the Highlight context.
+3. CRM Signal reads require the current party relation field plus `signal_type` and `priority`; Quotation requires `quotation_to`, `party_name` and `status`; Opportunity requires `opportunity_from`, `party_name` and `status`.
+4. A hidden required field makes only that context/source unavailable; other readable sources remain usable.
+5. Source drill-down is permission checked, pagination loads the next page without duplicates, and timestamps display in the site timezone.
+6. The response and rendered page contain no full message body, quotation amount, recording or attachment content.
 ## Pilot validation checklist
 
 Run these tests on staging with synthetic records before enabling the app on production:
