@@ -2,17 +2,17 @@
 
 **Started:** 2026-11-01  
 **Last reviewed:** 2026-11-02  
-**Latest main:** `cec49e700a7a94684e8136170dd0e562ed23052a` (PR #76 change-aware CI merged and CI-verified); **latest functional baseline:** `c5720bfb3fbe8b554ec6febd549a8d5e58acc1d7`  
+**Latest main:** `ac030b195394458d87b7d59656b560359260d79e` (PR #82 pin-before-install correction merged and CI-verified); **latest functional baseline:** `c5720bfb3fbe8b554ec6febd549a8d5e58acc1d7`
 **Decision register:** [ADR-046](DECISIONS.md#adr-046--run-release-readiness-as-an-evidence-gated-sprint)  
 **Operating rule:** no item is complete without the evidence listed here. CI evidence and target-site evidence are separate.
 
 - [x] [PR #76](https://github.com/MitMike/crm_signals/pull/76) change-aware CI merged as `cec49e7`; final head `d6a6300` passed all 19 check runs, including Quality, Security/Semgrep, Python 3.10/3.11/3.12/3.14, Bench v15/v16 + Playwright and pinned Frappe v16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0. Required contexts and fail-closed path gates are preserved.
 
 - [x] [PR #79](https://github.com/MitMike/crm_signals/pull/79) adds bug/fix evidence registers and records BUG-2026-001 / FIX-2026-001; Quality, Security and Bench v15/v16 passed. Merged as 7904a70. The dashboard fix and UAT closure remain separate.
-- [ ] PR #75 workspace display rename and PR #78 dashboard inset passed their earlier heads but are now two commits behind main `cec49e7`; refresh and rerun final-head CI. PR #78 also needs desktop/mobile UAT visual evidence after asset/cache refresh.
-- [ ] PR #81 is the canonical regression-review template; its prior head passed Quality, Security and Bench v15/v16 but is one commit behind main. Refresh and rerun required checks before merge. PR #80 is closed as superseded: its bug/fix registers merged in #79 and its template content is carried by #81.
+- [ ] PR #75 workspace display rename is three commits behind main `ac030b1` (seven ahead); PR #78 dashboard inset is three behind (two ahead). Their earlier green checks are stale; refresh and rerun final-head CI. PR #78 also needs desktop/mobile UAT visual evidence after asset/cache refresh.
+- [ ] PR #81 is the canonical regression-review template; its prior head passed Quality, Security and Bench v15/v16 but is two commits behind main `ac030b1`. Refresh and rerun required checks before merge. PR #80 is closed as superseded: its bug/fix registers merged in #79 and its template content is carried by #81.
 
-- [ ] **P0 — Pin before install (ADR-077; PR #82):** direct clone with `--origin upstream`, detach/verify the approved full SHA, then run `bench setup requirements crm_signals` before site install/migration/build. The same sequence is wired into v15/v16 and pinned v16.5 Bench workflows. Code-complete; final-head CI pending.
+- [x] **P0 — Pin before install (ADR-077; PR #82 merged as `ac030b1`, CI-verified):** direct clone with `--origin upstream`, detach/verify the approved full SHA, then run `bench setup requirements crm_signals` before site install/migration/build. Final head `ef4dc09` passed Quality, Security, Frappe v15/v16 Bench + Playwright and pinned Frappe v16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0. Authorized staging rehearsal remains open.
 
 ## Sprint sequence
 
