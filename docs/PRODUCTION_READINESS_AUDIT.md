@@ -2,7 +2,7 @@
 
 **Audit date:** 2026-11-02  
 **Repository:** MitMike/crm_signals  
-**Base:** `main` at `c5720bfb3fbe8b554ec6febd549a8d5e58acc1d7` (PR #71 H-AC11 source-link feature merged and CI-verified)  
+**Base:** `main` at `00e997ce25747f24b8af9948527a1738cc6f3920` (PR #5 actions/checkout v7 dependency update merged; latest functional baseline remains `c5720bf`)  
 **Implementation under audit:** PRs #13/#15/#19/#21/#23/#26/#32/#38/#42/#44/#45/#49/#50/#51/#53/#54/#55/#56/#57/#59/#60/#61/#62/#63/#65/#66/#67/#68/#69/#70 merged; PR #69 (POS settlement fixture) is CI-verified as `efe7872`; PR #70 (read-only target-site preflight) is CI-verified as `13341b7`; PR #71 (High-Value Quote source drill-down) merged as `c5720bf`; final head `df0c273` passed all required Quality, Security, Python, Frappe v15/v16 Bench including Playwright, and pinned Frappe v16.5.0 checks; latest main baseline `c5720bf`  
 **Decision:** **Not approved for production sign-off.** PR #19, PR #21 and PR #23 are merged; supported-version CI passes. Target-site acceptance and the roadmap's external discovery/policy inputs remain outstanding. Durable realtime retry is implemented on PR #54 and CI-verified on head `d2ac43e`; target-site Redis/worker recovery evidence remains open. The transactional outbox and audited Failed-row replay are already implemented.
 
@@ -26,7 +26,7 @@ This is a historical audit of the earlier PR #19/#23 baseline; main now also con
 
 ## Current audit status after PR #13/#15 and PR #71 revalidation
 
-The main branch is `c5720bf`; PRs #13/#14/#15 and #71 are merged with required checks passing. PR #71 final head `df0c273` passed Quality, Security, Python 3.10/3.11/3.12/3.14, Frappe v15/v16 Bench including Playwright, and pinned Frappe v16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0. The exact Prettier 3.9.10 output was applied before merge. Production sign-off remains blocked on P0 target-site acceptance and owner approvals.
+The main branch is `00e997c`; PRs #13/#14/#15, #71, #73 and #5 are merged with required checks passing. PR #73 was a documentation-only H-AC11/ADR-073 reconciliation. PR #5 upgraded actions/checkout v4 to v7; refreshed final head `8856f35` passed all 17 checks, including Quality, Security, Python, dependency audits, Frappe v15/v16 Bench and pinned Frappe v16.5.0 / Helpdesk 1.28.0. The latest functional baseline remains `c5720bf`; neither PR #73 nor PR #5 changed application runtime code. PR #74 remains open with immutable deployment-SHA instructions and a matching acceptance-kit field; it is documentation-only and must pass final-head Quality, Security and Bench v15/v16 checks before merge. Production sign-off remains blocked on P0 target-site acceptance and owner approvals.
 
 ## Scope reviewed
 

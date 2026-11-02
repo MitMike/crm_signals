@@ -38,27 +38,41 @@ Use the backup location and restore options supported by the installed Bench ver
 
 ## 3. Deploy
 
-1. Deploy the approved CRM Signals revision using the site's normal source-control/release process.
-2. Confirm the checked-out revision before running migrations.
-3. Run the site migration:
+1. Resolve the approved full 40-character CRM Signals commit SHA from the release/change record. Do not deploy the moving `main` branch.
+2. Fetch the approved source and detach the app checkout to that exact commit:
+
+```bash
+git -C apps/crm_signals fetch origin main --tags
+git -C apps/crm_signals checkout --detach <approved-commit-sha>
+test "$(git -C apps/crm_signals rev-parse HEAD)" = "<approved-commit-sha>"
+```
+
+3. Reconcile Python and Node dependencies from the pinned app tree:
+
+```bash
+bench setup requirements
+```
+
+4. Record the verified `git -C apps/crm_signals rev-parse HEAD` output in the target-site acceptance record.
+5. Run the site migration:
 
 ```bash
 bench --site <site-name> migrate
 ```
 
-4. Build the app assets:
+6. Build the app assets:
 
 ```bash
 bench build --app crm_signals
 ```
 
-5. Restart web, scheduler and worker processes using the site's normal process manager:
+7. Restart web, scheduler and worker processes using the site's normal process manager:
 
 ```bash
 bench restart
 ```
 
-6. Confirm the migration completed without errors and that the site starts normally. Do not proceed if schema sync, patch execution, asset build or worker startup failed.
+8. Confirm the migration completed without errors and that the site starts normally. Do not proceed if the checked-out SHA differs from the approved SHA, schema sync, patch execution, asset build or worker startup failed.
 
 ## 4. Post-deploy smoke tests
 
