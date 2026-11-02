@@ -217,3 +217,13 @@ PR #7 updates `astral-sh/setup-uv@v6` to `@v7` in `.github/workflows/bench-e2e.y
 - **Open Dependabot PRs:** #8 setup-node v7 and #10 setup-python v7 are each one commit ahead and two behind this main snapshot; their old-head checks passed but must be refreshed and rerun. PR #9 flit-core `>=3.4,<5` is one commit ahead and 52 behind; its old-head checks are stale and package-build/install compatibility remains to be verified.
 - PRs #75/#78 were closed unmerged and superseded by #85/#84. PRs #80/#81 were closed unmerged; the optional regression-review template was not merged.
 - These maintenance checks do not change the product release decision and are not pilot verification.
+
+
+
+## Maintenance and release-status reconciliation — 2026-11-03
+
+- Main includes PR #8 (setup-node v7), merged as `63c2734` after all five final-head workflows passed: Quality, Dependency Security Audit, Security Scanning, Bench Integration/E2E and pinned Frappe v16.5.0 + Helpdesk 1.28.0.
+- PR #91 and #92 were closed as superseded when PR #8 advanced main. Their changes were recreated against the new main head as PR #93 (flit-core `>=3.4,<5`) and PR #94 (setup-python v7). At this review, both replacement PRs are open and their final-head Bench v16 jobs are still running; PR #93's pinned Frappe v16.5.0 job is also running. Do not treat the original PR checks as evidence for the replacement heads, and do not merge until every final-head workflow succeeds and package build/install compatibility is verified for #93.
+- The repository open-PR queue at this review contains only #93 and #94. The dependency queue is maintenance work, not target-site acceptance.
+- **Release decision remains conditional:** target-site pilot acceptance is not evidenced by CI. Required operator evidence remains the read-only preflight, exact installed app/commit inventory, effective-role permission checks, D1/D2 native ERPNext report reconciliation by currency, Helpdesk SLA calendar, scheduler/mail/realtime/webhook operations, and backup/restore/rollback rehearsal. Dashboard inset visual UAT (desktop/mobile after asset refresh) also remains open.
+- Do not perform a production migration, permission change, or deployment without the required approval and backup/rollback evidence.
