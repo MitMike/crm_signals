@@ -221,6 +221,7 @@ def test_deployment_runbook_documents_company_thresholds_and_explorer_smoke_test
     assert "A Company-specific row takes precedence" in runbook
     assert "legacy site-wide threshold is a fallback only when its currency exactly matches" in runbook
     assert "no implicit FX conversion occurs" in runbook
+    assert "each enabled Company has an approved Company-specific threshold or exact-currency legacy fallback" in runbook
     assert "Activity Timeline entry points from Lead, Customer, Opportunity and CRM Signal forms" in runbook
     assert "High-Value Quote signal must open the Highlight context" in runbook
     assert "The first release has one site-wide threshold currency" not in runbook
