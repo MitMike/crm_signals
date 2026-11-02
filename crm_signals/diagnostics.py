@@ -1,7 +1,9 @@
-"""Read-only target-site inventory for operators using bench execute.
+"""Read-only target-site diagnostics for operators using bench execute.
 
-This module intentionally exposes no whitelisted HTTP method. The report reads
-configuration and DocType metadata only; it never reads business-document rows.
+This module intentionally exposes no whitelisted HTTP method. The static report
+reads configuration and DocType metadata only. The optional user-access report
+checks only explicitly supplied sample document names and never returns business
+field values.
 """
 
 import importlib
@@ -256,5 +258,210 @@ def get_site_preflight_report():
         "acceptance_warning": (
             "Static metadata is not proof of effective user permissions, financial "
             "reconciliation, SLA calendar behavior, or pilot acceptance."
+        ),
+    }
+
+
+
+def _normalize_user_permission_inputs(users, sample_documents):
+    """Validate and bound explicit operator-supplied permission checks."""
+    if not isinstance(users, (list, tuple)) or not users:
+        raise ValueError("users must be a non-empty list of Frappe user IDs")
+    if len(users) > 20:
+        raise ValueError("at most 20 users may be checked in one report")
+
+    normalized_users = []
+    for user in users:
+        if not isinstance(user, str) or not user.strip() or len(user.strip()) > 140:
+            raise ValueError("each user must be a non-empty Frappe user ID of at most 140 characters")
+        normalized = user.strip()
+        if normalized not in normalized_users:
+            normalized_users.append(normalized)
+
+    if sample_documents is None:
+        sample_documents = {}
+    if not isinstance(sample_documents, dict):
+        raise ValueError("sample_documents must map supported DocTypes to document-name lists")
+
+    normalized_documents = {}
+    total_documents = 0
+    for doctype, names in sample_documents.items():
+        if doctype not in PREFLIGHT_DOCTYPES:
+            raise ValueError(f"unsupported sample-document DocType: {doctype}")
+        if not isinstance(names, (list, tuple)):
+            raise ValueError(f"sample document names for {doctype} must be a list")
+        if len(names) > 10:
+            raise ValueError(f"at most 10 sample documents may be checked for {doctype}")
+
+        normalized_names = []
+        for name in names:
+            if not isinstance(name, str) or not name.strip() or len(name.strip()) > 140:
+                raise ValueError(f"sample document names for {doctype} must be non-empty strings")
+            normalized = name.strip()
+            if normalized not in normalized_names:
+                normalized_names.append(normalized)
+
+        normalized_documents[doctype] = normalized_names
+        total_documents += len(normalized_names)
+
+    if total_documents > 40 or len(normalized_users) * total_documents > 200:
+        raise ValueError("sample-document checks are limited to 40 names and 200 user/document pairs")
+
+    return normalized_users, normalized_documents
+
+
+def _user_doctype_permission_summary(user, doctype, required_fields, sample_names):
+    """Summarize DocType, field-permlevel and explicit document read checks."""
+    if not frappe.db.exists("DocType", doctype):
+        return {
+            "available": False,
+            "doctype_read": None,
+            "doctype_read_error": None,
+            "required_fields": [
+                {
+                    "fieldname": name,
+                    "present": False,
+                    "permlevel": None,
+                    "field_permlevel_read": False,
+                }
+                for name in required_fields
+            ],
+            "sample_document_checks": [],
+        }
+
+    meta = frappe.get_meta(doctype)
+    try:
+        doctype_read = bool(frappe.has_permission(doctype, ptype="read", user=user))
+        doctype_read_error = None
+    except Exception as error:
+        doctype_read = None
+        doctype_read_error = type(error).__name__
+
+    fields_by_name = {
+        _value(field, "fieldname"): field
+        for field in getattr(meta, "fields", [])
+        if _value(field, "fieldname")
+    }
+    try:
+        permitted_fields = set(
+            meta.get_permitted_fieldnames(user=user, permission_type="read")
+        )
+        field_permission_error = None
+    except Exception as error:
+        permitted_fields = set()
+        field_permission_error = type(error).__name__
+
+    required = []
+    for fieldname in required_fields:
+        field = fields_by_name.get(fieldname)
+        required.append(
+            {
+                "fieldname": fieldname,
+                "present": field is not None,
+                "permlevel": _as_int(_value(field, "permlevel")) if field else None,
+                "field_permlevel_read": bool(field and fieldname in permitted_fields),
+            }
+        )
+
+    sample_checks = []
+    for name in sample_names:
+        try:
+            readable = bool(
+                frappe.has_permission(
+                    doctype,
+                    ptype="read",
+                    doc=name,
+                    user=user,
+                )
+            )
+        except Exception as error:
+            sample_checks.append(
+                {"name": name, "read": None, "error_type": type(error).__name__}
+            )
+        else:
+            sample_checks.append({"name": name, "read": readable, "error_type": None})
+
+    return {
+        "available": True,
+        "doctype_read": doctype_read,
+        "doctype_read_error": doctype_read_error,
+        "required_fields": required,
+        "field_permission_error": field_permission_error,
+        "sample_document_checks": sample_checks,
+        "permission_boundary": (
+            "DocType read uses frappe.has_permission; field access reports role-based "
+            "permlevel grants; each supplied sample document is checked separately."
+        ),
+    }
+
+
+def get_user_access_preflight_report(users, sample_documents=None):
+    """Return bounded, read-only access diagnostics for named test users.
+
+    Run from the Bench server. Optional sample_documents is a mapping such as
+    {"Lead": ["LEAD-00001"], "Quotation": ["QTN-00001"]}. Only permission
+    outcomes and document names are returned; business field values are not.
+    This function is intentionally not whitelisted for HTTP access.
+    """
+    normalized_users, normalized_documents = _normalize_user_permission_inputs(
+        users, sample_documents
+    )
+    user_reports = []
+
+    for user in normalized_users:
+        user_info = frappe.db.get_value(
+            "User", user, ["enabled", "user_type"], as_dict=True
+        )
+        if not user_info:
+            user_reports.append(
+                {
+                    "user": user,
+                    "account_exists": False,
+                    "enabled": None,
+                    "user_type": None,
+                    "roles": [],
+                    "doctypes": {},
+                }
+            )
+            continue
+
+        roles_error = None
+        try:
+            roles = sorted(set(frappe.get_roles(user)))
+        except Exception as error:
+            roles = []
+            roles_error = type(error).__name__
+
+        doctype_reports = {
+            doctype: _user_doctype_permission_summary(
+                user,
+                doctype,
+                required_fields,
+                normalized_documents.get(doctype, []),
+            )
+            for doctype, required_fields in PREFLIGHT_DOCTYPES.items()
+        }
+        user_reports.append(
+            {
+                "user": user,
+                "account_exists": True,
+                "enabled": bool(_as_int(_value(user_info, "enabled"))),
+                "user_type": _value(user_info, "user_type"),
+                "roles": roles,
+                "roles_error": roles_error,
+                "doctypes": doctype_reports,
+            }
+        )
+
+    return {
+        "report_version": 1,
+        "generated_at": str(frappe.utils.now_datetime()),
+        "read_only": True,
+        "http_whitelisted": False,
+        "users": user_reports,
+        "acceptance_warning": (
+            "This report checks DocType-level read, role-based field permlevels and "
+            "only the explicitly supplied sample documents. It does not execute list, "
+            "report, export, API, digest or realtime paths and is not pilot acceptance."
         ),
     }
