@@ -707,3 +707,14 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Context:** PR #72 proposed a docs-only reconciliation for PR #69 POS settlement and PR #70 preflight evidence. The same evidence was already carried in PR #71's documentation update, alongside the H-AC11 source-link decision. PR #72's ADR-069 number collided with the H-AC11 ADR-069.
 - **Decision:** Keep the merged, consolidated documentation in PR #71. Preserve ADR-069 for High-Value Quote source-link authorization, ADR-070 for POS settlement, and ADR-068 for the read-only preflight report. Close PR #72 as superseded after PR #71 merges.
 - **Consequences:** No POS/preflight evidence is dropped; the decision register remains uniquely numbered and the progress/follow-up records have one authoritative update.
+
+
+## ADR-074 — Change-aware CI gates without weakening merge protection
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-02
+- **Context:** Pull requests initialized full Bench compatibility lanes even for documentation and workspace metadata changes. Quality also installed JavaScript tooling and ran four Python versions when changed files could not affect those surfaces. The active main ruleset requires the existing lint, four Python matrix, two Bench matrix and Semgrep contexts.
+- **Decision:** Select tests by changed paths on pull requests while preserving all existing required context names. Keep full Bench validation on main pushes and manual dispatch; run all Python versions for Python/runtime-relevant PRs; run JavaScript lint/format for JavaScript, tooling or E2E changes. Narrow pinned v16.5.0/Helpdesk validation to backend, DocType/Page, public asset, tests and packaging changes. Enable pip/npm caches.
+- **Rationale:** Run cheap broad checks first and expensive Frappe site creation/browser integration only when relevant.
+- **Consequences:** Docs/workspace-only PRs should avoid Bench site creation, the Python unit matrix and npm installation while retaining static/config validation, Semgrep and required context names. Runtime changes retain compatibility coverage. First PR must verify skipped required contexts are successful and runtime changes still run the full intended matrix.
+- **Revisit criteria:** Revisit if filters miss runtime-sensitive files, skipped checks remain pending, cache invalidation causes stale dependencies, or measured lead time does not improve. Never remove required checks or bypass branch protection.
