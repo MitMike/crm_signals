@@ -664,3 +664,14 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Rationale:** A source link is useful only when it points to the authoritative record the user is allowed to open. Fail-closed field and record checks avoid leaking source identifiers and preserve the existing party/Signal fallback.
 - **Consequences:** No permissions are granted and no source content is copied into the dashboard payload. The server returns only the authorized Quotation DocType/name; Desk still enforces normal form permissions. Unit tests cover field and document permission denial; Playwright covers the user-visible source drill-down.
 - **Revisit criteria:** Revisit if additional source DocTypes are approved for dashboard navigation, or if the CRM Signal source fields/permission model changes. Each new source type requires its own permission and navigation tests.
+
+
+## ADR-070 — Exercise ERPNext POS settlement in the disposable D2 fixture
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-02
+- **Context:** PR #67's POS-shaped invoice set persisted POS/payment totals directly. That proves the D2 aggregate filter but does not prove ERPNext's POS Profile, Mode of Payment, Sales Invoice submission and payment-allocation lifecycle.
+- **Decision:** Extend the disposable Bench fixture with a real POS Profile and a company-specific Mode of Payment, then insert and submit an `is_pos` Sales Invoice through ERPNext's normal document lifecycle. Assert that ERPNext persists the invoice as submitted and that its calculated `paid_amount` settles `grand_total`. Keep all fixture setup and records inside the existing rollback boundary. Use a non-stock item and disable POS stock updates to isolate accounting/payment behavior.
+- **Rationale:** Exercise the ERPNext accounting path that produces the aggregate fields rather than manufacturing those fields in test data.
+- **Consequences:** Run the scenario on Frappe/ERPNext v15 and v16 and the pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 lane. This covers the POS invoice settlement lifecycle only; it does not simulate browser checkout, POS Opening/Closing sessions, cash drawers, inventory movements or target-site native-report reconciliation.
+- **Revisit criteria:** Revisit if supported ERPNext versions change POS Profile, Mode of Payment or Sales Invoice payment allocation behavior, if fixture rollback is not complete, or if the D2 POS aggregate contract changes. Pilot reconciliation and real-user permission acceptance remain separate gates.
