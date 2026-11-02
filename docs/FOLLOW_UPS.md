@@ -70,7 +70,7 @@ Do not close a follow-up because code compiles or a mocked unit test passes. Clo
 
 ## P2 — Dependency maintenance
 
-Track the four remaining Dependabot PRs (#7/#8/#9/#10) and replacement action PR #87 in the Repository maintenance section above. Refresh and verify one branch at a time; merge only after fresh final-head checks pass. Refresh and verify one branch at a time; merge only after fresh final-head checks pass.
+Track the four remaining Dependabot PRs (#7/#8/#9/#10) and replacement action PR #87 in the Repository maintenance section above. Refresh and verify one branch at a time; merge only after fresh final-head checks pass.
 
 
 - [ ] **GME CRM Signals workspace rename (ADR-076; PR #85):** focused replacement carries only the workspace JSON, static label/title assertion, ADR and changelog. Rebase the two-commit-behind branch and rerun final-head CI before merge; technical identifiers/routes remain unchanged.
