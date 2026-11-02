@@ -159,7 +159,7 @@ def test_preflight_source_revision_reports_exact_full_sha(monkeypatch):
 
     def fake_run(command, **kwargs):
         commands.append((command, kwargs))
-        return types.SimpleNamespace(stdout=f"{sha}\\n")
+        return types.SimpleNamespace(stdout=f"{sha}\n")
 
     monkeypatch.setattr(diagnostics.subprocess, "run", fake_run)
 
@@ -206,7 +206,7 @@ def test_preflight_source_revision_rejects_non_sha_output(monkeypatch):
     monkeypatch.setattr(
         diagnostics.subprocess,
         "run",
-        lambda *args, **kwargs: types.SimpleNamespace(stdout="main\\n"),
+        lambda *args, **kwargs: types.SimpleNamespace(stdout="main\n"),
     )
 
     assert diagnostics._source_revision() == {
