@@ -2,7 +2,7 @@
 
 **Audit date:** 2026-11-02  
 **Repository:** MitMike/crm_signals  
-**Base:** `main` at `cec49e700a7a94684e8136170dd0e562ed23052a` (PR #76 change-aware CI merged and CI-verified; latest functional baseline remains `c5720bf`)  
+**Base:** `main` at `966c31a5522dc93505da6c32f53793d0653f9a8e` (PR #86 regression-review template merged; PR #82 pin-before-install correction and PR #83 documentation reconciliation merged; latest functional baseline remains `c5720bf`)
 **Implementation under audit:** PRs #13/#15/#19/#21/#23/#26/#32/#38/#42/#44/#45/#49/#50/#51/#53/#54/#55/#56/#57/#59/#60/#61/#62/#63/#65/#66/#67/#68/#69/#70 merged; PR #69 (POS settlement fixture) is CI-verified as `efe7872`; PR #70 (read-only target-site preflight) is CI-verified as `13341b7`; PR #71 (High-Value Quote source drill-down) merged as `c5720bf`; final head `df0c273` passed all required Quality, Security, Python, Frappe v15/v16 Bench including Playwright, and pinned Frappe v16.5.0 checks; latest main baseline `c5720bf`  
 **Decision:** **Not approved for production sign-off.** PR #19, PR #21 and PR #23 are merged; supported-version CI passes. Target-site acceptance and the roadmap's external discovery/policy inputs remain outstanding. Durable realtime retry is implemented on PR #54 and CI-verified on head `d2ac43e`; target-site Redis/worker recovery evidence remains open. The transactional outbox and audited Failed-row replay are already implemented.
 
@@ -28,9 +28,9 @@ This is a historical audit of the earlier PR #19/#23 baseline; main now also con
 
 The main branch is `cec49e7`; PRs #13/#14/#15, #71, #73, #5, #74, #76 and #79 are merged with their recorded CI evidence. PR #76 final head `d6a6300` passed all 19 check runs: Quality, Security/Semgrep, Python 3.10/3.11/3.12/3.14, Frappe v15/v16 Bench + Playwright and pinned Frappe v16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0. Its fail-closed change-aware gates preserve required contexts and keep full main/manual Bench validation.
 
-PR #82 corrected ADR-074's unsafe first-install ordering and merged as `ac030b1`. Final head `ef4dc09` passed Quality, Security, Frappe v15/v16 Bench + v16 Playwright, and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0. The administrator guide, deployment runbook and acceptance kit now pin and verify the approved SHA before `bench setup requirements crm_signals`; the upgrade procedure verifies Bench's `upstream` remote. This is CI verification only; staging rehearsal and pilot acceptance remain open.
+PR #82 corrected ADR-074's unsafe first-install ordering and merged as `ac030b1`; final head `ef4dc09` passed Quality, Security, Frappe v15/v16 Bench + v16 Playwright and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0. PR #83 reconciled the merge evidence and follow-ups; PR #86 added the regression-review template and merged as `966c31a` after Quality, Security and the Bench workflow passed. The corrected deployment sequence is CI-verified, not target-site/pilot-verified.
 
-PR #75 (workspace display label) and PR #78 (dashboard inset) are stale against main `ac030b1` and require refresh/retest; PR #78 also needs desktop/mobile UAT. PR #80 is closed as superseded by #79/#81; canonical PR #81 is two commits behind and needs refresh. Dependabot #6/#7/#8/#10 are one commit ahead and one behind; #9 is one ahead and 45 behind. None of these items is pilot-verified. Production sign-off remains blocked on P0 target-site acceptance and business/security/finance approvals.
+PR #84 dashboard inset is current with main `966c31a`; Quality/Security passed and Bench v15/v16 plus pinned v16.5.0 checks are running. PR #85 workspace label is two commits behind main; its old head has green checks but must be rebased/retested. PR #87 upload-artifact v7 is current with main; Quality/Security passed and Bench/pinned checks are running. Old PRs #75/#78/#81 and Dependabot #6 were closed as superseded by focused current-main replacements. Dependabot #7/#8/#10 are two commits behind; #9 is 47 behind. None of these changes is pilot-verified. Production sign-off remains blocked on P0 target-site acceptance and business/security/finance approvals.
 
 ## Scope reviewed
 
