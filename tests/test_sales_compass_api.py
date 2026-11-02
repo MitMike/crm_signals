@@ -317,6 +317,29 @@ def test_billing_marks_sales_invoice_source_unavailable_without_permission(monke
     assert not any(query["doctype"] == "Sales Invoice" for query in queries)
 
 
+def test_customer_receipts_remain_available_without_sales_invoice_permission(monkeypatch):
+    api, queries, _ = load_sales_api(
+        monkeypatch,
+        invoice_read=False,
+        payment_read=True,
+    )
+
+    result = api.get_sales_compass_data()["billing"]
+
+    assert result["available"] is False
+    assert result["invoiced_available"] is False
+    assert result["outstanding_available"] is False
+    assert result["pos_receipts_available"] is False
+    assert result["overdue_available"] is False
+    assert result["customer_receipts_available"] is True
+    assert result["customer_receipts_by_currency"] == [
+        {"currency": "INR", "total_amount": 55000.0, "record_count": 2},
+        {"currency": "USD", "total_amount": 500.0, "record_count": 1},
+    ]
+    assert not any(query["doctype"] == "Sales Invoice" for query in queries)
+    assert any(query["doctype"] == "Payment Entry" for query in queries)
+
+
 def test_billing_marks_payment_entry_receipts_unavailable_without_permission(monkeypatch):
     api, queries, _ = load_sales_api(monkeypatch, payment_read=False)
 
