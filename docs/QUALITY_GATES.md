@@ -80,7 +80,7 @@ The test thresholds are intentionally more permissive because test suites often 
 Run the checker locally with `python scripts/check_code_standards.py`. Warnings do not fail the check; exceeding a hard limit does.
 
 
-## Change-aware CI execution (ADR-074)
+## Change-aware CI execution (ADR-075)
 
 Pull requests now use path-aware execution while preserving the existing required check names:
 
@@ -89,7 +89,7 @@ Pull requests now use path-aware execution while preserving the existing require
 - The pinned Frappe v16.5.0 / ERPNext / Helpdesk validation is narrowed to backend, DocType/Page, public asset, test and packaging paths. It remains available by manual dispatch.
 - Python and npm dependency caches are enabled where their lock/manifest inputs are known. Security scanning remains required for every PR; dependency audits retain their dependency-file and scheduled triggers.
 
-Stable required-check gate jobs retain the exact status names expected by the main ruleset; they depend on the conditional test-execution jobs and fail if a relevant test run fails. This avoids relying on skipped matrix jobs to publish matrix-specific required contexts. Skipped execution jobs are intentional only when their change filter proves the relevant source surface was not modified. GitHub's required check contexts are preserved; no branch protection requirement is removed. A change to the filters, job names or required contexts must be tested against both metadata-only and runtime-code PRs before merge. The first CI run of this change is the validation of that behavior; do not assume time savings until measured.
+Stable required-check gate jobs retain the exact status names expected by the main ruleset; they depend on the conditional test-execution jobs and fail if a relevant test run fails. This avoids relying on skipped matrix jobs to publish matrix-specific required contexts. Skipped execution jobs are intentional only when their change filter proves the relevant source surface was not modified. GitHub's required check contexts are preserved; no branch protection requirement is removed. A change to the filters, job names or required contexts must be tested against both metadata-only and runtime-code PRs before merge. PR #76's initial workflow-only path and temporary runtime-path PR #77 both passed. The final fail-closed/package-filter head must also pass before merge; do not assume time savings until measured.
 
 
 ### Fail-closed path detection (ADR-075)
