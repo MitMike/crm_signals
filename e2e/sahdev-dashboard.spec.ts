@@ -1,7 +1,8 @@
 import { expect, test, type Page } from "@playwright/test";
 
 const dashboardMethod = "**/api/method/crm_signals.api.get_sales_compass_data*";
-const crmSignalsDashboardMethod = "**/api/method/crm_signals.api.get_dashboard_data*";
+const crmSignalsDashboardMethod =
+    "**/api/method/crm_signals.api.get_dashboard_data*";
 
 async function loginAs(page: Page, username: string, password: string) {
     await page.goto("/login");
@@ -372,7 +373,8 @@ test("High-Value Quote activity opens its permitted source Quotation", async ({
                             creation: "2026-11-02 09:00:00",
                             signal_type: "High-Value Quote",
                             priority: "High",
-                            message: "High-value quotation QTN-HIGHLIGHT-E2E submitted",
+                            message:
+                                "High-value quotation QTN-HIGHLIGHT-E2E submitted",
                             lead: "LEAD-HIGHLIGHT-E2E",
                             customer: null,
                             is_read: 0,
@@ -391,7 +393,9 @@ test("High-Value Quote activity opens its permitted source Quotation", async ({
     });
     await expect(signal).toContainText("Quotation: QTN-HIGHLIGHT-E2E");
     await signal.click();
-    await expect(page).toHaveURL(/\/desk\/(?:selling\/)?quotation\/QTN-HIGHLIGHT-E2E/);
+    await expect(page).toHaveURL(
+        /\/desk\/(?:selling\/)?quotation\/QTN-HIGHLIGHT-E2E/
+    );
 });
 test("Sales User can open the Executive Compass", async ({ page }) => {
     await loginAsAdministrator(page);
