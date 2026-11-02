@@ -435,3 +435,35 @@ test("CRM Signals Settings presets can be applied and customised", async ({
     await staleDays.blur();
     await expect(preset).toHaveValue("Custom");
 });
+
+
+test("Realtime notifications suppress duplicate delivery IDs", async ({ page }) => {
+    await loginAsAdministrator(page);
+    await page.goto("/app/crm-signals-dashboard");
+
+    const alertCount = await page.evaluate(() => {
+        const frappe = (window as any).frappe;
+        const crmSignals = (window as any).crm_signals;
+        if (!crmSignals?.handle_realtime_signal) {
+            throw new Error("CRM Signals realtime handler is not available");
+        }
+        const originalShowAlert = frappe.show_alert;
+        const alerts: unknown[] = [];
+        frappe.show_alert = (...args: unknown[]) => alerts.push(args);
+        const payload = {
+            delivery_id: "e2e-stable-delivery-id",
+            signal_type: "Website Visit",
+            priority: "High",
+            message: "Duplicate suppression test"
+        };
+        try {
+            crmSignals.handle_realtime_signal(payload);
+            crmSignals.handle_realtime_signal(payload);
+        } finally {
+            frappe.show_alert = originalShowAlert;
+        }
+        return alerts.length;
+    });
+
+    expect(alertCount).toBe(1);
+});
