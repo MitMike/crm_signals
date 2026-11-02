@@ -124,7 +124,7 @@ A green reference CI result is not a substitute for any of these site-specific g
 
 - [x] PR #100 dashboard inset browser guard merged as `9c4febf`; all 18 final-head checks passed, including Bench v15/v16 and v16 Playwright.
 - [x] PR #101 target-site visual-UAT kit and documentation reconciliation merged as `0772afde`.
-- [x] PR #102 stale dependency follow-up reconciliation merged as `135e648`; all 14 final-head check runs succeeded.
+- [x] PR #102 stale dependency follow-up reconciliation merged as `135e648`; all 16 final-head check runs completed: 15 succeeded and the integration-test change detector was skipped as expected for the documentation-only diff.
 - [x] Live open-PR search returned zero at this main baseline.
 - [ ] **Read-only preflight SHA capture (ADR-086):** implementation and tests are on branch `ops/preflight-source-sha-20261103`; require final-head Python, Quality, Security, Bench v15/v16 + Playwright and pinned v16.5.0 checks before merge. The report must fail closed if the exact revision cannot be obtained.
 - [ ] **Dashboard visual UAT and target-site pilot:** still blocked by the absence of an authorized staging session and target-site evidence. The revisit criteria above remain unchanged.
