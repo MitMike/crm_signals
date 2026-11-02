@@ -675,3 +675,14 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Rationale:** Exercise the ERPNext accounting path that produces the aggregate fields rather than manufacturing those fields in test data.
 - **Consequences:** Run the scenario on Frappe/ERPNext v15 and v16 and the pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 lane. This covers the POS invoice settlement lifecycle only; it does not simulate browser checkout, POS Opening/Closing sessions, cash drawers, inventory movements or target-site native-report reconciliation.
 - **Revisit criteria:** Revisit if supported ERPNext versions change POS Profile, Mode of Payment or Sales Invoice payment allocation behavior, if fixture rollback is not complete, or if the D2 POS aggregate contract changes. Pilot reconciliation and real-user permission acceptance remain separate gates.
+
+
+## ADR-071 — Stop speculative Playwright formatting retries after repeated CI failures
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-02
+- **Context:** PR #71's new Playwright test failed the same Prettier check on three final-head attempts: `cbe8898` (Quality run `41441149766`), `007fcd4` (Quality run `41442386611`) and `047a903` (Quality run `41443643807`, failed job `125271378491`). Each failure names only `e2e/sahdev-dashboard.spec.ts`; JavaScript lint, Python unit tests and Semgrep checks passed on the failed heads. Two manual formatting revisions did not satisfy the formatter.
+- **Decision:** Do not make further speculative formatting edits, bypass the Quality check or merge PR #71 while the required check fails. Keep H-AC11 code-complete but not CI-verified. Revisit only when the exact Prettier output can be obtained by running `npx prettier --write e2e/sahdev-dashboard.spec.ts` in a CI-equivalent environment or by retrieving an exact formatter-generated diff from CI. Apply that diff without unrelated changes, then rerun every required final-head context and the pinned v16.5.0 lane.
+- **Rationale:** Repeated manual guesses have not made progress; a formatter-generated diff is the next evidence-bearing action.
+- **Consequences:** The source link remains unmerged and unavailable on main until CI passes. Target-site Sales User/Manager/non-sales permission acceptance remains separate.
+- **Revisit criteria:** An environment with the repository's locked Prettier 3.2.5 and Node version is available, or CI can expose the exact formatted file/diff. If neither is available, leave the PR blocked and continue with independent work.
