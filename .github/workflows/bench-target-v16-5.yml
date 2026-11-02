@@ -3,12 +3,26 @@ name: Pinned Frappe v16.5.0 + Helpdesk v1.28.0
 on:
   pull_request:
     paths:
-      - "crm_signals/**"
+      - "crm_signals/**/*.py"
+      - "crm_signals/**/doctype/**"
+      - "crm_signals/**/page/**"
+      - "crm_signals/**/*.json"
+      - "crm_signals/workspace/**"
+      - "crm_signals/patches.txt"
+      - "crm_signals/patches/**"
+      - "crm_signals/fixtures/**"
+      - "crm_signals/public/**"
       - "tests/**"
       - "pyproject.toml"
       - "setup.py"
-      - ".github/workflows/bench-e2e.yml"
-      - ".github/workflows/bench-target-v16-5.yml"
+      - "package.json"
+      - "package-lock.json"
+      - "MANIFEST.in"
+      - "requirements*.txt"
+      - "requirements/**"
+      - "crm_signals/config/**"
+      - "crm_signals/modules.txt"
+      - ".github/workflows/**"
   workflow_dispatch:
 
 permissions:

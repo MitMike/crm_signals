@@ -71,6 +71,7 @@ Work:
 - Use npm ci in Quality Checks and Dependency Security Audit.
 - Run pip-audit and npm audit --audit-level=moderate on relevant dependency pull requests, weekly and on manual dispatch.
 - Keep Semgrep SARIF scanning and the Frappe v15/v16 Bench + Playwright matrix.
+- [ ] PR #76 proposes changed-path execution while preserving the required check names; ADR-075 requires fail-closed path detection and Bench/pinned coverage for workflow definitions, DocType/Page/workspace JSON, patch/fixture metadata, package manifests, requirements, app config and module metadata. Workflow-definition changes also run the Python and JavaScript quality suites. Quality push validation is limited to main to avoid duplicate feature-branch runs; every PR still receives path-aware checks. Static regression tests protect all required gate expressions and selector coverage. Merge only after final-head validation on workflow and runtime paths, then verify a workspace-only change publishes successful stable required contexts.
 - Verify the existing main branch policy: required CI checks, PR-only updates, blocked force pushes/deletion and required review-thread resolution. Record allowed merge methods and the no-bypass emergency procedure.
 
 Exit criteria:
@@ -86,6 +87,7 @@ Exit criteria:
 **Dependencies:** Stage 0.
 
 Work:
+- Correct ADR-074's first-install sequence: `bench get-app` installs before the SHA checkout. Use direct clone with Bench's `upstream` remote name, detach/verify the approved SHA before requirements/build, and correct the upgrade fetch remote; add disposable v15/v16/v16.5 CI coverage before target-site use.
 - Run a target-site preflight: framework versions, installed apps, Company default currency, timezone, roles, DocType metadata, workflows, custom fields and permissions.
 - Configure a dedicated integration user, rotateable API credentials, HTTPS, gateway rate limiting and secret storage.
 - Add source DocType, source document name and source event ID to CRM Signals; enforce idempotent inserts for identifiable events.
@@ -280,7 +282,7 @@ A slice is done only when all applicable items are complete:
 | D1 | [Sales Compass](specs/2026-11-01-pillar-d1-sales-compass.md) | Implemented; PR #63 query-contract smoke and PR #67 synthetic aggregate-value fixture merged/CI-verified on v15/v16 and pinned v16.5.0; target-site validation open |
 | D2 | [Billing Realization](specs/2026-10-31-pillar-d2-billing-realization.md) | Implemented; PR #63 query smoke, PR #65 independent permission fix, PR #67 synthetic aggregate-value fixture and PR #69 real POS invoice settlement merged/CI-verified on v15/v16 and pinned v16.5.0; target-site native-report reconciliation and role acceptance open |
 | D3 | [Service Resolution/SLA](specs/2026-11-01-pillar-d3-service-resolution-sla.md) | Adapter, exact v16.5.0 reference CI and aggregate fixture verified in PR #50/#53; pilot-site source/permission/SLA acceptance remains |
-| H | [Highlights](specs/2026-11-01-pillar-h-highlights.md) | Partial: high-value quotation signals and per-Company thresholds merged; PR #71 adds permission-gated source Quotation drill-down, code-complete but CI-blocked by repeated Prettier failures (ADR-071); VIP/proposal tracking remains gated on product, privacy/consent and retention decisions |
+| H | [Highlights](specs/2026-11-01-pillar-h-highlights.md) | Partial: high-value quotation signals, per-Company thresholds and PR #71 permission-gated source Quotation drill-down are merged and CI-verified; target-site persona acceptance remains. VIP escalation and proposal tracking remain gated on product, privacy/consent and retention decisions |
 | A | [Analysis](specs/2026-11-01-pillar-a-analysis.md) | Planned |
 | E | [Explorer](specs/2026-11-01-pillar-e-explorer.md) | Core API, Desk UI and five-context browser coverage merged and CI-verified; target-site role/source acceptance remains |
 | V | [Vault](specs/2026-11-01-pillar-v-vault.md) | Planned |

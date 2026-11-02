@@ -225,3 +225,55 @@ def test_deployment_runbook_documents_company_thresholds_and_explorer_smoke_test
     assert "Activity Timeline entry points from Lead, Customer, Opportunity and CRM Signal forms" in runbook
     assert "High-Value Quote signal must open the Highlight context" in runbook
     assert "The first release has one site-wide threshold currency" not in runbook
+
+def test_change_aware_quality_filters_cover_workflows_and_packaging():
+    workflow = (ROOT / ".github/workflows/quality.yml").read_text()
+    python_filter = workflow.split("            python:", 1)[1].split(
+        "            javascript:", 1
+    )[0]
+    javascript_filter = workflow.split("            javascript:", 1)[1].split(
+        "\n\n  lint:", 1
+    )[0]
+    assert ".github/workflows/**" in python_filter
+    assert "MANIFEST.in" in python_filter
+    assert "requirements*.txt" in python_filter
+    assert ".github/workflows/**" in javascript_filter
+    assert "on:\n  push:\n    branches:\n      - main\n  pull_request:" in workflow
+
+    assert workflow.count("needs.changes.result != 'success'") >= 5
+    for version in ["310", "311", "312", "314"]:
+        gate = workflow.split(f"  python-{version}-required:", 1)[1].split(
+            "\n  python-", 1
+        )[0]
+        assert "if: always()" in gate
+        assert "needs.changes.result != 'success'" in gate
+
+
+def test_change_aware_bench_filters_cover_frappe_metadata_and_workflows():
+    workflow = (ROOT / ".github/workflows/bench-e2e.yml").read_text()
+    pinned = (ROOT / ".github/workflows/bench-target-v16-5.yml").read_text()
+    expected_paths = [
+        ".github/workflows/**",
+        "crm_signals/**/*.json",
+        "crm_signals/workspace/**",
+        "crm_signals/patches.txt",
+        "crm_signals/patches/**",
+        "crm_signals/fixtures/**",
+        "MANIFEST.in",
+        "requirements*.txt",
+    ]
+    for path in expected_paths:
+        assert path in workflow
+        assert path in pinned
+
+    assert "workflow_dispatch:" in workflow
+    assert "branches:" in workflow
+    assert "- main" in workflow
+    assert workflow.count("needs.changes.result != 'success'") >= 2
+    for gate_name in ["bench-v15-required", "bench-v16-required"]:
+        gate = workflow.split(f"  {gate_name}:", 1)[1].split(
+            "\n  bench-", 1
+        )[0]
+        assert "if: always()" in gate
+        assert "needs.changes.result != 'success'" in gate
+

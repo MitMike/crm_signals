@@ -78,3 +78,20 @@ A warning requires a maintainability review and should normally result in a refa
 The test thresholds are intentionally more permissive because test suites often group fixtures and lifecycle scenarios. Generated, minified and vendored assets are excluded. Any other file-level exception must be added to `scripts/code_standards_exceptions.json` with its exact repository-relative path and a reason. Keep exceptions narrow; do not add directory-wide or wildcard exemptions. Review the exception register periodically and remove entries when the underlying file is refactored.
 
 Run the checker locally with `python scripts/check_code_standards.py`. Warnings do not fail the check; exceeding a hard limit does.
+
+
+## Change-aware CI execution (ADR-075)
+
+Pull requests now use path-aware execution while preserving the existing required check names:
+
+- The Quality workflow runs full checks on pushes to `main` and path-aware checks on every PR. Its static Python/configuration checks always run. JavaScript tooling installation, ESLint/Oxlint and Prettier run for JavaScript, tooling, E2E or workflow-definition changes; the four-version Python unit matrix runs for Python, test, script, Python packaging or workflow-definition changes. MANIFEST.in and requirements changes trigger the Python package-install matrix. Feature-branch pushes do not start a second full Quality run alongside the PR workflow.
+- Bench Integration and E2E retains its existing required matrix check contexts, but PR matrix jobs are skipped for documentation-only changes. Backend Python, DocType/Page/workspace JSON, public asset, test, patch/fixture, packaging and workflow-definition changes run both supported Frappe lanes. Pushes to `main` and manual dispatch retain the full matrix.
+- The pinned Frappe v16.5.0 / ERPNext / Helpdesk validation is narrowed to backend, DocType/Page/workspace JSON, public asset, test, patch/fixture, packaging and workflow-definition paths. It remains available by manual dispatch.
+- Python and npm dependency caches are enabled where their lock/manifest inputs are known. Security scanning remains required for every PR; dependency audits retain their dependency-file and scheduled triggers.
+
+Stable required-check gate jobs retain the exact status names expected by the main ruleset; they depend on the conditional test-execution jobs and fail if a relevant test run fails. This avoids relying on skipped matrix jobs to publish matrix-specific required contexts. Skipped execution jobs are intentional only when their change filter proves the relevant source surface was not modified. GitHub's required check contexts are preserved; no branch protection requirement is removed. A change to the filters, job names or required contexts must be tested against both metadata-only and runtime-code PRs before merge. PR #76's initial workflow-only path and temporary runtime-path PR #77 both passed. The final fail-closed/package/workflow/metadata-filter head must also pass before merge; use a workspace-only PR to verify intentional stable-check skips after the workflow change lands, and do not assume time savings until measured.
+
+
+### Fail-closed path detection (ADR-075)
+
+Path-aware skipping is permitted only after the change detector completes successfully. The lint/static job must fail if its detector dependency fails; each stable Python and Bench required-check gate must also fail when the detector fails, rather than interpreting an empty output as a no-change result. Bench and pinned v16.5 filters include package manifests/lockfiles, requirements and manifest files, app configuration and module metadata because these can affect installation or asset builds. Full Bench validation remains on main pushes and manual dispatch. A filter change is not CI-verified until both a non-runtime PR and a runtime/package-path PR have completed their intended checks on the final head. Static regression assertions in `tests/test_static_contracts.py` protect the selector coverage, stable gate names and detector-failure conditions.
