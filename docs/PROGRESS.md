@@ -249,5 +249,5 @@ PR #7 updates `astral-sh/setup-uv@v6` to `@v7` in `.github/workflows/bench-e2e.y
 ## Dashboard inset regression guard — PR #100 (code complete; CI pending)
 
 - PR #99 merged as `6a46c26b3a58a3ea035d7e53b15bc2f8839e2bb5` after all 13 final-head checks completed successfully. Its docs-only path detection skipped Python/Bench runtime execution while Python 3.10/3.11/3.12/3.14, lint/static, Semgrep and both Bench validation lanes completed successfully.
-- PR #100 adds a rendered-page Playwright regression assertion for BUG-2026-001 / FIX-2026-001: 24px horizontal inset at 1440px and 12px at 390px. The test is code-complete; final-head CI has not yet run.
+- PR #100 adds a rendered-page Playwright regression assertion for BUG-2026-001 / FIX-2026-001: 24px horizontal inset at 1440px and 12px at 390px. The test is code-complete. Review of the initial PR run found that `e2e/**` and `playwright.config.ts` were missing from the change-aware Bench selector; PR #100 now adds both paths plus static contract coverage (ADR-084), so the v16 Playwright lane is required for this change. Final-head CI is pending.
 - This guard prevents the specific CSS regression from silently returning. It does not prove rebuilt staging assets look correct and does not close desktop/mobile visual UAT or target-site pilot acceptance.
