@@ -43,7 +43,7 @@ The following capabilities are present in the repository. "Implemented" means th
 | D2 Billing Realization | Implemented; return-metadata guard merged in PR #17 | Reconcile totals and currency basis against target-site reports |
 | D3 Service Resolution/SLA | Standard Frappe Helpdesk adapter and field-level guard merged in PR #32/#42; moving v15/v16 CI and exact Frappe v16.5.0 / ERPNext v16.5.0 / Helpdesk v1.28.0 reference lane passed in PR #50 | Confirm the pilot site's exact app versions, Sales read-only role/field permissions and active SLA calendar |
 | H Highlights | Partial; high-value Quotation events exist | Per-company threshold behavior merged in PR #45; target-site amounts and currency fallback still require approval. VIP allowlist/escalation and proposal-link tracking remain; tracking is gated on privacy/consent and retention approval |
-| E Explorer | Not implemented | Verify installed activity integrations and source adapters |
+| E Explorer | Initial backend API in PR #57; CI pending | Core CRM Signal/Quotation/Opportunity adapters; Desk entry points, Playwright and optional-provider inventory remain |
 | V Vault | Not implemented | Metric registry, retention and source-visibility policy |
 | A Analysis | Not implemented | Approved metric/query registry and constrained intent mapping |
 
