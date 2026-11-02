@@ -422,8 +422,9 @@ def verify_helpdesk_aggregate_fixture():
     SLA outcomes are synthetic field values for the aggregate contract only;
     this does not simulate the Helpdesk SLA engine or approve a site calendar.
     """
-    from crm_signals.api import get_sales_compass_data
     from frappe.utils import add_days, now_datetime, nowdate
+
+    from crm_signals.api import get_sales_compass_data
 
     previous_user = frappe.session.user
     ticket_names = []
