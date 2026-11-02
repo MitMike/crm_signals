@@ -57,7 +57,7 @@ Decisions are recorded in ADR-034 through ADR-040, in addition to the earlier se
 ### P1 — reliability work intentionally deferred
 
 1. **Signal outbox/reconciliation:** The transactional outbox and audited Failed-row replay are implemented in PRs #26/#38 and CI-verified. Verify scheduler operation, failure monitoring and backup/restore on the target site.
-2. **Realtime retry:** PR #54 implements a stable per-recipient delivery ledger, bounded retries, permission rechecks and active-session duplicate suppression. Required CI and target-site Redis outage, worker restart and permission-revocation acceptance remain open; no human-delivery guarantee is claimed.
+2. **Realtime retry:** PR #54 implements a stable per-recipient delivery ledger, bounded retries, permission rechecks and active-session duplicate suppression. Code/test head `d2ac43e` and documentation head `4edf496` passed Quality, Security, Bench v15/v16 + Playwright and the pinned Frappe v16.5.0/ERPNext v16.5.0/Helpdesk v1.28.0 lane. Target-site Redis outage, worker restart, scheduler and permission-revocation acceptance remain open; no human-delivery guarantee is claimed.
 3. **Multi-company threshold:** Implementation is merged in PR #45. Each enabled Company still needs a business-approved amount in its base currency or explicit approval of the exact-currency legacy fallback; there is no implicit FX conversion.
 
 ### P2 — roadmap dependencies
