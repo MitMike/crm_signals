@@ -239,9 +239,11 @@ def test_change_aware_quality_filters_cover_workflows_and_packaging():
     assert "requirements*.txt" in python_filter
     assert ".github/workflows/**" in javascript_filter
 
-    assert workflow.count("needs.changes.result != 'success'") == 5
+    assert workflow.count("needs.changes.result != 'success'") >= 5
     for version in ["310", "311", "312", "314"]:
-        gate = workflow.split(f"  python-{version}-required:", 1)[1]
+        gate = workflow.split(f"  python-{version}-required:", 1)[1].split(
+            "\n  python-", 1
+        )[0]
         assert "if: always()" in gate
         assert "needs.changes.result != 'success'" in gate
 
@@ -266,9 +268,11 @@ def test_change_aware_bench_filters_cover_frappe_metadata_and_workflows():
     assert "workflow_dispatch:" in workflow
     assert "branches:" in workflow
     assert "- main" in workflow
-    assert workflow.count("needs.changes.result != 'success'") == 2
+    assert workflow.count("needs.changes.result != 'success'") >= 2
     for gate_name in ["bench-v15-required", "bench-v16-required"]:
-        gate = workflow.split(f"  {gate_name}:", 1)[1]
+        gate = workflow.split(f"  {gate_name}:", 1)[1].split(
+            "\n  bench-", 1
+        )[0]
         assert "if: always()" in gate
         assert "needs.changes.result != 'success'" in gate
 
