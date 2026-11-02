@@ -184,13 +184,14 @@ For each change:
 - **Revisit criteria:** No further action is required for PR #57. If a future PR produces duplicate or cancelled contexts, inspect the push and pull-request run sources and require successful final-head contexts before merging. Never bypass branch protection.
 
 
-## Change-aware CI execution — PR #76 (code-complete; final-head CI pending)
+## Change-aware CI execution — PR #76 (code-complete; expanded final-head CI pending)
 
 - **Decision:** ADR-075 keeps existing required check names, selects expensive test execution by changed paths, and fails closed if path detection itself fails. Bench and pinned v16.5 filters now include package manifests/lockfiles, requirements/manifest inputs, app config and module metadata so install/asset-build changes retain integration coverage.
 - **Initial workflow evidence:** PR #76 head 0637298b5e1d4fa5c37f5adec1c2da63f9af12aa passed Quality Checks, Security Scanning, Bench Integration and E2E, and pinned Frappe v16.5.0 / Helpdesk v1.28.0. For its workflow/docs-only diff, static checks and Semgrep ran; Python and Bench execution were skipped, while all stable required gate contexts completed successfully. The pinned lane ran because the workflow files themselves changed.
 - **Runtime-path evidence:** temporary PR #77 head 96d0d5608ac14bb7c17413040a00160ad9028dd5 changed a Python module. All four Python unit versions, Bench v15/v16 (including v16 Playwright), Security and pinned Frappe v16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 passed. PR #77 was closed without merge after the intended validation.
-- **Review correction:** the initial gate expressions could pass if path detection failed and returned no output. The required lint/Python/Bench gates now explicitly fail on detector failure. The package/build path filters were expanded. The first fail-closed correction head 7e5e36b passed all four workflows, including the pinned lane. A subsequent review found that three Python matrix gates and the v16 Bench gate still lacked the detector-failure condition; all required gates are now being corrected and need a fresh final-head CI cycle.
-- **State:** implementation is code-complete; CI verification is pending on the per-context fail-closed correction; no pilot claim applies.
+- **Review correction:** the initial gate expressions could pass if path detection failed and returned no output. The required lint/Python/Bench gates now explicitly fail on detector failure. The package/build path filters were expanded. The first fail-closed correction head 7e5e36b passed all four workflows; the later correction added detector-failure checks to every Python and Bench gate.
+- **Second path audit:** workflow-definition changes, workspace JSON, and patch/fixture metadata were not all selected for full validation. The selectors now include `.github/workflows/**` in Quality Python/JavaScript, Bench and pinned workflows; include workspace/JSON/patch/fixture metadata in Bench/pinned; and include MANIFEST.in/requirements in the Python matrix. This makes changes to the CI definitions themselves run the full relevant suites.
+- **State:** implementation is code-complete; the previous head passed all four workflow suites, but that evidence predates the expanded selectors. A new final-head cycle is required. No pilot claim applies.
 
 
 ## Bug and fix registers — PR #79 merged
@@ -198,7 +199,12 @@ For each change:
 - PR #79 added docs/BUG_REPORT.md and docs/FIX_REPORT.md, with BUG-2026-001 / FIX-2026-001 recording the CRM Signals dashboard horizontal-inset regression and its evidence-based closure criteria. Merged as 7904a70 after Quality, Security and Bench v15/v16 passed.
 - PR #80 adds the standard regression-review PR template and remains open. It is a review aid, not an automated merge gate.
 
-## Current UI fixes — PR #75 and PR #78 (CI pending)
+## Current UI fixes — PR #75 and PR #78 (CI passed; branch refresh required)
 
-- PR #75 changes only the Frappe workspace display label/title to GME CRM Signals, preserving technical identifiers and navigation. The initial failure was a stale static test expecting the old title; the test now asserts the new label and title. Final-head Quality/Security/Bench/pinned checks are running.
-- PR #78 restores 24px horizontal padding to the CRM Signals dashboard wrapper and adds a static regression assertion. Final-head Quality/Security/Bench/pinned checks are running. The local UAT visual check at desktop and mobile widths remains open; no UAT verification is claimed.
+- PR #75 changes only the Frappe workspace display label/title to GME CRM Signals, preserving technical identifiers and navigation. Its final head `16c9c77` passed Quality, Security, Bench v15/v16 and pinned Frappe v16.5.0. The branch is one commit behind current main and must be refreshed/retested before merge.
+- PR #78 restores 24px horizontal padding to the CRM Signals dashboard wrapper and adds a static regression assertion. Its final head `9d31b7b` passed Quality, Security, Bench v15/v16 and pinned Frappe v16.5.0. The branch is one commit behind current main and must be refreshed/retested before merge. Local UAT visual checks at desktop and mobile widths remain open; no UAT verification is claimed.
+
+## PR regression checklist — PR #80 (CI passed; merge pending)
+
+- Adds an advisory template requiring bug-register lookup, linked bug/fix IDs, regression evidence, root-cause review, truthful CI/UAT status and rollout checks.
+- Its current head `c86c83c` passed Quality, Security and Bench v15/v16; it is up to date with main `7904a70`. No application behavior changes. The template is not an automated merge gate.
