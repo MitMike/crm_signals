@@ -707,3 +707,14 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Context:** PR #72 proposed a docs-only reconciliation for PR #69 POS settlement and PR #70 preflight evidence. The same evidence was already carried in PR #71's documentation update, alongside the H-AC11 source-link decision. PR #72's ADR-069 number collided with the H-AC11 ADR-069.
 - **Decision:** Keep the merged, consolidated documentation in PR #71. Preserve ADR-069 for High-Value Quote source-link authorization, ADR-070 for POS settlement, and ADR-068 for the read-only preflight report. Close PR #72 as superseded after PR #71 merges.
 - **Consequences:** No POS/preflight evidence is dropped; the decision register remains uniquely numbered and the progress/follow-up records have one authoritative update.
+
+
+## ADR-074 — Pin every target-site deployment to an approved commit
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-02
+- **Context:** The administrator guide's first-install command cloned the moving `main` branch even though its later instructions required a pinned release revision. That inconsistency could make an installation differ from the revision reviewed by CI or recorded for rollback.
+- **Decision:** First installations may clone the repository, but must immediately detach to the exact approved 40-character commit SHA before `install-app` or migration. Upgrades must fetch the approved source, detach to the same kind of immutable SHA and verify `rev-parse HEAD` against the release/change record before migration. Never deploy a target site from a moving branch.
+- **Rationale:** A deployment must be reproducible, auditable and restorable to the exact source revision that passed the release gate.
+- **Consequences:** The operator guide and deployment runbook now make commit pinning and SHA verification explicit. The target-site acceptance record must retain the verified CRM Signals SHA alongside exact Frappe/ERPNext/Helpdesk versions. This documentation change does not claim a target-site deployment or pilot verification.
+- **Revisit criteria:** Revisit only when release automation publishes and verifies immutable, signed release tags; until then, use the approved full commit SHA.

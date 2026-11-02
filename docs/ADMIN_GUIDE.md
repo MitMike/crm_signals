@@ -28,19 +28,30 @@ The report is server-side only and read-only. Static DocPerm rows are not effect
 
 ## Installation and upgrade
 
-Install from the app repository using the site's normal Bench/Pilot process:
+For a first installation, clone the repository and immediately check out the exact commit approved in the release record. Do not install from the moving `main` tip.
 
 ```bash
-bench get-app https://github.com/MitMike/crm_signals --branch main
+bench get-app https://github.com/MitMike/crm_signals
+git -C apps/crm_signals checkout --detach <approved-commit-sha>
+test "$(git -C apps/crm_signals rev-parse HEAD)" = "<approved-commit-sha>"
 bench --site <site-name> install-app crm_signals
 bench --site <site-name> migrate
 bench build --app crm_signals
 bench restart
 ```
 
-For an existing installation, deploy the approved app revision and run `bench --site <site-name> migrate`, then build assets and restart workers. Take a database and files backup first. Follow your site's normal maintenance window and rollback process.
+For an existing installation, take a database and files backup first, then fetch the approved source and detach to the exact release commit before running migrations:
 
-For the pilot, install only after the required pull requests are merged and CI is green. Record the exact CRM Signals revision with `git -C apps/crm_signals rev-parse HEAD` and attach it to the acceptance record. Do not leave a production deployment tracking a moving `main` branch; use an approved release tag or pinned commit. After installation, capture `bench version` and `bench --site <site-name> list-apps` again so the installed state is evidenced.
+```bash
+git -C apps/crm_signals fetch origin main --tags
+git -C apps/crm_signals checkout --detach <approved-commit-sha>
+test "$(git -C apps/crm_signals rev-parse HEAD)" = "<approved-commit-sha>"
+bench --site <site-name> migrate
+bench build --app crm_signals
+bench restart
+```
+
+Follow the site's normal maintenance window and rollback process. Use a full 40-character commit SHA from the approved release record; do not substitute `main`, a moving branch name or an unverified local revision. Record `git -C apps/crm_signals rev-parse HEAD` in the acceptance record. After installation, capture `bench version` and `bench --site <site-name> list-apps` again so the installed state is evidenced.
 
 ## Configure CRM Signals
 
