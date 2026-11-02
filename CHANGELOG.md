@@ -2,9 +2,14 @@
 
 This changelog records user-visible and operationally significant changes. It is not a substitute for commit history. Entries do not imply a production release unless explicitly stated.
 
-## Unreleased — Transactional signal outbox, durable realtime retry, D3 Helpdesk, Highlights, Explorer and D1/D2 CI contracts (PR #26, #32, #54, #57, #59, #60, #63, #65, #67)
+## Unreleased — Transactional signal outbox, durable realtime retry, D3 Helpdesk, Highlights, Explorer and D1/D2 CI contracts (PR #26, #32, #54, #57, #59, #60, #63, #65, #67, #69, #70, #71)
 
-### High-Value Quote source drill-down — PR #71 (CI pending)
+### D2 POS invoice settlement fixture — PR #69 (final-head CI pending)
+- Create a disposable POS Profile and company-specific Mode of Payment, then submit an `is_pos` Sales Invoice through ERPNext's normal lifecycle.
+- Assert ERPNext-calculated `paid_amount` settles `grand_total`; keep the setup and invoice inside the fixture rollback boundary.
+- This does not simulate browser checkout, POS Opening/Closing, cash drawers or inventory movements; target-site native-report reconciliation remains separate.
+
+### High-Value Quote source drill-down — PR #71 (final-head CI pending)
 - Return source_doctype/source_name only when the current user can read both CRM Signal source fields, the signal is a High-Value Quote sourced from Quotation, and the exact Quotation is readable.
 - Suppress other source identifiers and fail closed on permission/metadata errors; the Desk row opens the Quotation while retaining existing party/Signal fallbacks.
 - Add API permission-denial tests and Playwright coverage for the Console source route. Target-site role acceptance remains open.
