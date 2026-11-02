@@ -182,7 +182,7 @@ class TestExplorerTimeline(FrappeTestCase):
         self.assertEqual(result["context"]["party_doctype"], "Lead")
         self.assertEqual(
             [source["status"] for source in result["sources"]],
-            ["available", "unavailable", "available"],
+            ["available", "unavailable", "empty"],
         )
         self.assertEqual(len(result["items"]), 1)
         self.assertEqual(result["items"][0]["summary"], "Website Visit · High")
