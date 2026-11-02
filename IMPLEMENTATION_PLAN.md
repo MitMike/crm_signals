@@ -148,18 +148,23 @@ Exit criteria:
 **Priority:** P1  
 **Dependencies:** Stage 1 settings, recipient permissions and idempotency.
 
+**Current implementation:** High-value Quotation alerts and Company-specific base-currency thresholds are implemented (PR #45/#49). The hook compares the Company base total with the Company threshold, falls back to transaction total only on an exact currency match, emits on submission at `>=` threshold and preserves the Quotation transaction amount in the message. Current recipients remain the linked party owner and active ToDo assignees, constrained to enabled System Users with read permission. PR #60 adds direct hook-level regression coverage. VIP membership and escalation routing are not defined well enough to implement safely; ADR-061 records the required product decision. Proposal-link tracking remains blocked by privacy/consent and retention approval.
+
 Work:
-- Complete Company-specific quotation thresholds (PR #45 merged) and preserve the no-FX, currency-matched fallback rule.
-- Reuse CRM Signals for the quote alert and preserve source links; verify one alert per submission identity.
-- Add the admin-managed VIP Customer allowlist and escalation routing after the threshold policy is merged.
-- Add first-party proposal-link tokens stored as hashes; support expiry and revocation only after privacy/consent and retention approval.
-- Accept stable provider event IDs; deduplicate opens and throttle alert delivery.
-- Exclude known scanners/previews from human-engagement alerts; never fingerprint browsers.
-- Complete privacy/consent review before enabling proposal-link tracking.
+- [x] Implement Company-specific quotation thresholds (PR #45/#49) with no implicit FX conversion and exact-currency fallback only.
+- [x] Reuse CRM Signals for submitted-Quotation alerts, preserve source links and use stable submission event identity.
+- [x] Route current quote alerts through existing owner/active-assignee recipients after enabled-user and source/party permission checks.
+- [x] Add direct regression coverage for threshold equality, below-threshold suppression, base-total selection and same-currency fallback (PR #60).
+- [ ] Confirm Company-by-Company threshold amounts/currencies and recipient behavior on the target site.
+- [ ] Add the admin-managed VIP Customer allowlist and escalation routing only after the product owner approves the triggering events, priority/threshold effect, recipients and cooldown (ADR-061).
+- [ ] Add first-party proposal-link tokens stored as hashes, expiry and revocation only after privacy/consent and retention approval.
+- [ ] Accept stable provider event IDs; deduplicate opens and throttle alert delivery.
+- [ ] Exclude known scanners/previews from human-engagement alerts; never fingerprint browsers.
+- [ ] Complete privacy/consent review and retention configuration before enabling proposal-link tracking.
 
 Exit criteria:
-- [ ] Quote threshold, currency and recipient behavior pass multi-currency Bench tests.
-- [ ] Replayed events create one signal/alert.
+- [ ] Target-site threshold, currency and recipient behavior pass multi-company Bench acceptance.
+- [x] The code-level quotation hook is covered for threshold equality and suppression below threshold; existing outbox tests cover source-event deduplication/replay.
 - [ ] Link tokens are opaque, expiring and revocable.
 - [ ] Scanner, ambiguous and human event classifications pass tests.
 - [ ] Privacy/consent approval and retention configuration are recorded.
