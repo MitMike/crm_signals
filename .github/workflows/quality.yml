@@ -158,7 +158,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Require execution when Python files changed
-        if: github.event_name != 'pull_request' || (needs.changes.outputs.python == 'true' && needs.unit-execution.result != 'success')
+        if: (github.event_name != 'pull_request' || needs.changes.outputs.python == 'true') && needs.unit-execution.result != 'success'
         run: exit 1
 
   python-311-required:
