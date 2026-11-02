@@ -362,3 +362,10 @@ def test_operator_installation_pins_source_before_bench_setup():
         assert workflow.index(verify_command) < workflow.index(
             "bench setup requirements crm_signals"
         ) < workflow.index("bench --site test.local install-app crm_signals")
+
+def test_crm_signals_dashboard_retains_horizontal_inset():
+    stylesheet = (
+        APP_ROOT / "crm_signals/page/crm_signals_dashboard/crm_signals_dashboard.css"
+    ).read_text()
+    assert ".crm-signals-dashboard {" in stylesheet
+    assert "padding: 20px 24px 32px;" in stylesheet
