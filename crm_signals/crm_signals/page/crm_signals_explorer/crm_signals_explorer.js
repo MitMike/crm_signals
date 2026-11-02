@@ -24,7 +24,7 @@ class CRMSignalsExplorer {
         this.items = [];
         this.sources = [];
 
-        page.set_primary_action( __("Refresh"), () => this.refresh(), "refresh");
+        page.set_primary_action(__("Refresh"), () => this.refresh(), "refresh");
         this.body.on("click", ".crm-explorer-load-more", () => this.loadMore());
         this.body.on("click", ".crm-explorer-source", (event) => {
             const button = $(event.currentTarget);
