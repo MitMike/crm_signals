@@ -97,11 +97,14 @@ for d in sorted(candidates, key=lambda x: (x.module or "", x.name or "")):
     print("\\n---", d.name, "| module:", d.module, "| custom:", d.custom, "---")
     try:
         meta = frappe.get_meta(d.name)
+        for permission in (getattr(meta, "permissions", []) or []):
+            print("ROLE", permission.role, "| read:", permission.read, "| permlevel:", permission.permlevel)
         for field in meta.fields:
             print(
                 field.fieldname,
                 "| label:", field.label,
                 "| type:", field.fieldtype,
+                "| permlevel:", getattr(field, "permlevel", 0) or 0,
                 "| options:", field.options or ""
             )
     except Exception as exc:
