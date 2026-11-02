@@ -99,10 +99,11 @@ jobs:
           uv tool install frappe-bench
           bench init --skip-redis-config-generation --skip-assets --frappe-branch v16.5.0 --python "$(which python)" ~/frappe-bench
 
-      - name: Get ERPNext, Telephony, Helpdesk and CRM Signals
+      - name: Get ERPNext, Telephony and Helpdesk; pin CRM Signals before installing
         working-directory: /home/runner/frappe-bench
         env:
           TELEPHONY_COMMIT: "9447577500a25d242088398157b72c654fa34b20"
+          CRM_SIGNALS_SHA: ${{ github.sha }}
         run: |
           bench get-app --skip-assets erpnext https://github.com/frappe/erpnext --branch v16.5.0
           bench get-app --skip-assets telephony https://github.com/frappe/telephony --branch develop
@@ -110,7 +111,11 @@ jobs:
           git -C apps/telephony checkout --detach "$TELEPHONY_COMMIT"
           test "$(git -C apps/telephony rev-parse HEAD)" = "$TELEPHONY_COMMIT"
           bench get-app --skip-assets helpdesk https://github.com/frappe/helpdesk --branch v1.28.0
-          bench get-app --skip-assets crm_signals "${{ github.workspace }}"
+          test "${#CRM_SIGNALS_SHA}" -eq 40
+          git clone --origin upstream "${{ github.workspace }}" apps/crm_signals
+          git -C apps/crm_signals checkout --detach "$CRM_SIGNALS_SHA"
+          test "$(git -C apps/crm_signals rev-parse HEAD)" = "$CRM_SIGNALS_SHA"
+          bench setup requirements crm_signals
           bench setup requirements --dev
 
       - name: Create site and install apps
