@@ -363,7 +363,7 @@ test(
                             total: 1,
                             unread: 1,
                             high_priority: 1,
-                            last_7_days: 1
+                            last_7_days: 1,
                         },
                         by_type: [{ signal_type: "High-Value Quote", total: 1 }],
                         recent: [
@@ -377,22 +377,22 @@ test(
                                 customer: null,
                                 is_read: 0,
                                 source_doctype: "Quotation",
-                                source_name: "QTN-HIGHLIGHT-E2E"
-                            }
-                        ]
-                    }
-                })
+                                source_name: "QTN-HIGHLIGHT-E2E",
+                            },
+                        ],
+                    },
+                }),
             })
         );
 
         await page.goto("/app/crm-signals-dashboard");
         const signal = page.locator(".crm-signal-row").filter({
-            hasText: "High-Value Quote"
+            hasText: "High-Value Quote",
         });
         await expect(signal).toContainText("Quotation: QTN-HIGHLIGHT-E2E");
         await signal.click();
         await expect(page).toHaveURL(/\/app\/quotation\/QTN-HIGHLIGHT-E2E/);
-    }
+    },
 );
 
 test("Sales User can open the Executive Compass", async ({ page }) => {
