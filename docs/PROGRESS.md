@@ -270,7 +270,7 @@ PR #100 is code-complete and CI-verified, not pilot-verified. The automated comp
 ## Read-only preflight source revision — 2026-11-03
 
 - **Reviewed main:** `135e648fe75ebecc692f8cab00841ddc094fdad2`; PR #102 merged and live open-PR search returned zero before this change.
-- **Decision:** ADR-086 adds the exact CRM Signals checkout SHA to the existing server-side, non-whitelisted preflight. The helper runs only `git rev-parse --verify HEAD` from the imported app directory, with a five-second timeout; it validates a full 40-character hexadecimal result and reports bounded failure reasons without paths or stderr.
+- **Decision:** ADR-086 adds the exact CRM Signals checkout SHA to the existing server-side, non-whitelisted preflight. The helper runs `git status --porcelain --untracked-files=all` and, only for a clean checkout, `git rev-parse --verify HEAD` from the imported app directory. Each command has a five-second timeout; the helper validates a full 40-character hexadecimal result and reports bounded failure reasons without paths or stderr.
 - **Implementation:** branch `ops/preflight-source-sha-20261103`; code and regression tests are committed. The tests cover exact SHA output, failed Git lookup without leaking stderr, invalid output rejection, and report inclusion.
 - **Operator guide:** ADMIN_GUIDE.md and TARGET_SITE_ACCEPTANCE.md now require an exact match against the approved release SHA and a stop on missing/mismatched identity.
 - **Status:** code-complete on the branch; remote CI and PR review are pending. No target-site execution or pilot verification is claimed.
