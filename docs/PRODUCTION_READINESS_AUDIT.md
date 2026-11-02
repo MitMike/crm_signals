@@ -2,8 +2,8 @@
 
 **Audit date:** 2026-11-02  
 **Repository:** MitMike/crm_signals  
-**Base:** `main` at `24a9b8d3d178682a68df418f5cd29582644056c8` (PR #50 merged)  
-**Implementation under audit:** PRs #19/#21/#23/#26/#32/#38/#42/#44/#45/#49/#50, all merged; latest main baseline `24a9b8d`  
+**Base:** `main` at `cab1796d6432800d229a7cf1512b3be45f72b5bc` (PR #51 merged)  
+**Implementation under audit:** PRs #19/#21/#23/#26/#32/#38/#42/#44/#45/#49/#50/#51, all merged; latest main baseline `cab1796`  
 **Decision:** **Not approved for production sign-off.** PR #19, PR #21 and PR #23 are merged; supported-version CI passes. Target-site acceptance and the roadmap's external discovery/policy inputs remain outstanding. Durable realtime retry is implemented on PR #54 but still needs required CI and target-site recovery evidence. The transactional outbox and audited Failed-row replay are already implemented.
 
 ## 2026-11-02 follow-up status
