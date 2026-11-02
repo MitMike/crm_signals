@@ -74,7 +74,7 @@ Open **CRM Signals** workspace, then select **CRM Signals Dashboard** (route `/a
 
 The `is_read` flag is a shared team acknowledgement in this release, not an individual read receipt or private inbox.
 
-Realtime notifications are best-effort. Frappe queues the Redis publish after the database commit and does not provide a client receipt; a queued event is not proof that a user saw it. This release does not automatically retry missed realtime events. Use the CRM Signals console and configured digest as the durable places to review signals.
+Realtime notifications now have a per-recipient delivery ledger. A System Manager can inspect **CRM Signal Notification Delivery** to review the signal, recipient, attempt count and current status. The scheduler retries due Pending/Attempted rows at most ten times with exponential backoff capped at 60 minutes. `Attempted` means Frappe queued an after-commit publish callback; it does not prove Redis publication, browser receipt or human acknowledgement. `Failed` means the retry budget was exhausted without delivery confirmation; `Cancelled` means the signal disappeared or the recipient is no longer eligible. The Desk client suppresses repeated stable delivery IDs within the active browser session. This is at-least-once retry, not exactly-once or human-delivery confirmation. Until the target site's Redis outage and worker-restart tests pass, use the CRM Signals console and configured digest as the durable places to review signals.
 
 ## S.A.H.D.E.V. dashboards
 
