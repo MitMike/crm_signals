@@ -4,6 +4,24 @@ This changelog records user-visible and operationally significant changes. It is
 
 ## Unreleased — Transactional signal outbox, durable realtime retry, D3 Helpdesk, Highlights, Explorer and D1/D2 CI contracts (PR #26, #32, #54, #57, #59, #60, #63, #65, #67, #69, #70, #71)
 
+### Bug/fix evidence registers — PR #79 (merged as 7904a70)
+- Add durable bug and fix registers with stable IDs, root-cause/reproduction evidence, regression prevention, and separate merged/CI-verified/UAT-verified states.
+- Record the dashboard horizontal-inset regression as BUG-2026-001 / FIX-2026-001; its CSS fix remains in PR #78 and still requires UAT visual verification.
+
+### GME CRM Signals workspace label — PR #75 (pending CI)
+- Rename only the workspace display label/title; preserve technical identifiers, routes and shortcuts. Update the static contract test for the new label/title.
+
+### Dashboard horizontal inset — PR #78 (pending CI)
+- Restore 24px horizontal padding and add a static regression assertion. UAT visual confirmation remains outstanding.
+
+### Regression-review PR template — PR #80 (pending CI)
+- Add a reusable checklist for bug-register search, regression tests/manual checks, root-cause review, and honest CI/UAT status. This is advisory, not an automated merge gate.
+
+### Change-aware CI execution — PR #76 (pending final-head verification)
+- Select Python, Bench and pinned Frappe v16.5.0 execution by changed runtime paths while retaining the existing required check names, Security scanning, and full Bench coverage on main/manual runs.
+- Fail required gates when path detection fails; include package manifests/lockfiles, requirements and manifest files, app configuration and module metadata in integration/pinned-stack filters.
+- Initial workflow-only and temporary Python runtime-path validation passed. The first correction head also passed, but review found three Python and one Bench gate still needed explicit detector-failure handling; those are being corrected and require fresh final-head CI. This is not a reduction in the required merge gates.
+
 ### Immutable target-site deployment pin — PR #74
 - First-install and upgrade instructions now detach the app checkout to the exact approved 40-character commit SHA, verify it, and reconcile Python/Node requirements from that pinned tree before installation or migration.
 - The target-site acceptance record must retain that SHA with the exact Frappe, ERPNext and Helpdesk versions. A moving `main` branch is not a deployment revision.

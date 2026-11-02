@@ -12,7 +12,41 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  bench-validation:
+  changes:
+    name: Detect integration-test changes
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      bench: ${{ steps.filter.outputs.bench }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            bench:
+              - 'crm_signals/**/*.py'
+              - 'crm_signals/**/doctype/**'
+              - 'crm_signals/**/page/**'
+              - 'crm_signals/public/**'
+              - 'tests/**'
+              - 'pyproject.toml'
+              - 'setup.py'
+              - 'package.json'
+              - 'package-lock.json'
+              - 'MANIFEST.in'
+              - 'requirements*.txt'
+              - 'requirements/**'
+              - 'crm_signals/config/**'
+              - 'crm_signals/modules.txt'
+
+  bench-validation-runtime:
+    name: Bench integration execution (${{ matrix.frappe_branch }}, ${{ matrix.python-version }}, ${{ matrix.run_e2e }})
+    needs: changes
+    if: always() && (github.event_name != 'pull_request' || needs.changes.outputs.bench == 'true')
     runs-on: ubuntu-latest
     timeout-minutes: 60
     strategy:
@@ -201,3 +235,30 @@ jobs:
           cat bench_start.log || true
           echo "=== Frappe logs ==="
           cat logs/*.log || true
+
+  bench-v15-required:
+    name: bench-validation (version-15, 3.11, false)
+    needs: [changes, bench-validation-runtime]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require Bench execution when runtime files changed
+        if: >-
+          (github.event_name == 'pull_request' && needs.changes.result != 'success') ||
+          ((github.event_name != 'pull_request' || needs.changes.outputs.bench == 'true') &&
+           needs.bench-validation-runtime.result != 'success')
+        run: exit 1
+
+  bench-v16-required:
+    name: bench-validation (version-16, 3.14, true)
+    needs: [changes, bench-validation-runtime]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require Bench execution when runtime files changed
+        if: >-
+          (github.event_name == 'pull_request' && needs.changes.result != 'success') ||
+          ((github.event_name != 'pull_request' || needs.changes.outputs.bench == 'true') &&
+           needs.bench-validation-runtime.result != 'success')
+        run: exit 1
+
