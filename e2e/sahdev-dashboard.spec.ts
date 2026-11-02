@@ -352,9 +352,9 @@ test("CRM Signals dashboard loads its live API", async ({ page }) => {
 test(
     "High-Value Quote activity opens its permitted source Quotation",
     async ({ page }) => {
-    await loginAsAdministrator(page);
-    await page.route(crmSignalsDashboardMethod, (route) =>
-        route.fulfill({
+        await loginAsAdministrator(page);
+        await page.route(crmSignalsDashboardMethod, (route) =>
+            route.fulfill({
                 status: 200,
                 contentType: "application/json",
                 body: JSON.stringify({
@@ -382,16 +382,16 @@ test(
                         ]
                     }
                 })
-        })
-    );
+            })
+        );
 
-    await page.goto("/app/crm-signals-dashboard");
-    const signal = page.locator(".crm-signal-row").filter({
-        hasText: "High-Value Quote"
-    });
-    await expect(signal).toContainText("Quotation: QTN-HIGHLIGHT-E2E");
-    await signal.click();
-    await expect(page).toHaveURL(/\/app\/quotation\/QTN-HIGHLIGHT-E2E/);
+        await page.goto("/app/crm-signals-dashboard");
+        const signal = page.locator(".crm-signal-row").filter({
+            hasText: "High-Value Quote"
+        });
+        await expect(signal).toContainText("Quotation: QTN-HIGHLIGHT-E2E");
+        await signal.click();
+        await expect(page).toHaveURL(/\\/app\\/quotation\\/QTN-HIGHLIGHT-E2E/);
     }
 );
 
