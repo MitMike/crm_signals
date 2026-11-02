@@ -170,7 +170,7 @@ class TestExplorerTimeline(FrappeTestCase):
 
     def test_missing_source_doctype_is_not_connected_not_empty(self):
         def exists(doctype, name):
-            return doctype != "Quotation"
+            return name != "Quotation"
 
         def get_list(doctype, **kwargs):
             return [{"name": "LEAD-0001"}] if doctype == "Lead" else []
