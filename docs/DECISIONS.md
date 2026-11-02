@@ -612,3 +612,14 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Rationale:** Real metadata and database aggregation queries catch schema/API incompatibilities that mocked tests cannot. Avoiding synthetic accounting documents keeps this check independent of company/account/customer setup and prevents it from being mistaken for a financial reconciliation.
 - **Consequences:** This proves query-path compatibility on reference stacks only. It does not verify metric values, Sales User/Manager row or field visibility, custom workflows, currency conventions, or native-report reconciliation. Those remain target-site acceptance gates. A separate synthetic financial fixture may be added only when it can create valid, isolated ERPNext accounting records on both supported framework lines.
 - **Revisit criteria:** Revisit when a reusable test fixture can provision an isolated Company, chart of accounts, Customer, Item, submitted Sales Invoice and Payment Entry on Frappe v15/v16 without depending on the target site's accounting setup. Then assert invoice/POS/receipt/receivable/overdue aggregation deltas and permission behavior; keep live financial reconciliation separate.
+
+
+## ADR-065 — Avoid duplicate Bench runs on feature-branch pushes
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-02
+- **Context:** The Bench matrix ran for both `push` and `pull_request` events on the same feature-branch commit. The duplicate runs competed under separate concurrency groups; repeated branch updates produced cancelled or stale required Bench contexts, as previously observed during Explorer integration and again while validating PR #63.
+- **Decision:** Restrict the Bench Integration and E2E workflow's `push` trigger to `main`. Continue running it for every pull request and allow explicit `workflow_dispatch` on other refs. The pinned Frappe v16.5.0 workflow remains pull-request/path filtered and manually dispatchable.
+- **Rationale:** One authoritative Bench run per PR head avoids duplicate database/app installs, reduces runner contention and prevents a push-triggered duplicate from cancelling the required PR context. Main still receives a Bench run after merge.
+- **Consequences:** Feature-branch pushes no longer start a second Bench matrix; PR checks remain the merge gate. This changes CI scheduling only, not supported-version coverage.
+- **Revisit criteria:** Revisit only if a separate branch-push validation requirement is introduced that is not already satisfied by pull-request checks or main-branch pushes.
