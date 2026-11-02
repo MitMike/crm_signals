@@ -31,8 +31,12 @@ class CRMSignalsDashboard {
             const name = row.attr("data-name");
             const lead = row.attr("data-lead");
             const customer = row.attr("data-customer");
+            const sourceDoctype = row.attr("data-source-doctype");
+            const sourceName = row.attr("data-source-name");
 
-            if (lead) {
+            if (sourceDoctype === "Quotation" && sourceName) {
+                frappe.set_route("Form", "Quotation", sourceName);
+            } else if (lead) {
                 frappe.set_route("Form", "Lead", lead);
             } else if (customer) {
                 frappe.set_route("Form", "Customer", customer);
@@ -110,15 +114,20 @@ class CRMSignalsDashboard {
             if (item.lead) party = __("Lead: ") + item.lead;
             if (item.customer) party = __("Customer: ") + item.customer;
 
+            const sourceName = item.source_doctype === "Quotation" ? item.source_name : "";
+            const sourceLabel = sourceName ? __("Quotation: ") + sourceName : "";
             const priority = String(item.priority || "Medium").toLowerCase().replace(/[^a-z]/g, "");
             const readLabel = item.is_read ? __("Read") : __("Unread");
             return '<button type="button" class="crm-signal-row" data-name="' + this.escape(item.name) +
                 '" data-lead="' + this.escape(item.lead || "") +
-                '" data-customer="' + this.escape(item.customer || "") + '">' +
+                '" data-customer="' + this.escape(item.customer || "") +
+                '" data-source-doctype="' + (sourceName ? "Quotation" : "") +
+                '" data-source-name="' + this.escape(sourceName || "") + '">' +
                 '<span class="crm-signal-row-main">' +
                 '<span class="crm-signal-row-title">' + this.escape(item.signal_type) + "</span>" +
                 '<span class="crm-signal-row-message">' + this.escape(item.message) + "</span>" +
-                '<span class="crm-signal-row-meta">' + this.escape(party) + " · " +
+                '<span class="crm-signal-row-meta">' + this.escape(party) +
+                (sourceLabel ? " · " + this.escape(sourceLabel) : "") + " · " +
                 this.escape(item.creation || "") + "</span>" +
                 "</span>" +
                 '<span class="crm-signal-row-side">' +
