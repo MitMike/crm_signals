@@ -436,7 +436,6 @@ test("CRM Signals Settings presets can be applied and customised", async ({
     await expect(preset).toHaveValue("Custom");
 });
 
-
 test("Realtime notifications suppress duplicate delivery IDs", async ({
     page
 }) => {
