@@ -43,7 +43,7 @@ def load_diagnostics(monkeypatch):
                 fieldname="status",
                 label="Status",
                 fieldtype="Select",
-                options="Open\\nClosed",
+                options="Open\nClosed",
                 permlevel=1,
             ),
         ],
