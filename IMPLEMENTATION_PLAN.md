@@ -307,7 +307,7 @@ The project can continue implementing source-independent work while these inputs
 
 
 
-## 9. Repository maintenance snapshot — 2026-11-03
+## 9. Historical repository maintenance snapshot — 2026-11-03 (superseded by Sections 10–13)
 
 Latest main at this review is [`b18f504`](https://github.com/MitMike/crm_signals/commit/b18f5045cb218b351bd9e3033577b03767847014). PR #97 reconciled the maintenance snapshot after PR #94 and merged as `b18f504` after its final-head Quality, Security and Bench Integration/E2E checks passed. PR #8 (setup-node v7) and PR #94 (setup-python v7) are merged; PR #7 (setup-uv v7) remains merged as `331492c`.
 

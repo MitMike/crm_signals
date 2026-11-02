@@ -210,7 +210,7 @@ PR #88 upgraded the two workflow upload sites from `actions/upload-artifact@v4` 
 
 PR #7 updates `astral-sh/setup-uv@v6` to `@v7` in `.github/workflows/bench-e2e.yml` and `.github/workflows/bench-target-v16-5.yml`. Final head `a72c82c0e6bc2a04e6edebbcdf610c4e5e3c85ac` passed all 18 check runs: Quality, Security/Semgrep, Python 3.10/3.11/3.12/3.14, Frappe v15/v16 Bench integration (including Playwright), and pinned Frappe v16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0. It merged as `331492c5be1e5e32105e6d64b710d2e861c0111a`. No application runtime or dependency lockfile changed.
 
-## Current PR queue — reviewed against main `331492c`
+## Historical PR queue snapshot — reviewed against main `331492c` (superseded by later maintenance entries)
 
 - PR #89 documentation/ADR-075 skip-path reconciliation merged as `ac6b253`; Quality, Security and Bench Integration/E2E passed on final head `0967290`.
 - PR #7 setup-uv v7 merged as `331492c`; all 18 final-head check runs passed.
