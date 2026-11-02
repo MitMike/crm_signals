@@ -172,7 +172,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Require execution when Python files changed
-        if: (github.event_name != 'pull_request' || needs.changes.outputs.python == 'true') && needs.unit-execution.result != 'success'
+        if: needs.changes.result != 'success' || ((github.event_name != 'pull_request' || needs.changes.outputs.python == 'true') && needs.unit-execution.result != 'success')
         run: exit 1
 
   python-312-required:
@@ -182,7 +182,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Require execution when Python files changed
-        if: (github.event_name != 'pull_request' || needs.changes.outputs.python == 'true') && needs.unit-execution.result != 'success'
+        if: needs.changes.result != 'success' || ((github.event_name != 'pull_request' || needs.changes.outputs.python == 'true') && needs.unit-execution.result != 'success')
         run: exit 1
 
   python-314-required:
@@ -192,6 +192,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Require execution when Python files changed
-        if: (github.event_name != 'pull_request' || needs.changes.outputs.python == 'true') && needs.unit-execution.result != 'success'
+        if: needs.changes.result != 'success' || ((github.event_name != 'pull_request' || needs.changes.outputs.python == 'true') && needs.unit-execution.result != 'success')
         run: exit 1
 
