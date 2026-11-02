@@ -22,6 +22,7 @@ def load_diagnostics(monkeypatch):
         "Company": [
             {"name": "IN Company", "default_currency": "INR"},
             {"name": "EU Company", "default_currency": "EUR"},
+            {"name": "UK Company", "default_currency": "GBP"},
         ],
         "Workflow": [
             {
@@ -111,6 +112,8 @@ def test_preflight_company_thresholds_require_exact_currency_match(monkeypatch):
     assert thresholds["EU Company"]["threshold_source"] == "company_override"
     assert thresholds["EU Company"]["threshold_amount"] == 50000
     assert thresholds["EU Company"]["threshold_currency"] == "EUR"
+    assert thresholds["UK Company"]["threshold_source"] == "suppressed_currency_mismatch"
+    assert thresholds["UK Company"]["threshold_amount"] is None
 
 
 def test_preflight_includes_workflow_states_and_static_field_permissions(monkeypatch):
@@ -132,3 +135,6 @@ def test_preflight_includes_workflow_states_and_static_field_permissions(monkeyp
         {"role": "Sales User", "read": False, "permlevel": 1},
     ]
     assert lead["permission_boundary"] == "static DocPerm only; not effective user access"
+
+    ticket = report["doctypes"]["HD Ticket"]
+    assert all(not field["present"] for field in ticket["required_fields"])
