@@ -37,7 +37,7 @@ This file records known work that is intentionally not represented as complete. 
 
 - [ ] **D3 target-site acceptance:** the standard Frappe Helpdesk adapter merged in PR #32 and passed Frappe v15/v16 CI. Record the exact target Frappe v16.5 patch, ERPNext and Helpdesk versions; verify Sales User/Manager HD Ticket and SLA DocType plus field-level read permissions; confirm each active SLA's Monday–Saturday schedule, hours, holiday list and timezone. The field-level fail-closed guard merged in PR #42; CI is not site acceptance.
 - [ ] **H Highlights:** VIP alert rules and first-party proposal link tracking only after stable event IDs, scanner exclusion, retention and privacy/consent approval.
-- [ ] **E Explorer:** inventory configured integrations and implement source adapters only for verified sources.
+- [ ] **E Explorer:** PR #57 begins the read-only CRM Signal, Quotation and Opportunity timeline API with permission-aware source links and bounded snapshot pagination. CI and Bench verification remain pending; add Desk entry points and Playwright coverage before calling the slice complete. Inventory the target site's Communication/Event/ToDo and call/WhatsApp providers before adding optional adapters; record exact app/version, DocType, fields, stable event identity, relationship mapping and permission contract first.
 - [ ] **V Vault:** approve metric definitions, source visibility and retention before enabling aggregate snapshot scheduling.
 - [ ] **A Analysis:** build a server-owned versioned metric registry and constrained intent mapping. Arbitrary generated SQL remains prohibited.
 
