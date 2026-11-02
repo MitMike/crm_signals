@@ -8,9 +8,9 @@
 
 - [x] [PR #82](https://github.com/MitMike/crm_signals/pull/82) pin-before-install operator correction merged as `ac030b1`; final head `ef4dc09` passed Quality, Security, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0. Authorized staging rehearsal remains open.
 - [x] [PR #86](https://github.com/MitMike/crm_signals/pull/86) regression-review template merged as `966c31a`; Quality, Security and Bench workflow passed, with runtime suites skipped only after successful path detection.
-- [ ] [PR #84](https://github.com/MitMike/crm_signals/pull/84) dashboard inset: final-head Quality/Security passed; Bench v15/v16 and pinned v16.5.0 checks are running. Desktop/mobile UAT remains open.
+- [ ] [PR #84](https://github.com/MitMike/crm_signals/pull/84) dashboard inset: final-head Quality/Security and pinned v16.5.0 passed; the v15/v16 Bench workflow is completing its final required validation context. Desktop/mobile UAT remains open.
 - [ ] [PR #85](https://github.com/MitMike/crm_signals/pull/85) GME workspace label: old head checks passed but branch is two commits behind; rebase and rerun before merge.
-- [ ] [PR #87](https://github.com/MitMike/crm_signals/pull/87) upload-artifact v7: final-head Quality/Security passed; Bench and pinned checks are running.
+- [ ] [PR #87](https://github.com/MitMike/crm_signals/pull/87) upload-artifact v7: all four required workflows passed on current main head `4fcb867`; rebase and rerun if main advances before merge.
 - [x] [PR #76](https://github.com/MitMike/crm_signals/pull/76) change-aware CI merged as `cec49e7`; final head `d6a6300` passed all 19 check runs, including Quality, Security/Semgrep, Python 3.10/3.11/3.12/3.14, Bench v15/v16 + Playwright and pinned Frappe v16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0. Required contexts and fail-closed path gates are preserved.
 
 - [x] [PR #79](https://github.com/MitMike/crm_signals/pull/79) adds bug/fix evidence registers and records BUG-2026-001 / FIX-2026-001; Quality, Security and Bench v15/v16 passed. Merged as 7904a70. The dashboard fix and UAT closure remain separate.
