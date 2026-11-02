@@ -345,3 +345,13 @@ PR #100 merged as 9c4febf8180ef295b48ea18b1ac5fddc164ff34f from final head 50759
 The automated dashboard regression guard is code-complete and reference-stack CI-verified. Manual staging visual UAT is still open. The repeatable screenshot/evidence procedure is now in [Target-Site Acceptance Kit §11](docs/TARGET_SITE_ACCEPTANCE.md#11-dashboard-horizontal-inset-visual-acceptance).
 
 **Next priority:** execute dashboard visual UAT and the P0 target-site acceptance gates on an authorized Frappe v16.5 staging site. Do not start Vault/Analysis, VIP escalation, proposal tracking or optional Explorer adapters until their metric, permission, privacy, retention and source contracts are approved. No target site is connected to this work; do not claim pilot verification or infer site configuration from CI.
+
+
+
+## 14. Read-only preflight release identity — 2026-11-03
+
+ADR-086 closes an operator evidence gap without guessing site configuration: `crm_signals.diagnostics.get_site_preflight_report` now includes `framework.crm_signals_source`. It executes only a fixed `git rev-parse --verify HEAD` query from the imported CRM Signals package directory, bounded by a five-second timeout. Only a valid full 40-character hexadecimal SHA is accepted; missing Git, a non-Git checkout, timeout or invalid output is an explicit unavailable state with no path or stderr disclosure.
+
+The administrator guide and target-site acceptance kit require that SHA to match the approved release revision before installation or migration proceeds. If the diagnostic cannot report it, operators must stop and inspect the checkout manually; branch names and package versions are not substitutes.
+
+**Verification state:** implementation and focused unit tests are committed on `ops/preflight-source-sha-20261103`; final-head CI is pending. The feature is not yet CI-verified and has no target-site or pilot evidence. Existing Frappe/ERPNext v15/v16 coverage and the pinned Frappe v16.5.0 / ERPNext v16.5.0 / Helpdesk 1.28.0 lane remain required.
