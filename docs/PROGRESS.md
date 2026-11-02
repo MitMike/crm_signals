@@ -10,7 +10,7 @@ This file is the operational source of truth. [IMPLEMENTATION_PLAN.md](../IMPLEM
 
 ## Current status
 
-**D1/D2 Bench query contract — PR #63 (code complete; CI pending):** The previous Sales Compass coverage exercised mocked Frappe APIs, while the Bench matrix installed ERPNext without explicitly executing the D1/D2 aggregate path. PR #63 adds a read-only query-contract smoke to Frappe v15/v16 and the pinned v16.5.0 reference lane. It creates no business records and checks source availability/response shape only; it does not verify financial totals, Sales-role visibility or target-site reconciliation.
+**D1/D2 Bench query contract — PR #63 (code complete; CI pending):** The previous Sales Compass coverage exercised mocked Frappe APIs, while the Bench matrix installed ERPNext without explicitly executing the D1/D2 aggregate path. PR #63 adds a read-only query-contract smoke to Frappe v15/v16 and the pinned v16.5.0 reference lane. It also restricts Bench push runs to `main` so feature branches use one authoritative pull-request run instead of duplicate push/PR matrices. It creates no business records and checks source availability/response shape only; it does not verify financial totals, Sales-role visibility or target-site reconciliation.
 
 
 **PR #56 merged — 2026-11-02:** The post-PR55 pilot acceptance status, production-readiness and follow-up records are reconciled on main as `704997e`. The Dependabot note no longer names a stale base SHA. All three PR checks passed; no target-site pilot evidence was added or inferred.
