@@ -50,8 +50,8 @@ for app in frappe.get_installed_apps():
         print(app)
 
 print("Notification Type DocType present:", bool(frappe.db.exists("DocType", "Notification Type")))
-frappe_path = frappe.get_app_path("frappe")
-print("frappe/ui package present:", os.path.isdir(os.path.join(frappe_path, "ui")))
+frappe_source_path = frappe.get_app_source_path("frappe")
+print("frappe/ui package present:", os.path.isdir(os.path.join(frappe_source_path, "ui")))
 
 keywords = ("support", "ticket", "issue", "helpdesk", "service", "sla")
 rows = frappe.get_all(
