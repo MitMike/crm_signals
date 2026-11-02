@@ -48,11 +48,17 @@ Record, do not infer:
 
 ## 3. Deployment, migration and rollback
 
-- [ ] Confirm the exact app revision and dependency lock state; record the approved full 40-character CRM Signals commit SHA and verify that `git -C apps/crm_signals rev-parse HEAD` matches it exactly. The checkout must be detached at that SHA, not left on a moving branch.
+- [ ] Record the approved full 40-character CRM Signals commit SHA.
+- [ ] Before any CRM Signals dependency installation, Node package setup, asset build, site install or migration, verify the app checkout is detached at that exact SHA.
+- [ ] For first install, use the direct-clone procedure below; do not use `bench get-app crm_signals` because Bench installs the app before that command returns.
+- [ ] For upgrades, inspect the `upstream` remote (the default name created by Bench), verify it points to the approved repository, fetch and detach to the approved SHA. If the existing clone uses a different remote, verify and use its actual name rather than assuming `origin`.
+- [ ] Run `bench setup requirements crm_signals` only after the detached SHA check. This installs Python/Node dependencies from the pinned tree and synchronizes Bench app state.
+- [ ] On first install, run `bench --site <site-name> install-app crm_signals` after dependency setup.
 - [ ] Take a database and private/public files backup using the site's approved process.
 - [ ] Record backup location, timestamp, retention and restore operator.
 - [ ] Deploy to staging first.
-- [ ] Run `bench --site <site> migrate` and capture complete output.
+- [ ] Run `bench --site <site-name> migrate` and capture complete output.
+- [ ] Build assets with `bench build --app crm_signals` and capture output.
 - [ ] Verify DocType schema, roles, fixtures, hooks, scheduler registrations and installed app state.
 - [ ] Run CRM Signals tests appropriate to the environment.
 - [ ] Perform a smoke test of Desk, CRM Signals Settings, dashboard/report routes and API access.
@@ -60,8 +66,38 @@ Record, do not infer:
 - [ ] Rehearse rollback to the prior app revision and restore point.
 - [ ] Obtain technical and business approval before production deployment.
 
+### First installation — pin before Bench setup
+
+```bash
+APP_SHA="<approved-commit-sha>"
+test "${#APP_SHA}" -eq 40
+git clone --origin upstream https://github.com/MitMike/crm_signals.git apps/crm_signals
+git -C apps/crm_signals fetch upstream --tags
+git -C apps/crm_signals checkout --detach "$APP_SHA"
+test "$(git -C apps/crm_signals rev-parse HEAD)" = "$APP_SHA"
+bench setup requirements crm_signals
+bench --site <site-name> install-app crm_signals
+```
+
+### Existing installation upgrade
+
+```bash
+APP_SHA="<approved-commit-sha>"
+test "${#APP_SHA}" -eq 40
+git -C apps/crm_signals remote get-url upstream
+git -C apps/crm_signals fetch upstream --tags
+git -C apps/crm_signals checkout --detach "$APP_SHA"
+test "$(git -C apps/crm_signals rev-parse HEAD)" = "$APP_SHA"
+bench setup requirements crm_signals
+bench --site <site-name> migrate
+bench build --app crm_signals
+bench restart
+```
+
 | Step | Command / evidence reference | Result | Owner | Date |
 |---|---|---|---|---|
+| Approved SHA / detached checkout | | | | |
+| Dependency setup from pinned tree | | | | |
 | Backup | | | | |
 | Staging migrate | | | | |
 | Smoke tests | | | | |
@@ -69,6 +105,7 @@ Record, do not infer:
 | Rollback rehearsal | | | | |
 
 Do not paste secrets or full customer records into this document.
+
 
 ## 4. Permission parity matrix
 
