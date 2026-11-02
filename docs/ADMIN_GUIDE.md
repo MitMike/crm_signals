@@ -110,7 +110,7 @@ Selecting a preset applies its starting values. You can edit any field afterward
 
 ## Using the Signals Console
 
-Open **CRM Signals** workspace, then select **CRM Signals Dashboard** (route `/app/crm-signals-dashboard`). The console displays visible signal totals, shared unread state, high-priority signals, recent signal types and the latest records. A linked Lead or Customer opens through the normal Desk permission checks.
+Open **GME CRM Signals** workspace, then select **CRM Signals Dashboard** (route `/app/crm-signals-dashboard`). The console displays visible signal totals, shared unread state, high-priority signals, recent signal types and the latest records. A linked Lead or Customer opens through the normal Desk permission checks.
 
 The `is_read` flag is a shared team acknowledgement in this release, not an individual read receipt or private inbox. Recent High-Value Quote rows show and open their source Quotation only when the current user can read the CRM Signal source fields and that exact Quotation; otherwise the dashboard retains the existing party/Signal navigation.
 
