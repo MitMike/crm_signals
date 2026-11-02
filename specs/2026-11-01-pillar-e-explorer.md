@@ -1,6 +1,6 @@
 # E — Explorer and customer interaction timeline
 
-**Status:** Initial backend slice implemented in PR #57; CI pending. Desk entry points, Playwright coverage and target-site inventory for optional sources remain.
+**Status:** Core backend plus field-level read guard implemented in PR #57; latest-head CI pending. Desk entry points, Playwright coverage and target-site inventory for optional sources remain.
 
 The first release is deliberately limited to CRM Signal, Quotation and Opportunity. It supports Lead/Customer/Opportunity/CRM Signal contexts and treats a High-Value Quote CRM Signal as the current Highlight context. Communication, Event, ToDo, call and WhatsApp adapters are deferred until their installed providers and exact schemas are observed on the target site (ADR-059).
 
@@ -48,6 +48,7 @@ Deduplicate by source ID plus stable source event ID. Do not deduplicate solely 
 ## Permissions and availability
 
 - Fetch through permission-aware source APIs or adapter-specific permission checks.
+- Check field-level read access for every field used to resolve a context, apply a filter, select a source row or build a summary. Frappe may silently omit fields the user cannot read.
 - Re-check read permissions before rendering a source link.
 - A source that is not installed/configured is "not connected"; a source with no matching activity is an empty result; a source denied by permission is unavailable. These states are distinct.
 - Never fall back to Administrator/system permission bypass for a user timeline.
@@ -67,6 +68,7 @@ Deduplicate by source ID plus stable source event ID. Do not deduplicate solely 
 | E-AC8 | Timeline opens from Lead, Customer, Opportunity, Signal and Highlight contexts | Playwright E2E |
 | E-AC9 | All timestamps display consistently in the site timezone | Timezone tests |
 | E-AC10 | Frappe v15 and v16 are supported for each installed adapter | Bench matrix |
+| E-AC11 | Hidden context/filter/source fields fail closed without being treated as empty values | Role-specific Bench tests |
 
 ## Dependencies and rollout
 

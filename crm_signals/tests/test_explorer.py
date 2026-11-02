@@ -32,8 +32,23 @@ def _as_administrator():
 
 
 class _Meta:
+    def __init__(self, permitted_fields=None):
+        self.permitted_fields = set(permitted_fields) if permitted_fields is not None else {
+            "lead",
+            "customer",
+            "signal_type",
+            "priority",
+            "quotation_to",
+            "party_name",
+            "status",
+            "opportunity_from",
+        }
+
     def has_field(self, fieldname):
         return True
+
+    def get_permitted_fieldnames(self, user=None, permission_type="read"):
+        return sorted(self.permitted_fields)
 
 
 def _item(source_id, event_id, timestamp):
@@ -49,6 +64,60 @@ class TestExplorerTimeline(FrappeTestCase):
     def test_fractional_page_length_is_rejected(self):
         with self.assertRaises(frappe.ValidationError):
             explorer.get_explorer_timeline("Lead", "LEAD-0001", page_length=1.5)
+
+    def test_context_relationship_fields_must_be_readable(self):
+        with (
+            _as_administrator(),
+            patch.object(frappe.db, "exists", return_value=True),
+            patch.object(frappe, "has_permission", return_value=True),
+            patch.object(frappe, "get_meta", return_value=_Meta({"opportunity_from"})),
+            patch.object(frappe, "get_list", side_effect=AssertionError("must fail before reading")),
+            patch.object(explorer, "now_datetime", return_value="2026-11-02 11:00:00"),
+        ):
+            with self.assertRaises(frappe.PermissionError):
+                explorer.get_explorer_timeline("Opportunity", "OPP-0001")
+
+    def test_highlight_filter_field_must_be_readable(self):
+        with (
+            _as_administrator(),
+            patch.object(frappe.db, "exists", return_value=True),
+            patch.object(frappe, "has_permission", return_value=True),
+            patch.object(frappe, "get_meta", return_value=_Meta({"lead", "customer"})),
+            patch.object(frappe, "get_list", side_effect=AssertionError("must fail before reading")),
+            patch.object(explorer, "now_datetime", return_value="2026-11-02 11:00:00"),
+        ):
+            with self.assertRaises(frappe.PermissionError):
+                explorer.get_explorer_timeline("Highlight", "SIG-0001")
+
+    def test_source_is_unavailable_when_a_required_field_is_not_readable(self):
+        with (
+            _as_administrator(),
+            patch.object(frappe.db, "exists", return_value=True),
+            patch.object(frappe, "has_permission", return_value=True),
+            patch.object(frappe, "get_meta", return_value=_Meta({"lead", "signal_type"})),
+            patch.object(frappe, "get_list", side_effect=AssertionError("must fail before reading")),
+        ):
+            page = explorer._fetch_source_page(
+                explorer.SOURCE_ADAPTERS[0],
+                "Lead",
+                "LEAD-0001",
+                "2026-11-02 11:00:00",
+                0,
+                20,
+            )
+
+        self.assertEqual(page["status"], "unavailable")
+        self.assertEqual(page["rows"], [])
+
+    def test_crm_signal_source_checks_only_the_current_party_link_field(self):
+        self.assertEqual(
+            explorer._source_required_fields(explorer.SOURCE_ADAPTERS[0], "Lead"),
+            ("signal_type", "priority", "lead"),
+        )
+        self.assertEqual(
+            explorer._source_required_fields(explorer.SOURCE_ADAPTERS[0], "Customer"),
+            ("signal_type", "priority", "customer"),
+        )
 
     def test_cursor_round_trip_preserves_snapshot_and_offsets(self):
         offsets = {"crm_signal": 2, "quotation": 1, "opportunity": 0}

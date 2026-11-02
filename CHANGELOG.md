@@ -4,9 +4,10 @@ This changelog records user-visible and operationally significant changes. It is
 
 ## Unreleased — Transactional signal outbox, durable realtime retry, D3 Helpdesk and Explorer (PR #26, #32, #54, #57)
 
-### Explorer core timeline API — PR #57 (CI pending)
+### Explorer core timeline API — PR #57 (field-level permission hardening; CI rerun pending)
 - Add read-only CRM Signal, Quotation and Opportunity adapters for Lead/Customer-centered activity timelines.
 - Resolve Lead, Customer, Opportunity, CRM Signal and High-Value Quote contexts through permission-aware reads; re-check source-document access before returning a Desk route.
+- Check field-level read access for every context, filter, source and summary field; fail closed when Frappe would otherwise omit a required field.
 - Return metadata-only summaries with deterministic ordering and bounded snapshot pagination; do not copy message bodies, amounts, recordings or attachments.
 - Defer Communication/Event/ToDo and call/WhatsApp adapters until the target-site provider and schema inventory is recorded (ADR-059).
 

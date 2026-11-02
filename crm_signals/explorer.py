@@ -15,7 +15,7 @@ SOURCE_ADAPTERS = (
     {
         "id": "crm_signal",
         "doctype": "CRM Signal",
-        "required_fields": ("lead", "customer", "signal_type", "priority"),
+        "required_fields": ("signal_type", "priority"),
     },
     {
         "id": "quotation",
@@ -37,6 +37,19 @@ def _value(row, fieldname, default=None):
     return getattr(row, fieldname, default)
 
 
+def _permitted_read_fields(meta):
+    """Return the current user's readable fields; fail closed if metadata cannot decide."""
+    try:
+        return set(
+            meta.get_permitted_fieldnames(
+                user=frappe.session.user,
+                permission_type="read",
+            )
+        )
+    except (AttributeError, TypeError, frappe.PermissionError):
+        return set()
+
+
 def _require_readable_record(doctype, name, fields=(), extra_filters=None):
     """Load one record through permission-aware APIs without revealing inaccessible names."""
     if not frappe.db.exists("DocType", doctype) or not frappe.has_permission(
@@ -45,7 +58,10 @@ def _require_readable_record(doctype, name, fields=(), extra_filters=None):
         frappe.throw(_("Timeline context is unavailable"), frappe.PermissionError)
 
     meta = frappe.get_meta(doctype)
-    if any(not meta.has_field(fieldname) for fieldname in fields):
+    required_fields = set(fields) | set((extra_filters or {}).keys())
+    if any(not meta.has_field(fieldname) for fieldname in required_fields):
+        frappe.throw(_("Timeline context is unavailable"), frappe.PermissionError)
+    if not required_fields.issubset(_permitted_read_fields(meta)):
         frappe.throw(_("Timeline context is unavailable"), frappe.PermissionError)
 
     filters = {"name": name}
@@ -161,6 +177,14 @@ def _source_filters(source_id, party_doctype, party_name, as_of):
     return filters
 
 
+def _source_required_fields(adapter, party_doctype):
+    """Return only the relation and summary fields used for this party timeline."""
+    required_fields = list(adapter["required_fields"])
+    if adapter["id"] == "crm_signal":
+        required_fields.append("lead" if party_doctype == "Lead" else "customer")
+    return tuple(required_fields)
+
+
 def _normalize_event(adapter, row, party_doctype, party_name):
     source_id = adapter["id"]
     doctype = adapter["doctype"]
@@ -198,10 +222,14 @@ def _fetch_source_page(adapter, party_doctype, party_name, as_of, offset, page_l
         return {"status": "unavailable", "rows": [], "raw_count": 0, "leading_skipped": 0}
 
     meta = frappe.get_meta(doctype)
-    if any(not meta.has_field(fieldname) for fieldname in adapter["required_fields"]):
+    required_fields = _source_required_fields(adapter, party_doctype)
+    if (
+        any(not meta.has_field(fieldname) for fieldname in required_fields)
+        or not set(required_fields).issubset(_permitted_read_fields(meta))
+    ):
         return {"status": "unavailable", "rows": [], "raw_count": 0, "leading_skipped": 0}
 
-    fields = ["name", "creation", *adapter["required_fields"]]
+    fields = ["name", "creation", *required_fields]
     try:
         raw_rows = frappe.get_list(
             doctype,

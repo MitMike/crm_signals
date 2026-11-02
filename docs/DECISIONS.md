@@ -558,3 +558,14 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Rationale:** The three initial sources are part of the already-supported CRM/ERPNext contract and can be tested on both supported framework lines without assuming optional integrations. A source that is absent or unreadable must remain visibly not connected/unavailable, not silently appear as an empty timeline.
 - **Consequences:** This decision authorizes the core adapter/API slice only. Desk entry points, Playwright coverage, optional activity integrations and target-site source inventory remain separate follow-ups. The cursor is bound to the context, page size and current user; it stabilizes ordering against new inserts but does not freeze source updates, deletions or permission changes. Every page re-resolves context and rechecks source permissions.
 - **Revisit criteria:** Add an optional adapter only after the pilot operator records the installed app/provider, exact version, DocType, required fields, stable event ID, relationship mapping and permission contract in the target-site discovery record.
+
+
+## ADR-060 — Enforce field-level read access in Explorer adapters
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-02
+- **Context:** Frappe v15/v16 permission-aware `get_list` reads can silently omit fields that the current user cannot read at their configured permlevel. A DocType-level read check therefore does not prove that an Explorer adapter may use its relationship, filter or summary fields. ADR-052 established the same fail-closed rule for D3 Helpdesk metrics.
+- **Decision:** Before resolving a context or querying a source adapter, inspect `Meta.get_permitted_fieldnames(user=frappe.session.user, permission_type="read")`. Every field used for context resolution, filters, source selection or summaries must be readable. If a context field is not readable, reject the context as unavailable; if a source field is not readable, mark only that source unavailable. Never use Administrator/system reads or infer a missing value. The CRM Signal adapter checks only the Lead or Customer relation field used by the current timeline, plus signal type and priority.
+- **Rationale:** A field silently removed by Frappe is not a valid empty value. Explicit checks prevent misleading summaries and hidden-field inference while preserving independent sources the user can read.
+- **Consequences:** A user may see a timeline with one source unavailable while other sources remain available. The target site's Sales User/Manager field-permission matrix remains a pilot acceptance requirement; no permission level is granted automatically.
+- **Validation:** Bench tests cover unreadable Opportunity relationship fields, the High-Value Quote filter field, unreadable CRM Signal summary fields and party-specific relation selection. Retain the Frappe v15/v16 matrix and exact v16.5.0 / ERPNext v16.5.0 / Helpdesk v1.28.0 reference lane.
