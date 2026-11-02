@@ -35,7 +35,7 @@ The following capabilities are present in the repository. "Implemented" means th
 | Authenticated POST ingestion | Event-ID idempotency and concurrent duplicate recovery merged in PR #19/#23 | Verify with a dedicated target-site integration user and deployment rate limits |
 | Quotation and Opportunity event hooks | Implemented; transactional outbox merged in PR #26 | Confirm target-site status/threshold policy; audited Failed-row replay merged in PR #38; per-company thresholds are in PR #45 merged |
 | Record-level Signal permissions | Implemented | Verify list, direct form, report, export and API on target roles |
-| Recipient-scoped realtime notifications | Implemented | Validate target-site assignments/permissions and failure isolation |
+| Recipient-scoped realtime notifications | Durable per-recipient retry implemented in PR #54; CI pending | Stable delivery IDs, bounded retry, current permission rechecks and active-session dedupe; target-site Redis/worker recovery remains unverified |
 | Daily CRM digest | Per-recipient queue tracking and cross-worker serialization merged in PR #19/#23 | Verify target-site semantics, timezone, recipient policy and live scheduler/mail behavior |
 | CRM Signals Settings | Implemented and merged in PR #19 | Confirm the default Company currency, preset behavior and selected site configuration |
 | CRM Signals Desk Console | Implemented | Target-site permission and usability smoke test |
