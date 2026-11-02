@@ -131,3 +131,11 @@ A green reference CI result is not a substitute for any of these site-specific g
 - [ ] **Dashboard visual UAT and target-site pilot:** still blocked by the absence of an authorized staging session and target-site evidence. The exact revisit criteria above remain unchanged.
 
 The PR's CI result does not establish that a customer site has the approved SHA, clean checkout, rebuilt assets, correct effective permissions, reconciled D1/D2 figures, validated Helpdesk SLA, or passed recovery/rollback rehearsal. No pilot verification is claimed.
+
+
+## Preflight repository-root identity hardening — 2026-11-03
+
+- [ ] **PR pending:** `fix/preflight-verify-app-git-root-20261103` requires final-head Quality, Security, Python 3.10/3.11/3.12/3.14, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 validation before merge.
+- **Evidence/decision:** ADR-087 requires `git rev-parse --show-toplevel` from the imported package directory to resolve to the CRM Signals repository root. Git otherwise searches parent directories and could return an unrelated enclosing repository's SHA. A mismatch now fails closed before cleanliness and `HEAD` checks. Unit coverage verifies both the expected root and rejection of a parent root.
+- **Revisit criteria:** If the root-identity test or any required matrix fails, inspect the exact failing final-head log. If the app package layout changed, adjust the repository-root derivation only after documenting the actual Bench/package layout and add a matching-layout test. Never accept an ancestor repository's SHA or bypass a required check.
+- **Independent release blocker:** target-site visual UAT and pilot acceptance still require an authorized Frappe v16.5 staging session, approved SHA, named owners and the evidence listed in `TARGET_SITE_ACCEPTANCE.md`. No pilot verification is claimed.
