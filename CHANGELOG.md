@@ -2,13 +2,23 @@
 
 This changelog records user-visible and operationally significant changes. It is not a substitute for commit history. Entries do not imply a production release unless explicitly stated.
 
-## Unreleased — Transactional signal outbox, durable realtime retry, D3 Helpdesk, Highlights, Explorer and D1/D2 CI contracts (PR #26, #32, #54, #57, #59, #60, #63, #65, #67)
+## Unreleased — Transactional signal outbox, durable realtime retry, D3 Helpdesk, Highlights, Explorer and D1/D2 CI contracts (PR #26, #32, #54, #57, #59, #60, #63, #65, #67, #69, #70, #71)
 
-### Read-only target-site preflight report — PR #70 (CI pending)
+### D2 POS invoice settlement fixture — PR #69 (merged and CI-verified as efe7872)
+- Create a disposable POS Profile and company-specific Mode of Payment, then submit an `is_pos` Sales Invoice through ERPNext's normal lifecycle.
+- Assert ERPNext-calculated `paid_amount` settles `grand_total`; keep the setup and invoice inside the fixture rollback boundary.
+- This does not simulate browser checkout, POS Opening/Closing, cash drawers or inventory movements; target-site native-report reconciliation remains separate.
+
+### High-Value Quote source drill-down — PR #71 (code-complete; final-head CI pending)
+- Return source_doctype/source_name only when the current user can read both CRM Signal source fields, the signal is a High-Value Quote sourced from Quotation, and the exact Quotation is readable.
+- Suppress other source identifiers and fail closed on permission/metadata errors; the Desk row opens the Quotation while retaining existing party/Signal fallbacks.
+- Add API permission-denial tests and Playwright coverage for the Console source route. ADR-072's failure-only CI diagnostic emitted the exact Prettier 3.9.10 diff; its three wrapping changes were applied in commit `91fc89c`. The branch is synchronized with latest main `567f458`; final-head checks are pending. Keep formatting blocking and do not merge until all required checks pass. Target-site role acceptance remains open.
+
+### Read-only target-site preflight report — PR #70 (merged and CI-verified as 13341b7)
 - Add a non-whitelisted Bench command to inventory installed app versions when importable, site timezone, Company currencies and threshold source/currency, active Lead/Opportunity workflow states, relevant DocType fields/Select options/permlevels and static DocPerm rows.
 - Omit recipient email addresses, credentials and business-document rows; perform no writes.
 - Add tests for exact-currency threshold behavior, workflow/field metadata, missing Helpdesk fields and recipient-address omission.
-- Record ADR-068 and document the command in the administrator guide and target-site acceptance kit. Code is complete; final-head CI and target-site execution remain pending.
+- Record ADR-068 and document the command in the administrator guide and target-site acceptance kit. All final-head required checks, including the pinned Frappe v16.5.0 lane, passed before merge. Target-site execution remains pending; no pilot verification is claimed.
 
 ### D2 independent source permissions — PR #65
 - Keep Payment Entry customer receipts available when Sales Invoice read access is denied, as required by the D2 source contract.

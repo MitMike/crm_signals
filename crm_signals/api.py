@@ -113,6 +113,38 @@ def ingest_signal():
     }
 
 
+def _dashboard_source_fields_readable():
+    """Fail closed unless the current user can read both CRM Signal source fields."""
+    try:
+        readable_fields = _sales_dashboard_permitted_fields(frappe.get_meta("CRM Signal"))
+    except Exception:
+        return False
+    return {"source_doctype", "source_name"}.issubset(readable_fields)
+
+
+def _dashboard_recent_source_link(row, source_fields_readable):
+    """Expose only a readable High-Value Quote's Quotation identity."""
+    item = dict(row)
+    source_doctype = item.get("source_doctype")
+    source_name = item.get("source_name")
+    can_open_source = bool(
+        source_fields_readable
+        and item.get("signal_type") == "High-Value Quote"
+        and source_doctype == "Quotation"
+        and source_name
+    )
+    if can_open_source:
+        try:
+            can_open_source = bool(
+                frappe.has_permission("Quotation", ptype="read", doc=source_name)
+            )
+        except Exception:
+            can_open_source = False
+    item["source_doctype"] = "Quotation" if can_open_source else None
+    item["source_name"] = source_name if can_open_source else None
+    return item
+
+
 @frappe.whitelist()
 def get_dashboard_data():
     """Return permission-filtered CRM Signal metrics for the Desk dashboard.
@@ -151,15 +183,23 @@ def get_dashboard_data():
         limit_page_length=20,
     )
 
-    recent = frappe.get_list(
+    source_fields_readable = _dashboard_source_fields_readable()
+    recent_fields = [
+        "name", "creation", "signal_type", "priority",
+        "message", "lead", "customer", "is_read",
+    ]
+    if source_fields_readable:
+        recent_fields.extend(["source_doctype", "source_name"])
+    recent_rows = frappe.get_list(
         "CRM Signal",
-        fields=[
-            "name", "creation", "signal_type", "priority",
-            "message", "lead", "customer", "is_read",
-        ],
+        fields=recent_fields,
         order_by="creation desc",
         limit_page_length=12,
     )
+    recent = [
+        _dashboard_recent_source_link(row, source_fields_readable)
+        for row in recent_rows
+    ]
 
     return {
         "stats": stats,

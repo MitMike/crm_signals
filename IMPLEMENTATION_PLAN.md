@@ -31,7 +31,7 @@ The following capabilities are present in the repository. "Implemented" means th
 | Capability | Code status | Remaining acceptance |
 |---|---|---|
 | Frappe app packaging and Pilot discovery metadata | Implemented | Run the actual Pilot import flow on the intended site |
-| Read-only target-site preflight inventory | PR #70 code-complete; final-head CI pending | Run on the authorized v16.5 target and review the report; effective user permissions and site acceptance remain manual |
+| Read-only target-site preflight inventory | Implemented and CI-verified in PR #70 (merged as 13341b7) | Run on the authorized v16.5 target and review the report; effective user permissions and site acceptance remain manual |
 | CRM Signal DocType and validation | Implemented | Validate installed schema, roles and customizations |
 | Authenticated POST ingestion | Event-ID idempotency and concurrent duplicate recovery merged in PR #19/#23 | Verify with a dedicated target-site integration user and deployment rate limits |
 | Quotation and Opportunity event hooks | Implemented; transactional outbox merged in PR #26 | Confirm target-site status/threshold policy; audited Failed-row replay merged in PR #38; per-company thresholds are in PR #45 merged |
@@ -149,7 +149,7 @@ Exit criteria:
 **Priority:** P1  
 **Dependencies:** Stage 1 settings, recipient permissions and idempotency.
 
-**Current implementation:** High-value Quotation alerts and Company-specific base-currency thresholds are implemented (PR #45/#49). The hook compares the Company base total with the Company threshold, falls back to transaction total only on an exact currency match, emits on submission at `>=` threshold and preserves the Quotation transaction amount in the message. Current recipients remain the linked party owner and active ToDo assignees, constrained to enabled System Users with read permission. PR #60 adds direct hook-level regression coverage. VIP membership and escalation routing are not defined well enough to implement safely; ADR-061 records the required product decision. Proposal-link tracking remains blocked by privacy/consent and retention approval.
+**Current implementation:** High-value Quotation alerts and Company-specific base-currency thresholds are implemented (PR #45/#49). The hook compares the Company base total with the Company threshold, falls back to transaction total only on an exact currency match, emits on submission at `>=` threshold and preserves the Quotation transaction amount in the message. Current recipients remain the linked party owner and active ToDo assignees, constrained to enabled System Users with read permission. PR #60 adds direct hook-level regression coverage. PR #71 adds a High-Value Quote source link in the CRM Signals Console only when the current user can read both CRM Signal source fields and the exact Quotation; API and Playwright coverage are code-complete. The exact Prettier 3.9.10 output was obtained from the ADR-072 CI diagnostic and applied in commit `91fc89c`; the branch was synchronized with current main (`567f458`) as `09d49f3`. Final-head Quality, Security, Python, Frappe v15/v16 Bench and pinned v16.5.0 checks are pending. Keep H-AC11 code-complete but not CI-verified until all required checks pass. VIP membership and escalation routing are not defined well enough to implement safely; ADR-061 records the required product decision. Proposal-link tracking remains blocked by privacy/consent and retention approval.
 
 Work:
 - [x] Implement Company-specific quotation thresholds (PR #45/#49) with no implicit FX conversion and exact-currency fallback only.
@@ -157,6 +157,7 @@ Work:
 - [x] Route current quote alerts through existing owner/active-assignee recipients after enabled-user and source/party permission checks.
 - [x] Add direct regression coverage for threshold equality, below-threshold suppression, base-total selection and same-currency fallback (PR #60).
 - [ ] Confirm Company-by-Company threshold amounts/currencies and recipient behavior on the target site.
+- [ ] Verify the High-Value Quote source link with target-site Sales User/Manager and non-sales accounts; PR #71's API and browser tests are reference CI evidence only.
 - [ ] Add the admin-managed VIP Customer allowlist and escalation routing only after the product owner approves the triggering events, priority/threshold effect, recipients and cooldown (ADR-061).
 - [ ] Add first-party proposal-link tokens stored as hashes, expiry and revocation only after privacy/consent and retention approval.
 - [ ] Accept stable provider event IDs; deduplicate opens and throttle alert delivery.
@@ -277,9 +278,9 @@ A slice is done only when all applicable items are complete:
 | Document events and realtime routing | [Events and notifications](specs/2026-11-01-crm-signals-events-and-notifications.md) | Settings/idempotency merged in PR #19; concurrent API recovery in PR #23; durable per-recipient realtime retry merged in PR #54 and CI-verified; pilot recovery remains |
 | Daily digest | [Digest](specs/2026-11-01-crm-signals-daily-digest.md) | Per-recipient tracking and overlapping-worker serialization merged in PR #19/#23; live policy open |
 | D1 | [Sales Compass](specs/2026-11-01-pillar-d1-sales-compass.md) | Implemented; PR #63 query-contract smoke and PR #67 synthetic aggregate-value fixture merged/CI-verified on v15/v16 and pinned v16.5.0; target-site validation open |
-| D2 | [Billing Realization](specs/2026-10-31-pillar-d2-billing-realization.md) | Implemented; PR #63 query smoke, PR #65 independent permission fix and PR #67 synthetic aggregate-value fixture merged/CI-verified on v15/v16 and pinned v16.5.0; target-site reconciliation open |
+| D2 | [Billing Realization](specs/2026-10-31-pillar-d2-billing-realization.md) | Implemented; PR #63 query smoke, PR #65 independent permission fix, PR #67 synthetic aggregate-value fixture and PR #69 real POS invoice settlement merged/CI-verified on v15/v16 and pinned v16.5.0; target-site native-report reconciliation and role acceptance open |
 | D3 | [Service Resolution/SLA](specs/2026-11-01-pillar-d3-service-resolution-sla.md) | Adapter, exact v16.5.0 reference CI and aggregate fixture verified in PR #50/#53; pilot-site source/permission/SLA acceptance remains |
-| H | [Highlights](specs/2026-11-01-pillar-h-highlights.md) | Partial: high-value quotation signals and per-Company thresholds merged; VIP proposal tracking remains gated on privacy/consent and retention approval |
+| H | [Highlights](specs/2026-11-01-pillar-h-highlights.md) | Partial: high-value quotation signals and per-Company thresholds merged; PR #71 adds permission-gated source Quotation drill-down, code-complete but CI-blocked by repeated Prettier failures (ADR-071); VIP/proposal tracking remains gated on product, privacy/consent and retention decisions |
 | A | [Analysis](specs/2026-11-01-pillar-a-analysis.md) | Planned |
 | E | [Explorer](specs/2026-11-01-pillar-e-explorer.md) | Core API, Desk UI and five-context browser coverage merged and CI-verified; target-site role/source acceptance remains |
 | V | [Vault](specs/2026-11-01-pillar-v-vault.md) | Planned |

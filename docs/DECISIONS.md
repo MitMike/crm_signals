@@ -654,3 +654,47 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Rationale:** A reproducible, metadata-only report reduces operator transcription errors without granting a new remote data-export surface or guessing site-specific policy. Explicitly separating static role grants from effective user checks prevents the report from being mistaken for acceptance evidence.
 - **Consequences:** The command is available only to a Bench operator with server-side access. The output is an inventory aid, not a pass/fail certification; an authorized operator must still run the target-site persona matrix, native-report reconciliation, SLA calendar checks and operational rehearsal. The report exposes Company names and configured threshold amounts to the operator, so it must be reviewed and shared only through the site's approved channel.
 - **Revisit criteria:** Revisit if a whitelisted self-service diagnostics endpoint is requested, if new data categories are proposed, or if the Frappe/ERPNext metadata APIs change. Any remote endpoint or expansion into transactional/customer data requires a separate security and privacy decision.
+
+## ADR-069 — Expose High-Value Quote source links only after field and document permission checks
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-02
+- **Context:** H-AC11 requires the CRM Signals Console to open the originating Quotation for a High-Value Quote signal. The current dashboard API returns only the signal and party context, so the Console cannot navigate to the source. Returning source names without checking the user's source-document access would disclose identifiers and could create a misleading link.
+- **Decision:** Include source_doctype/source_name in the dashboard's recent-signal payload only when both CRM Signal source fields are readable by the current user, the row is a High-Value Quote sourced from Quotation, and the current user has read permission on that exact Quotation. Restrict this link behavior to Quotation; suppress source metadata for all other source types and on any permission/metadata error. The Desk client opens the Quotation through the normal Form route. If the source is not readable, retain the existing Lead/Customer/CRM Signal navigation fallback.
+- **Rationale:** A source link is useful only when it points to the authoritative record the user is allowed to open. Fail-closed field and record checks avoid leaking source identifiers and preserve the existing party/Signal fallback.
+- **Consequences:** No permissions are granted and no source content is copied into the dashboard payload. The server returns only the authorized Quotation DocType/name; Desk still enforces normal form permissions. Unit tests cover field and document permission denial; Playwright covers the user-visible source drill-down.
+- **Revisit criteria:** Revisit if additional source DocTypes are approved for dashboard navigation, or if the CRM Signal source fields/permission model changes. Each new source type requires its own permission and navigation tests.
+
+
+## ADR-070 — Exercise ERPNext POS settlement in the disposable D2 fixture
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-02
+- **Context:** PR #67's POS-shaped invoice set persisted POS/payment totals directly. That proves the D2 aggregate filter but does not prove ERPNext's POS Profile, Mode of Payment, Sales Invoice submission and payment-allocation lifecycle.
+- **Decision:** Extend the disposable Bench fixture with a real POS Profile and a company-specific Mode of Payment, then insert and submit an `is_pos` Sales Invoice through ERPNext's normal document lifecycle. Assert that ERPNext persists the invoice as submitted and that its calculated `paid_amount` settles `grand_total`. Keep all fixture setup and records inside the existing rollback boundary. Use a non-stock item and disable POS stock updates to isolate accounting/payment behavior.
+- **Rationale:** Exercise the ERPNext accounting path that produces the aggregate fields rather than manufacturing those fields in test data.
+- **Consequences:** Run the scenario on Frappe/ERPNext v15 and v16 and the pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 lane. This covers the POS invoice settlement lifecycle only; it does not simulate browser checkout, POS Opening/Closing sessions, cash drawers, inventory movements or target-site native-report reconciliation.
+- **Revisit criteria:** Revisit if supported ERPNext versions change POS Profile, Mode of Payment or Sales Invoice payment allocation behavior, if fixture rollback is not complete, or if the D2 POS aggregate contract changes. Pilot reconciliation and real-user permission acceptance remain separate gates.
+
+
+## ADR-071 — Stop speculative Playwright formatting retries after repeated CI failures
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-02
+- **Context:** PR #71's new Playwright test failed the same Prettier check on three final-head attempts: `cbe8898` (Quality run `41441149766`), `007fcd4` (Quality run `41442386611`) and `047a903` (Quality run `41443643807`, failed job `125271378491`). Each failure names only `e2e/sahdev-dashboard.spec.ts`; JavaScript lint, Python unit tests and Semgrep checks passed on the failed heads. Two manual formatting revisions did not satisfy the formatter.
+- **Decision:** Do not make further speculative formatting edits, bypass the Quality check or merge PR #71 while the required check fails. Keep H-AC11 code-complete but not CI-verified. Revisit only when the exact Prettier output can be obtained by running `npx prettier --write e2e/sahdev-dashboard.spec.ts` in a CI-equivalent environment or by retrieving an exact formatter-generated diff from CI. Apply that diff without unrelated changes, then rerun every required final-head context and the pinned v16.5.0 lane.
+- **Rationale:** Repeated manual guesses have not made progress; a formatter-generated diff is the next evidence-bearing action.
+- **Consequences:** The source link remains unmerged and unavailable on main until CI passes. Target-site Sales User/Manager/non-sales permission acceptance remains separate.
+- **Revisit criteria:** An environment with the repository's locked Prettier 3.2.5 and Node version is available, or CI can expose the exact formatted file/diff. If neither is available, leave the PR blocked and continue with independent work.
+
+
+## ADR-072 — Print exact formatter diffs when Quality formatting fails
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-02
+- **Context:** PR #71's H-AC11 Playwright test failed Prettier on three source heads under Prettier 3.2.5. PR #15 then upgraded the locked development dependency to Prettier 3.9.10 and merged as `5fc32b0`; PR #71 was synchronized with that main commit as `966b833`, but Quality still reported only `e2e/sahdev-dashboard.spec.ts` as unformatted (runs `41448226026` and duplicate `41448219829`). The current environment has no network access to install the locked npm package, and the existing CI log does not include the formatter output.
+- **Decision:** Keep `npm run format:check` as a blocking required check. Add a failure-only step to Quality that runs the same locally installed, lockfile-pinned Prettier against the checked tooling/E2E files and prints a unified diff for each mismatch. The diagnostic must not write or auto-fix files, change the required-check result, or bypass formatting. Apply the exact emitted diff to the source branch, then rerun every required final-head context and the pinned Frappe v16.5.0 lane.
+- **Rationale:** The formatter itself is the source of truth. A deterministic diff from the exact installed package removes guesswork while preserving the existing merge gate.
+- **Consequences:** Formatting failures become directly actionable in CI logs. H-AC11 remains code-complete but not CI-verified until the formatted source passes all final-head checks. This diagnostic does not imply pilot verification.
+- **Revisit criteria:** Apply the diff from the first successful diagnostic run. Keep the formatter check blocking. If logs still omit the diff, inspect the diagnostic step's failure and use an artifact or CI-equivalent formatter environment; do not make manual formatting guesses.
+- **Implementation update (2026-11-02):** The diagnostic ran on head `75d7ae9` and emitted exactly three Prettier 3.9.10 wrapping changes in `e2e/sahdev-dashboard.spec.ts`; the exact output was applied in commit `91fc89c`. PR #71 was then synchronized with PR #14's merged globals update on main (`567f458`) as `09d49f3`. Final-head CI on the synchronized branch is pending.
