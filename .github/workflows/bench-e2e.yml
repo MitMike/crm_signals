@@ -256,6 +256,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Require Bench execution when runtime files changed
-        if: (github.event_name != 'pull_request' || needs.changes.outputs.bench == 'true') && needs.bench-validation-runtime.result != 'success'
+        if: >-
+          (github.event_name == 'pull_request' && needs.changes.result != 'success') ||
+          ((github.event_name != 'pull_request' || needs.changes.outputs.bench == 'true') &&
+           needs.bench-validation-runtime.result != 'success')
         run: exit 1
 
