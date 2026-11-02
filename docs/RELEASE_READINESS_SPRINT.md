@@ -2,7 +2,7 @@
 
 **Started:** 2026-11-01  
 **Last reviewed:** 2026-11-02  
-**Latest main:** `b466ac87613afc5b2726ef866d9a28b37ac3fab4` (PR #13 Oxlint update; PR #15 Prettier update is also merged); **latest functional baseline:** `efe78729881390cacba343749364ceccdcb7ffb2`  
+**Latest main:** `567f4586b9f7c8965f6aa00ed673962b8bc29539` (PR #14 globals update; PR #13 Oxlint and PR #15 Prettier updates also merged); **latest functional baseline:** `efe78729881390cacba343749364ceccdcb7ffb2`  
 **Decision register:** [ADR-046](DECISIONS.md#adr-046--run-release-readiness-as-an-evidence-gated-sprint)  
 **Operating rule:** no item is complete without the evidence listed here. CI evidence and target-site evidence are separate.
 
@@ -22,7 +22,7 @@
 - [x] [PR #68](https://github.com/MitMike/crm_signals/pull/68) reconciles D1/D2 fixture status across the plan, progress and operator records; final-head checks passed and it merged as 2cc7725.
 - [x] PR #70 read-only target-site preflight report (ADR-068) merged as 13341b7 after all final-head required checks and the pinned v16.5.0 lane passed. Target-site execution and effective user acceptance remain open; static DocPerm rows are not effective permission proof.
 - [x] [PR #69](https://github.com/MitMike/crm_signals/pull/69) adds a real ERPNext POS Profile/Mode of Payment and submitted POS invoice settlement to the disposable D2 fixture (ADR-070); synchronized final head `33b750a` passed all 15 required/target checks and merged as `efe7872`. Target-site native-report reconciliation remains open.
-- [ ] [PR #71](https://github.com/MitMike/crm_signals/pull/71) adds permission-gated High-Value Quote source Quotation drill-down (ADR-069/071/072). Three original attempts failed Prettier 3.2.5; after syncing to main and adopting Prettier 3.9.10 from PR #15, a controlled revalidation still failed the format check (Quality run `41448226026`, job `125286595415`; duplicate `41448219829`, job `125286573886`). ADR-072 adds a failure-only formatter-diff diagnostic to CI. Keep code-complete but not CI-verified; apply the exact emitted diff and rerun every required final-head context plus the pinned v16.5.0 lane. Target-site persona acceptance remains separate.
+- [ ] [PR #71](https://github.com/MitMike/crm_signals/pull/71) adds permission-gated High-Value Quote source Quotation drill-down (ADR-069/071/072). The failure-only CI diagnostic emitted the exact Prettier 3.9.10 diff (three wrapping changes in `e2e/sahdev-dashboard.spec.ts`), applied as `91fc89c`; the branch was synchronized with PR #14's merged globals update as `09d49f3`. Final-head checks on the reconciled branch are pending. Keep code-complete but not CI-verified; merge only after Quality, Security, Python, Frappe v15/v16 Bench and pinned v16.5.0 contexts pass. Target-site persona acceptance remains separate.
 - [x] [PR #65](https://github.com/MitMike/crm_signals/pull/65) fixes D2 source-permission independence: Payment Entry receipts remain visible when Sales Invoice access is denied, and partial invoice results are cleared after a query-level PermissionError. Final head `315a49a52f70ecb888e6d9cc91a4c1f4e51535d7` passed Quality, Security/Semgrep, Python 3.10/3.11/3.12/3.14, Bench v15/v16 and pinned Frappe v16.5.0 / ERPNext v16.5.0 / Helpdesk v1.28.0; merged as `0cfeda4fb39f79722fdf733abd06a3460ebcdd4d`.
 
 **Merge gate:** all required checks pass on the final PR head; review threads resolved; no target-site claims inferred from CI.
