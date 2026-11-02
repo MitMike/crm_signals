@@ -144,6 +144,6 @@ test("Explorer renders safe activity pages and opens the source record", async (
     });
     await sourceButton.click();
 
-    const sourceUrl = /\/app\/crm-signal\/SIG-EXPLORER-E2E-1$/;
+    const sourceUrl = /\/desk\/crm-signals\/crm-signal\/SIG-EXPLORER-E2E-1$/;
     await expect(page).toHaveURL(sourceUrl);
 });
