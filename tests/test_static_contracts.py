@@ -277,3 +277,54 @@ def test_change_aware_bench_filters_cover_frappe_metadata_and_workflows():
         assert "if: always()" in gate
         assert "needs.changes.result != 'success'" in gate
 
+
+
+def test_operator_installation_pins_source_before_bench_setup():
+    guide = (ROOT / "docs/ADMIN_GUIDE.md").read_text()
+    runbook = (ROOT / "docs/DEPLOYMENT_RUNBOOK.md").read_text()
+    acceptance = (ROOT / "docs/TARGET_SITE_ACCEPTANCE.md").read_text()
+
+    guide_first = guide.split("### First installation", 1)[1].split(
+        "### Upgrade an existing installation", 1
+    )[0]
+    assert "bench get-app" not in guide_first
+    assert "git clone --origin upstream" in guide_first
+    assert guide_first.index("git clone --origin upstream") < guide_first.index(
+        "checkout --detach"
+    )
+    assert guide_first.index("checkout --detach") < guide_first.index(
+        "bench setup requirements crm_signals"
+    )
+    assert guide_first.index("bench setup requirements crm_signals") < guide_first.index(
+        "install-app crm_signals"
+    )
+
+    guide_upgrade = guide.split("### Upgrade an existing installation", 1)[1].split(
+        "## Configure CRM Signals", 1
+    )[0]
+    assert "fetch upstream --tags" in guide_upgrade
+    assert "fetch origin" not in guide_upgrade
+    assert guide_upgrade.index("checkout --detach") < guide_upgrade.index(
+        "bench setup requirements crm_signals"
+    )
+
+    for document in [runbook, acceptance]:
+        assert "git clone --origin upstream" in document
+        assert "fetch upstream --tags" in document
+        assert "bench setup requirements crm_signals" in document
+        assert "bench get-app crm_signals" in document
+        assert "rev-parse HEAD" in document
+
+    for workflow_path in [
+        ROOT / ".github/workflows/bench-e2e.yml",
+        ROOT / ".github/workflows/bench-target-v16-5.yml",
+    ]:
+        workflow = workflow_path.read_text()
+        assert 'git clone --origin upstream "${{ github.workspace }}" apps/crm_signals' in workflow
+        assert 'git -C apps/crm_signals checkout --detach "$CRM_SIGNALS_SHA"' in workflow
+        assert 'test "$(git -C apps/crm_signals rev-parse HEAD)" = "$CRM_SIGNALS_SHA"' in workflow
+        assert "bench setup requirements crm_signals" in workflow
+        assert "bench get-app --skip-assets crm_signals" not in workflow
+        assert workflow.index("git clone --origin upstream") < workflow.index(
+            'git -C apps/crm_signals checkout --detach "$CRM_SIGNALS_SHA"'
+        ) < workflow.index("bench setup requirements crm_signals")
