@@ -148,8 +148,6 @@ test("Explorer renders safe activity pages and opens the source record", async (
     await expect(page).toHaveURL(sourceUrl);
 });
 
-
-
 test("Explorer routes every supported context through the GET timeline API", async ({
     page
 }) => {
