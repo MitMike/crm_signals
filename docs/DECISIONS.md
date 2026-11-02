@@ -781,3 +781,14 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Rationale:** Checks on a stale base do not establish compatibility with current main. Package metadata changes require package-specific validation.
 - **Consequences:** PR #8 and #94 are merged. PR #96 is pending final-head CI and packaging evidence. Target-site acceptance and dashboard visual UAT remain separate release gates.
 - **Revisit criteria:** Main advances, checks fail or are cancelled, the diff changes, or packaging evidence identifies a compatibility issue.
+
+
+## ADR-081 — Verify flit-core v4 package artifacts on supported Python boundaries
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-03
+- **Context:** PR #96 widens the PEP 517 build requirement from `flit_core >=3.4,<4` to `>=3.4,<5`. The existing editable-install and Bench checks passed on the earlier PR head, but they did not explicitly prove that both distributable artifact formats build and install with the v4 backend.
+- **Decision:** Keep the isolated dependency-range change and add a Quality workflow gate that installs flit-core v4, builds both wheel and sdist without build isolation, then installs each artifact in a clean virtual environment and imports `crm_signals`. Run this explicit artifact check on the minimum supported Python 3.10 and current matrix boundary Python 3.14. Retain the full Frappe v15/v16 Bench + Playwright matrix and the pinned Frappe v16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 lane.
+- **Rationale:** Editable installation alone does not prove that wheel and source distributions contain an installable package. Testing both artifact forms with the intended backend on both Python boundaries closes that gap without changing runtime dependencies or Frappe compatibility policy.
+- **Consequences:** PR #96 includes the package-artifact gate and the build-system range change. Only the refreshed final-head workflow results are valid merge evidence; prior PR #96 and superseded PR #93 checks are stale. Target-site and pilot acceptance remain separate.
+- **Revisit criteria:** Revisit if flit-core v4 changes artifact layout/build behavior, the supported Python floor/ceiling changes, package metadata gains runtime dependencies, or either artifact fails to build/install/import on a supported lane.

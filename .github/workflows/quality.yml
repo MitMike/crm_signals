@@ -149,6 +149,25 @@ jobs:
         run: python -m pip install --upgrade pip pytest pytest-cov
       - name: Validate editable package install
         run: python -m pip install -e .
+      - name: Build and install wheel and sdist with flit-core v4
+        if: matrix.python-version == '3.10' || matrix.python-version == '3.14'
+        run: |
+          python -m pip install --upgrade build "flit_core>=4,<5"
+          python - <<'PY'
+          from importlib.metadata import version
+
+          flit_core_version = version("flit_core")
+          assert flit_core_version.split(".", 1)[0] == "4", flit_core_version
+          print(f"Building with flit-core {flit_core_version}")
+          PY
+          python -m build --no-isolation --sdist --wheel
+          python -m venv /tmp/crm-signals-wheel
+          /tmp/crm-signals-wheel/bin/python -m pip install --no-deps dist/*.whl
+          /tmp/crm-signals-wheel/bin/python -c "import crm_signals; assert crm_signals.__version__"
+          python -m venv /tmp/crm-signals-sdist
+          /tmp/crm-signals-sdist/bin/python -m pip install "flit_core>=4,<5"
+          /tmp/crm-signals-sdist/bin/python -m pip install --no-build-isolation --no-deps dist/*.tar.gz
+          /tmp/crm-signals-sdist/bin/python -c "import crm_signals; assert crm_signals.__version__"
       - name: Compile application
         run: python -m compileall -q crm_signals tests scripts
       - name: Run tests with coverage
