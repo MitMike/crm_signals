@@ -391,7 +391,7 @@ test("High-Value Quote activity opens its permitted source Quotation", async ({
     });
     await expect(signal).toContainText("Quotation: QTN-HIGHLIGHT-E2E");
     await signal.click();
-    await expect(page).toHaveURL(/\/app\/quotation\/QTN-HIGHLIGHT-E2E/);
+    await expect(page).toHaveURL(/\/desk\/(?:selling\/)?quotation\/QTN-HIGHLIGHT-E2E/);
 });
 test("Sales User can open the Executive Compass", async ({ page }) => {
     await loginAsAdministrator(page);
