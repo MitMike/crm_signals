@@ -9,7 +9,7 @@ This changelog records user-visible and operationally significant changes. It is
 - Align the H specification with the implemented Company-currency comparison and distinguish the shipped high-value Quotation alert from deferred VIP escalation and proposal-link tracking.
 - Record ADR-061: do not invent VIP trigger/recipient policy, and do not implement proposal tracking before privacy/consent and retention approval.
 
-### Explorer core timeline API — PR #57 (field-level permission hardening; CI rerun pending)
+### Explorer core timeline API — PR #57 (merged; CI verified)
 - Add read-only CRM Signal, Quotation and Opportunity adapters for Lead/Customer-centered activity timelines.
 - Resolve Lead, Customer, Opportunity, CRM Signal and High-Value Quote contexts through permission-aware reads; re-check source-document access before returning a Desk route.
 - Check field-level read access for every context, filter, source and summary field; fail closed when Frappe would otherwise omit a required field.
@@ -17,11 +17,12 @@ This changelog records user-visible and operationally significant changes. It is
 - Defer Communication/Event/ToDo and call/WhatsApp adapters until the target-site provider and schema inventory is recorded (ADR-059).
 
 
-### Explorer Desk timeline UI — PR #59
+### Explorer Desk timeline UI — PR #59 (merged as `6b381fe`; final-head CI verified)
 - Add a role-restricted Customer Activity Timeline page and Activity Timeline buttons on Lead, Customer, Opportunity and CRM Signal forms; High-Value Quote signals open the Highlight context.
 - Add GET cursor paging, refresh, safely escaped metadata summaries, source navigation and distinct source states.
 - Ignore late responses from earlier contexts when users navigate while a request is still in flight.
-- Add static contract coverage and Playwright coverage for authenticated timeline paging and source drill-down; optional provider adapters and pilot role acceptance remain deferred.
+- Add static contract coverage and Playwright coverage for authenticated Lead-context paging and source drill-down; optional provider adapters and pilot role acceptance remain deferred.
+- Final PR head `4bc7893513253d40ee60bb3a00b7c70827041eb9` passed all eight required ruleset contexts and the pinned Frappe v16.5.0 / ERPNext v16.5.0 / Helpdesk v1.28.0 lane.
 ### Realtime notification reliability
 - Add a per-recipient delivery ledger with a stable SHA-256 ID, bounded retry/backoff and permission rechecks before each publish attempt.
 - Add the stable ID to realtime payloads and suppress duplicate alerts within the active Desk session.
@@ -218,3 +219,8 @@ Included in PR #19's merge commit [a495919](https://github.com/MitMike/crm_signa
 - Await the settings form's custom-preset model update and commit the integer field before asserting the preset change.
 
 Included in PR #19's merge commit [a495919](https://github.com/MitMike/crm_signals/commit/a49591947a89b011cc1770be176c1f11571b131b); the final v16 Playwright suite passed.
+
+
+### Explorer browser coverage follow-up — PR #61
+- Add Playwright coverage for all five supported timeline context routes and for discarding a late response after the user changes context.
+- Keep target-site role/field-permission acceptance and optional-provider discovery separate from CI verification.
