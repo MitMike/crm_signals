@@ -71,7 +71,7 @@ Work:
 - Use npm ci in Quality Checks and Dependency Security Audit.
 - Run pip-audit and npm audit --audit-level=moderate on relevant dependency pull requests, weekly and on manual dispatch.
 - Keep Semgrep SARIF scanning and the Frappe v15/v16 Bench + Playwright matrix.
-- [ ] PR #76 proposes changed-path execution while preserving the required check names; ADR-075 requires fail-closed path detection and Bench/pinned coverage for workflow definitions, DocType/Page/workspace JSON, patch/fixture metadata, package manifests, requirements, app config and module metadata. Workflow-definition changes also run the Python and JavaScript quality suites. Quality push validation is limited to main to avoid duplicate feature-branch runs; every PR still receives path-aware checks. Static regression tests protect all required gate expressions and selector coverage. Merge only after final-head validation on workflow and runtime paths, then verify a workspace-only change publishes successful stable required contexts.
+- [x] PR #76 merged as `cec49e7` after all 19 final-head check runs passed. ADR-075 preserves required check names, uses fail-closed path detection, covers workflow/DocType/Page/workspace/patch/fixture/package/requirements/app-config/module paths, retains full main/manual Bench validation, and prevents duplicate feature-branch Quality push runs. A post-merge workspace-only PR must still confirm that stable required contexts pass when expensive suites are intentionally skipped.
 - Verify the existing main branch policy: required CI checks, PR-only updates, blocked force pushes/deletion and required review-thread resolution. Record allowed merge methods and the no-bypass emergency procedure.
 
 Exit criteria:
@@ -87,7 +87,7 @@ Exit criteria:
 **Dependencies:** Stage 0.
 
 Work:
-- Correct ADR-074's first-install sequence: `bench get-app` installs before the SHA checkout. Use direct clone with Bench's `upstream` remote name, detach/verify the approved SHA before requirements/build, and correct the upgrade fetch remote; add disposable v15/v16/v16.5 CI coverage before target-site use.
+- [ ] **Pin-before-install correction (ADR-077; PR #82):** direct clone CRM Signals with remote `upstream`, detach and verify the approved full SHA before `bench setup requirements crm_signals`, site install, migration or asset build; use the verified Bench remote on upgrades. Both Bench workflows now test this order on v15/v16 and pinned v16.5.0. Code-complete; do not mark CI-verified until all final-head Quality, Security, Bench and pinned-target checks pass.
 - Run a target-site preflight: framework versions, installed apps, Company default currency, timezone, roles, DocType metadata, workflows, custom fields and permissions.
 - Configure a dedicated integration user, rotateable API credentials, HTTPS, gateway rate limiting and secret storage.
 - Add source DocType, source document name and source event ID to CRM Signals; enforce idempotent inserts for identifiable events.
