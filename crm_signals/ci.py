@@ -252,6 +252,229 @@ def verify_helpdesk_schema():
     }
 
 
+def _d3_ci_status_names():
+    status_names = {}
+    for category in ("Open", "Paused", "Resolved"):
+        rows = frappe.get_all(
+            "HD Ticket Status",
+            filters={"category": category, "enabled": 1},
+            pluck="name",
+            order_by="name asc",
+            limit_page_length=1,
+        )
+        if not rows:
+            frappe.throw(
+                f"Helpdesk has no enabled HD Ticket Status for category {category}"
+            )
+        status_names[category] = rows[0]
+    return status_names
+
+
+def _d3_ci_baseline_resolution_stats(period_start):
+    from crm_signals.api import _dashboard_aggregate_field
+
+    filters = {
+        "resolution_date": [">=", period_start],
+        "status_category": "Resolved",
+        "resolution_time": [">", 0],
+    }
+    count_rows = frappe.get_list(
+        "HD Ticket",
+        fields=[_dashboard_aggregate_field("COUNT", "name", "total")],
+        filters=filters,
+        limit_page_length=1,
+    )
+    average_rows = frappe.get_list(
+        "HD Ticket",
+        fields=[
+            _dashboard_aggregate_field(
+                "AVG", "resolution_time", "average_resolution_seconds"
+            )
+        ],
+        filters=filters,
+        limit_page_length=1,
+    )
+    count = int((count_rows[0].get("total") if count_rows else 0) or 0)
+    average_seconds = float(
+        (
+            average_rows[0].get("average_resolution_seconds")
+            if average_rows
+            else 0
+        )
+        or 0
+    )
+    return count, average_seconds
+
+
+def _d3_ci_create_tickets(status_names, sla_name, now, ticket_names):
+    fixtures = (
+        ("Open", "Resolution Due", None, True),
+        ("Open", None, None, False),
+        ("Paused", "Paused", None, True),
+        ("Resolved", "Fulfilled", 7200, True),
+        ("Resolved", "Fulfilled", 1800, True),
+        ("Resolved", "Failed", 3600, True),
+    )
+    previous_initial_sync = getattr(frappe.flags, "initial_sync", False)
+    frappe.flags.initial_sync = True
+    try:
+        for index, (category, agreement_status, resolution_seconds, has_sla) in enumerate(
+            fixtures, start=1
+        ):
+            ticket = frappe.get_doc(
+                {
+                    "doctype": "HD Ticket",
+                    "subject": f"CRM Signals CI D3 aggregate fixture {index}",
+                }
+            ).insert(ignore_permissions=True)
+            ticket_names.append(ticket.name)
+            frappe.db.set_value(
+                "HD Ticket",
+                ticket.name,
+                {
+                    "status": status_names[category],
+                    "status_category": category,
+                    "resolution_date": now if category == "Resolved" else None,
+                    "resolution_time": resolution_seconds,
+                    "sla": sla_name if has_sla else None,
+                    "agreement_status": agreement_status,
+                },
+            )
+    finally:
+        frappe.flags.initial_sync = previous_initial_sync
+
+
+def _d3_ci_assert_metrics(actual, baseline, baseline_resolution_count, baseline_average_seconds):
+    expected_metrics = {
+        "created_last_30_days": int(baseline["created_last_30_days"] or 0) + 6,
+        "open_backlog": int(baseline["open_backlog"] or 0) + 2,
+        "paused_backlog": int(baseline["paused_backlog"] or 0) + 1,
+        "resolved_last_30_days": int(baseline["resolved_last_30_days"] or 0) + 3,
+        "sla_eligible": int(baseline["sla_eligible"] or 0) + 3,
+        "sla_fulfilled": int(baseline["sla_fulfilled"] or 0) + 2,
+        "sla_failed": int(baseline["sla_failed"] or 0) + 1,
+        "sla_unconfigured": int(baseline["sla_unconfigured"] or 0) + 1,
+    }
+    mismatches = [
+        f"{key}: expected {expected}, found {actual.get(key)}"
+        for key, expected in expected_metrics.items()
+        if actual.get(key) != expected
+    ]
+
+    expected_average_hours = round(
+        (
+            baseline_average_seconds * baseline_resolution_count
+            + 7200
+            + 1800
+            + 3600
+        )
+        / (baseline_resolution_count + 3)
+        / 3600,
+        2,
+    )
+    if actual.get("average_resolution_hours") != expected_average_hours:
+        mismatches.append(
+            "average_resolution_hours: "
+            f"expected {expected_average_hours}, found "
+            f"{actual.get('average_resolution_hours')}"
+        )
+
+    expected_compliance = round(
+        (int(baseline["sla_fulfilled"] or 0) + 2)
+        * 100
+        / (int(baseline["sla_eligible"] or 0) + 3),
+        1,
+    )
+    if actual.get("sla_compliance_percent") != expected_compliance:
+        mismatches.append(
+            "sla_compliance_percent: "
+            f"expected {expected_compliance}, found "
+            f"{actual.get('sla_compliance_percent')}"
+        )
+
+    required_available = (
+        "available",
+        "backlog_available",
+        "resolved_available",
+        "resolution_time_available",
+        "sla_available",
+    )
+    mismatches.extend(
+        f"{key} is unavailable"
+        for key in required_available
+        if not actual.get(key)
+    )
+    if mismatches:
+        frappe.throw(
+            "D3 synthetic aggregate fixture failed: " + "; ".join(mismatches)
+        )
+
+    return {
+        "expected_deltas": expected_metrics,
+        "average_resolution_hours": expected_average_hours,
+        "sla_compliance_percent": expected_compliance,
+    }
+
+
+def verify_helpdesk_aggregate_fixture():
+    """Verify D3 aggregate values against six disposable real HD Ticket documents.
+
+    SLA outcomes are synthetic field values for the aggregate contract only;
+    this does not simulate the Helpdesk SLA engine or approve a site calendar.
+    """
+    from frappe.utils import add_days, now_datetime, nowdate
+
+    from crm_signals.api import get_sales_compass_data
+
+    previous_user = frappe.session.user
+    ticket_names = []
+    try:
+        frappe.set_user("Administrator")
+        period_start = add_days(nowdate(), -30)
+        baseline = get_sales_compass_data().get("service", {})
+        if not baseline.get("available"):
+            frappe.throw("D3 baseline metrics are unavailable before the fixture")
+
+        baseline_resolution_count, baseline_average_seconds = (
+            _d3_ci_baseline_resolution_stats(period_start)
+        )
+        sla_name = (
+            frappe.db.get_value(
+                "HD Service Level Agreement", {"enabled": 1}, "name"
+            )
+            or "CRM-Signals-CI-Synthetic-SLA"
+        )
+        _d3_ci_create_tickets(
+            _d3_ci_status_names(), sla_name, now_datetime(), ticket_names
+        )
+        frappe.db.commit()
+
+        actual = get_sales_compass_data().get("service", {})
+        summary = _d3_ci_assert_metrics(
+            actual,
+            baseline,
+            baseline_resolution_count,
+            baseline_average_seconds,
+        )
+        return {
+            "status": "passed",
+            "synthetic_tickets": len(ticket_names),
+            "sla_engine_tested": False,
+            **summary,
+        }
+    finally:
+        try:
+            if ticket_names:
+                placeholders = ", ".join(["%s"] * len(ticket_names))
+                frappe.db.sql(
+                    f"DELETE FROM `tabHD Ticket` WHERE name IN ({placeholders})",
+                    tuple(ticket_names),
+                )
+                frappe.db.commit()
+        finally:
+            frappe.set_user(previous_user)
+
+
 def verify_upgrade_site():
     """Assert migrate restored new fields without losing legacy signal rows."""
     missing = [
