@@ -321,3 +321,10 @@ The product baseline remains code-complete and reference-stack CI-verified for D
 PR #96 (flit-core v4 build-system compatibility) merged as `d0ab24b6a50184af99f4af638ae64ddd9a22d08a` after all 20 final-head checks passed on `349bf71b0687c77e830fb8b054cedacabb16f61b`. The checks cover Python 3.10/3.11/3.12/3.14, Security/Semgrep, Python/npm dependency audits, Frappe v15/v16 Bench + Playwright, and the pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 lane. The dedicated flit-core v4 wheel and sdist build/install/import checks passed on Python 3.10 and 3.14. No open PRs remained immediately after merge.
 
 This closes the current dependency-maintenance queue. It does not close target-site acceptance: the authorized v16.5 staging preflight, effective-role tests, D1/D2 reconciliation, Helpdesk SLA confirmation, operational recovery checks, rollback rehearsal and dashboard desktop/mobile visual UAT remain open. Keep code-complete, reference-stack CI-verified and pilot-verified states distinct.
+
+
+## 11. Post-PR #98 merge status — 2026-11-03
+
+Current main is `1a27166bfe988c860b3527af5bba9a0299e1e30f` (PR #98). Its final-head documentation-only checks passed, including required Quality, Security and Bench v15/v16 validation; test-surface detection correctly skipped runtime execution for this docs-only diff. No open PRs remained immediately after merge.
+
+The PR #96 packaging change remains reference-stack CI-verified. This documentation merge does not change pilot status: dashboard desktop/mobile visual UAT and target-site v16.5 preflight, role permissions, financial reconciliation, Helpdesk SLA, operational recovery and rollback rehearsal remain outstanding.
