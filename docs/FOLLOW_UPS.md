@@ -16,7 +16,7 @@ This file records known work that is intentionally not represented as complete. 
 
 ## Repository maintenance
 
-- [ ] **Dependabot refresh:** PRs #5–#10 and #13–#15 each have green Quality Checks, Security Scanning and Bench v15/v16 on their current heads; Dependency Security Audit also passed where triggered. However, every branch is diverged from `main` (one commit ahead, 27 behind at the PR #63 base `aeea959`). Do not merge on stale CI. Refresh/rebase each onto current `main` and rerun all required contexts; if a branch cannot be refreshed cleanly, close/recreate it. Revisit only when the branch is up to date (`behind_by=0`) and all required checks pass on its final head. Keep these maintenance PRs separate; do not batch-merge.
+- [ ] **Dependabot refresh (reviewed 2026-11-02 against main `ec0761e`):** all nine open PRs (#5–#10, #13–#15) have green check runs on their existing heads, including Quality, Semgrep, Bench v15/v16 and the pinned v16.5.0 lane where triggered. They are stale: PRs #5–#8 and #10 are one commit ahead / one behind `main`; PRs #9, #13, #14 and #15 are one ahead / 29 behind. Do not merge on stale CI. Revisit after Dependabot refreshes each branch to `behind_by=0`, then require all contexts on the new final head. Keep these maintenance PRs separate; do not batch-merge.
 
 ## P1 — engineering reliability improvements
 
