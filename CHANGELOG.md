@@ -25,6 +25,7 @@ This changelog records user-visible and operationally significant changes. It is
 ### Immutable target-site deployment pin — PR #74
 - First-install and upgrade instructions now detach the app checkout to the exact approved 40-character commit SHA, verify it, and reconcile Python/Node requirements from that pinned tree before installation or migration.
 - The target-site acceptance record must retain that SHA with the exact Frappe, ERPNext and Helpdesk versions. A moving `main` branch is not a deployment revision.
+- **Follow-up required:** the merged first-install example still uses `bench get-app` before the SHA checkout; Bench installs dependencies/builds during `get-app`. Do not use that snippet until a focused correction switches to direct clone, pin/verify, then requirements/build and passes v15/v16/v16.5 Bench validation.
 
 ### D2 POS invoice settlement fixture — PR #69 (merged and CI-verified as efe7872)
 - Create a disposable POS Profile and company-specific Mode of Payment, then submit an `is_pos` Sales Invoice through ERPNext's normal lifecycle.
