@@ -350,6 +350,48 @@ test("CRM Signals dashboard loads its live API", async ({ page }) => {
     ).toBeVisible();
 });
 
+test("CRM Signals dashboard keeps its horizontal inset at desktop and mobile widths", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await loginAsAdministrator(page);
+    await page.route(crmSignalsDashboardMethod, (route) =>
+        route.fulfill({
+            status: 200,
+            contentType: "application/json",
+            body: JSON.stringify({
+                message: {
+                    stats: {
+                        total: 0,
+                        unread: 0,
+                        high_priority: 0,
+                        last_7_days: 0
+                    },
+                    by_type: [],
+                    recent: []
+                }
+            })
+        })
+    );
+
+    await page.goto("/app/crm-signals-dashboard");
+    const dashboard = page.locator(".crm-signals-dashboard");
+    await expect(
+        page.getByRole("heading", { name: "Sales activity at a glance" })
+    ).toBeVisible();
+
+    const desktopPadding = await dashboard.evaluate((element) => {
+        const styles = window.getComputedStyle(element);
+        return [styles.paddingLeft, styles.paddingRight];
+    });
+    expect(desktopPadding).toEqual(["24px", "24px"]);
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    const mobilePadding = await dashboard.evaluate((element) => {
+        const styles = window.getComputedStyle(element);
+        return [styles.paddingLeft, styles.paddingRight];
+    });
+    expect(mobilePadding).toEqual(["12px", "12px"]);
+});
+
 test("High-Value Quote activity opens its permitted source Quotation", async ({
     page
 }) => {
