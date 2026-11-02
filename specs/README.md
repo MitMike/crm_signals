@@ -14,7 +14,7 @@ Product and engineering changes start with a spec before implementation. The spe
 | [2026-11-01-pillar-d1-sales-compass.md](2026-11-01-pillar-d1-sales-compass.md) | D1 Sales Compass | Missing-status correctness merged in PR #17; target-site validation remains |
 | [2026-11-01-pillar-d3-service-resolution-sla.md](2026-11-01-pillar-d3-service-resolution-sla.md) | D3 Service Resolution/SLA | Adapter, aggregate fixture and exact v16.5.0/Helpdesk v1.28.0 reference CI verified; target-site source/permission/SLA acceptance remains |
 | [2026-11-01-pillar-h-highlights.md](2026-11-01-pillar-h-highlights.md) | H Highlights | Partial: high-value quotation alerts and per-Company thresholds merged; VIP proposal-link tracking gated on privacy/consent and retention approval |
-| [2026-11-01-pillar-e-explorer.md](2026-11-01-pillar-e-explorer.md) | E Explorer | Initial CRM Signal/Quotation/Opportunity backend API in PR #57; CI pending; Desk UI and optional integration inventory remain |
+| [2026-11-01-pillar-e-explorer.md](2026-11-01-pillar-e-explorer.md) | E Explorer | Core API merged in PR #57; Desk page/form entry points and first Playwright coverage in PR #59; target-site source inventory and role acceptance remain |
 | [2026-11-01-pillar-v-vault.md](2026-11-01-pillar-v-vault.md) | V Vault | Design specified; metric registry and retention configuration required |
 | [2026-11-01-pillar-a-analysis.md](2026-11-01-pillar-a-analysis.md) | A Analysis | Design specified; approved metric/query registry required |
 

@@ -76,6 +76,14 @@ The `is_read` flag is a shared team acknowledgement in this release, not an indi
 
 Realtime notifications now have a per-recipient delivery ledger. A System Manager can inspect **CRM Signal Notification Delivery** to review the signal, recipient, attempt count and current status. The scheduler retries due Pending/Attempted rows at most ten times with exponential backoff capped at 60 minutes. `Attempted` means Frappe queued an after-commit publish callback; it does not prove Redis publication, browser receipt or human acknowledgement. `Failed` means the retry budget was exhausted without delivery confirmation; `Cancelled` means the signal disappeared or the recipient is no longer eligible. The Desk client suppresses repeated stable delivery IDs within the active browser session. This is at-least-once retry, not exactly-once or human-delivery confirmation. Until the target site's Redis outage and worker-restart tests pass, use the CRM Signals console and configured digest as the durable places to review signals.
 
+## Using the Activity Timeline (Explorer)
+
+Open a Lead, Customer, Opportunity or CRM Signal record in Desk and select **Activity Timeline** from the form actions. The page opens the customer's activity timeline. A CRM Signal with type **High-Value Quote** opens the Highlight context. The page is available to Sales User, Sales Manager and System Manager roles, and the API still enforces each user's record and field permissions.
+
+The first release includes CRM Signals, Quotations and Opportunities only. Each source is shown with its current state: available, no matching activity, unavailable or not connected. Select **Open source** on an item to navigate to its authoritative ERPNext record through normal Desk permissions. Select **Load more activity** to fetch the next bounded page; **Refresh** starts a new timeline snapshot.
+
+The timeline deliberately shows short, escaped metadata summaries. It does not copy quotation amounts, message bodies, comments, recordings or attachments into the page. Communication, Event, ToDo, call and WhatsApp sources are not implied to be connected; those adapters are deferred until the target site's installed provider, schema, stable event identity and field-level permissions are recorded. A missing or unreadable source must not be treated as an empty result.
+
 ## S.A.H.D.E.V. dashboards
 
 Open **S.A.H.D.E.V. Executive Compass** (route `/app/sahdev-dashboard`). D1 shows Lead and Opportunity indicators. D2 shows invoice, customer receipt, POS receipt, receivable and overdue measures. Monetary values remain grouped by their source currency. Missing schema or permissions must show as unavailable rather than zero.

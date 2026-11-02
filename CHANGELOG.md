@@ -16,6 +16,12 @@ This changelog records user-visible and operationally significant changes. It is
 - Return metadata-only summaries with deterministic ordering and bounded snapshot pagination; do not copy message bodies, amounts, recordings or attachments.
 - Defer Communication/Event/ToDo and call/WhatsApp adapters until the target-site provider and schema inventory is recorded (ADR-059).
 
+
+### Explorer Desk timeline UI — PR #59
+- Add a role-restricted Customer Activity Timeline page and Activity Timeline buttons on Lead, Customer, Opportunity and CRM Signal forms; High-Value Quote signals open the Highlight context.
+- Add GET cursor paging, refresh, safely escaped metadata summaries, source navigation and distinct source states.
+- Ignore late responses from earlier contexts when users navigate while a request is still in flight.
+- Add static contract coverage and Playwright coverage for authenticated timeline paging and source drill-down; optional provider adapters and pilot role acceptance remain deferred.
 ### Realtime notification reliability
 - Add a per-recipient delivery ledger with a stable SHA-256 ID, bounded retry/backoff and permission rechecks before each publish attempt.
 - Add the stable ID to realtime payloads and suppress duplicate alerts within the active Desk session.

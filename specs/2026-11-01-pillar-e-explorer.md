@@ -1,8 +1,10 @@
 # E — Explorer and customer interaction timeline
 
-**Status:** Core backend plus field-level read guard implemented in PR #57; latest-head CI pending. Desk entry points, Playwright coverage and target-site inventory for optional sources remain.
+**Status:** Core backend merged in PR #57 as `ba631720`; Desk page and form entry points are in PR #59 with static contract and first Playwright coverage. Optional-source inventory and target-site role/context acceptance remain.
 
 The first release is deliberately limited to CRM Signal, Quotation and Opportunity. It supports Lead/Customer/Opportunity/CRM Signal contexts and treats a High-Value Quote CRM Signal as the current Highlight context. Communication, Event, ToDo, call and WhatsApp adapters are deferred until their installed providers and exact schemas are observed on the target site (ADR-059).
+
+The implemented Desk page shows safely escaped metadata summaries, source availability states and authorized source navigation. It fetches the timeline with GET cursor pagination and ignores late responses from a prior context after navigation. The current Playwright test covers authenticated Lead-context loading, paging and source drill-down; the all-context form mappings are additionally protected by static contract tests. This is not a substitute for target-site role tests.
 
 ## Problem and users
 

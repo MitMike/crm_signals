@@ -206,7 +206,42 @@ Create synthetic tickets only in staging. Allow the Helpdesk SLA engine to set n
 
 Expected compliance is `Fulfilled / (Fulfilled + Failed)`. With no eligible outcomes, show unavailable (—), not 0%. Average resolution duration uses positive Helpdesk `resolution_time` values converted from seconds to business hours; it is not elapsed time from ticket creation. SLA policy working hours, holiday list and timezone are authoritative.
 
-## 10. Release decision
+## 10. E Explorer activity timeline acceptance
+
+The first Explorer release is deliberately limited to CRM Signal, Quotation and Opportunity. Quotation and Opportunity rows are record-created timeline entries showing the current status; they are not historical status-change events. Do not enable optional activity providers merely because their DocTypes exist.
+
+### Context and entry-point matrix
+
+| Entry point | Expected timeline context | Required relationship / behavior |
+|---|---|---|
+| Lead form | Lead | Resolve the selected Lead and show only linked, readable source rows |
+| Customer form | Customer | Resolve the selected Customer and show only linked, readable source rows |
+| Opportunity form | Opportunity | Read `opportunity_from` and `party_name`; resolve only a Lead or Customer relationship |
+| CRM Signal form | CRM Signal | Resolve the populated Lead or Customer relation; no action is expected for an unlinked signal |
+| High-Value Quote CRM Signal | Highlight | Resolve only the linked CRM Signal whose `signal_type` is exactly `High-Value Quote` |
+
+- [ ] Confirm the page is visible to the intended Sales User, Sales Manager and System Manager roles; confirm an unapproved non-sales role does not receive the page or form action.
+- [ ] Open the timeline from each of the four supported forms. Verify the High-Value Quote action uses the Highlight context and a non-High-Value-Quote signal uses the ordinary CRM Signal context.
+- [ ] Test direct route entry as well as form actions. Page visibility is role-restricted; the read-only API must independently enforce the current user's context-record, source-record and field-level read permissions.
+- [ ] For Lead, Customer, Opportunity and CRM Signal contexts, test both readable and unreadable records. A hidden context relationship/filter field must make the context unavailable, not resolve from a silently omitted value.
+- [ ] Verify source fields are readable before use: CRM Signal `signal_type`, `priority` and the applicable `lead`/`customer` relation; Quotation `quotation_to`, `party_name`, `status`; Opportunity `opportunity_from`, `party_name`, `status`.
+- [ ] Verify every returned source link opens only a source record the same user can read. Revoke source access and repeat; the row/link must disappear or the source must become unavailable, never bypass Desk permissions.
+- [ ] Distinguish source states: missing DocType = not connected; missing required field or denied DocType/field access = unavailable; readable source with no matching records = empty. Do not interpret unavailable or not connected as zero activity.
+- [ ] Verify the endpoint accepts GET for reads and rejects write methods. Confirm summaries contain only type/status metadata, not quotation amounts, signal message bodies, comments, recordings or attachments.
+- [ ] Page through a timeline with more than one page. Confirm deterministic ordering for equal timestamps, no duplicate source/event identities, and that the cursor is rejected when reused with another user, context or page size. Refresh must begin a new snapshot.
+- [ ] Confirm timestamps render in the site's configured timezone and that a source record's current status is not presented as a historical status transition.
+
+### Optional provider discovery record
+
+Complete one row for each proposed Communication, Event, ToDo, call or WhatsApp provider before implementation. A DocType name alone is not sufficient evidence of a connected source.
+
+| Installed provider / exact version | Source DocType | Required fields | Stable event identity | Lead/Customer relationship mapping | DocType + field read permissions | Operator / evidence |
+|---|---|---|---|---|---|---|
+| | | | | | | |
+
+Do not add an optional adapter until the installed provider/version, exact schema, stable event identity, relationship mapping and permission contract are recorded and reviewed. Until then, the source remains not connected.
+
+## 11. Release decision
 
 | Gate | Status (Pass / Fail / Blocked) | Evidence link / artifact | Owner | Date |
 |---|---|---|---|---|
@@ -219,6 +254,7 @@ Expected compliance is `Fulfilled / (Fulfilled + Failed)`. With no eligible outc
 | Scheduler / email / realtime | | | | |
 | Settings and business semantics | | | | |
 | D3 Helpdesk version/schema/field permissions and SLA calendar acceptance | | | | |
+| E Explorer context, role/field permissions, source states, paging and provider inventory | | | | |
 
 **Decision:** Not approved / Approved for limited pilot / Approved for production
 
