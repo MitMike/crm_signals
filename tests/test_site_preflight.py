@@ -138,3 +138,75 @@ def test_preflight_includes_workflow_states_and_static_field_permissions(monkeyp
 
     ticket = report["doctypes"]["HD Ticket"]
     assert all(not field["present"] for field in ticket["required_fields"])
+
+
+
+def test_preflight_source_revision_reports_exact_full_sha(monkeypatch):
+    diagnostics = load_diagnostics(monkeypatch)
+    sha = "a" * 40
+    commands = []
+
+    monkeypatch.setattr(
+        diagnostics.importlib,
+        "import_module",
+        lambda app: types.SimpleNamespace(
+            __file__="/bench/apps/crm_signals/crm_signals/__init__.py"
+        ),
+    )
+
+    def fake_run(command, **kwargs):
+        commands.append((command, kwargs))
+        return types.SimpleNamespace(stdout=f"{sha}\\n")
+
+    monkeypatch.setattr(diagnostics.subprocess, "run", fake_run)
+
+    assert diagnostics._source_revision() == {"available": True, "commit_sha": sha}
+    command, options = commands[0]
+    assert command[0:2] == ["git", "-C"]
+    assert command[-3:] == ["rev-parse", "--verify", "HEAD"]
+    assert options["check"] is True
+    assert options["capture_output"] is True
+    assert options["timeout"] == 5
+
+
+def test_preflight_source_revision_fails_closed_without_git_checkout(monkeypatch):
+    diagnostics = load_diagnostics(monkeypatch)
+    monkeypatch.setattr(
+        diagnostics.importlib,
+        "import_module",
+        lambda app: types.SimpleNamespace(
+            __file__="/bench/apps/crm_signals/crm_signals/__init__.py"
+        ),
+    )
+
+    def failed_run(command, **kwargs):
+        raise diagnostics.subprocess.CalledProcessError(
+            128, command, stderr="private checkout path"
+        )
+
+    monkeypatch.setattr(diagnostics.subprocess, "run", failed_run)
+
+    result = diagnostics._source_revision()
+    assert result == {"available": False, "reason": "git_query_failed"}
+    assert "private checkout path" not in repr(result)
+
+
+def test_preflight_source_revision_rejects_non_sha_output(monkeypatch):
+    diagnostics = load_diagnostics(monkeypatch)
+    monkeypatch.setattr(
+        diagnostics.importlib,
+        "import_module",
+        lambda app: types.SimpleNamespace(
+            __file__="/bench/apps/crm_signals/crm_signals/__init__.py"
+        ),
+    )
+    monkeypatch.setattr(
+        diagnostics.subprocess,
+        "run",
+        lambda *args, **kwargs: types.SimpleNamespace(stdout="main\\n"),
+    )
+
+    assert diagnostics._source_revision() == {
+        "available": False,
+        "reason": "invalid_revision",
+    }
