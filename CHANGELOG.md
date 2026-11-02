@@ -28,10 +28,10 @@ This changelog records user-visible and operationally significant changes. It is
 - Require the approved full commit SHA and detached checkout for first installs and upgrades.
 - The first-install order was subsequently found unsafe because Bench `get-app` installs the package/dependencies before returning; PR #82 corrects the sequence and adds supported-version Bench coverage. Do not use the old first-install snippet until that PR is CI-verified.
 
-### Pin-before-install operator sequence — PR #82 (code-complete; CI pending)
-- Replace `bench get-app crm_signals` with direct clone using remote `upstream`, checkout/detach and verify the approved SHA, then run `bench setup requirements crm_signals` before site installation, migration or build.
+### Pin-before-install operator sequence — PR #82 (merged and CI-verified as `ac030b1`)
+- Replace the unsafe `bench get-app` first-install sequence with direct clone using remote `upstream`, detach and verify the approved full SHA, then run `bench setup requirements crm_signals` before site installation, migration or build.
 - Correct upgrade instructions to inspect the Bench-created `upstream` remote rather than assuming `origin`.
-- Exercise the same local-clone/pin/requirements order in Frappe v15/v16 Bench CI and pinned Frappe v16.5.0; static tests guard the operator and workflow command order.
+- Final head `ef4dc09` passed Quality, Security, Frappe v15/v16 Bench + v16 Playwright and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0. Target-site staging rehearsal remains separate.
 
 ### D2 POS invoice settlement fixture — PR #69 (merged and CI-verified as efe7872)
 - Create a disposable POS Profile and company-specific Mode of Payment, then submit an `is_pos` Sales Invoice through ERPNext's normal lifecycle.
