@@ -117,8 +117,8 @@ jobs:
           print("Configuration files are valid")
           PY
 
-  unit:
-    name: Python unit tests (${{ matrix.python-version }})
+  unit-execution:
+    name: Python unit execution (${{ matrix.python-version }})
     needs: changes
     if: github.event_name != 'pull_request' || needs.changes.outputs.python == 'true'
     runs-on: ubuntu-latest
@@ -150,3 +150,44 @@ jobs:
           path: coverage.xml
           if-no-files-found: ignore
           retention-days: 7
+
+  python-310-required:
+    name: Python unit tests (3.10)
+    needs: [changes, unit-execution]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require execution when Python files changed
+        if: github.event_name != 'pull_request' || (needs.changes.outputs.python == 'true' && needs.unit-execution.result != 'success')
+        run: exit 1
+
+  python-311-required:
+    name: Python unit tests (3.11)
+    needs: [changes, unit-execution]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require execution when Python files changed
+        if: github.event_name != 'pull_request' || (needs.changes.outputs.python == 'true' && needs.unit-execution.result != 'success')
+        run: exit 1
+
+  python-312-required:
+    name: Python unit tests (3.12)
+    needs: [changes, unit-execution]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require execution when Python files changed
+        if: github.event_name != 'pull_request' || (needs.changes.outputs.python == 'true' && needs.unit-execution.result != 'success')
+        run: exit 1
+
+  python-314-required:
+    name: Python unit tests (3.14)
+    needs: [changes, unit-execution]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require execution when Python files changed
+        if: github.event_name != 'pull_request' || (needs.changes.outputs.python == 'true' && needs.unit-execution.result != 'success')
+        run: exit 1
+
