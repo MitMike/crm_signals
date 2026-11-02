@@ -28,32 +28,47 @@ The report is server-side only and read-only. Static DocPerm rows are not effect
 
 ## Installation and upgrade
 
-For a first installation, clone the repository and immediately check out the exact commit approved in the release record. Do not install from the moving `main` tip.
+### First installation
+
+Do **not** use `bench get-app` for CRM Signals in this pinned-release procedure. Bench's `get-app` clones and then installs the editable Python package, installs Node dependencies, synchronizes Bench app state and normally builds assets before the command returns. Checking out the approved SHA afterwards is too late.
+
+Clone the repository directly, pin and verify the approved revision, and only then let Bench install dependencies or build assets:
 
 ```bash
-bench get-app https://github.com/MitMike/crm_signals
-git -C apps/crm_signals checkout --detach <approved-commit-sha>
-test "$(git -C apps/crm_signals rev-parse HEAD)" = "<approved-commit-sha>"
-bench setup requirements
+APP_SHA="<approved-commit-sha>"
+test "${#APP_SHA}" -eq 40
+git clone --origin upstream https://github.com/MitMike/crm_signals.git apps/crm_signals
+git -C apps/crm_signals fetch upstream --tags
+git -C apps/crm_signals checkout --detach "$APP_SHA"
+test "$(git -C apps/crm_signals rev-parse HEAD)" = "$APP_SHA"
+bench setup requirements crm_signals
 bench --site <site-name> install-app crm_signals
 bench --site <site-name> migrate
 bench build --app crm_signals
 bench restart
 ```
 
-For an existing installation, take a database and files backup first, then fetch the approved source and detach to the exact release commit before running migrations:
+`bench setup requirements crm_signals` installs the app's editable Python package and Node dependencies from the checked-out tree and synchronizes it into Bench app state. The explicit app argument is intentional: it includes the newly cloned app before relying on the Bench app list. Site installation and migration happen only after the SHA check.
+
+### Upgrade an existing installation
+
+Bench-created app clones use the remote name `upstream`. Inspect it and confirm it points to the approved CRM Signals repository before fetching. If an existing non-Bench clone uses a different remote name, substitute that verified remote; do not assume `origin` exists.
 
 ```bash
-git -C apps/crm_signals fetch origin main --tags
-git -C apps/crm_signals checkout --detach <approved-commit-sha>
-test "$(git -C apps/crm_signals rev-parse HEAD)" = "<approved-commit-sha>"
-bench setup requirements
+APP_SHA="<approved-commit-sha>"
+test "${#APP_SHA}" -eq 40
+git -C apps/crm_signals remote get-url upstream
+git -C apps/crm_signals fetch upstream --tags
+git -C apps/crm_signals checkout --detach "$APP_SHA"
+test "$(git -C apps/crm_signals rev-parse HEAD)" = "$APP_SHA"
+bench setup requirements crm_signals
 bench --site <site-name> migrate
 bench build --app crm_signals
 bench restart
 ```
 
-Follow the site's normal maintenance window and rollback process. Use a full 40-character commit SHA from the approved release record; do not substitute `main`, a moving branch name or an unverified local revision. Record `git -C apps/crm_signals rev-parse HEAD` in the acceptance record. After installation, capture `bench version` and `bench --site <site-name> list-apps` again so the installed state is evidenced.
+Use a full 40-character commit SHA from the approved release record; do not substitute `main`, a moving branch name or an unverified local revision. Record `git -C apps/crm_signals rev-parse HEAD` in the acceptance record. After installation or upgrade, capture `bench version` and `bench --site <site-name> list-apps` again so the installed state is evidenced.
+
 
 ## Configure CRM Signals
 
