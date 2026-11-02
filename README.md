@@ -20,7 +20,7 @@ The executive dashboard is available at /app/sahdev-dashboard from the CRM Signa
 
 - **D1 — Sales Compass:** Leads created in the rolling 30-day window, active Leads, active Opportunities, stage counts, pipeline totals grouped by transaction currency and recent Opportunities.
 - **D2 — Billing Realization:** submitted Sales Invoice totals, customer receipts from submitted Receive Payment Entries, separate POS receipt totals, current positive receivables grouped by party-account currency and overdue invoice drill-down.
-- **D3 — Service Resolution/SLA:** specified, but not implemented until the installed ticketing application and SLA source/field semantics are verified on the target site.
+- **D3 — Service Resolution/SLA:** implemented for standard Frappe Helpdesk using aggregate-only HD Ticket lifecycle, resolution-duration and native SLA outcomes. Field-level permissions are respected; target-site Helpdesk version, Sales read-only role and active SLA calendar still require pilot acceptance.
 
 All dashboard data reads use permission-aware Frappe APIs. Missing permissions or unavailable source fields must be represented as unavailable, not as successful zero values. Unlike currencies are never summed together.
 
@@ -37,11 +37,15 @@ Billing semantics are explicit: Payment Entry receipts are grouped by receiving-
 - Record-level read/write permission hooks for linked-party owners and assignees.
 - Scheduled digest sends each enabled System User recipient a separate digest filtered through that user's ERPNext read permissions.
 
-CRM Signals Settings provides starter presets and administrator-editable business rules. The threshold is interpreted in the default Company's currency; this first release uses one site-wide threshold currency. The digest's Lead condition means "not modified"; it does not prove there was no call, email or meeting.
+CRM Signals Settings provides starter presets and administrator-editable business rules. Quotation thresholds can be configured per Company and are interpreted in that Company's base currency. The legacy site-wide threshold is used only when its currency exactly matches the Company's base currency; no implicit FX conversion occurs. The digest's Lead condition means "not modified"; it does not prove there was no call, email or meeting.
 
 ## Project records
 
 - [Administrator guide](docs/ADMIN_GUIDE.md) — settings, starter presets, integrations, daily use and troubleshooting.
+- [Standalone Frappe v16.5 support configuration guide](docs/CRM_SIGNALS_SUPPORT_CONFIGURATION_GUIDE.html) — download and open locally in a browser for step-by-step target-site preflight, least-privilege Helpdesk role setup, configuration and test scenarios (GitHub's file viewer shows the HTML source).
+- [D3 Support & SLA discovery guide](docs/D3_SUPPORT_SLA_DISCOVERY_GUIDE.html) — download and open locally in a browser for the beginner-friendly worksheet and read-only metadata script covering ticket lifecycle, SLA fields, business calendar, permissions and retention before configuration (GitHub's file viewer shows the HTML source).
+- [Target-site acceptance checklist](docs/TARGET_SITE_ACCEPTANCE.md) — required live evidence for roles, financial reconciliation, scheduler/mail, Helpdesk SLA and backup/restore.
+- [Production-readiness audit](docs/PRODUCTION_READINESS_AUDIT.md) — current release decision, remaining P0/P1 work and CI-vs-pilot boundaries.
 - [Implementation plan](IMPLEMENTATION_PLAN.md) — delivery order, dependencies, milestones, acceptance gates and exit criteria.
 - [Progress](docs/PROGRESS.md) — merged work, current CI evidence, blockers and target-site gates.
 - [Decision register](docs/DECISIONS.md) — durable product and engineering decisions with rationale.
@@ -53,7 +57,7 @@ CRM Signals Settings provides starter presets and administrator-editable busines
 
 ## Compatibility
 
-The source declares intended Frappe/ERPNext v15 and v16 compatibility. GitHub Actions Bench validation has passed on both version lines (v15/Python 3.11 and v16/Python 3.14), with authenticated Playwright E2E in the v16 lane. CI is not a substitute for validation on the intended site's roles, customizations, currency, timezone and financial data.
+The source declares intended Frappe/ERPNext v15 and v16 compatibility. GitHub Actions Bench validation has passed on both moving version lines (v15/Python 3.11 and v16/Python 3.14), with authenticated Playwright E2E in the v16 lane. A separate exact Frappe v16.5.0 + ERPNext v16.5.0 + Helpdesk v1.28.0 Bench lane merged in PR #50 and passed install, schema/role, D3 aggregate, upgrade, asset-build and Bench-test validation; The inspected Helpdesk v1.29.0, v1.30.2 and v1.31.1 desk manifests link @framework/ui to apps/frappe/ui, which is absent from the unmodified Frappe v16.5.0 tag; v1.31.1 additionally expects the absent Notification Type DocType. The exact reference lane therefore pins Helpdesk v1.28.0. CI is not a substitute for validation on the intended site's exact app versions, roles, customizations, currency, timezone and financial data.
 
 ## Installation
 

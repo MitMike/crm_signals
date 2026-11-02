@@ -2,33 +2,34 @@
 
 This changelog records user-visible and operationally significant changes. It is not a substitute for commit history. Entries do not imply a production release unless explicitly stated.
 
-## Unreleased — Transactional signal outbox (PR #26)
+## Unreleased — Transactional signal outbox and D3 Helpdesk adapter (PR #26, #32)
 
 ### Added
 - Persist Quotation and Opportunity source events in a dedicated idempotent outbox with scheduled retries, bounded exponential backoff and a terminal Failed state visible to System Managers.
 - Add Bench coverage for delivery recovery, retry exhaustion, batch fairness, concurrent outbox processing, concurrent duplicate enqueue and immutable outbox permissions.
+- Add a beginner-friendly D3 Support & SLA discovery guide with a metadata-only Bench script, business-calendar/permission/retention questions, KPI sign-off and an interactive completion checklist.
 
 ### Changed
 - Abort a Quotation submit or Opportunity update if its outbox event cannot be persisted in the source transaction. Failures to materialize the CRM Signal after persistence remain retryable and do not block the source document.
 - Keep outbox payload and delivery state read-only to administrators; inspect failures through the outbox and Error Log.
 
 ### Operational note
-- Terminal Failed rows can be requeued only through the audited System Manager action above. Realtime notification retry remains separate and is not provided by the signal outbox.
+- Terminal Failed rows can be replayed only through the POST-only, System Manager/read-permission-gated action merged in PR #38; attempt history and an audit Comment are preserved. Realtime notification retry remains separate and is not provided by the signal outbox.
 
-### Audited terminal Failed-row replay — merged in PR #38
+### Exact Frappe v16.5.0 / Helpdesk v1.28.0 compatibility lane — merged in PR #50
 
-- Add a POST-only System Manager action requiring CRM Signal Outbox read permission, with an explicit confirmation dialog.
-- Lock and replay only Failed rows; preserve original attempt count and last error, record replay count/actor/time and an audit Comment, then enqueue the same idempotent worker after commit.
-- If enqueue fails, the row remains Pending for the scheduled worker; direct outbox status editing remains unavailable.
-- PR #38 head `8e4c58dc3b2434559450651c3d3a4a649a034d3a` passed Quality, Security and Bench v15/v16. Merge commit: `1640bdd496706a7f297b0984f1fd1d9695307147`.
+- Pin Frappe v16.5.0, ERPNext v16.5.0, Helpdesk v1.28.0 and the exact Telephony commit.
+- Install the real Helpdesk app in Bench and verify HD Ticket / HD Service Level Agreement DocTypes, required fields, permlevels and the Frappe permitted-field API.
+- Fix the D3 Helpdesk availability guard to check the physical `creation` system column with `frappe.db.has_column`; add a regression test where `Meta.has_field("creation")` is false but the database column exists.
+- The inspected Helpdesk v1.29.0/v1.30.2/v1.31.1 desk manifests require `@framework/ui` from `frappe/ui`, absent in the unmodified Frappe v16.5.0 tag; v1.31.1 also requires `Notification Type`. The exact reference lane therefore pins v1.28.0.
+- Keep moving v15/v16 coverage and the v16 Playwright E2E lane.
 
-### Per-company quotation thresholds — in PR #45 review
+### Per-company quotation thresholds — merged in PR #45
 
-- Add an optional Company-specific threshold table and derive each row's currency from Company metadata.
-- Compare Quotation base totals to the matching Company threshold; use the legacy site-wide threshold only when currencies match exactly. No implicit FX conversion.
-- Add tests for per-company selection, currency mismatch suppression and exact-currency fallback.
-- Fetch each Company's default currency into the child row and bind the threshold Currency field to it, so the correct symbol is shown as soon as the Company is selected.
-
+- Add optional Company-specific threshold rows with an explicitly approved non-negative amount and currency derived from Company metadata.
+- Use the legacy site-wide threshold only when its currency exactly matches the Company's base currency; never perform implicit FX conversion.
+- If a Company's base currency changes, require the administrator to remove/re-add the row and enter a newly approved amount.
+- PR #49 binds the Currency field to the child row's fetched Company base currency so the symbol/value displays correctly before saving.
 
 ### D3 Service Resolution/SLA — merged in PR #32
 
@@ -36,13 +37,7 @@ This changelog records user-visible and operationally significant changes. It is
 - Check ticket and SLA DocType read permissions independently; do not return ticket identifiers, subjects, comments, contact details or raw records to the dashboard.
 - Keep due/paused SLA states out of the Fulfilled/Failed compliance denominator and count tickets without an SLA separately.
 - Final PR #32 head `93b536abef331d8b34b5b7b570fbb280a996bfb2` passed Python 3.10/3.11/3.12/3.14, lint/static, Semgrep and Bench v15/v16. Merge commit: `43fddfbbc46cac277a48c840251a7a2c963a8eb5`.
-- PR #42 merged a fail-closed field-level guard that checks the current user's permitted HD Ticket field names and marks affected measures unavailable instead of returning zero. Target-site app-version, Sales read-only role and active SLA calendar acceptance remain open.
-
-### Realtime source-document authorization — in PR #44 review
-
-- Require read access to the originating Quotation/Opportunity as well as the linked Lead/Customer and CRM Signal before queuing a notification that may contain source-derived values.
-- Fail closed for partially populated source DocType/name pairs; regression tests prove a Lead reader without Quotation access receives no source-derived notification.
-
+- PR #42 merged a fail-closed field-level guard that checks the current user's permitted HD Ticket fields and marks affected measures unavailable instead of returning zero. PR #44 additionally requires read access to the originating source DocType before source-derived notification content is queued. Target-site app-version, Sales read-only role and active SLA calendar acceptance remain open.
 
 ## 2026-11-01 — Concurrent API idempotency and digest delivery hardening (merged in PR #23)
 
@@ -199,9 +194,3 @@ Included in PR #19's merge commit [a495919](https://github.com/MitMike/crm_signa
 - Await the settings form's custom-preset model update and commit the integer field before asserting the preset change.
 
 Included in PR #19's merge commit [a495919](https://github.com/MitMike/crm_signals/commit/a49591947a89b011cc1770be176c1f11571b131b); the final v16 Playwright suite passed.
-
-### Realtime source-document authorization — merged in PR #44
-
-- Require read access to the originating Quotation/Opportunity as well as the linked Lead/Customer and CRM Signal before queuing a source-derived notification.
-- Fail closed for partially populated source DocType/name pairs; regression tests cover source access denial and malformed source identity.
-- Merged as `48622c08700032566051978076f49bc807c381e7` after Frappe v15/v16 CI passed.
