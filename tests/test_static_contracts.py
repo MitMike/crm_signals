@@ -308,12 +308,24 @@ def test_operator_installation_pins_source_before_bench_setup():
         "bench setup requirements crm_signals"
     )
 
-    for document in [runbook, acceptance]:
+    runbook_first = runbook.split("For a first installation", 1)[1].split(
+        "For an existing installation", 1
+    )[0]
+    acceptance_first = acceptance.split(
+        "### First installation — pin before Bench setup", 1
+    )[1].split("### Existing installation upgrade", 1)[0]
+    for document, first_install in [
+        (runbook, runbook_first),
+        (acceptance, acceptance_first),
+    ]:
         assert "git clone --origin upstream" in document
         assert "fetch upstream --tags" in document
         assert "bench setup requirements crm_signals" in document
         assert "bench get-app crm_signals" in document
         assert "rev-parse HEAD" in document
+        assert first_install.index("checkout --detach") < first_install.index(
+            "bench setup requirements crm_signals"
+        )
 
     for workflow_path in [
         ROOT / ".github/workflows/bench-e2e.yml",
