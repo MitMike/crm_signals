@@ -349,9 +349,9 @@ test("CRM Signals dashboard loads its live API", async ({ page }) => {
     ).toBeVisible();
 });
 
-test(
-    "High-Value Quote activity opens its permitted source Quotation",
-    async ({ page }) => {
+test("High-Value Quote activity opens its permitted source Quotation", async ({
+    page
+}) => {
     await loginAsAdministrator(page);
     await page.route(crmSignalsDashboardMethod, (route) =>
         route.fulfill({
@@ -393,8 +393,7 @@ test(
     await expect(signal).toContainText("Quotation: QTN-HIGHLIGHT-E2E");
     await signal.click();
     await expect(page).toHaveURL(/\/app\/quotation\/QTN-HIGHLIGHT-E2E/);
-    }
-);
+});
 test("Sales User can open the Executive Compass", async ({ page }) => {
     await loginAsAdministrator(page);
     const email = process.env.E2E_SALES_USER || "e2e-sales-user@example.com";
