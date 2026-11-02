@@ -100,7 +100,7 @@ def _decode_cursor(cursor, page_length):
     try:
         raw = base64.urlsafe_b64decode(cursor + "=" * (-len(cursor) % 4))
         payload = json.loads(raw.decode("utf-8"))
-    except (ValueError, UnicodeDecodeError, json.JSONDecodeError):
+    except (ValueError, UnicodeDecodeError):
         frappe.throw(_("Invalid timeline cursor"), frappe.ValidationError)
 
     if not isinstance(payload, dict):
