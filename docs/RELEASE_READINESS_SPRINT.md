@@ -12,6 +12,8 @@
 - [ ] PR #75 workspace display rename and PR #78 dashboard horizontal inset passed Quality, Security, Bench v15/v16 and pinned Frappe v16.5.0 on heads `16c9c77` and `9d31b7b`; each branch is one commit behind main `7904a70` and must be refreshed/retested. PR #78 also requires desktop/mobile UAT visual evidence after asset/cache refresh.
 - [ ] [PR #80](https://github.com/MitMike/crm_signals/pull/80) adds the advisory regression-review PR template; it is up to date with main and passed Quality, Security and Bench v15/v16. Merge only after its base is still current and required checks remain green; its referenced bug/fix registers are already merged in PR #79.
 
+- [ ] **P0 — Pin before install (ADR-074):** replace the first-install `bench get-app` command because Bench installs Python/Node dependencies and may build assets before the later SHA checkout. Use direct clone → detach/verify approved SHA → `bench setup requirements` → `bench build`; prove it on v15/v16 and pinned v16.5 before target-site use.
+
 ## Sprint sequence
 
 ### 0. Active PR triage — current review queue
