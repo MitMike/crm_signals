@@ -264,3 +264,13 @@ PR #7 updates `astral-sh/setup-uv@v6` to `@v7` in `.github/workflows/bench-e2e.y
 - [ ] **Target-site pilot:** authorized Frappe v16.5 inventory, effective-role tests, D1/D2 native-report reconciliation by currency, Helpdesk SLA evidence, scheduler/mail/realtime/webhook recovery and backup/restore/rollback rehearsal remain outstanding.
 
 PR #100 is code-complete and CI-verified, not pilot-verified. The automated computed-style assertion does not substitute for staging screenshots or the target-site acceptance matrix.
+
+
+
+## Read-only preflight source revision — 2026-11-03
+
+- **Reviewed main:** `135e648fe75ebecc692f8cab00841ddc094fdad2`; PR #102 merged and live open-PR search returned zero before this change.
+- **Decision:** ADR-086 adds the exact CRM Signals checkout SHA to the existing server-side, non-whitelisted preflight. The helper runs only `git rev-parse --verify HEAD` from the imported app directory, with a five-second timeout; it validates a full 40-character hexadecimal result and reports bounded failure reasons without paths or stderr.
+- **Implementation:** branch `ops/preflight-source-sha-20261103`; code and regression tests are committed. The tests cover exact SHA output, failed Git lookup without leaking stderr, invalid output rejection, and report inclusion.
+- **Operator guide:** ADMIN_GUIDE.md and TARGET_SITE_ACCEPTANCE.md now require an exact match against the approved release SHA and a stop on missing/mismatched identity.
+- **Status:** code-complete on the branch; remote CI and PR review are pending. No target-site execution or pilot verification is claimed.
