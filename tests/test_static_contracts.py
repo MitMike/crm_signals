@@ -96,7 +96,8 @@ def test_dashboard_page_workspace_and_permission_aware_api():
     workspace = json.loads(
         (APP_ROOT / "crm_signals/workspace/crm_signals/crm_signals.json").read_text()
     )
-    assert workspace["title"] == "CRM Signals"
+    assert workspace["label"] == "GME CRM Signals"
+    assert workspace["title"] == "GME CRM Signals"
     assert json.loads(workspace["content"])[0]["type"] == "shortcut"
     assert workspace["shortcuts"][1]["link_to"] == "crm-signals-dashboard"
 
