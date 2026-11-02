@@ -2,6 +2,10 @@
 
 This changelog records user-visible and operationally significant changes. It is not a substitute for commit history. Entries do not imply a production release unless explicitly stated.
 
+### GME CRM Signals workspace label — PR #85 (code-complete; final-head CI pending)
+- Change only the workspace display label/title to GME CRM Signals while preserving technical identifiers, routes, icon, links and shortcuts.
+- Assert both label and title in the static contract test; no separate app-launcher tile is implied.
+
 ## Unreleased — Transactional signal outbox, durable realtime retry, D3 Helpdesk, Highlights, Explorer and D1/D2 CI contracts (PR #26, #32, #54, #57, #59, #60, #63, #65, #67, #69, #70, #71)
 
 ### Bug/fix evidence registers — PR #79 (merged as 7904a70)

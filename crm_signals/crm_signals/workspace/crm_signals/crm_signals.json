@@ -10,7 +10,7 @@
   "icon": "activity",
   "idx": 0,
   "is_hidden": 0,
-  "label": "CRM Signals",
+  "label": "GME CRM Signals",
   "links": [
     {
       "hidden": 0,
@@ -93,6 +93,6 @@
       "type": "DocType"
     }
   ],
-  "title": "CRM Signals",
+  "title": "GME CRM Signals",
   "type": "Workspace"
 }

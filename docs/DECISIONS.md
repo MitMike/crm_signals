@@ -738,6 +738,17 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Duplicate-run correction (2026-11-02):** On PR #76 head `473e372`, GitHub ran Quality twice for the same SHA: push run `41477934545` on `ci/change-aware-fast-gates` and pull-request run `41477940227`. The Quality workflow now triggers push only on `main`; pull_request remains enabled for all PRs. A static contract test asserts this trigger scope. The redundant in-flight push run could not be cancelled through the available repository actions; future feature-branch pushes will not start it.
 
 
+## ADR-076 — Use GME CRM Signals as the workspace display name
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-02
+- **Context:** The requested Desk workspace branding is GME CRM Signals, while the existing Frappe workspace displayed CRM Signals.
+- **Decision:** Change only the workspace label and title to GME CRM Signals. Preserve the technical workspace/module/page identifiers, routes, icon, links and shortcuts; do not claim this creates or fixes a separate app-launcher tile.
+- **Rationale:** The user-facing label can change without migrating identifiers or breaking existing navigation.
+- **Consequences:** The workspace JSON and static contract test require both label and title to equal GME CRM Signals. The change does not alter application permissions, data or navigation targets.
+- **Revisit criteria:** Revisit only if a separate launcher-tile requirement or a further branding change is approved.
+
+
 ## ADR-077 — Pin CRM Signals before Bench installs its dependencies
 
 - **Status:** Accepted
