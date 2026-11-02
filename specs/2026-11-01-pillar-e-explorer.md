@@ -1,10 +1,10 @@
 # E — Explorer and customer interaction timeline
 
-**Status:** Core backend merged in PR #57 as `ba631720`; Desk page and form entry points merged in PR #59 as `6b381fe` after the final PR head passed the required v15/v16 checks and pinned Frappe v16.5.0 lane. Optional-source inventory and target-site role/context acceptance remain.
+**Status:** Core backend merged in PR #57 as `ba631720`; Desk page and form entry points merged in PR #59 as `6b381fe`; five-context browser coverage and operator-runbook hardening merged in PR #61 as `6ef9642`. PR #61 final head `902b38e4dd4713461acfb12dc837f5b2b84da7d8` passed the v15/v16 Bench + Playwright matrix, all required checks and pinned Frappe v16.5.0 lane. Optional-source inventory and target-site role/context acceptance remain.
 
 The first release is deliberately limited to CRM Signal, Quotation and Opportunity. It supports Lead/Customer/Opportunity/CRM Signal contexts and treats a High-Value Quote CRM Signal as the current Highlight context. Communication, Event, ToDo, call and WhatsApp adapters are deferred until their installed providers and exact schemas are observed on the target site (ADR-059).
 
-The implemented Desk page shows safely escaped metadata summaries, source availability states and authorized source navigation. It fetches the timeline with GET cursor pagination and ignores late responses from a prior context after navigation. PR #59's Playwright test covers authenticated Lead-context loading, paging and source drill-down. PR #61 adds a browser matrix for Lead, Customer, Opportunity, CRM Signal and Highlight routes plus a late-response regression; CI is pending. The static contract tests continue to cover the form action registrations. None of this substitutes for target-site role tests.
+The implemented Desk page shows safely escaped metadata summaries, source availability states and authorized source navigation. It fetches the timeline with GET cursor pagination and ignores late responses from a prior context after navigation. PR #59's Playwright test covers authenticated Lead-context loading, paging and source drill-down. PR #61 adds and CI-verifies a browser matrix for Lead, Customer, Opportunity, CRM Signal and Highlight routes plus a late-response regression. Static contract tests cover the form action registrations. The browser suite does not click every form action against real pilot documents or prove target-site role visibility; those remain acceptance checks.
 
 ## Problem and users
 

@@ -2,7 +2,7 @@
 
 **Started:** 2026-11-01  
 **Last reviewed:** 2026-11-02  
-**Baseline:** `main` at `e57d94ea3090cfa50c5270a673e14c19ec6acbe3`  
+**Baseline:** `main` at `6ef9642b63c24053fb437f67d9d4fb47e360c80a`  
 **Decision register:** [ADR-046](DECISIONS.md#adr-046--run-release-readiness-as-an-evidence-gated-sprint)  
 **Operating rule:** no item is complete without the evidence listed here. CI evidence and target-site evidence are separate.
 
@@ -18,6 +18,7 @@
 - [x] [PR #44](https://github.com/MitMike/crm_signals/pull/44) source-document notification permission check merged as `48622c08700032566051978076f49bc807c381e7` after Quality, Security and Bench v15/v16 passed.
 - [x] [PR #36](https://github.com/MitMike/crm_signals/pull/36) merged as `e57d94ea`; ADR-049 sets Frappe v16.5 as the primary target while retaining v15/v16 CI coverage.
 - [x] [PR #42](https://github.com/MitMike/crm_signals/pull/42) merged D3 field-level permission hardening as `17eca3f6cb493fb8729632e0902c07ccb776b6a5`; Quality, Security and Bench v15/v16 passed.
+- [x] [PR #57](https://github.com/MitMike/crm_signals/pull/57), [PR #59](https://github.com/MitMike/crm_signals/pull/59) and [PR #61](https://github.com/MitMike/crm_signals/pull/61) merged Explorer core adapters, Desk entry points, five-context Playwright coverage and operator runbook safeguards. PR #61 final head `902b38e4dd4713461acfb12dc837f5b2b84da7d8` passed all required v15/v16 checks and the pinned Frappe v16.5.0 lane; merge commit `6ef9642b63c24053fb437f67d9d4fb47e360c80a`.
 
 **Merge gate:** all required checks pass on the final PR head; review threads resolved; no target-site claims inferred from CI.
 
@@ -65,13 +66,13 @@
 
 ### 5. E, V and A roadmap
 
-- [ ] E Explorer only after installed activity integrations and source identities are inventoried.
-- [ ] V Vault only after metric definitions, source visibility and retention are approved.
-- [ ] A Analysis only after a versioned server-owned metric registry exists; generated SQL/Python remains prohibited.
+- [x] E Explorer core API, Desk UI and five-context route/stale-response Playwright coverage are merged and CI-verified; pilot role/field acceptance and optional-source inventory remain.
+- [ ] V Vault remains blocked until D1/D2 metrics are reconciled and source visibility, retention/deletion and audited pruning are approved.
+- [ ] A Analysis remains blocked until Sales/Finance sign off D1/D2 target-site reconciliation, currency/date/filter semantics and source permissions; use a versioned server-owned registry and deterministic intents only.
 
 ## Current blockers and known evidence
 
-- `main` baseline is `48622c08700032566051978076f49bc807c381e7`; PR #32 D3, PR #38 replay, PR #42 field guard and PR #44 source permission are merged and CI-verified.
+- `main` baseline is `6ef9642b63c24053fb437f67d9d4fb47e360c80a`; PR #32 D3, PR #38 replay, PR #42 field guard, PR #44 source permission, PR #57/#59/#61 Explorer and PR #61 operator-runbook safeguards are merged and CI-verified.
 - PR #38 replay is merged after both Frappe v15/v16 Bench jobs passed.
 - PR #45 threshold feature is merged; only target-site Company-by-Company amount and fallback approval remains.
 - PR #36 ADR-049 is merged; its final required checks passed.
@@ -87,3 +88,4 @@
 | 2026-11-02 | PR #45 threshold merge | Company-specific amounts/currencies, exact-currency fallback and mismatch suppression merged; all required checks passed | Complete — CI verified |
 | 2026-11-02 | ADR-049 target baseline | Frappe v16.5 confirmed; v15/v16 matrix retained | Complete — merged |
 | 2026-11-02 | D3 field-level permissions | Fail-closed field permission guard merged in PR #42 and passed v15/v16 CI | Complete — CI verified |
+| 2026-11-02 | Explorer API/Desk/browser slice | PR #57/#59/#61; five context routes, late-response suppression and operator runbook safeguards; final head `902b38e4dd4713461acfb12dc837f5b2b84da7d8` passed all required checks and pinned Frappe v16.5.0 lane | Complete — CI verified; pilot acceptance open |

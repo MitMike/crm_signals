@@ -221,7 +221,8 @@ Included in PR #19's merge commit [a495919](https://github.com/MitMike/crm_signa
 Included in PR #19's merge commit [a495919](https://github.com/MitMike/crm_signals/commit/a49591947a89b011cc1770be176c1f11571b131b); the final v16 Playwright suite passed.
 
 
-### Explorer browser coverage follow-up — PR #61
+### Explorer browser coverage and operator runbook hardening — PR #61 (merged as `6ef9642`; final-head CI verified)
 - Add Playwright coverage for all five supported timeline context routes and for discarding a late response after the user changes context.
 - Correct the deployment runbook to require Company-specific base-currency thresholds (or an exact-currency legacy fallback) and add Explorer role/context smoke tests.
+- Final head `902b38e4dd4713461acfb12dc837f5b2b84da7d8` passed all eight required contexts and the pinned Frappe v16.5.0 / ERPNext v16.5.0 / Helpdesk v1.28.0 lane.
 - Keep target-site role/field-permission acceptance and optional-provider discovery separate from CI verification.
