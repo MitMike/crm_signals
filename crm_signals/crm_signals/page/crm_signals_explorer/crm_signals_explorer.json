@@ -1,0 +1,19 @@
+{
+  "doctype": "Page",
+  "name": "crm-signals-explorer",
+  "page_name": "crm-signals-explorer",
+  "module": "Crm Signals",
+  "title": "Customer Activity Timeline",
+  "standard": "Yes",
+  "roles": [
+    {
+      "role": "Sales User"
+    },
+    {
+      "role": "Sales Manager"
+    },
+    {
+      "role": "System Manager"
+    }
+  ]
+}
