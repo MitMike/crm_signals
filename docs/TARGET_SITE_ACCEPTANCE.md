@@ -12,7 +12,7 @@
 | Business owner | |
 | Technical owner | |
 | Test date (with timezone) | |
-| CRM Signals commit / tag | |
+| CRM Signals approved commit SHA (full 40 characters) | |
 | Frappe version (exact v16.5 patch/build) | |
 | ERPNext version | |
 | Helpdesk version | |
@@ -48,7 +48,7 @@ Record, do not infer:
 
 ## 3. Deployment, migration and rollback
 
-- [ ] Confirm the exact app revision and dependency lock state.
+- [ ] Confirm the exact app revision and dependency lock state; record the approved full 40-character CRM Signals commit SHA and verify that `git -C apps/crm_signals rev-parse HEAD` matches it exactly. The checkout must be detached at that SHA, not left on a moving branch.
 - [ ] Take a database and private/public files backup using the site's approved process.
 - [ ] Record backup location, timestamp, retention and restore operator.
 - [ ] Deploy to staging first.
