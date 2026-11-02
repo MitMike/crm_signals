@@ -2,9 +2,11 @@
 
 **Started:** 2026-11-01  
 **Last reviewed:** 2026-11-02  
-**Latest main:** `00e997ce25747f24b8af9948527a1738cc6f3920` (PR #5 actions/checkout v7 dependency update merged and CI-verified); **latest functional baseline:** `c5720bfb3fbe8b554ec6febd549a8d5e58acc1d7`  
+**Latest main:** `1b57003df50df8a5f52cfe9866ed9bcba769bc67` (PR #74 immutable deployment revision procedure merged and CI-verified); **latest functional baseline:** `c5720bfb3fbe8b554ec6febd549a8d5e58acc1d7`  
 **Decision register:** [ADR-046](DECISIONS.md#adr-046--run-release-readiness-as-an-evidence-gated-sprint)  
 **Operating rule:** no item is complete without the evidence listed here. CI evidence and target-site evidence are separate.
+
+- [ ] [PR #76](https://github.com/MitMike/crm_signals/pull/76) change-aware CI: initial workflow-only and temporary runtime-path checks passed, but ADR-075 adds fail-closed detector handling and package/build path coverage. Require fresh final-head Quality, Security, Bench v15/v16 and pinned v16.5.0 checks before merge.
 
 ## Sprint sequence
 

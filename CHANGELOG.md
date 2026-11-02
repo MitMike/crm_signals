@@ -4,6 +4,11 @@ This changelog records user-visible and operationally significant changes. It is
 
 ## Unreleased — Transactional signal outbox, durable realtime retry, D3 Helpdesk, Highlights, Explorer and D1/D2 CI contracts (PR #26, #32, #54, #57, #59, #60, #63, #65, #67, #69, #70, #71)
 
+### Change-aware CI execution — PR #76 (pending final-head verification)
+- Select Python, Bench and pinned Frappe v16.5.0 execution by changed runtime paths while retaining the existing required check names, Security scanning, and full Bench coverage on main/manual runs.
+- Fail required gates when path detection fails; include package manifests/lockfiles, requirements and manifest files, app configuration and module metadata in integration/pinned-stack filters.
+- Initial workflow-only and temporary Python runtime-path validation passed; the fail-closed/package-filter correction still needs fresh final-head CI. This is not a reduction in the required merge gates.
+
 ### Immutable target-site deployment pin — PR #74
 - First-install and upgrade instructions now detach the app checkout to the exact approved 40-character commit SHA, verify it, and reconcile Python/Node requirements from that pinned tree before installation or migration.
 - The target-site acceptance record must retain that SHA with the exact Frappe, ERPNext and Helpdesk versions. A moving `main` branch is not a deployment revision.

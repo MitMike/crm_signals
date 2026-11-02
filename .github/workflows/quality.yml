@@ -9,18 +9,59 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  changes:
+    name: Detect changed test surfaces
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      python: ${{ steps.filter.outputs.python }}
+      javascript: ${{ steps.filter.outputs.javascript }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            python:
+              - 'crm_signals/**/*.py'
+              - 'tests/**/*.py'
+              - 'scripts/**/*.py'
+              - 'pyproject.toml'
+              - 'setup.py'
+            javascript:
+              - 'package.json'
+              - 'package-lock.json'
+              - 'eslint.config.mjs'
+              - 'playwright.config.ts'
+              - 'e2e/**'
+              - 'crm_signals/**/*.js'
+              - 'crm_signals/**/*.ts'
+              - 'crm_signals/**/*.css'
+              - 'crm_signals/**/*.html'
+
   lint:
+    needs: changes
+    if: always()
     name: Lint and static checks
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
+      - name: Require successful change detection
+        if: needs.changes.result != 'success'
+        run: exit 1
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v6
         with:
           python-version: "3.14"
+          cache: pip
+          cache-dependency-path: pyproject.toml
       - uses: actions/setup-node@v6
         with:
           node-version: "24"
+          cache: npm
+          cache-dependency-path: package-lock.json
       - name: Install Ruff
         run: python -m pip install --upgrade pip ruff==0.8.1 pyyaml==6.0.2
       - name: Python lint
@@ -33,12 +74,16 @@ jobs:
           test -s package-lock.json
           node -e "const lock = require('./package-lock.json'); if (lock.lockfileVersion < 1) process.exit(1); console.log('npm lockfile v' + lock.lockfileVersion)"
       - name: Install JavaScript tooling from the committed lockfile
+        if: github.event_name != 'pull_request' || needs.changes.outputs.javascript == 'true'
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Verify patched dependency versions
+        if: github.event_name != 'pull_request' || needs.changes.outputs.javascript == 'true'
         run: npm ls @playwright/test eslint minimatch --all
       - name: ESLint and Oxlint
+        if: github.event_name != 'pull_request' || needs.changes.outputs.javascript == 'true'
         run: npm run lint:js
       - name: Check formatting of tooling and E2E tests
+        if: github.event_name != 'pull_request' || needs.changes.outputs.javascript == 'true'
         id: format_check
         run: npm run format:check
       - name: Print exact Prettier diff when formatting fails
@@ -76,8 +121,10 @@ jobs:
           print("Configuration files are valid")
           PY
 
-  unit:
-    name: Python unit tests (${{ matrix.python-version }})
+  unit-execution:
+    name: Python unit execution (${{ matrix.python-version }})
+    needs: changes
+    if: github.event_name != 'pull_request' || needs.changes.outputs.python == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     strategy:
@@ -89,6 +136,8 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: pyproject.toml
       - name: Install test dependencies
         run: python -m pip install --upgrade pip pytest pytest-cov
       - name: Validate editable package install
@@ -105,3 +154,44 @@ jobs:
           path: coverage.xml
           if-no-files-found: ignore
           retention-days: 7
+
+  python-310-required:
+    name: Python unit tests (3.10)
+    needs: [changes, unit-execution]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require execution when Python files changed
+        if: needs.changes.result != 'success' || ((github.event_name != 'pull_request' || needs.changes.outputs.python == 'true') && needs.unit-execution.result != 'success')
+        run: exit 1
+
+  python-311-required:
+    name: Python unit tests (3.11)
+    needs: [changes, unit-execution]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require execution when Python files changed
+        if: (github.event_name != 'pull_request' || needs.changes.outputs.python == 'true') && needs.unit-execution.result != 'success'
+        run: exit 1
+
+  python-312-required:
+    name: Python unit tests (3.12)
+    needs: [changes, unit-execution]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require execution when Python files changed
+        if: (github.event_name != 'pull_request' || needs.changes.outputs.python == 'true') && needs.unit-execution.result != 'success'
+        run: exit 1
+
+  python-314-required:
+    name: Python unit tests (3.14)
+    needs: [changes, unit-execution]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require execution when Python files changed
+        if: (github.event_name != 'pull_request' || needs.changes.outputs.python == 'true') && needs.unit-execution.result != 'success'
+        run: exit 1
+
