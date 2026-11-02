@@ -195,16 +195,15 @@ PR #76 merged as `cec49e700a7a94684e8136170dd0e562ed23052a`. Final head `d6a6300
 ## Bug and fix registers — PR #79 merged
 
 - PR #79 added docs/BUG_REPORT.md and docs/FIX_REPORT.md, with BUG-2026-001 / FIX-2026-001 recording the CRM Signals dashboard horizontal-inset regression and its evidence-based closure criteria. Merged as 7904a70 after Quality, Security and Bench v15/v16 passed.
-- PR #80 adds the standard regression-review PR template and remains open. It is a review aid, not an automated merge gate.
+- PR #80 was closed as superseded: `docs/BUG_REPORT.md` and `docs/FIX_REPORT.md` were already merged in PR #79, and its final template content is carried by PR #81. PR #81 is the canonical template-only PR; its prior head passed Quality, Security and Bench v15/v16 but is one commit behind main `cec49e7` and must be refreshed/retested. The template is a review aid, not an automated merge gate.
 
 
 
-## Resolved PR #57 merge gate
+## Current UI fixes — PR #75 and PR #78 (prior CI passed; refresh required)
 
-- PR #75 changes only the Frappe workspace display label/title to GME CRM Signals, preserving technical identifiers and navigation. Its final head `16c9c77` passed Quality, Security, Bench v15/v16 and pinned Frappe v16.5.0. The branch is one commit behind current main and must be refreshed/retested before merge.
-- PR #78 restores 24px horizontal padding to the CRM Signals dashboard wrapper and adds a static regression assertion. Its final head `9d31b7b` passed Quality, Security, Bench v15/v16 and pinned Frappe v16.5.0. The branch is one commit behind current main and must be refreshed/retested before merge. Local UAT visual checks at desktop and mobile widths remain open; no UAT verification is claimed.
+- PR #75 changes only the Frappe workspace display label/title to GME CRM Signals, preserving technical identifiers and navigation. Its prior head `16c9c77` passed Quality, Security, Bench v15/v16 and pinned Frappe v16.5.0, but is two commits behind main `cec49e7`; refresh and rerun all required final-head checks.
+- PR #78 restores 24px horizontal padding to the CRM Signals dashboard wrapper and adds a static regression assertion. Its prior head `9d31b7b` passed Quality, Security, Bench v15/v16 and pinned Frappe v16.5.0, but is two commits behind main `cec49e7`; refresh and rerun all required final-head checks. Local UAT visual checks at desktop and mobile widths remain open; no UAT verification is claimed.
 
-## PR regression checklist — PR #80 (CI passed; merge pending)
+## PR regression checklist — PR #81 (canonical; refresh required)
 
-- Adds an advisory template requiring bug-register lookup, linked bug/fix IDs, regression evidence, root-cause review, truthful CI/UAT status and rollout checks.
-- Its current head `c86c83c` passed Quality, Security and Bench v15/v16; it is up to date with main `7904a70`. No application behavior changes. The template is not an automated merge gate.
+PR #80 is closed as superseded: its bug/fix registers are already merged in PR #79 and its final `.github/PULL_REQUEST_TEMPLATE.md` content is carried by PR #81. PR #81's prior head `1ef1003` passed Quality, Security and Bench v15/v16 but is one commit behind main `cec49e7`; refresh and rerun required checks before merge. The template is a review aid, not an automated merge gate.
