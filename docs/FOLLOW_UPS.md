@@ -105,4 +105,15 @@ This snapshot supersedes the older dependency queue entries above. A green CI re
 
 ## P1 — dashboard visual regression prevention
 
-- [ ] **BUG-2026-001 / FIX-2026-001 automated guard (ADR-083/084; PR #100):** add a Playwright check on the rendered CRM Signals dashboard that asserts 24px horizontal padding at 1440px and 12px at 390px. The Bench selector now includes `e2e/**` and `playwright.config.ts`, protected by static tests, so this change triggers the v16 browser lane. Code is complete; final-head CI is pending. This does not close the separate desktop/mobile staging UAT item above.
+- [x] **BUG-2026-001 / FIX-2026-001 automated guard (ADR-083/084; PR #100):** merged as 9c4febf8180ef295b48ea18b1ac5fddc164ff34f from final head 50759954b8801fb8edd7194fea354c3521b457f1. All 18 final-head check runs passed, including Bench v15/v16 and the v16 Playwright desktop/mobile computed-padding assertion. This closes the automated regression-prevention task only; staging visual UAT remains open.
+
+
+## Latest repository snapshot — after PR #100 (2026-11-03)
+
+- [x] PR #100 merged; all 18 final-head check runs passed on 50759954b8801fb8edd7194fea354c3521b457f1. Merge commit: 9c4febf8180ef295b48ea18b1ac5fddc164ff34f.
+- [x] Open pull-request search returned zero. No CI failure or stale open PR is currently awaiting action.
+- [ ] **Dashboard visual UAT (revisit trigger):** proceed only when an authorized staging site is available, the approved full CRM Signals SHA is deployed, and the operator has completed the documented asset build/cache refresh. Capture 1440px desktop and 390px mobile screenshots with the SHA, browser, role and timestamp; record the observed inset. Keep BUG-2026-001/FIX-2026-001 UAT-open until evidence is reviewed.
+- [ ] **Target-site pilot (revisit trigger):** proceed when an authorized Frappe v16.5 staging window and named technical/business owners are available. Collect exact app/build inventory, effective permissions, D1/D2 reconciliation, active Helpdesk SLA calendar, operational recovery and backup/restore/rollback evidence. No production change without the site's approved change control.
+- [ ] **Deferred product slices:** Vault/Analysis require signed D1/D2 metric and source-permission contracts plus retention/deletion policy; VIP escalation requires approved membership, trigger, recipient and cooldown; proposal tracking requires privacy/consent and retention approval; optional Explorer adapters require provider/version/schema/identity/permission inventory. Revisit only when those exact inputs are recorded in the target-site acceptance record and the relevant product owner approves them.
+
+A green reference CI result is not a substitute for any of these site-specific gates.
