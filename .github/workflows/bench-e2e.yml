@@ -2,6 +2,8 @@ name: Bench Integration and E2E
 
 on:
   push:
+    branches:
+      - main
   pull_request:
   workflow_dispatch:
 
