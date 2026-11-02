@@ -5,7 +5,7 @@ import json
 
 import frappe
 from frappe import _
-from frappe.utils import now_datetime
+from frappe.utils import get_datetime, now_datetime
 
 MAX_PAGE_LENGTH = 50
 MAX_CURSOR_LENGTH = 4096
@@ -103,8 +103,16 @@ def _decode_cursor(cursor, page_length):
     except (ValueError, UnicodeDecodeError, json.JSONDecodeError):
         frappe.throw(_("Invalid timeline cursor"), frappe.ValidationError)
 
-    offsets = payload.get("offsets") if isinstance(payload, dict) else None
-    as_of = payload.get("as_of") if isinstance(payload, dict) else None
+    if not isinstance(payload, dict):
+        frappe.throw(_("Invalid timeline cursor"), frappe.ValidationError)
+
+    offsets = payload.get("offsets")
+    as_of = payload.get("as_of")
+    try:
+        get_datetime(as_of)
+    except (TypeError, ValueError):
+        frappe.throw(_("Invalid timeline cursor"), frappe.ValidationError)
+
     if (
         payload.get("version") != 1
         or payload.get("page_length") != page_length
@@ -256,6 +264,10 @@ def _merge_source_pages(source_pages, offsets, page_length):
         reverse=True,
     )
     items = ordered[:page_length]
+    selected_ids = {
+        (item["source_id"], item["source_event_id"])
+        for item in items
+    }
 
     next_offsets = dict(offsets)
     has_more = False
@@ -263,14 +275,12 @@ def _merge_source_pages(source_pages, offsets, page_length):
         positions = [
             entry["position"]
             for entry in page["rows"]
-            if entry["item"]["source_id"] == source_id
-            and (source_id, entry["item"]["source_event_id"]) in {
-                (item["source_id"], item["source_event_id"]) for item in items
-            }
+            if (source_id, entry["item"]["source_event_id"]) in selected_ids
         ]
         consumed = max(positions) + 1 if positions else page["leading_skipped"]
         next_offsets[source_id] = offsets[source_id] + consumed
         has_more = has_more or page["raw_count"] > consumed
+        has_more = has_more or page["raw_count"] == page_length + 1
 
     return items, next_offsets, has_more
 
