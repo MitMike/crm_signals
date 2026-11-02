@@ -88,11 +88,14 @@ def load_diagnostics(monkeypatch):
 
 def test_preflight_report_is_read_only_and_excludes_recipient_addresses(monkeypatch):
     diagnostics = load_diagnostics(monkeypatch)
+    source_revision = {"available": True, "commit_sha": "a" * 40}
+    monkeypatch.setattr(diagnostics, "_source_revision", lambda: source_revision)
     report = diagnostics.get_site_preflight_report()
 
     assert report["read_only"] is True
     assert report["http_whitelisted"] is False
     assert report["framework"]["frappe_version"] == "16.5.0"
+    assert report["framework"]["crm_signals_source"] == source_revision
     assert report["crm_signals_settings"]["opportunity_trigger_statuses"] == ["Replied"]
     assert "private@example.com" not in repr(report)
     assert "Static metadata is not proof" in report["acceptance_warning"]
