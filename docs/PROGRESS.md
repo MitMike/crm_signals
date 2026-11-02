@@ -182,7 +182,7 @@ For each change:
 
 ## CI efficiency work — PR pending
 
-- Added path-aware test selection while preserving the existing required status-check names and protected-main ruleset.
+- Added path-aware test selection and explicit required-check gate jobs that preserve the exact existing status names and protected-main ruleset.
 - Docs/workspace-only PRs are intended to skip the four-version Python matrix, JavaScript dependency installation and full Bench matrix; Python/backend/DocType/Page/public asset/test changes retain relevant tests.
 - Full Bench v15/v16 validation remains on main pushes and manual dispatch. Pinned Frappe v16.5.0 / Helpdesk validation is limited to runtime-relevant paths and remains manually dispatchable.
 - Added pip/npm dependency caching. Security scanning and dependency audit policy are retained.
