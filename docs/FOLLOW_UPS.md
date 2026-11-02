@@ -82,3 +82,13 @@ Do not close a follow-up because code compiles or a mocked unit test passes. Clo
 - [ ] **Dashboard visual UAT:** after an approved staging asset refresh, capture desktop/mobile screenshots confirming the horizontal inset and close BUG-2026-001/FIX-2026-001 only with evidence.
 
 This snapshot supersedes older dependency queue entries above. Never merge stale PR heads or bypass required checks.
+
+
+## Current repository maintenance snapshot — 2026-11-03 (after PR #96)
+
+- [x] **PR #96 — flit-core v4:** merged as `d0ab24b6a50184af99f4af638ae64ddd9a22d08a`. Final head `349bf71b0687c77e830fb8b054cedacabb16f61b` passed all 20 checks, including wheel/sdist build and clean-environment install/import with flit-core v4 on Python 3.10 and 3.14, full Python 3.10/3.11/3.12/3.14 tests, Security/Semgrep and dependency audits, Frappe v15/v16 Bench + Playwright, and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0.
+- [x] **Maintenance queue:** no open pull requests remained immediately after the merge (live open-PR search returned zero).
+- [ ] **Dashboard visual UAT:** obtain approved staging asset refresh and desktop/mobile screenshots; close BUG-2026-001/FIX-2026-001 only with evidence.
+- [ ] **Target-site pilot acceptance:** still requires authorized staging access, exact installed app/full-SHA inventory, effective permission tests, D1/D2 reconciliation by currency, active Helpdesk SLA calendar, scheduler/mail/realtime/webhook checks and backup/restore/rollback rehearsal.
+
+This snapshot supersedes the older dependency queue entries above. A green CI result is reference-stack verification only; it is not target-site or pilot verification.
