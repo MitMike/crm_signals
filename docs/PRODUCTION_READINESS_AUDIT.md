@@ -57,7 +57,7 @@ Decisions are recorded in ADR-034 through ADR-040, in addition to the earlier se
 ### P1 — reliability work intentionally deferred
 
 1. **Signal outbox/reconciliation:** The transactional outbox and audited Failed-row replay are implemented in PRs #26/#38 and CI-verified. Verify scheduler operation, failure monitoring and backup/restore on the target site.
-2. **Realtime retry:** PR #54 merged as `37ce6003c9459f1b391de5dff8354e4bfc04cb9b`. Final synchronized head `f1cbd3e92946a4a5513b7555396cada4491fdd3e` passed all eight required checks plus the exact Frappe v16.5.0/ERPNext v16.5.0/Helpdesk v1.28.0 lane. The per-recipient ledger, stable IDs, bounded retry, permission rechecks and active-session duplicate suppression are CI-verified. Target-site Redis outage, worker restart, scheduler and permission-revocation acceptance remain open; no human-delivery guarantee is claimed.
+2. **Realtime retry:** PR #54 merged as `37ce6003c9459f1b391de5dff8354e4bfc04cb9b`. Final synchronized head `f1cbd3e92946a4a5513b7555396cada4491fdd3e` passed all eight required checks plus the exact Frappe v16.5.0/ERPNext v16.5.0/Helpdesk v1.28.0 lane. The per-recipient ledger, stable IDs, bounded retry, permission rechecks and active-session duplicate suppression are CI-verified. PR #55 merged the staging fault-injection checklist for Redis outage, worker restart, scheduler recovery and permission revocation. Those checks remain unexecuted on the target site; no human-delivery guarantee is claimed.
 3. **Multi-company threshold:** Implementation is merged in PR #45. Each enabled Company still needs a business-approved amount in its base currency or explicit approval of the exact-currency legacy fallback; there is no implicit FX conversion.
 
 ### P2 — roadmap dependencies
