@@ -296,7 +296,7 @@ def _invoice_snapshot(name):
     )
 
 
-def _assert_d2(baseline, actual, invoices, payment_entry):
+def _assert_d2(baseline, actual, invoices, payment_entry, company_currency):
     before = baseline["billing"]
     after = actual["billing"]
     if not all(
@@ -314,8 +314,11 @@ def _assert_d2(baseline, actual, invoices, payment_entry):
 
     snapshots = [_invoice_snapshot(name) for name in invoices]
     usd_invoice = snapshots[2]
-    if usd_invoice.currency != "USD" or usd_invoice.party_account_currency == "USD":
-        frappe.throw("D2 fixture did not preserve the INR party-account currency for a USD invoice")
+    if (
+        usd_invoice.currency != "USD"
+        or usd_invoice.party_account_currency != company_currency
+    ):
+        frappe.throw("D2 fixture did not preserve the Company's party-account currency for a USD invoice")
     expected_invoiced = {}
     expected_outstanding = {}
     for row in snapshots:
@@ -347,6 +350,11 @@ def _assert_d2(baseline, actual, invoices, payment_entry):
         float(payment.received_amount or 0),
     )
     pos = snapshots[-1]
+    if (
+        float(pos.paid_amount or 0) < float(pos.grand_total or 0) - 0.05
+        or float(pos.outstanding_amount or 0) > 0.05
+    ):
+        frappe.throw("D2 POS-shaped invoice is not fully paid in the aggregate fixture")
     _assert_currency_delta(
         "D2 POS receipts",
         before["pos_receipts_by_currency"],
@@ -470,7 +478,9 @@ def verify_sales_compass_aggregate_fixture():
         actual = get_sales_compass_data()
         invoice_names = [overdue.name, paid.name, usd.name, pos.name]
         _assert_d1(baseline, actual, context["currency"])
-        _assert_d2(baseline, actual, invoice_names, payment.name)
+        _assert_d2(
+            baseline, actual, invoice_names, payment.name, context["currency"]
+        )
 
         reader = _create_payment_reader(tag)
         _assert_independent_payment_permission(
