@@ -178,3 +178,12 @@ For each change:
 - **Evidence:** GitHub rejected the earlier merge attempt on head `7f9d840226e6d6db1a435b8c1cc629e70dc63eca` because two required Bench contexts were cancelled by a push run on the stacked Desk branch. A new unique head `dda6eb88c0e8735645018de60275d9cf55d2d99d` then passed all eight required contexts and the pinned Frappe v16.5.0 / ERPNext v16.5.0 / Helpdesk v1.28.0 lane; PR #57 merged as `ba631720`.
 - **Decision:** Do not bypass the main ruleset or retry stale shared-SHA runs. The original stacked PR #58 was closed unmerged; PR #59 is its clean replacement based on `main`.
 - **Revisit criteria:** No further action is required for PR #57. If a future PR produces duplicate or cancelled contexts, inspect the push and pull-request run sources and require successful final-head contexts before merging. Never bypass branch protection.
+
+
+## CI efficiency work — PR pending
+
+- Added path-aware test selection while preserving the existing required status-check names and protected-main ruleset.
+- Docs/workspace-only PRs are intended to skip the four-version Python matrix, JavaScript dependency installation and full Bench matrix; Python/backend/DocType/Page/public asset/test changes retain relevant tests.
+- Full Bench v15/v16 validation remains on main pushes and manual dispatch. Pinned Frappe v16.5.0 / Helpdesk validation is limited to runtime-relevant paths and remains manually dispatchable.
+- Added pip/npm dependency caching. Security scanning and dependency audit policy are retained.
+- **Not yet verified:** GitHub's handling of skipped required matrix contexts and actual runtime savings. Validate with metadata-only and Python/runtime PRs before merging. No ruleset requirements have been changed.
