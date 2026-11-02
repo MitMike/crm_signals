@@ -238,7 +238,7 @@ def test_change_aware_quality_filters_cover_workflows_and_packaging():
     assert "MANIFEST.in" in python_filter
     assert "requirements*.txt" in python_filter
     assert ".github/workflows/**" in javascript_filter
-    assert "on:\\n  push:\\n    branches:\\n      - main\\n  pull_request:" in workflow
+    assert "on:\n  push:\n    branches:\n      - main\n  pull_request:" in workflow
 
     assert workflow.count("needs.changes.result != 'success'") >= 5
     for version in ["310", "311", "312", "314"]:
