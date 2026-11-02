@@ -584,7 +584,8 @@ def verify_sales_compass_aggregate_fixture():
             "synthetic_invoice_count": 4,
             "synthetic_payment_entry_count": 1,
             "split_permission": "Payment Entry readable; Sales Invoice denied",
-            "pos_workflow_tested": True,\n            "pos_profile_created": pos_profile.name,
+            "pos_workflow_tested": True,
+            "pos_profile_created": pos_profile.name,
             "financial_reconciliation": False,
             "records_committed": False,
         }
