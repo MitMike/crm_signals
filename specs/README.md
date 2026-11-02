@@ -12,8 +12,8 @@ Product and engineering changes start with a spec before implementation. The spe
 | [2026-11-01-crm-signals-events-and-notifications.md](2026-11-01-crm-signals-events-and-notifications.md) | Quotation/Opportunity events and realtime routing | Baseline implemented; settings/idempotency implementation in PR #19 |
 | [2026-11-01-crm-signals-daily-digest.md](2026-11-01-crm-signals-daily-digest.md) | Scheduled Sales Manager digest | Baseline implemented; configurable schedule and date idempotency in PR #19 |
 | [2026-11-01-pillar-d1-sales-compass.md](2026-11-01-pillar-d1-sales-compass.md) | D1 Sales Compass | Missing-status correctness merged in PR #17; target-site validation remains |
-| [2026-11-01-pillar-d3-service-resolution-sla.md](2026-11-01-pillar-d3-service-resolution-sla.md) | D3 Service Resolution/SLA | Discovery contract ready; source mapping must be completed on the target site |
-| [2026-11-01-pillar-h-highlights.md](2026-11-01-pillar-h-highlights.md) | H Highlights | Design specified; implementation planned |
+| [2026-11-01-pillar-d3-service-resolution-sla.md](2026-11-01-pillar-d3-service-resolution-sla.md) | D3 Service Resolution/SLA | Adapter, aggregate fixture and exact v16.5.0/Helpdesk v1.28.0 reference CI verified; target-site source/permission/SLA acceptance remains |
+| [2026-11-01-pillar-h-highlights.md](2026-11-01-pillar-h-highlights.md) | H Highlights | Partial: high-value quotation alerts and per-Company thresholds merged; VIP proposal-link tracking gated on privacy/consent and retention approval |
 | [2026-11-01-pillar-e-explorer.md](2026-11-01-pillar-e-explorer.md) | E Explorer | Design specified; integration inventory required |
 | [2026-11-01-pillar-v-vault.md](2026-11-01-pillar-v-vault.md) | V Vault | Design specified; metric registry and retention configuration required |
 | [2026-11-01-pillar-a-analysis.md](2026-11-01-pillar-a-analysis.md) | A Analysis | Design specified; approved metric/query registry required |
@@ -42,3 +42,5 @@ Every feature spec must include:
 - **Target-site acceptance** checks actual Company currency, timezone, role permissions, workflow states, installed apps and financial totals. CI does not replace this.
 
 A spec is not complete because code exists. Its acceptance criteria must be linked to passing tests, and unsupported sources must be reported as unavailable rather than replaced with guessed data. D3's discovery spec is complete for the discovery/adapter contract; its concrete source-field mapping is deliberately gated on target-site evidence.
+
+| Realtime delivery reliability | [Durable realtime delivery](2026-11-02-durable-realtime-delivery.md) | PR #54 merged; code/test CI verified on v15/v16 and exact Frappe v16.5.0 reference; target-site Redis/worker/scheduler acceptance remains |

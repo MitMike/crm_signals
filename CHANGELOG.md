@@ -2,7 +2,13 @@
 
 This changelog records user-visible and operationally significant changes. It is not a substitute for commit history. Entries do not imply a production release unless explicitly stated.
 
-## Unreleased — Transactional signal outbox and D3 Helpdesk adapter (PR #26, #32)
+## Unreleased — Transactional signal outbox, durable realtime retry and D3 Helpdesk adapter (PR #26, #32, #54)
+
+### Realtime notification reliability
+- Add a per-recipient delivery ledger with a stable SHA-256 ID, bounded retry/backoff and permission rechecks before each publish attempt.
+- Add the stable ID to realtime payloads and suppress duplicate alerts within the active Desk session.
+- Report `Attempted` as queued for after-commit publication only; Redis delivery, browser receipt and human acknowledgement remain unconfirmed.
+- Target-site Redis outage, worker-restart and scheduler acceptance remain open.
 
 ### Added
 - Persist Quotation and Opportunity source events in a dedicated idempotent outbox with scheduled retries, bounded exponential backoff and a terminal Failed state visible to System Managers.

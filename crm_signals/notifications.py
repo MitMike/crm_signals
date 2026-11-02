@@ -71,34 +71,9 @@ def get_signal_recipients(signal):
     return eligible
 
 
+
 def notify_signal(signal):
-    """Publish to each related user; isolate one failed recipient from all others."""
-    payload = {
-        "name": signal.name,
-        "signal_type": signal.signal_type,
-        "priority": signal.priority,
-        "message": signal.message,
-        "lead": signal.lead,
-        "customer": signal.customer,
-    }
-    sent = 0
-    failed = 0
-    for user in get_signal_recipients(signal):
-        try:
-            frappe.publish_realtime(
-                event="crm_signal_received",
-                message=payload,
-                user=user,
-                after_commit=True,
-            )
-            sent += 1
-        except Exception:
-            failed += 1
-            try:
-                frappe.log_error(
-                    message=frappe.get_traceback(),
-                    title=f"CRM Signal notification failed for {user}",
-                )
-            except Exception:
-                pass
-    return {"sent": sent, "failed": failed}
+    """Persist per-recipient delivery state before attempting realtime publication."""
+    from crm_signals.realtime_delivery import dispatch_signal_notifications
+
+    return dispatch_signal_notifications(signal)

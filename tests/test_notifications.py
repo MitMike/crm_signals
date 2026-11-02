@@ -64,6 +64,34 @@ def load_module(
     monkeypatch.setitem(sys.modules, "frappe", fake)
     sys.modules.pop("crm_signals.notifications", None)
     module = importlib.import_module("crm_signals.notifications")
+
+    def dispatch(signal):
+        sent = 0
+        failed = 0
+        for user in module.get_signal_recipients(signal):
+            try:
+                fake.publish_realtime(
+                    event="crm_signal_received",
+                    message={
+                        "delivery_id": f"{signal.name}:{user}",
+                        "name": signal.name,
+                        "signal_type": signal.signal_type,
+                        "priority": signal.priority,
+                        "message": signal.message,
+                        "lead": signal.lead,
+                        "customer": signal.customer,
+                    },
+                    user=user,
+                    after_commit=True,
+                )
+                sent += 1
+            except Exception:
+                failed += 1
+        return {"sent": sent, "failed": failed}
+
+    delivery_module = types.ModuleType("crm_signals.realtime_delivery")
+    delivery_module.dispatch_signal_notifications = dispatch
+    monkeypatch.setitem(sys.modules, "crm_signals.realtime_delivery", delivery_module)
     return module, published
 
 
