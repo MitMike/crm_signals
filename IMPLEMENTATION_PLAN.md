@@ -87,6 +87,7 @@ Exit criteria:
 **Dependencies:** Stage 0.
 
 Work:
+- Correct ADR-074's first-install sequence: `bench get-app` installs before the SHA checkout. Use direct clone, detach/verify the approved SHA, then run Bench requirements and asset build from that tree; add disposable v15/v16/v16.5 CI coverage before target-site use.
 - Run a target-site preflight: framework versions, installed apps, Company default currency, timezone, roles, DocType metadata, workflows, custom fields and permissions.
 - Configure a dedicated integration user, rotateable API credentials, HTTPS, gateway rate limiting and secret storage.
 - Add source DocType, source document name and source event ID to CRM Signals; enforce idempotent inserts for identifiable events.
