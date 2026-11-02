@@ -232,3 +232,21 @@ def test_dashboard_checks_permission_for_the_exact_quotation_source(monkeypatch)
     assert checked_sources == ["QTN-0001"]
     assert result["recent"][0]["source_doctype"] == "Quotation"
     assert result["recent"][0]["source_name"] == "QTN-0001"
+
+
+def test_dashboard_hides_quotation_source_when_field_permission_metadata_fails(monkeypatch):
+    api, queries, frappe = load_api(monkeypatch)
+
+    def fail_field_permissions(**_kwargs):
+        raise RuntimeError("field permission metadata unavailable")
+
+    frappe.get_meta = lambda _doctype: types.SimpleNamespace(
+        get_permitted_fieldnames=fail_field_permissions
+    )
+    result = api.get_dashboard_data()
+
+    assert result["recent"][0]["source_doctype"] is None
+    assert result["recent"][0]["source_name"] is None
+    recent_query = next(query for query in queries if "message" in query["fields"])
+    assert "source_doctype" not in recent_query["fields"]
+    assert "source_name" not in recent_query["fields"]
