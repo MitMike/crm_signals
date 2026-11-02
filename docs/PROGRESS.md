@@ -20,7 +20,7 @@ ADR-068 is recorded. PR #70 added a non-whitelisted Bench diagnostic and unit co
 
 The CRM Signals dashboard now includes a source label and routes a High-Value Quote row to its originating Quotation only when the current user can read the CRM Signal source fields and that exact Quotation. Other source types are suppressed; permission or metadata errors fail closed, preserving the existing Lead/Customer/CRM Signal fallback. API tests cover field denial, document denial and non-Quotation sources; Playwright covers the visible source label and route.
 
-**State:** code-complete in PR #71; CI has not yet run on its final head. This closes the code path for H-AC11 only after CI passes. Target-site Sales User/Manager/non-sales permission checks remain pilot acceptance, not CI evidence.
+**State:** code-complete in PR #71. The first head `cbe8898` failed only `npm run format:check` for `e2e/sahdev-dashboard.spec.ts`; the Playwright block was reformatted and the route matcher corrected in commit `1960871`. Quality, Security, Bench v15/v16 + Playwright and pinned v16.5.0 checks have restarted on that final head and are not yet verified. Target-site Sales User/Manager/non-sales permission checks remain pilot acceptance, not CI evidence.
 
 ## D2 source-permission isolation — PR #65 merged
 
@@ -35,6 +35,12 @@ The USD invoice is deliberately posted against the Company's INR receivable acco
 
 **Next gate:** target-site native-report reconciliation, actual Sales User/Manager permissions, and operational pilot acceptance.
 
+
+## D2 real POS invoice settlement — PR #69 code-complete, final-head CI pending
+
+PR #69 replaces the prior POS-shaped aggregate row with a disposable POS Profile, a company-specific Mode of Payment and a submitted `is_pos` Sales Invoice using ERPNext's normal payment-row lifecycle. The fixture asserts that ERPNext calculates `paid_amount` equal to `grand_total`; it uses a non-stock item and disables POS stock updates. Browser checkout, POS Opening/Closing, cash-drawer and inventory workflows remain out of scope.
+
+The original PR head `f49b0cc` passed all 15 checks but was one commit behind main. I synchronized the branch with current main `13341b7` using merge commit `33b750a`; the new final-head Quality, Security, Bench v15/v16 + Playwright and pinned v16.5.0 checks are queued/running. **Do not mark CI-verified or merge until every required final-head context passes.** The fixture remains CI evidence, not target-site financial reconciliation.
 
 **D1/D2 Bench query-contract coverage — PR #63 merged (2026-11-02):** The real Sales Compass API now runs read-only in the Frappe v15/v16 Bench matrix and the pinned Frappe v16.5.0 / ERPNext v16.5.0 / Helpdesk v1.28.0 lane. The PR's final-head Quality, Security, Semgrep, Python, Bench v15/v16 and pinned-target checks passed. This verifies query/schema compatibility only; it does not establish financial totals, role-specific target-site visibility or native-report reconciliation. Merge commit: `0a7de966`.
 
