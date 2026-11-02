@@ -12,9 +12,9 @@ This file is the operational source of truth. [IMPLEMENTATION_PLAN.md](../IMPLEM
 
 ## Read-only target-site preflight report — code-complete, CI pending
 
-ADR-068 is recorded. The feature branch adds a non-whitelisted Bench diagnostic and unit coverage for app-version discovery, Company currency/threshold reporting without FX conversion, active Lead/Opportunity workflow states, required DocType fields, Select options, static DocPerm rows, missing D3 fields and omission of digest recipient addresses. The command performs metadata/configuration reads only; it does not read transaction, ticket or customer rows or write data.
+ADR-068 is recorded. PR #70 adds a non-whitelisted Bench diagnostic and unit coverage for app-version discovery, Company currency/threshold reporting without FX conversion, active Lead/Opportunity workflow states, required DocType fields, Select options, static DocPerm rows, missing D3 fields and omission of digest recipient addresses. The command performs metadata/configuration reads only; it does not read transaction, ticket or customer rows or write data.
 
-**State:** code-complete; CI has not yet run on the PR head. Do not call this CI-verified or pilot-verified until final-head checks pass and an authorized operator runs it on the target site. The report is an inventory aid, not an effective-permission or production-acceptance result.
+**State:** code-complete in PR #70 at head 8a599940; Quality, Security/Semgrep, Frappe v15/v16 Bench and pinned v16.5.0 checks are running. Do not call this CI-verified or pilot-verified until final-head checks pass and an authorized operator runs it on the target site. The report is an inventory aid, not an effective-permission or production-acceptance result.
 
 ## D2 source-permission isolation — PR #65 merged
 
