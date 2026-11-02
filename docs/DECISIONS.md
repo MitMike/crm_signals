@@ -736,3 +736,15 @@ Append a new ADR with the next available identifier. Include status, date record
 
 
 - **Duplicate-run correction (2026-11-02):** On PR #76 head `473e372`, GitHub ran Quality twice for the same SHA: push run `41477934545` on `ci/change-aware-fast-gates` and pull-request run `41477940227`. The Quality workflow now triggers push only on `main`; pull_request remains enabled for all PRs. A static contract test asserts this trigger scope. The redundant in-flight push run could not be cancelled through the available repository actions; future feature-branch pushes will not start it.
+
+
+## ADR-077 — Pin CRM Signals before Bench installs its dependencies
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-02
+- **Context:** ADR-074 required a full approved commit SHA, but its first-install example called `bench get-app` before checking out that SHA. Bench's `get_app` implementation clones and immediately calls `App.install`; that installation performs an editable Python package install, installs Node dependencies, synchronizes Bench app state and normally builds assets before `get-app` returns. The later checkout therefore cannot make the initial install reproducible. Bench-created clones also use the remote name `upstream`, while the prior upgrade example assumed `origin`.
+- **Decision:** For first installs, clone CRM Signals directly into `apps/crm_signals` with `--origin upstream`, fetch tags, detach to the approved full SHA and verify `rev-parse HEAD` before running `bench setup requirements crm_signals`, site installation, migration or asset build. The explicit app argument installs the editable package and Node dependencies from the pinned tree and synchronizes Bench app state. For upgrades, inspect the actual `upstream` remote, verify its repository URL, fetch tags, detach/verify the approved SHA, then run the same requirements command before migration/build. Do not use `bench get-app crm_signals` in this pinned procedure.
+- **Rationale:** The first Python/Node install and asset build must use the same immutable source revision that passed review and CI; checking out a commit after Bench has already installed the moving branch is not sufficient.
+- **Consequences:** The administrator guide, deployment runbook and target-site acceptance kit use the corrected order. Both supported-version Bench workflows now clone the checked-out CI revision locally, detach/verify `GITHUB_SHA`, and run `bench setup requirements crm_signals` before site install/migration. A static contract test protects the documentation and workflow order. This is CI procedure coverage, not a target-site deployment or pilot acceptance.
+- **Sources:** [Bench app installation](https://github.com/frappe/bench/blob/develop/bench/app.py), [Bench get-app command](https://github.com/frappe/bench/blob/develop/bench/commands/make.py).
+- **Revisit criteria:** Re-audit if the supported Bench versions change the `get-app` install sequence, remote naming, or `setup requirements <app>` behavior. Keep the v15, v16 and pinned v16.5.0 sequence tests passing; never restore a post-install SHA checkout.
