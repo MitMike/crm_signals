@@ -17,11 +17,11 @@ This file records known work that is intentionally not represented as complete. 
 
 ## Repository maintenance
 
-- [ ] **Current PR queue (reviewed 2026-11-02 against main `ac030b1`):** PR #82 pin-before-install correction is merged and CI-verified. PR #81 is the canonical regression-review template; PR #80 is closed as superseded by #79/#81. PR #75 (workspace label) and PR #78 (dashboard inset) need refresh/retest; #78 still needs desktop/mobile UAT. Dependabot #6/#7/#8/#10 are each one commit ahead and one behind main; #9 is one ahead and 45 behind. Refresh/retest one branch at a time; never treat old-head green checks as approval.
+- [ ] **Current PR queue (reviewed 2026-11-02 against main `966c31a`):** PR #84 dashboard inset is code-complete on current main; Quality/Security passed and Bench v15/v16 plus pinned v16.5.0 are running. PR #85 workspace label has green checks on old head `045dfc9` but is two commits behind main and must be rebased/retested after #84. PR #87 upload-artifact v7 is current with main; Quality/Security passed and Bench/pinned checks are running. PR #86 regression template merged as `966c31a`. PRs #75/#78/#81 are closed as superseded by #85/#84/#86; PR #6 is closed as superseded by #87. Never merge on stale-head CI.
 
-- [ ] **Dependabot refresh (reviewed against main `ac030b1`):** #6 actions/upload-artifact v7, #7 setup-uv v7, #8 setup-node v7 and #10 setup-python v7 each have one commit ahead and one behind main; #9 flit-core has one ahead and 45 behind. Inspect exact diffs and fresh required contexts after refreshing each branch. Recheck remaining branches after every main update.
+- [ ] **Dependabot refresh (reviewed against main `966c31a`):** #7 setup-uv v7, #8 setup-node v7 and #10 setup-python v7 each have one commit ahead and two behind main; #9 flit-core has one ahead and 47 behind. Refresh one branch at a time, inspect exact diffs, and require all applicable final-head Quality, Security, Bench and pinned-target contexts. Recheck remaining branches after every main update.
 
-- [ ] **Open UI/governance PRs (reviewed against main `ac030b1`):** PR #75 workspace display label is three commits behind (seven commits ahead); PR #78 dashboard inset is three behind (two ahead); PR #81 regression-review template is two behind (one ahead). Their earlier green checks are stale. Refresh each branch and require current-head Quality, Security and applicable Bench/pinned contexts. PR #78 additionally requires local asset/cache refresh and desktop/mobile visual evidence. None is UAT-verified.
+- [ ] **Open UI changes:** PR #84 restores the 24px dashboard horizontal inset and adds a static regression assertion; final-head CI is running. After merge, rebuild/refresh Desk assets and record desktop/mobile visual evidence before closing BUG-2026-001 / FIX-2026-001 as UAT-verified. PR #85 changes only the workspace display label/title to GME CRM Signals and preserves technical identifiers; its old green head is stale and must be rebased/retested. No UAT verification is claimed.
 
 ## P1 — engineering reliability improvements
 
@@ -70,9 +70,9 @@ Do not close a follow-up because code compiles or a mocked unit test passes. Clo
 
 ## P2 — Dependency maintenance
 
-Track the current five-open-Dependabot-PR inventory and branch distances in the Repository maintenance section above. Refresh and verify one branch at a time; merge only after fresh final-head checks pass.
+Track the four remaining Dependabot PRs (#7/#8/#9/#10) and replacement action PR #87 in the Repository maintenance section above. Refresh and verify one branch at a time; merge only after fresh final-head checks pass. Refresh and verify one branch at a time; merge only after fresh final-head checks pass.
 
 
-- [ ] **GME CRM Signals workspace rename (PR #75 / ADR-076):** static contract expectation was corrected after the initial test failure; require final-head Quality, Security, Bench v15/v16 and pinned v16.5.0 checks. Technical identifiers/routes must remain unchanged.
-- [ ] **Dashboard horizontal inset (BUG-2026-001 / FIX-2026-001; PR #78):** CSS fix and static regression assertion are in review. Require final-head CI, then update UAT assets/cache and record desktop/mobile visual evidence before marking UAT-verified.
-- [ ] **PR regression checklist (PR #81):** canonical template-only PR; refresh its two-commit-behind branch and require fresh Quality, Security and applicable Bench contexts. The template is advisory, not an automated gate.
+- [ ] **GME CRM Signals workspace rename (ADR-076; PR #85):** focused replacement carries only the workspace JSON, static label/title assertion, ADR and changelog. Rebase the two-commit-behind branch and rerun final-head CI before merge; technical identifiers/routes remain unchanged.
+- [ ] **Dashboard horizontal inset (BUG-2026-001 / FIX-2026-001; PR #84):** focused current-main fix is under final-head CI. After merge, rebuild/refresh UAT assets and record desktop/mobile visual evidence; do not mark UAT-verified from static/Bench CI.
+- [x] **PR regression checklist (PR #86):** single-file template merged as `966c31a` after Quality, Security and Bench workflow success. It is advisory, not an automated gate.
