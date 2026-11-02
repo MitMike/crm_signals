@@ -182,3 +182,35 @@ def test_dashboard_uses_structured_aggregates_on_frappe_v16(monkeypatch):
         query["fields"] == ["signal_type", {"COUNT": "*", "as": "total"}]
         for query in queries
     )
+
+
+def test_dashboard_hides_quotation_source_when_source_metadata_lookup_fails(monkeypatch):
+    api, queries, frappe = load_api(monkeypatch)
+
+    def fail_metadata(_doctype):
+        raise RuntimeError("metadata unavailable")
+
+    frappe.get_meta = fail_metadata
+    result = api.get_dashboard_data()
+
+    assert result["recent"][0]["source_doctype"] is None
+    assert result["recent"][0]["source_name"] is None
+    recent_query = next(query for query in queries if "message" in query["fields"])
+    assert "source_doctype" not in recent_query["fields"]
+    assert "source_name" not in recent_query["fields"]
+
+
+def test_dashboard_hides_quotation_source_when_document_permission_check_fails(monkeypatch):
+    api, _, frappe = load_api(monkeypatch)
+    original_has_permission = frappe.has_permission
+
+    def fail_quotation_permission(doctype, *args, **kwargs):
+        if doctype == "Quotation":
+            raise RuntimeError("permission metadata unavailable")
+        return original_has_permission(doctype, *args, **kwargs)
+
+    frappe.has_permission = fail_quotation_permission
+    result = api.get_dashboard_data()
+
+    assert result["recent"][0]["source_doctype"] is None
+    assert result["recent"][0]["source_name"] is None
