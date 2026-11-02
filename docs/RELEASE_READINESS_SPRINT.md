@@ -72,7 +72,7 @@
 
 ## Current blockers and known evidence
 
-- PR #63 is code-complete but not CI-verified. It executes the real D1/D2 query path on Frappe v15/v16 and pinned v16.5.0 without creating business records. It is not a financial reconciliation or target-site permission test.
+- PR #63 is code-complete but not CI-verified. It executes the real D1/D2 query path on Frappe v15/v16 and pinned v16.5.0 without creating business records, and restricts Bench push runs to `main` to avoid duplicate PR-branch matrices. It is not a financial reconciliation or target-site permission test.
 
 - `main` baseline is `aeea9599b11f17bff0ef5bbd7904f44f23567e3e`; PR #32 D3, PR #38 replay, PR #42 field guard, PR #44 source permission, PR #57/#59/#61 Explorer, PR #61 operator-runbook safeguards and PR #62 status reconciliation are merged. PR #63 adds D1/D2 query compatibility smoke coverage; final-head CI is pending.
 - PR #38 replay is merged after both Frappe v15/v16 Bench jobs passed.
