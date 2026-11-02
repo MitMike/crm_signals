@@ -30,6 +30,10 @@ jobs:
               - 'scripts/**/*.py'
               - 'pyproject.toml'
               - 'setup.py'
+              - 'MANIFEST.in'
+              - 'requirements*.txt'
+              - 'requirements/**'
+              - '.github/workflows/**'
             javascript:
               - 'package.json'
               - 'package-lock.json'
@@ -40,6 +44,7 @@ jobs:
               - 'crm_signals/**/*.ts'
               - 'crm_signals/**/*.css'
               - 'crm_signals/**/*.html'
+              - '.github/workflows/**'
 
   lint:
     needs: changes
