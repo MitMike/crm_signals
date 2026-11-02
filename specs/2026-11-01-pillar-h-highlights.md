@@ -1,6 +1,6 @@
 # H — Highlights and event-driven sales alerts
 
-**Status:** Partially implemented. High-value Quotation alerts and per-Company thresholds are implemented in PR #45/#49; PR #60 adds direct hook-level threshold regression coverage. PR #71 adds permission-gated CRM Signals Console drill-down to the source Quotation with API and Playwright coverage (code-complete; final-head CI pending). ADR-072's failure-only diagnostic emitted the exact Prettier 3.9.10 output, applied as commit `91fc89c`; the branch is synchronized with latest main `567f458`. Merge only after all required final-head checks pass. VIP allowlist/escalation behavior remains pending a product-owner decision. Proposal-link tracking remains gated on privacy, consent and retention approval.
+**Status:** Partially implemented. High-value Quotation alerts and per-Company thresholds are implemented in PR #45/#49; PR #60 adds direct hook-level threshold regression coverage. PR #71 adds permission-gated CRM Signals Console drill-down to the source Quotation with API and Playwright coverage; it merged as `c5720bf` after final head `df0c273` passed Quality, Security, Python 3.10/3.11/3.12/3.14, Bench v15/v16 including Playwright, and pinned Frappe v16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0. The exact Prettier 3.9.10 output was applied via ADR-072. H-AC11 is CI-verified, not pilot-verified. VIP allowlist/escalation behavior remains pending a product-owner decision. Proposal-link tracking remains gated on privacy, consent and retention approval.
 
 ## Problem and users
 
