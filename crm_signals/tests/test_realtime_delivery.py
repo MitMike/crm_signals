@@ -172,6 +172,61 @@ class TestRealtimeNotificationDelivery(FrappeTestCase):
         self.assertEqual(delivery.attempt_count, 2)
         self.assertEqual(delivery.last_error, "RuntimeError")
 
+    def test_scheduler_retries_due_rows_and_skips_future_rows(self):
+        from frappe.utils import add_to_date, now_datetime
+
+        from crm_signals.realtime_delivery import (
+            _get_or_create_delivery,
+            process_pending_signal_notification_deliveries,
+        )
+
+        due_signal = self._make_signal()
+        retry_signal = self._make_signal()
+        future_signal = self._make_signal()
+        due = _get_or_create_delivery(due_signal.name, "Administrator")
+        retry = _get_or_create_delivery(retry_signal.name, "Administrator")
+        future = _get_or_create_delivery(future_signal.name, "Administrator")
+        retry.db_set(
+            {
+                "status": "Attempted",
+                "attempt_count": 1,
+                "next_retry_at": add_to_date(now_datetime(), minutes=-1),
+            },
+            update_modified=False,
+        )
+        future.db_set(
+            {
+                "status": "Attempted",
+                "attempt_count": 1,
+                "next_retry_at": add_to_date(now_datetime(), minutes=30),
+            },
+            update_modified=False,
+        )
+
+        with (
+            patch(
+                "crm_signals.notifications.get_signal_recipients",
+                return_value=["Administrator"],
+            ),
+            patch("frappe.publish_realtime") as publish,
+            patch("frappe.db.commit"),
+        ):
+            result = process_pending_signal_notification_deliveries()
+
+        due.reload()
+        retry.reload()
+        future.reload()
+        self.assertEqual(result["attempted"], 2)
+        self.assertEqual(due.status, "Attempted")
+        self.assertEqual(due.attempt_count, 1)
+        self.assertEqual(retry.status, "Attempted")
+        self.assertEqual(retry.attempt_count, 2)
+        self.assertEqual(future.status, "Attempted")
+        self.assertEqual(future.attempt_count, 1)
+        self.assertEqual(len(_signal_publish_calls(publish, due_signal.name)), 1)
+        self.assertEqual(len(_signal_publish_calls(publish, retry_signal.name)), 1)
+        self.assertEqual(len(_signal_publish_calls(publish, future_signal.name)), 0)
+
     def test_delivery_ledger_does_not_copy_notification_content(self):
         from crm_signals.realtime_delivery import _get_or_create_delivery
 
