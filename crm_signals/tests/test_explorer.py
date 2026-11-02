@@ -3,6 +3,7 @@
 import base64
 import json
 import unittest
+from contextlib import contextmanager
 from unittest.mock import patch
 
 try:
@@ -20,6 +21,16 @@ if frappe is not None:
     from crm_signals import explorer
 
 
+@contextmanager
+def _as_administrator():
+    previous_user = frappe.session.user
+    frappe.set_user("Administrator")
+    try:
+        yield
+    finally:
+        frappe.set_user(previous_user)
+
+
 class _Meta:
     def has_field(self, fieldname):
         return True
@@ -35,6 +46,10 @@ def _item(source_id, event_id, timestamp):
 
 @unittest.skipIf(frappe is None, "Requires the Frappe Bench integration environment")
 class TestExplorerTimeline(FrappeTestCase):
+    def test_fractional_page_length_is_rejected(self):
+        with self.assertRaises(frappe.ValidationError):
+            explorer.get_explorer_timeline("Lead", "LEAD-0001", page_length=1.5)
+
     def test_cursor_round_trip_preserves_snapshot_and_offsets(self):
         offsets = {"crm_signal": 2, "quotation": 1, "opportunity": 0}
         cursor = explorer._encode_cursor("2026-11-02 10:00:00", offsets, 20, "Lead:LEAD-0001")
@@ -155,7 +170,7 @@ class TestExplorerTimeline(FrappeTestCase):
             return doctype != "Quotation"
 
         with (
-            patch.object(frappe.session, "user", "Administrator"),
+            _as_administrator(),
             patch.object(frappe.db, "exists", return_value=True),
             patch.object(frappe, "has_permission", side_effect=has_permission),
             patch.object(frappe, "get_meta", return_value=_Meta()),
