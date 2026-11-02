@@ -92,3 +92,12 @@ This snapshot supersedes older dependency queue entries above. Never merge stale
 - [ ] **Target-site pilot acceptance:** still requires authorized staging access, exact installed app/full-SHA inventory, effective permission tests, D1/D2 reconciliation by currency, active Helpdesk SLA calendar, scheduler/mail/realtime/webhook checks and backup/restore/rollback rehearsal.
 
 This snapshot supersedes the older dependency queue entries above. A green CI result is reference-stack verification only; it is not target-site or pilot verification.
+
+
+## Post-merge verification — 2026-11-03
+
+- [x] PR #98 merged as `1a27166bfe988c860b3527af5bba9a0299e1e30f`; all 13 final-head checks completed successfully.
+- [x] Docs-only path detection skipped runtime Python/Bench execution as designed; Python tests, lint/static, Semgrep, Bench v15/v16 validation and v16 Playwright completed successfully.
+- [x] Live open-PR search returned zero immediately after merge.
+- [ ] Dashboard visual UAT: obtain staging desktop/mobile evidence before closing BUG-2026-001/FIX-2026-001.
+- [ ] Target-site pilot: collect authorized v16.5 staging inventory, effective-role tests, D1/D2 reconciliation, Helpdesk SLA evidence, operational recovery and backup/restore/rollback rehearsal.
