@@ -6,6 +6,11 @@ on:
       - "crm_signals/**/*.py"
       - "crm_signals/**/doctype/**"
       - "crm_signals/**/page/**"
+      - "crm_signals/**/*.json"
+      - "crm_signals/workspace/**"
+      - "crm_signals/patches.txt"
+      - "crm_signals/patches/**"
+      - "crm_signals/fixtures/**"
       - "crm_signals/public/**"
       - "tests/**"
       - "pyproject.toml"
@@ -17,8 +22,7 @@ on:
       - "requirements/**"
       - "crm_signals/config/**"
       - "crm_signals/modules.txt"
-      - ".github/workflows/bench-e2e.yml"
-      - ".github/workflows/bench-target-v16-5.yml"
+      - ".github/workflows/**"
   workflow_dispatch:
 
 permissions:
