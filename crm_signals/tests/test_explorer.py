@@ -37,18 +37,25 @@ def _item(source_id, event_id, timestamp):
 class TestExplorerTimeline(FrappeTestCase):
     def test_cursor_round_trip_preserves_snapshot_and_offsets(self):
         offsets = {"crm_signal": 2, "quotation": 1, "opportunity": 0}
-        cursor = explorer._encode_cursor("2026-11-02 10:00:00", offsets, 20)
+        cursor = explorer._encode_cursor("2026-11-02 10:00:00", offsets, 20, "Lead:LEAD-0001")
 
-        decoded = explorer._decode_cursor(cursor, 20)
+        decoded = explorer._decode_cursor(cursor, 20, "Lead:LEAD-0001")
 
         self.assertEqual(decoded["as_of"], "2026-11-02 10:00:00")
         self.assertEqual(decoded["offsets"], offsets)
+
+    def test_cursor_cannot_be_reused_for_another_context(self):
+        offsets = {"crm_signal": 0, "quotation": 0, "opportunity": 0}
+        cursor = explorer._encode_cursor("2026-11-02 10:00:00", offsets, 20, "Lead:LEAD-0001")
+
+        with self.assertRaises(frappe.ValidationError):
+            explorer._decode_cursor(cursor, 20, "Customer CUST-0001")
 
     def test_cursor_rejects_non_object_payload(self):
         cursor = base64.urlsafe_b64encode(b"[]").decode("ascii").rstrip("=")
 
         with self.assertRaises(frappe.ValidationError):
-            explorer._decode_cursor(cursor, 20)
+            explorer._decode_cursor(cursor, 20, "Lead:LEAD-0001")
 
     def test_merge_uses_stable_tie_break_and_per_source_offsets(self):
         pages = {
