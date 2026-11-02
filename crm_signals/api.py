@@ -708,10 +708,11 @@ def _sales_customer_receipt_metrics(result, period_start):
 
 
 def _get_sales_billing_data(period_start, today):
-    """Return permission-filtered billing metrics with explicit source semantics.
+    """Return permission-filtered billing metrics with independent source access.
 
-    Payment Entry receipts are grouped in receiving-account currency and include
-    allocated and advance receipts. POS receipts remain a separate measure.
+    Sales Invoice measures and Payment Entry receipts have separate read
+    permissions. A user who cannot read invoices may still be allowed to read
+    customer receipts; POS and invoice-balance measures remain unavailable.
     """
     result = _sales_billing_empty_result()
     try:
@@ -720,11 +721,26 @@ def _get_sales_billing_data(period_start, today):
             result["sales_invoice_unavailable_reason"] = _(
                 "Sales Invoice source is unavailable for this user"
             )
-            return result
-
-        result["available"] = True
-        _sales_invoice_metrics(result, invoice_meta, period_start, today)
+        else:
+            result["available"] = True
+            _sales_invoice_metrics(result, invoice_meta, period_start, today)
     except frappe.PermissionError:
-        return result
+        # Do not let an invoice query failure suppress the independent
+        # Payment Entry source, and do not return any partial invoice result.
+        result.update({
+            "available": False,
+            "sales_invoice_unavailable_reason": _(
+                "Sales Invoice source is unavailable for this user"
+            ),
+            "invoiced_available": False,
+            "invoiced_by_currency": [],
+            "outstanding_available": False,
+            "outstanding_by_currency": [],
+            "pos_receipts_available": False,
+            "pos_receipts_by_currency": [],
+            "overdue_available": False,
+            "overdue_count": None,
+            "overdue_invoices": [],
+        })
 
     return _sales_customer_receipt_metrics(result, period_start)

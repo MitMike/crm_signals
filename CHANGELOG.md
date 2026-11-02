@@ -2,7 +2,12 @@
 
 This changelog records user-visible and operationally significant changes. It is not a substitute for commit history. Entries do not imply a production release unless explicitly stated.
 
-## Unreleased — Transactional signal outbox, durable realtime retry, D3 Helpdesk, Highlights, Explorer and D1/D2 CI contracts (PR #26, #32, #54, #57, #59, #60, #63)
+## Unreleased — Transactional signal outbox, durable realtime retry, D3 Helpdesk, Highlights, Explorer and D1/D2 CI contracts (PR #26, #32, #54, #57, #59, #60, #63, #65)
+
+### D2 independent source permissions — PR #65
+- Keep Payment Entry customer receipts available when Sales Invoice read access is denied, as required by the D2 source contract.
+- Clear partial Sales Invoice metrics after a permission exception and continue with the independent, permission-aware Payment Entry query.
+- Add a regression test for Sales Invoice denied / Payment Entry allowed. No role grants or financial calculation changes.
 
 ### D1/D2 real query-contract smoke — PR #63
 - Execute the read-only Sales Compass API against installed ERPNext DocTypes in the Frappe v15/v16 Bench matrix and pinned Frappe v16.5.0 / ERPNext v16.5.0 / Helpdesk v1.28.0 lane.
