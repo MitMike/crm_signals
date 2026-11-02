@@ -1,6 +1,6 @@
 # Durable realtime notification delivery
 
-**Status:** Implemented in PR #54; CI and target-site acceptance pending.
+**Status:** Code/test implementation is CI-verified in PR #54; target-site Redis/worker/scheduler acceptance remains pending.
 
 ## Problem
 
