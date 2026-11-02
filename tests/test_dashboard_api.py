@@ -5,14 +5,31 @@ import sys
 import types
 
 
-def load_api(monkeypatch, user="sales.user@example.com", allowed=True, version="15.0.0"):
+def load_api(
+    monkeypatch,
+    user="sales.user@example.com",
+    allowed=True,
+    version="15.0.0",
+    source_allowed=True,
+    source_fields_allowed=True,
+    source_doctype="Quotation",
+):
     frappe = types.ModuleType("frappe")
     frappe.__path__ = []
     frappe._ = lambda message: message
     frappe.whitelist = lambda **kwargs: (lambda function: function)
     frappe.session = types.SimpleNamespace(user=user)
     frappe.__version__ = version
-    frappe.has_permission = lambda *args, **kwargs: allowed
+    def has_permission(doctype, *args, **kwargs):
+        return source_allowed if doctype == "Quotation" else allowed
+
+    frappe.has_permission = has_permission
+    permitted_fields = (
+        {"source_doctype", "source_name"} if source_fields_allowed else set()
+    )
+    frappe.get_meta = lambda doctype: types.SimpleNamespace(
+        get_permitted_fieldnames=lambda **kwargs: permitted_fields
+    )
 
     class AuthenticationError(Exception):
         pass
@@ -61,6 +78,8 @@ def load_api(monkeypatch, user="sales.user@example.com", allowed=True, version="
                     "lead": "LEAD-0001",
                     "customer": None,
                     "is_read": 0,
+                    "source_doctype": source_doctype,
+                    "source_name": "QTN-0001" if source_doctype == "Quotation" else "EXT-0001",
                 }
             ]
         raise AssertionError(f"Unexpected query: {fields!r}")
@@ -92,8 +111,40 @@ def test_dashboard_returns_permission_filtered_metrics_and_recent_signals(monkey
         {"signal_type": "High-Value Quote", "total": 5},
     ]
     assert result["recent"][0]["name"] == "SIG-0001"
+    assert result["recent"][0]["source_doctype"] == "Quotation"
+    assert result["recent"][0]["source_name"] == "QTN-0001"
+    recent_query = next(query for query in queries if "message" in query["fields"])
+    assert {"source_doctype", "source_name"}.issubset(set(recent_query["fields"]))
     assert all(query["doctype"] == "CRM Signal" for query in queries)
     assert all("ignore_permissions" not in query for query in queries)
+
+
+
+def test_dashboard_hides_quotation_source_when_document_read_is_denied(monkeypatch):
+    api, _, _ = load_api(monkeypatch, source_allowed=False)
+    result = api.get_dashboard_data()
+
+    assert result["recent"][0]["source_doctype"] is None
+    assert result["recent"][0]["source_name"] is None
+
+
+def test_dashboard_hides_quotation_source_when_source_fields_are_not_readable(monkeypatch):
+    api, queries, _ = load_api(monkeypatch, source_fields_allowed=False)
+    result = api.get_dashboard_data()
+
+    assert result["recent"][0]["source_doctype"] is None
+    assert result["recent"][0]["source_name"] is None
+    recent_query = next(query for query in queries if "message" in query["fields"])
+    assert "source_doctype" not in recent_query["fields"]
+    assert "source_name" not in recent_query["fields"]
+
+
+def test_dashboard_does_not_expose_non_quotation_source_identifiers(monkeypatch):
+    api, _, _ = load_api(monkeypatch, source_doctype="API Integration")
+    result = api.get_dashboard_data()
+
+    assert result["recent"][0]["source_doctype"] is None
+    assert result["recent"][0]["source_name"] is None
 
 
 def test_dashboard_requires_authenticated_user(monkeypatch):
