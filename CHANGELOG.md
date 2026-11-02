@@ -4,6 +4,11 @@ This changelog records user-visible and operationally significant changes. It is
 
 ## Unreleased — Transactional signal outbox, durable realtime retry, D3 Helpdesk, Highlights, Explorer and D1/D2 CI contracts (PR #26, #32, #54, #57, #59, #60, #63, #65, #67)
 
+### High-Value Quote source drill-down — PR #71 (CI pending)
+- Return source_doctype/source_name only when the current user can read both CRM Signal source fields, the signal is a High-Value Quote sourced from Quotation, and the exact Quotation is readable.
+- Suppress other source identifiers and fail closed on permission/metadata errors; the Desk row opens the Quotation while retaining existing party/Signal fallbacks.
+- Add API permission-denial tests and Playwright coverage for the Console source route. Target-site role acceptance remains open.
+
 ### Read-only target-site preflight report — PR #70 (CI pending)
 - Add a non-whitelisted Bench command to inventory installed app versions when importable, site timezone, Company currencies and threshold source/currency, active Lead/Opportunity workflow states, relevant DocType fields/Select options/permlevels and static DocPerm rows.
 - Omit recipient email addresses, credentials and business-document rows; perform no writes.
