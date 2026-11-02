@@ -167,3 +167,10 @@ For each change:
 - Monday–Saturday is the agreed business-week assumption; configured Helpdesk SLA hours and holiday lists are not overridden.
 - Field-level fail-closed permission guard merged in PR #42; exact Frappe v16.5.0/ERPNext v16.5.0/Helpdesk v1.28.0 CI merged and passed in PR #50. Pilot-site versions and role/SLA acceptance remain. The first run exposed a malformed MariaDB client config; the here-doc correction is in place.
 - Remaining: capture the pilot site's exact app versions, configure the approved custom read-only Helpdesk role for Sales, and verify the active SLA calendar, hours and holiday list.
+
+
+## PR #57 merge gate — cancelled duplicate Bench checks
+
+- **Evidence:** GitHub rejected the first merge attempt on head `7f9d840226e6d6db1a435b8c1cc629e70dc63eca` with HTTP 405: `2 of 8 required status checks are cancelled`. The PR-triggered Bench v15/v16 run `41403029061` passed both jobs, the exact Frappe v16.5.0 / Helpdesk v1.28.0 lane `41403028893` passed, and the other required Python/lint/Semgrep contexts passed. The two cancelled contexts came from push run `41403173818` on the stacked Desk branch at the same SHA. A rerun attempt on that old run was cancelled again by branch concurrency.
+- **Decision:** Do not bypass the main ruleset and do not retry the stale shared-SHA run again. Create a new unique PR #57 head with this blocker recorded, let its own push/PR workflows finish, and merge only when all eight required contexts are successful on that head and the exact target lane passes.
+- **Revisit criteria:** Recheck the new head's check-run rollup and the active ruleset. If any required context is cancelled or missing, rerun it on the new head; if GitHub still reports cancelled checks despite successful same-head runs, stop and diagnose the workflow concurrency/duplicate-context configuration rather than bypass protection. Retarget stacked PR #58 only after PR #57 is merged.

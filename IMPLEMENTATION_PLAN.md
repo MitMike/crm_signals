@@ -170,7 +170,7 @@ Exit criteria:
 **Priority:** P2  
 **Dependencies:** Stage 1 permission contract; verified integrations and source event identities.
 
-**Current slice:** PR #57 implements the first read-only backend adapters for CRM Signal, Quotation and Opportunity. It supports Lead, Customer, Opportunity, CRM Signal and High-Value Quote contexts, metadata-only summaries, bounded snapshot pagination and explicit field-level read checks for every context/filter/source field. The field-permission review fix is awaiting a fresh CI run; no Desk UI or optional-provider adapter is claimed.
+**Current slice:** PR #57 implements the first read-only backend adapters for CRM Signal, Quotation and Opportunity. It supports Lead, Customer, Opportunity, CRM Signal and High-Value Quote contexts, metadata-only summaries, bounded snapshot pagination and explicit field-level read checks for every context/filter/source field. The field-permission review fix is awaiting a fresh CI run. The prior head's merge was rejected because two duplicate Bench contexts from the stacked Desk branch were cancelled; a new unique head is required to clear the ruleset without bypass. No Desk UI or optional-provider adapter is included in this PR.
 
 Work:
 - [x] Add the initial read-only CRM Signal, Quotation and Opportunity adapters and bounded timeline API (PR #57; CI pending).
