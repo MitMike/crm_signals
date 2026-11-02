@@ -117,6 +117,10 @@ jobs:
         working-directory: /home/runner/frappe-bench
         run: bench --site test.local execute crm_signals.ci.verify_helpdesk_schema
 
+      - name: Verify D3 aggregate calculations with synthetic Helpdesk tickets
+        working-directory: /home/runner/frappe-bench
+        run: bench --site test.local execute crm_signals.ci.verify_helpdesk_aggregate_fixture
+
       - name: Exercise CRM Signal schema upgrade
         working-directory: /home/runner/frappe-bench
         run: |
