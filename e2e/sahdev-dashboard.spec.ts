@@ -437,7 +437,9 @@ test("CRM Signals Settings presets can be applied and customised", async ({
 });
 
 
-test("Realtime notifications suppress duplicate delivery IDs", async ({ page }) => {
+test("Realtime notifications suppress duplicate delivery IDs", async ({
+    page
+}) => {
     await loginAsAdministrator(page);
     await page.goto("/app/crm-signals-dashboard");
 
