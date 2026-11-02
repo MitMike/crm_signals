@@ -770,3 +770,14 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Rationale:** Isolated updates make regressions attributable and prevent stale CI evidence from being treated as current compatibility proof.
 - **Consequences:** PR #7's `setup-uv@v7` update merged as `331492c` after all 18 final-head checks passed. PRs #8/#10 require a fresh base and checks; PR #9 additionally requires packaging compatibility validation. No failing or pending check is bypassed.
 - **Revisit criteria:** Revisit if repository branch protection or the required check matrix changes. Do not relax final-head verification to reduce maintenance effort.
+
+
+## ADR-080 — Refresh remaining maintenance work after setup-python merge
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-03
+- **Context:** PR #94 merged to main as `926619b`, advancing the base while the flit-core and documentation reconciliation PRs were open.
+- **Decision:** Recreate the isolated flit-core change against the new main head as PR #96 and rerun checks. Treat PR #93 as superseded. Refresh the maintenance status documentation against the same base. Require direct package wheel/sdist build and installation evidence for the build-system range change.
+- **Rationale:** Checks on a stale base do not establish compatibility with current main. Package metadata changes require package-specific validation.
+- **Consequences:** PR #8 and #94 are merged. PR #96 is pending final-head CI and packaging evidence. Target-site acceptance and dashboard visual UAT remain separate release gates.
+- **Revisit criteria:** Main advances, checks fail or are cancelled, the diff changes, or packaging evidence identifies a compatibility issue.

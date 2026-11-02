@@ -78,3 +78,14 @@ Track the three remaining open Dependabot PRs; refresh and verify one branch at 
 - [ ] **PR #8 — setup-node v7 and PR #10 — setup-python v7:** each is one commit ahead and two commits behind main `331492c`; old-head checks are green but stale. Refresh individually and rerun current-head required checks.
 - [ ] **PR #9 — flit-core requirement:** one commit ahead and 52 commits behind main `331492c`. Refresh after the nearer action updates; inspect the `<5` upper bound and run package build/install plus supported Bench lanes before merge.
 - [ ] **PR #80/#81 regression-review template:** both closed unmerged; template not merged. Revisit only if a repository owner explicitly wants this optional review aid; it is not a release gate.
+
+
+## Current maintenance snapshot — 2026-11-03 (refreshed after PR #94)
+
+- [x] PR #8 — setup-node v7 merged.
+- [x] PR #94 — setup-python v7 merged as `926619b`; all final-head checks passed.
+- [ ] PR #96 — refreshed flit-core `>=3.4,<5` update on current main. Await final-head CI and direct wheel/sdist build plus installation compatibility evidence. PR #93 is superseded and its checks must not be reused.
+- [ ] Target-site pilot acceptance — collect sanitized read-only preflight and installed app/full-SHA inventory, then validate effective permissions, D1/D2 financial reconciliation by currency, Helpdesk SLA calendar, scheduler/mail/realtime/webhook operations, and backup/restore/rollback rehearsal.
+- [ ] Dashboard visual UAT — after approved staging asset refresh, capture desktop/mobile screenshots confirming the horizontal inset and close BUG-2026-001/FIX-2026-001 only with evidence.
+
+This dated snapshot is authoritative over older dependency queue entries retained above. Never merge stale PR heads or bypass required checks.

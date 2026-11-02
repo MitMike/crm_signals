@@ -217,3 +217,12 @@ PR #7 updates `astral-sh/setup-uv@v6` to `@v7` in `.github/workflows/bench-e2e.y
 - **Open Dependabot PRs:** #8 setup-node v7 and #10 setup-python v7 are each one commit ahead and two behind this main snapshot; their old-head checks passed but must be refreshed and rerun. PR #9 flit-core `>=3.4,<5` is one commit ahead and 52 behind; its old-head checks are stale and package-build/install compatibility remains to be verified.
 - PRs #75/#78 were closed unmerged and superseded by #85/#84. PRs #80/#81 were closed unmerged; the optional regression-review template was not merged.
 - These maintenance checks do not change the product release decision and are not pilot verification.
+
+
+## Maintenance and release-status reconciliation — 2026-11-03 (refreshed after PR #94)
+
+- PR #8 (setup-node v7) and PR #94 (setup-python v7) are merged. PR #94 merged as `926619b` after all final-head checks passed.
+- PR #96 is the refreshed flit-core build-system range update on the current main head `926619b`; it changes only `pyproject.toml` from `flit_core >=3.4,<4` to `>=3.4,<5`. Require fresh final-head CI and direct wheel/sdist build plus installation compatibility evidence before merge.
+- PR #93 is superseded by #96 because #94 advanced main; do not use #93's checks as evidence for #96.
+- Target-site pilot acceptance remains unverified by CI. Required operator evidence remains the read-only preflight, exact installed app/commit inventory, effective-role permission checks, D1/D2 native ERPNext report reconciliation by currency, Helpdesk SLA calendar, scheduler/mail/realtime/webhook operations, and backup/restore/rollback rehearsal.
+- Dashboard inset visual UAT (desktop/mobile after approved asset refresh) remains open. Do not perform production migration, permission change, or deployment without required approval and backup/rollback evidence.
