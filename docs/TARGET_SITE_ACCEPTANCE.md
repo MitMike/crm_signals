@@ -28,6 +28,7 @@ Attach the output of `bench version`, the installed-app inventory and the deploy
 Record, do not infer:
 
 - [ ] Frappe reports the expected v16.5 patch/build; ERPNext and Helpdesk exact versions are recorded and compatible.
+- [ ] Run the read-only Bench preflight command (bench --site <site-name> execute crm_signals.diagnostics.get_site_preflight_report) after deploying a revision containing it; attach reviewed output through the site's approved secure channel. The report includes Company names and threshold amounts and must not be shared publicly.
 - [ ] CRM Signals is installed and migrated on the intended site.
 - [ ] Installed support, helpdesk, telephony, email and activity apps are inventoried with exact versions.
 - [ ] Every enabled Company and its default currency are recorded.
@@ -35,6 +36,7 @@ Record, do not infer:
 - [ ] Lead and Opportunity workflows, status values and terminal statuses are exported/reviewed.
 - [ ] Relevant custom fields, custom scripts, server scripts and permission overrides are inventoried.
 - [ ] Sales roles and representative users are identified for the permission matrix.
+- [ ] Review static DocPerm rows and field permlevels, then independently complete the effective user/persona matrix below; static role grants do not prove effective access.
 - [ ] Email account, sender policy, mail queue and realtime deployment topology are recorded.
 - [ ] Current CRM Signals Settings values and enabled presets are captured.
 

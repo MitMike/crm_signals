@@ -4,6 +4,12 @@ This changelog records user-visible and operationally significant changes. It is
 
 ## Unreleased — Transactional signal outbox, durable realtime retry, D3 Helpdesk, Highlights, Explorer and D1/D2 CI contracts (PR #26, #32, #54, #57, #59, #60, #63, #65, #67)
 
+### Read-only target-site preflight report — PR #70 (CI pending)
+- Add a non-whitelisted Bench command to inventory installed app versions when importable, site timezone, Company currencies and threshold source/currency, active Lead/Opportunity workflow states, relevant DocType fields/Select options/permlevels and static DocPerm rows.
+- Omit recipient email addresses, credentials and business-document rows; perform no writes.
+- Add tests for exact-currency threshold behavior, workflow/field metadata, missing Helpdesk fields and recipient-address omission.
+- Record ADR-068 and document the command in the administrator guide and target-site acceptance kit. Code is complete; final-head CI and target-site execution remain pending.
+
 ### D2 independent source permissions — PR #65
 - Keep Payment Entry customer receipts available when Sales Invoice read access is denied, as required by the D2 source contract.
 - Clear partial Sales Invoice metrics after a permission exception and continue with the independent, permission-aware Payment Entry query.

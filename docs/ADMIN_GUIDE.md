@@ -14,6 +14,18 @@ The deployment owner confirmed **Frappe v16.5** as the target baseline. The pinn
 
 Use the [D3 Support & SLA discovery worksheet](D3_SUPPORT_SLA_DISCOVERY_GUIDE.html) first to record the site's exact app versions, ticket lifecycle, SLA policy, business hours, holidays, timezone, roles and retention settings. Then follow the [Frappe v16.5 support configuration guide](CRM_SIGNALS_SUPPORT_CONFIGURATION_GUIDE.html) and complete the [target-site acceptance checklist](TARGET_SITE_ACCEPTANCE.md). Download the HTML guides and open them locally in a browser; GitHub's file viewer shows their source.
 
+## Read-only target-site preflight report
+
+After deploying a CRM Signals revision that contains the diagnostic command, run it from the Bench server as an authorized operator:
+
+```bash
+bench --site <site-name> execute crm_signals.diagnostics.get_site_preflight_report
+```
+
+The report inventories the Frappe and installed-app versions (where the app exposes a Python version attribute), site timezone, Company names/base currencies, effective quotation-threshold source and currency, active Lead/Opportunity workflows and states, relevant DocType fields/Select options/field permlevels, and static DocPerm rows for Sales User, Sales Manager and System Manager. It omits recipient email addresses, credentials and business-document rows. Review the output and share it only through the site's approved channel because it includes Company names and configured threshold amounts.
+
+The report is server-side only and read-only. Static DocPerm rows are not effective user permissions; the report does not replace the real-user permission matrix, finance/native-report reconciliation, Helpdesk SLA calendar review, or staging operational rehearsal. A missing app version is reported as unknown, not inferred.
+
 ## Installation and upgrade
 
 Install from the app repository using the site's normal Bench/Pilot process:
