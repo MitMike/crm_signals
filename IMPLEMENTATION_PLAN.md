@@ -43,7 +43,7 @@ The following capabilities are present in the repository. "Implemented" means th
 | D2 Billing Realization | Implemented; return-metadata guard merged in PR #17 | Reconcile totals and currency basis against target-site reports |
 | D3 Service Resolution/SLA | Standard Frappe Helpdesk adapter and field-level guard merged in PR #32/#42; moving v15/v16 CI and exact Frappe v16.5.0 / ERPNext v16.5.0 / Helpdesk v1.28.0 reference lane passed in PR #50 | Confirm the pilot site's exact app versions, Sales read-only role/field permissions and active SLA calendar |
 | H Highlights | Partial; high-value Quotation events exist | Per-company threshold behavior merged in PR #45; target-site amounts and currency fallback still require approval. VIP allowlist/escalation and proposal-link tracking remain; tracking is gated on privacy/consent and retention approval |
-| E Explorer | Core backend API plus field-level fail-closed checks in PR #57; latest-head CI rerun pending | Desk entry points, Playwright and optional-provider inventory remain |
+| E Explorer | Backend API and field-level guard in PR #57; Desk page/form entry points in stacked PR #58; CI pending | Optional-provider inventory, remaining context E2E coverage and target-site source/permission acceptance remain |
 | V Vault | Not implemented | Metric registry, retention and source-visibility policy |
 | A Analysis | Not implemented | Approved metric/query registry and constrained intent mapping |
 
@@ -170,7 +170,7 @@ Exit criteria:
 **Priority:** P2  
 **Dependencies:** Stage 1 permission contract; verified integrations and source event identities.
 
-**Current slice:** PR #57 implements the first read-only backend adapters for CRM Signal, Quotation and Opportunity. It supports Lead, Customer, Opportunity, CRM Signal and High-Value Quote contexts, metadata-only summaries, bounded snapshot pagination and explicit field-level read checks for every context/filter/source field. The field-permission review fix is awaiting a fresh CI run; no Desk UI or optional-provider adapter is claimed.
+**Current slice:** PR #57 implements the read-only CRM Signal, Quotation and Opportunity backend with explicit field-level read checks; its latest-head CI is pending. Stacked PR #58 adds the role-restricted Desk page, Lead/Customer/Opportunity/CRM Signal form buttons, GET-only API calls, metadata-only rendering and cursor paging, with Playwright coverage for paging, source drill-down and the Lead entry point. PR #58 must be retargeted to `main` only after PR #57 merges. Optional providers remain deferred until target-site discovery.
 
 Work:
 - [x] Add the initial read-only CRM Signal, Quotation and Opportunity adapters and bounded timeline API (PR #57; CI pending).

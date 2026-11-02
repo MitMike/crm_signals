@@ -1,6 +1,6 @@
 # E — Explorer and customer interaction timeline
 
-**Status:** Core backend plus field-level read guard implemented in PR #57; latest-head CI pending. Desk entry points, Playwright coverage and target-site inventory for optional sources remain.
+**Status:** Core backend and field-level read guard in PR #57; Desk page/form entry points and initial Playwright coverage in stacked PR #58. Latest-head CI is pending; optional-provider and target-site source inventory remain.
 
 The first release is deliberately limited to CRM Signal, Quotation and Opportunity. It supports Lead/Customer/Opportunity/CRM Signal contexts and treats a High-Value Quote CRM Signal as the current Highlight context. Communication, Event, ToDo, call and WhatsApp adapters are deferred until their installed providers and exact schemas are observed on the target site (ADR-059).
 
