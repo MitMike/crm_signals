@@ -391,7 +391,7 @@ test(
         });
         await expect(signal).toContainText("Quotation: QTN-HIGHLIGHT-E2E");
         await signal.click();
-        await expect(page).toHaveURL(/\\/app\\/quotation\\/QTN-HIGHLIGHT-E2E/);
+        await expect(page).toHaveURL(/\/app\/quotation\/QTN-HIGHLIGHT-E2E/);
     }
 );
 
