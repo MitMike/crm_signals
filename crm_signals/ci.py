@@ -146,6 +146,74 @@ def prepare_upgrade_site():
     }
 
 
+def verify_sales_compass_query_contract():
+    """Exercise real D1/D2 ERPNext aggregate queries without writing business records.
+
+    This is a compatibility/schema smoke test, not a financial reconciliation:
+    it verifies the installed DocTypes and permission-aware query paths, while
+    target-site values and role-specific visibility remain separate acceptance.
+    """
+    from crm_signals.api import get_sales_compass_data
+
+    previous_user = frappe.session.user
+    try:
+        frappe.set_user("Administrator")
+        result = get_sales_compass_data()
+        leads = result.get("leads", {})
+        opportunities = result.get("opportunities", {})
+        billing = result.get("billing", {})
+
+        checks = {
+            "Lead 30-day and active metrics": (
+                leads.get("available")
+                and leads.get("active_available")
+                and leads.get("created_last_30_days") is not None
+                and leads.get("active") is not None
+            ),
+            "Opportunity totals, stages and currency-grouped pipeline": (
+                opportunities.get("available")
+                and opportunities.get("status_available")
+                and opportunities.get("stages_available")
+                and opportunities.get("pipeline_value_available")
+                and opportunities.get("total_count") is not None
+                and opportunities.get("active_count") is not None
+                and isinstance(opportunities.get("pipeline_by_currency"), list)
+                and isinstance(opportunities.get("recent"), list)
+            ),
+            "Sales Invoice invoiced, receivable, POS and overdue metrics": (
+                billing.get("available")
+                and billing.get("invoiced_available")
+                and billing.get("outstanding_available")
+                and billing.get("pos_receipts_available")
+                and billing.get("overdue_available")
+                and billing.get("overdue_count") is not None
+                and isinstance(billing.get("invoiced_by_currency"), list)
+                and isinstance(billing.get("outstanding_by_currency"), list)
+                and isinstance(billing.get("pos_receipts_by_currency"), list)
+                and isinstance(billing.get("overdue_invoices"), list)
+            ),
+            "Payment Entry customer receipts": (
+                billing.get("customer_receipts_available")
+                and isinstance(billing.get("customer_receipts_by_currency"), list)
+            ),
+        }
+        failed = [label for label, passed in checks.items() if not passed]
+        if failed:
+            frappe.throw(
+                "D1/D2 Sales Compass query contract failed: " + "; ".join(failed)
+            )
+
+        return {
+            "status": "passed",
+            "framework_version": frappe.__version__,
+            "checks": list(checks),
+            "writes_business_records": False,
+            "financial_reconciliation": False,
+        }
+    finally:
+        frappe.set_user(previous_user)
+
+
 def verify_helpdesk_schema():
     """Verify the pinned Helpdesk v1.28.0 metric contract without reading ticket records."""
     required_fields = {
