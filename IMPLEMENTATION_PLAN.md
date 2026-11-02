@@ -3,7 +3,7 @@
 **Last reviewed:** 2026-11-03  
 **Repository:** [MitMike/crm_signals](https://github.com/MitMike/crm_signals)  
 **Supported framework coverage:** Frappe / ERPNext v15 and v16. **Primary deployment target:** Frappe v16.5; record the exact patch/build and installed ERPNext/Helpdesk versions.  
-**Latest main:** [d0ab24b](https://github.com/MitMike/crm_signals/commit/d0ab24b6a50184af99f4af638ae64ddd9a22d08a); **latest application feature baseline:** [c5720bf](https://github.com/MitMike/crm_signals/commit/c5720bfb3fbe8b554ec6febd549a8d5e58acc1d7).
+**Reviewed main baseline:** [9c4febf](https://github.com/MitMike/crm_signals/commit/9c4febf8180ef295b48ea18b1ac5fddc164ff34f) (PR #100 merged); **latest application feature baseline:** [c5720bf](https://github.com/MitMike/crm_signals/commit/c5720bfb3fbe8b554ec6febd549a8d5e58acc1d7).
 
 This is the execution plan and source of truth for delivery order, scope, dependencies, acceptance gates and exit criteria. The operational state is maintained in [docs/PROGRESS.md](docs/PROGRESS.md); durable choices are in [docs/DECISIONS.md](docs/DECISIONS.md); feature contracts are in [specs/](specs/).
 
@@ -335,4 +335,13 @@ The PR #96 packaging change remains reference-stack CI-verified. This documentat
 PR #99 reconciled the post-PR #98 documentation and merged as `6a46c26b3a58a3ea035d7e53b15bc2f8839e2bb5` after all 13 final-head checks passed. The next focused change is PR #100: a Playwright assertion for the CRM Signals dashboard wrapper's computed horizontal padding at desktop (1440px: 24px each side) and mobile (390px: 12px each side). This closes the automated regression-prevention gap recorded by BUG-2026-001 / FIX-2026-001; it does not close manual visual UAT or target-site acceptance.
 
 
-The first PR #100 path-detection review exposed a CI selector gap: the Bench filter did not include `e2e/**` or `playwright.config.ts`, so an E2E-only change could skip the browser runner. ADR-084 adds both paths to the Bench selector and a static contract test. The v16 Bench job now must run the new Playwright regression test; final-head CI is still pending.
+The first PR #100 path-detection review exposed a CI selector gap: the Bench filter did not include `e2e/**` or `playwright.config.ts`, so an E2E-only change could skip the browser runner. ADR-084 adds both paths to the Bench selector and a static contract test. The v16 Bench job now runs the new Playwright regression test; final-head CI passed and PR #100 merged. See Section 13 for the final evidence.
+
+
+## 13. PR #100 complete; staging acceptance is the next release gate — 2026-11-03
+
+PR #100 merged as 9c4febf8180ef295b48ea18b1ac5fddc164ff34f from final head 50759954b8801fb8edd7194fea354c3521b457f1. All 18 final-head check runs completed successfully: Quality/lint and Python 3.10/3.11/3.12/3.14, Security/Semgrep, pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0, Bench v15 and v16, and the v16 Playwright browser suite. The browser suite now asserts 24px left/right padding at 1440px and 12px at 390px; ADR-084 ensures changes under e2e/** and playwright.config.ts trigger Bench validation.
+
+The automated dashboard regression guard is code-complete and reference-stack CI-verified. Manual staging visual UAT is still open. The repeatable screenshot/evidence procedure is now in [Target-Site Acceptance Kit §11](docs/TARGET_SITE_ACCEPTANCE.md#11-dashboard-horizontal-inset-visual-acceptance).
+
+**Next priority:** execute dashboard visual UAT and the P0 target-site acceptance gates on an authorized Frappe v16.5 staging site. Do not start Vault/Analysis, VIP escalation, proposal tracking or optional Explorer adapters until their metric, permission, privacy, retention and source contracts are approved. No target site is connected to this work; do not claim pilot verification or infer site configuration from CI.
