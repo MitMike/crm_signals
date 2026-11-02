@@ -43,7 +43,7 @@ The following capabilities are present in the repository. "Implemented" means th
 | D2 Billing Realization | Implemented; return-metadata guard merged in PR #17 | Reconcile totals and currency basis against target-site reports |
 | D3 Service Resolution/SLA | Standard Frappe Helpdesk adapter and field-level guard merged in PR #32/#42; moving v15/v16 CI and exact Frappe v16.5.0 / ERPNext v16.5.0 / Helpdesk v1.28.0 reference lane passed in PR #50 | Confirm the pilot site's exact app versions, Sales read-only role/field permissions and active SLA calendar |
 | H Highlights | Partial; high-value Quotation events exist | Per-company threshold behavior merged in PR #45; target-site amounts and currency fallback still require approval. VIP allowlist/escalation and proposal-link tracking remain; tracking is gated on privacy/consent and retention approval |
-| E Explorer | Core backend API plus field-level fail-closed checks in PR #57; latest-head CI rerun pending | Desk entry points, Playwright and optional-provider inventory remain |
+| E Explorer | Core timeline API merged in PR #57 as `ba631720`; Desk page/form entry points and cursor UI in PR #59 | Optional-provider inventory and target-site role/timezone acceptance remain |
 | V Vault | Not implemented | Metric registry, retention and source-visibility policy |
 | A Analysis | Not implemented | Approved metric/query registry and constrained intent mapping |
 
@@ -170,22 +170,24 @@ Exit criteria:
 **Priority:** P2  
 **Dependencies:** Stage 1 permission contract; verified integrations and source event identities.
 
-**Current slice:** PR #57 implements the first read-only backend adapters for CRM Signal, Quotation and Opportunity. It supports Lead, Customer, Opportunity, CRM Signal and High-Value Quote contexts, metadata-only summaries, bounded snapshot pagination and explicit field-level read checks for every context/filter/source field. The field-permission review fix is awaiting a fresh CI run. The prior head's merge was rejected because two duplicate Bench contexts from the stacked Desk branch were cancelled; a new unique head is required to clear the ruleset without bypass. No Desk UI or optional-provider adapter is included in this PR.
+**Current implementation:** PR #57 is merged as `ba631720` after Quality Checks, Security Scanning, the Frappe v15/v16 Bench + Playwright matrix and the pinned Frappe v16.5.0 / ERPNext v16.5.0 / Helpdesk v1.28.0 lane passed on its final head. It provides read-only CRM Signal, Quotation and Opportunity adapters for Lead, Customer, Opportunity, CRM Signal and High-Value Quote contexts, metadata-only summaries, bounded snapshot pagination and fail-closed field-level permission checks. PR #59 adds the role-restricted Desk timeline page, form entry points, GET cursor paging, stale-response protection and first browser coverage. Optional providers remain deferred until the target-site inventory is recorded.
 
 Work:
-- [x] Add the initial read-only CRM Signal, Quotation and Opportunity adapters and bounded timeline API (PR #57; CI pending).
-- [ ] Add Desk entry points and Playwright coverage for Lead, Customer, Opportunity, CRM Signal and Highlight contexts.
-- Build an adapter registry for CRM Signal, Quotation, Opportunity and only those Communication/Event/call/WhatsApp sources verified on the target site.
-- Normalize source ID, event ID, timestamp, related party, safe summary and authorized source link.
-- Add stable pagination, deduplication and timezone-consistent sorting.
-- Re-check permissions for every source row and link.
-- Do not duplicate full source messages, recordings or attachments.
+- [x] Merge the read-only CRM Signal, Quotation and Opportunity adapters and bounded timeline API (PR #57; CI verified).
+- [x] Add the role-restricted Desk timeline page and Activity Timeline form actions (PR #59).
+- [x] Add GET cursor paging, source navigation, distinct source states and stale-response protection (PR #59).
+- [x] Maintain an explicit registry for the supported CRM Signal, Quotation and Opportunity sources; defer all optional provider adapters until site inventory.
+- [x] Normalize source ID, event ID, timestamp, related party, safe summary and authorized source link for the first three sources.
+- [x] Add stable snapshot pagination, deduplication and deterministic timestamp/source ordering.
+- [x] Re-check permissions for every source row and link, including required field-level read access.
+- [x] Keep message bodies, amounts, recordings and attachments out of the timeline payload.
+- [ ] Add Communication/Event/ToDo/call/WhatsApp adapters only after target-site provider, schema, identity and permission inventory is approved.
 
 Exit criteria:
 - [ ] Installed/configured adapters and versions are recorded.
-- [ ] Each adapter has contract, permission and compatibility tests.
-- [ ] Duplicate IDs, equal timestamps, pagination and unavailable states pass tests.
-- [ ] Playwright covers timeline entry points and source drill-downs.
+- [x] The initial adapters have contract, field-permission and compatibility tests; v15/v16 Bench and pinned v16.5 reference tests pass.
+- [x] Duplicate IDs, equal timestamps, pagination and unavailable states pass unit/Bench tests.
+- [ ] Browser E2E covers every Lead, Customer, Opportunity, CRM Signal and Highlight form-entry path and role-specific visibility on the target site; current Playwright coverage proves timeline paging and source drill-down from a Lead context.
 
 ### Stage 5 — V Vault
 
