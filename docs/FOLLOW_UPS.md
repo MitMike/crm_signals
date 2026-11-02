@@ -65,4 +65,4 @@ Do not close a follow-up because code compiles or a mocked unit test passes. Clo
 
 ## P2 — Dependency maintenance
 
-Track the current six-PR inventory and branch distances in the Repository maintenance section above. Refresh and verify one branch at a time; merge only after fresh final-head checks pass.
+Track the current five-open-Dependabot-PR inventory and branch distances in the Repository maintenance section above. Refresh and verify one branch at a time; merge only after fresh final-head checks pass.
