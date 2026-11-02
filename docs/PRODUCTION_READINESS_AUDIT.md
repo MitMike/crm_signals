@@ -2,8 +2,8 @@
 
 **Audit date:** 2026-11-02  
 **Repository:** MitMike/crm_signals  
-**Base:** `main` at `b466ac87613afc5b2726ef866d9a28b37ac3fab4` (PR #13 Oxlint update; PR #15 Prettier update also merged)  
-**Implementation under audit:** PRs #13/#15/#19/#21/#23/#26/#32/#38/#42/#44/#45/#49/#50/#51/#53/#54/#55/#56/#57/#59/#60/#61/#62/#63/#65/#66/#67/#68/#69/#70 merged; PR #69 (POS settlement fixture) is CI-verified as `efe7872`; PR #70 (read-only target-site preflight) is CI-verified as `13341b7`; PR #71 (High-Value Quote source drill-down) remains open, code-complete but not CI-verified after a controlled Prettier 3.9.10 revalidation failed under ADR-071/072; latest main baseline `b466ac8`  
+**Base:** `main` at `567f4586b9f7c8965f6aa00ed673962b8bc29539` (PR #14 globals update; PR #13 Oxlint and PR #15 Prettier updates also merged)  
+**Implementation under audit:** PRs #13/#15/#19/#21/#23/#26/#32/#38/#42/#44/#45/#49/#50/#51/#53/#54/#55/#56/#57/#59/#60/#61/#62/#63/#65/#66/#67/#68/#69/#70 merged; PR #69 (POS settlement fixture) is CI-verified as `efe7872`; PR #70 (read-only target-site preflight) is CI-verified as `13341b7`; PR #71 (High-Value Quote source drill-down) remains open, code-complete with exact Prettier 3.9.10 output applied; final-head CI is pending after synchronization with main; latest main baseline `567f458`  
 **Decision:** **Not approved for production sign-off.** PR #19, PR #21 and PR #23 are merged; supported-version CI passes. Target-site acceptance and the roadmap's external discovery/policy inputs remain outstanding. Durable realtime retry is implemented on PR #54 and CI-verified on head `d2ac43e`; target-site Redis/worker recovery evidence remains open. The transactional outbox and audited Failed-row replay are already implemented.
 
 ## 2026-11-02 follow-up status
@@ -26,7 +26,7 @@ This is a historical audit of the earlier PR #19/#23 baseline; main now also con
 
 ## Current audit status after PR #13/#15 and PR #71 revalidation
 
-The main branch is `b466ac8`; the latest functional baseline remains PR #69 at `efe7872`. PR #13 and PR #15 are merged with all required checks passing. PR #71 is open and code-complete, but the latest controlled formatter revalidation is still failing; the branch now includes a CI-only diff diagnostic and must pass all required checks before merge. Production sign-off remains blocked on P0 target-site acceptance and owner approvals.
+The main branch is `567f458`; the latest functional baseline remains PR #69 at `efe7872`. PR #13, #14 and #15 are merged with required checks passing. PR #71 is open and code-complete; its CI diagnostic produced the exact three-line-wrapping correction, applied as `91fc89c`, and the branch was synchronized with current main as `09d49f3`. Final-head checks are pending. Production sign-off remains blocked on P0 target-site acceptance and owner approvals.
 
 ## Scope reviewed
 
