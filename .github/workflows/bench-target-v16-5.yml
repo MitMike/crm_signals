@@ -3,7 +3,10 @@ name: Pinned Frappe v16.5.0 + Helpdesk v1.28.0
 on:
   pull_request:
     paths:
-      - "crm_signals/**"
+      - "crm_signals/**/*.py"
+      - "crm_signals/**/doctype/**"
+      - "crm_signals/**/page/**"
+      - "crm_signals/public/**"
       - "tests/**"
       - "pyproject.toml"
       - "setup.py"
