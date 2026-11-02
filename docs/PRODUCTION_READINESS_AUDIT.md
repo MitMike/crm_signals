@@ -2,14 +2,14 @@
 
 **Audit date:** 2026-11-02  
 **Repository:** MitMike/crm_signals  
-**Base:** `main` at `0a7de966ea0639c86a59d7df28dbad343fa13488` (PR #63 merged)  
+**Base:** `main` at `2cc7725d4e36f53d492139187fa6cd9adf663f0f` (PR #68 documentation reconciliation merged; functional baseline `84ab2ce`)  
 **Implementation under audit:** PRs #19/#21/#23/#26/#32/#38/#42/#44/#45/#49/#50/#51/#53/#54/#55/#56/#57/#59/#60/#61/#62/#63, all merged; latest main baseline `0a7de96`  
 **Decision:** **Not approved for production sign-off.** PR #19, PR #21 and PR #23 are merged; supported-version CI passes. Target-site acceptance and the roadmap's external discovery/policy inputs remain outstanding. Durable realtime retry is implemented on PR #54 and CI-verified on head `d2ac43e`; target-site Redis/worker recovery evidence remains open. The transactional outbox and audited Failed-row replay are already implemented.
 
 ## 2026-11-02 follow-up status
 
 - **D1/D2 query compatibility:** PR #63 adds and merges a read-only Sales Compass query-contract smoke on the Frappe v15/v16 Bench matrix and pinned Frappe v16.5.0 / ERPNext v16.5.0 / Helpdesk v1.28.0 lane. Final-head Quality, Security, Semgrep, Python, Bench and pinned-target checks passed. This does not replace target-site role acceptance or financial reconciliation.
-This is a historical audit of the earlier PR #19/#23 baseline. The following later changes supersede the affected open findings. PR #62 reconciles the Explorer and policy-gated roadmap status; PR #63 merges the read-only D1/D2 Bench query-contract smoke. This smoke is not a financial reconciliation.
+This is a historical audit of the earlier PR #19/#23 baseline; main now also contains the PR #67 synthetic D1/D2 aggregate fixture and PR #68 documentation reconciliation. PR #70 adds a read-only target-site preflight report but is not yet CI-verified or merged. The following later changes supersede the affected open findings. PR #62 reconciles the Explorer and policy-gated roadmap status; PR #63 merges the read-only D1/D2 Bench query-contract smoke. This smoke is not a financial reconciliation.
 
 - **Signal outbox:** transactional source-event outbox merged in PR #26; audited System Manager replay for terminal Failed rows merged in PR #38. The old P1 replay gap is closed; target-site backup/restore and operational monitoring remain P0 acceptance.
 - **Realtime authorization and retry:** source-document read checks merged in PR #44. PR #54 implements the ADR-053 per-recipient ledger, stable delivery ID, bounded retry, permission recheck and active-session deduplication. `Attempted` means the after-commit callback was queued, not that Redis or a browser confirmed delivery. Required CI passed on head `d2ac43e`; target-site Redis/worker recovery tests remain open.
