@@ -66,3 +66,8 @@ Do not close a follow-up because code compiles or a mocked unit test passes. Clo
 ## P2 — Dependency maintenance
 
 Track the current five-open-Dependabot-PR inventory and branch distances in the Repository maintenance section above. Refresh and verify one branch at a time; merge only after fresh final-head checks pass.
+
+
+- [ ] **GME CRM Signals workspace rename (PR #75 / ADR-076):** static contract expectation was corrected after the initial test failure; require final-head Quality, Security, Bench v15/v16 and pinned v16.5.0 checks. Technical identifiers/routes must remain unchanged.
+- [ ] **Dashboard horizontal inset (BUG-2026-001 / FIX-2026-001; PR #78):** CSS fix and static regression assertion are in review. Require final-head CI, then update UAT assets/cache and record desktop/mobile visual evidence before marking UAT-verified.
+- [ ] **PR regression checklist (PR #80):** merge only after the bug/fix registers from PR #79 are present on main and final-head Quality, Security and Bench checks pass. The template is advisory, not an automated gate.
