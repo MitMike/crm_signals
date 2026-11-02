@@ -2,16 +2,16 @@
 
 **Audit date:** 2026-11-02  
 **Repository:** MitMike/crm_signals  
-**Base:** `main` at `24a9b8d3d178682a68df418f5cd29582644056c8` (PR #50 merged)  
-**Implementation under audit:** PRs #19/#21/#23/#26/#32/#38/#42/#44/#45/#49/#50, all merged; latest main baseline `24a9b8d`  
-**Decision:** **Not approved for production sign-off.** PR #19, PR #21 and PR #23 are merged; supported-version CI passes. Target-site acceptance, durable realtime notification retry and the roadmap's external discovery/policy inputs remain outstanding. The transactional outbox and audited Failed-row replay are already implemented.
+**Base:** `main` at `cab1796d6432800d229a7cf1512b3be45f72b5bc` (PR #51 merged)  
+**Implementation under audit:** PRs #19/#21/#23/#26/#32/#38/#42/#44/#45/#49/#50/#51, all merged; latest main baseline `cab1796`  
+**Decision:** **Not approved for production sign-off.** PR #19, PR #21 and PR #23 are merged; supported-version CI passes. Target-site acceptance and the roadmap's external discovery/policy inputs remain outstanding. Durable realtime retry is implemented on PR #54 and CI-verified on head `d2ac43e`; target-site Redis/worker recovery evidence remains open. The transactional outbox and audited Failed-row replay are already implemented.
 
 ## 2026-11-02 follow-up status
 
 This is a historical audit of the earlier PR #19/#23 baseline. The following later changes supersede the affected open findings:
 
 - **Signal outbox:** transactional source-event outbox merged in PR #26; audited System Manager replay for terminal Failed rows merged in PR #38. The old P1 replay gap is closed; target-site backup/restore and operational monitoring remain P0 acceptance.
-- **Realtime authorization:** source-document read checks merged in PR #44. Durable retry remains intentionally deferred under ADR-053 because Frappe v16.5.0 queues after-commit Redis publication without a reliable delivery confirmation; retries require a stable delivery ID, per-recipient ledger, permission recheck and client deduplication/acknowledgement.
+- **Realtime authorization and retry:** source-document read checks merged in PR #44. PR #54 implements the ADR-053 per-recipient ledger, stable delivery ID, bounded retry, permission recheck and active-session deduplication. `Attempted` means the after-commit callback was queued, not that Redis or a browser confirmed delivery. Required CI passed on head `d2ac43e`; target-site Redis/worker recovery tests remain open.
 - **Multi-company quotation thresholds:** Company-specific explicit threshold rows merged in PR #45 as `ff434bdf`; all 16 required checks passed on head `84783d15`. No implicit FX conversion; each enabled Company still needs an approved amount or explicit approval of the exact-currency legacy fallback.
 - **D3 Helpdesk:** standard adapter merged in PR #32 and field-level fail-closed guard merged in PR #42. Target-site versions, Sales-role read-only permissions and active SLA calendar remain unverified.
 - **Operator kit:** added a beginner-friendly D3 Support & SLA discovery worksheet, a Frappe v16.5.0 support configuration guide, and the target-site acceptance checklist. The discovery script is metadata-only; the pilot operator still needs to run it and record the site's exact app versions and policy.
@@ -57,7 +57,7 @@ Decisions are recorded in ADR-034 through ADR-040, in addition to the earlier se
 ### P1 — reliability work intentionally deferred
 
 1. **Signal outbox/reconciliation:** The transactional outbox and audited Failed-row replay are implemented in PRs #26/#38 and CI-verified. Verify scheduler operation, failure monitoring and backup/restore on the target site.
-2. **Realtime retry:** PR #44 now enforces source-document read permissions. Durable retry remains deferred under ADR-053 until an idempotent per-recipient delivery ledger and client-side dedupe/acknowledgement are implemented.
+2. **Realtime retry:** PR #54 implements a stable per-recipient delivery ledger, bounded retries, permission rechecks and active-session duplicate suppression. Code/test head `d2ac43e` and documentation head `4edf496` passed Quality, Security, Bench v15/v16 + Playwright and the pinned Frappe v16.5.0/ERPNext v16.5.0/Helpdesk v1.28.0 lane. Target-site Redis outage, worker restart, scheduler and permission-revocation acceptance remain open; no human-delivery guarantee is claimed.
 3. **Multi-company threshold:** Implementation is merged in PR #45. Each enabled Company still needs a business-approved amount in its base currency or explicit approval of the exact-currency legacy fallback; there is no implicit FX conversion.
 
 ### P2 — roadmap dependencies

@@ -42,3 +42,5 @@ Every feature spec must include:
 - **Target-site acceptance** checks actual Company currency, timezone, role permissions, workflow states, installed apps and financial totals. CI does not replace this.
 
 A spec is not complete because code exists. Its acceptance criteria must be linked to passing tests, and unsupported sources must be reported as unavailable rather than replaced with guessed data. D3's discovery spec is complete for the discovery/adapter contract; its concrete source-field mapping is deliberately gated on target-site evidence.
+
+| Realtime delivery reliability | [Durable realtime delivery](2026-11-02-durable-realtime-delivery.md) | Per-recipient ledger and bounded retry implemented in PR #54; CI and target-site acceptance pending |
