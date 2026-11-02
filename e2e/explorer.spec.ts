@@ -125,7 +125,9 @@ test("Explorer renders safe activity pages and opens the source record", async (
     await page.goto("/app/crm-signals-explorer/Lead/LEAD-EXPLORER-E2E");
 
     await expect(
-        page.getByText("Customer Activity Timeline", { exact: true })
+        page
+            .getByRole("navigation", { name: "Breadcrumb" })
+            .getByText("Customer Activity Timeline", { exact: true })
     ).toBeVisible();
     await expect(page.getByText("Lead · LEAD-EXPLORER-E2E")).toBeVisible();
     await expect(page.getByText("Website Visit · High")).toBeVisible();
