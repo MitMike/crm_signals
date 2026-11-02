@@ -87,12 +87,12 @@ curl -X POST 'https://<site>/api/method/crm_signals.api.ingest_signal'
 
 ## Configuration still required
 
-- Review CRM Signals Settings presets and configure the threshold using the intended Company's default currency.
+- Review presets and approve a threshold for each enabled Company; use the legacy site-wide threshold only when its currency exactly matches that Company's base currency.
 - Confirm exact Opportunity trigger statuses from the site's workflows.
 - Confirm the Lead not-modified window is an acceptable attention proxy.
 - Confirm site timezone, digest time and approved recipients.
 - Verify record-level permissions in Desk/list/report/export/API workflows on both supported versions.
-- Confirm installed support/SLA app and source DocTypes before D3 implementation.
+- Verify the installed Helpdesk version, HD Ticket/HD Service Level Agreement schema, Sales read-only role and active SLA calendar before enabling D3 metrics.
 - Confirm retention/source-visibility policy before enabling Vault snapshots.
 - Complete target-site financial reconciliation, integration credentials, TLS/rate limit and rollback validation.
 
