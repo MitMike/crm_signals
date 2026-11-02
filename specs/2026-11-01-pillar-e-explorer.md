@@ -1,6 +1,8 @@
 # E — Explorer and customer interaction timeline
 
-**Status:** Design specified; integration adapters and target-site source inventory remain.
+**Status:** Initial backend slice implemented in PR #57; CI pending. Desk entry points, Playwright coverage and target-site inventory for optional sources remain.
+
+The first release is deliberately limited to CRM Signal, Quotation and Opportunity. It supports Lead/Customer/Opportunity/CRM Signal contexts and treats a High-Value Quote CRM Signal as the current Highlight context. Communication, Event, ToDo, call and WhatsApp adapters are deferred until their installed providers and exact schemas are observed on the target site (ADR-059).
 
 ## Problem and users
 
