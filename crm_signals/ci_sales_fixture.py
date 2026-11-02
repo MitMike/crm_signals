@@ -179,6 +179,101 @@ def _price_list(currency, tag):
     return doc.name
 
 
+def _create_pos_profile(context, customer, tag):
+    """Create a real POS Profile and company-specific payment mode for the fixture."""
+    expense = frappe.db.get_value(
+        "Account",
+        {"company": context["company"], "root_type": "Expense", "is_group": 0},
+        "name",
+    )
+    warehouse = frappe.db.get_value(
+        "Warehouse", {"company": context["company"], "is_group": 0}, "name"
+    )
+    if not expense or not warehouse:
+        frappe.throw("D1/D2 POS fixture requires a leaf Expense account and Warehouse")
+
+    mode_name = f"CRM Signals CI Cash {tag}"
+    mode = frappe.get_doc(
+        {
+            "doctype": "Mode of Payment",
+            "mode_of_payment": mode_name,
+            "type": "Cash",
+            "accounts": [
+                {
+                    "company": context["company"],
+                    "default_account": context["bank"],
+                }
+            ],
+        }
+    ).insert(ignore_permissions=True)
+
+    price_list = _price_list(context["currency"], tag)
+    profile = frappe.get_doc(
+        {
+            "doctype": "POS Profile",
+            "name": f"CRM Signals CI POS {tag}",
+            "company": context["company"],
+            "customer": customer,
+            "currency": context["currency"],
+            "selling_price_list": price_list,
+            "income_account": context["income"],
+            "expense_account": expense,
+            "write_off_account": expense,
+            "write_off_cost_center": context["cost_center"],
+            "cost_center": context["cost_center"],
+            "warehouse": warehouse,
+            "customer_group": frappe.db.get_value(
+                "Customer", customer, "customer_group"
+            ),
+            "territory": frappe.db.get_value("Customer", customer, "territory"),
+            "update_stock": 0,
+            "payments": [{"mode_of_payment": mode.name, "default": 1}],
+        }
+    ).insert(ignore_permissions=True)
+    return profile, mode.name
+
+
+def _create_pos_invoice(context, customer, item, tag, rate, profile, mode):
+    invoice = frappe.get_doc(
+        {
+            "doctype": "Sales Invoice",
+            "company": context["company"],
+            "customer": customer,
+            "posting_date": add_days(nowdate(), -10),
+            "due_date": add_days(nowdate(), 10),
+            "set_posting_time": 1,
+            "debit_to": context["receivable"],
+            "currency": context["currency"],
+            "conversion_rate": 1,
+            "selling_price_list": profile.selling_price_list,
+            "price_list_currency": context["currency"],
+            "plc_conversion_rate": 1,
+            "cost_center": context["cost_center"],
+            "is_pos": 1,
+            "pos_profile": profile.name,
+            "items": [
+                {
+                    "item_code": item,
+                    "qty": 1,
+                    "rate": rate,
+                    "price_list_rate": rate,
+                    "income_account": context["income"],
+                    "cost_center": context["cost_center"],
+                }
+            ],
+            "payments": [{"mode_of_payment": mode, "amount": rate}],
+        }
+    )
+    invoice.insert(ignore_permissions=True)
+    invoice.submit()
+    invoice.reload()
+    if not invoice.is_pos or invoice.docstatus != 1:
+        frappe.throw("ERPNext did not submit the synthetic POS invoice")
+    if abs(float(invoice.paid_amount or 0) - float(invoice.grand_total or 0)) > 0.05:
+        frappe.throw("ERPNext POS payment rows did not fully settle the invoice")
+    return invoice
+
+
 def _create_invoice(context, customer, item, tag, rate, due_date, currency=None):
     currency = currency or context["currency"]
     price_list = _price_list(currency, tag)
@@ -455,17 +550,9 @@ def verify_sales_compass_aggregate_fixture():
         usd = _create_invoice(
             context, customer, item, tag, 100, add_days(nowdate(), 10), "USD"
         )
-        pos = _create_invoice(
-            context, customer, item, tag, 500, add_days(nowdate(), 10)
-        )
-        frappe.db.set_value(
-            "Sales Invoice",
-            pos.name,
-            {
-                "is_pos": 1,
-                "paid_amount": pos.grand_total,
-                "outstanding_amount": 0,
-            },
+        pos_profile, pos_mode = _create_pos_profile(context, customer, tag)
+        pos = _create_pos_invoice(
+            context, customer, item, tag, 500, pos_profile, pos_mode
         )
 
         payment = get_payment_entry(
@@ -497,7 +584,8 @@ def verify_sales_compass_aggregate_fixture():
             "synthetic_invoice_count": 4,
             "synthetic_payment_entry_count": 1,
             "split_permission": "Payment Entry readable; Sales Invoice denied",
-            "pos_workflow_tested": False,
+            "pos_workflow_tested": True,
+            "pos_profile_created": pos_profile.name,
             "financial_reconciliation": False,
             "records_committed": False,
         }
