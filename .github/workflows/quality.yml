@@ -70,16 +70,16 @@ jobs:
           test -s package-lock.json
           node -e "const lock = require('./package-lock.json'); if (lock.lockfileVersion < 1) process.exit(1); console.log('npm lockfile v' + lock.lockfileVersion)"
       - name: Install JavaScript tooling from the committed lockfile
-        if: needs.changes.outputs.javascript == 'true'
+        if: github.event_name != 'pull_request' || needs.changes.outputs.javascript == 'true'
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Verify patched dependency versions
-        if: needs.changes.outputs.javascript == 'true'
+        if: github.event_name != 'pull_request' || needs.changes.outputs.javascript == 'true'
         run: npm ls @playwright/test eslint minimatch --all
       - name: ESLint and Oxlint
-        if: needs.changes.outputs.javascript == 'true'
+        if: github.event_name != 'pull_request' || needs.changes.outputs.javascript == 'true'
         run: npm run lint:js
       - name: Check formatting of tooling and E2E tests
-        if: needs.changes.outputs.javascript == 'true'
+        if: github.event_name != 'pull_request' || needs.changes.outputs.javascript == 'true'
         id: format_check
         run: npm run format:check
       - name: Print exact Prettier diff when formatting fails
