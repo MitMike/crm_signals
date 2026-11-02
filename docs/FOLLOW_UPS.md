@@ -16,7 +16,7 @@ This file records known work that is intentionally not represented as complete. 
 
 ## Repository maintenance
 
-- [ ] **Dependabot refresh (reviewed 2026-11-02 against main `efe7872`):** all nine open PRs (#5–#10, #13–#15) have green check runs on their existing heads: #5 has 17, #6 has 15, #7 has 15, #8 has 17, #10 has 17, and #9/#13/#14/#15 have 18 each. All are stale against current main. PRs #5/#6/#7/#8/#10 are each one commit ahead and three behind; PRs #9/#13/#14/#15 are each one ahead and 35 behind. Do not merge on stale CI. Revisit after refreshing each branch to `behind_by=0`, then require all ruleset contexts on its new final head. Keep these maintenance PRs separate and re-check after every main update.
+- [ ] **Dependabot refresh (reviewed 2026-11-02 against main `efe7872`):** PR #15 (Prettier 3.2.5 → 3.9.10) has been synchronized with current main as merge commit `244cf43` (`ahead_by=2`, `behind_by=0`); its new Quality, Security, dependency-audit, Python and Bench checks are queued/running. Do not merge until all required final-head contexts pass. The other eight open Dependabot PRs remain stale but have green checks on their old heads: #5 has 17, #6 has 15, #7 has 15, #8 has 17, #10 has 17, and #9/#13/#14 have 18 each. PRs #5/#6/#7/#8/#10 are each one commit ahead and three behind; PRs #9/#13/#14 are each one ahead and 35 behind. Do not merge on stale CI. Revisit after refreshing each branch to `behind_by=0`, then require all ruleset contexts on its new final head. Keep these maintenance PRs separate and re-check after every main update.
 
 ## P1 — engineering reliability improvements
 
