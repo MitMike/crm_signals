@@ -102,25 +102,28 @@ def _app_version(app):
 
 
 def _source_revision():
-    """Return the exact checked-out CRM Signals revision without exposing Git errors."""
+    """Return the exact clean-checkout revision without exposing Git errors."""
     try:
         module = importlib.import_module("crm_signals")
         module_file = getattr(module, "__file__", None)
         if not module_file:
             return {"available": False, "reason": "module_path_unavailable"}
+        app_path = str(Path(module_file).resolve().parent)
+        git_options = {
+            "check": True,
+            "capture_output": True,
+            "text": True,
+            "timeout": 5,
+        }
+        status = subprocess.run(
+            ["git", "-C", app_path, "status", "--porcelain", "--untracked-files=all"],
+            **git_options,
+        )
+        if (status.stdout or "").strip():
+            return {"available": False, "reason": "working_tree_dirty"}
         result = subprocess.run(
-            [
-                "git",
-                "-C",
-                str(Path(module_file).resolve().parent),
-                "rev-parse",
-                "--verify",
-                "HEAD",
-            ],
-            check=True,
-            capture_output=True,
-            text=True,
-            timeout=5,
+            ["git", "-C", app_path, "rev-parse", "--verify", "HEAD"],
+            **git_options,
         )
     except FileNotFoundError:
         return {"available": False, "reason": "git_unavailable"}
@@ -135,7 +138,6 @@ def _source_revision():
     if len(revision) != 40 or any(char not in "0123456789abcdef" for char in revision):
         return {"available": False, "reason": "invalid_revision"}
     return {"available": True, "commit_sha": revision}
-
 
 def _field_summary(field):
     fieldname = _value(field, "fieldname")
