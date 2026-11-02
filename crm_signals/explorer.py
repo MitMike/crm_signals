@@ -288,7 +288,7 @@ def _merge_source_pages(source_pages, offsets, page_length):
     return items, next_offsets, has_more
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET"])
 def get_explorer_timeline(context_doctype, context_name, page_length=20, cursor=None):
     """Return a permission-aware metadata timeline for a Lead or Customer relationship.
 
@@ -306,8 +306,13 @@ def get_explorer_timeline(context_doctype, context_name, page_length=20, cursor=
     try:
         if isinstance(page_length, bool):
             raise ValueError
-        page_length = int(page_length)
-    except (TypeError, ValueError):
+        if isinstance(page_length, int):
+            page_length = page_length
+        elif isinstance(page_length, str) and page_length.strip().isdigit():
+            page_length = int(page_length.strip())
+        else:
+            raise ValueError
+    except (TypeError, ValueError, OverflowError):
         frappe.throw(_("Page length must be a whole number"), frappe.ValidationError)
     if page_length < 1 or page_length > MAX_PAGE_LENGTH:
         frappe.throw(
