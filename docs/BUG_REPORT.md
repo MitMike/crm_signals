@@ -16,7 +16,7 @@ This is the durable record of confirmed defects reported by users or found durin
 
 ### BUG-2026-001 — CRM Signals dashboard lost horizontal inset
 
-- **Status:** Fix in review
+- **Status:** Fix merged and CI-verified; UAT pending
 - **Reported:** 2026-11-02
 - **Reported by:** User, from local UAT screenshot
 - **Area:** CRM Signals Dashboard / page wrapper CSS
@@ -26,7 +26,7 @@ This is the durable record of confirmed defects reported by users or found durin
 - **Confirmed cause:** `.crm-signals-dashboard` in `crm_signals/crm_signals/page/crm_signals_dashboard/crm_signals_dashboard.css` declared `padding: 20px 0 32px`, setting both horizontal paddings to zero.
 - **Severity:** UI regression / usability; no data or permission impact identified.
 - **Fix:** Restore 24px left and right padding while preserving 20px top and 32px bottom padding.
-- **Fix PR:** [#78](https://github.com/MitMike/crm_signals/pull/78) (open at time of recording).
+- **Fix PR:** [#84](https://github.com/MitMike/crm_signals/pull/84), merged as `b1f4ad71f368c346ce16126501982cfe2233c2b9` after all four final-head workflows passed on `f0e19099dc753896f4ffe3a5a370e82cb043cf22`.
 - **Regression prevention:** Keep the horizontal padding declaration explicit; add/retain a CSS/UI regression assertion or a documented UAT visual check at desktop and mobile widths. Verify related CRM Signals pages if they share this wrapper or stylesheet.
 - **Closure evidence required:** PR merged; relevant CI green; UAT refreshed/rebuilt assets and cache; screenshot confirms the inset at desktop and mobile widths. Until the UAT check is recorded, do not label this UAT-verified.
 

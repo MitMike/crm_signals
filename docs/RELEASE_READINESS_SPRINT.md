@@ -2,15 +2,19 @@
 
 **Started:** 2026-11-01  
 **Last reviewed:** 2026-11-02  
-**Latest main:** `ac030b195394458d87b7d59656b560359260d79e` (PR #82 pin-before-install correction merged and CI-verified); **latest functional baseline:** `c5720bfb3fbe8b554ec6febd549a8d5e58acc1d7`
+**Latest main:** `de8e78b8750370934b2608564fa63ecc4095f37f` (PR #88 upload-artifact v7 merged and CI-verified); **latest application feature baseline:** `c5720bfb3fbe8b554ec6febd549a8d5e58acc1d7`; **latest UI fix:** `b1f4ad71f368c346ce16126501982cfe2233c2b9` (PR #84 dashboard inset)
 **Decision register:** [ADR-046](DECISIONS.md#adr-046--run-release-readiness-as-an-evidence-gated-sprint)  
 **Operating rule:** no item is complete without the evidence listed here. CI evidence and target-site evidence are separate.
 
 - [x] [PR #76](https://github.com/MitMike/crm_signals/pull/76) change-aware CI merged as `cec49e7`; final head `d6a6300` passed all 19 check runs, including Quality, Security/Semgrep, Python 3.10/3.11/3.12/3.14, Bench v15/v16 + Playwright and pinned Frappe v16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0. Required contexts and fail-closed path gates are preserved.
 
 - [x] [PR #79](https://github.com/MitMike/crm_signals/pull/79) adds bug/fix evidence registers and records BUG-2026-001 / FIX-2026-001; Quality, Security and Bench v15/v16 passed. Merged as 7904a70. The dashboard fix and UAT closure remain separate.
-- [ ] PR #75 workspace display rename is three commits behind main `ac030b1` (seven ahead); PR #78 dashboard inset is three behind (two ahead). Their earlier green checks are stale; refresh and rerun final-head CI. PR #78 also needs desktop/mobile UAT visual evidence after asset/cache refresh.
-- [ ] PR #81 is the canonical regression-review template; its prior head passed Quality, Security and Bench v15/v16 but is two commits behind main `ac030b1`. Refresh and rerun required checks before merge. PR #80 is closed as superseded: its bug/fix registers merged in #79 and its template content is carried by #81.
+- [x] PR #84 dashboard inset fix merged as `b1f4ad7`; final head `f0e1909` passed Quality, Security, Bench v15/v16 and pinned v16.5.0. Desktop/mobile UAT after asset/cache refresh remains open.
+- [x] PR #85 GME workspace label merged as `5cc4308`; final head `b09a0cb` passed Quality, Security, Bench v15/v16 and pinned v16.5.0. Technical identifiers/routes are unchanged.
+- [x] PR #88 upload-artifact v7 merged as `de8e78b`; final head `eed57d6` passed Quality, Security, Bench v15/v16 + Playwright and pinned v16.5.0.
+- [ ] PR #89 is the current docs-only reconciliation and ADR-075 skip-path smoke. Quality and Security plus the stable Bench required workflow were queued at review time.
+- [ ] Dependabot PRs #7/#8/#10 are each one commit ahead and five behind main `de8e78b`; #9 is one ahead and 50 behind. Refresh individually and require fresh CI.
+- [ ] PRs #75/#78 and #80/#81 are closed unmerged; #75/#78 are superseded by #85/#84. The optional regression-review template was not merged and is not a release gate.
 
 - [x] **P0 — Pin before install (ADR-077; PR #82 merged as `ac030b1`, CI-verified):** direct clone with `--origin upstream`, detach/verify the approved full SHA, then run `bench setup requirements crm_signals` before site install/migration/build. Final head `ef4dc09` passed Quality, Security, Frappe v15/v16 Bench + Playwright and pinned Frappe v16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0. Authorized staging rehearsal remains open.
 
@@ -92,7 +96,7 @@
 - PR #65 is merged and CI-verified: Payment Entry receipt access is independent from Sales Invoice access, including query-level invoice permission exceptions. It does not replace target-site role validation or financial reconciliation.
 - PR #67 merged as `84ab2ce0b4ce1a9614882635e4c085092cf2a0c5` after final head `cfd7c5ec64786e394374d31ba7b89354565a2070` passed all required Quality, Security, Python, Frappe v15/v16 Bench and pinned v16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 checks. Its fixture is CI-verified: its disposable D1/D2 fixture checks submitted Sales Invoices/Payment Entry, INR/USD currency bases, overdue/POS/receipt deltas and a real Payment Entry-only reader. Synthetic records/permissions are rolled back. PR #69 additionally exercises ERPNext POS payment allocation and settlement through the normal Sales Invoice lifecycle; browser checkout/POS Opening-Closing and target-site native-report reconciliation remain outside CI.
 
-- `main` baseline after PR #67 is `84ab2ce0b4ce1a9614882635e4c085092cf2a0c5`; PR #32 D3, PR #38 replay, PR #42 field guard, PR #44 source permission, PR #57/#59/#61 Explorer, PR #61 operator-runbook safeguards, PR #62 status reconciliation, PR #63 D1/D2 query smoke, PR #65 independent D2 source permissions, PR #66 documentation reconciliation and PR #67 D1/D2 synthetic fixture are merged and CI-verified; target-site acceptance remains open.
+- The current main baseline is `de8e78b`; PR #82 pin-before-install, PR #84 dashboard inset, PR #85 GME workspace label and PR #88 upload-artifact v7 are merged and CI-verified. D1/D2, D3, Explorer and H-AC11 remain CI-verified; target-site acceptance and dashboard visual UAT remain open.
 - PR #38 replay is merged after both Frappe v15/v16 Bench jobs passed.
 - PR #45 threshold feature is merged; only target-site Company-by-Company amount and fallback approval remains.
 - PR #36 ADR-049 is merged; its final required checks passed.
