@@ -121,11 +121,17 @@ jobs:
           uv tool install frappe-bench
           bench init --skip-redis-config-generation --skip-assets --frappe-branch "${{ matrix.frappe_branch }}" --python "$(which python)" ~/frappe-bench
 
-      - name: Get ERPNext and CRM Signals
+      - name: Get ERPNext and pin CRM Signals before installing it
         working-directory: /home/runner/frappe-bench
+        env:
+          CRM_SIGNALS_SHA: ${{ github.sha }}
         run: |
           bench get-app --skip-assets erpnext https://github.com/frappe/erpnext --branch "${{ matrix.frappe_branch }}"
-          bench get-app --skip-assets crm_signals "${{ github.workspace }}"
+          test "${#CRM_SIGNALS_SHA}" -eq 40
+          git clone --origin upstream "${{ github.workspace }}" apps/crm_signals
+          git -C apps/crm_signals checkout --detach "$CRM_SIGNALS_SHA"
+          test "$(git -C apps/crm_signals rev-parse HEAD)" = "$CRM_SIGNALS_SHA"
+          bench setup requirements crm_signals
           bench setup requirements --dev
 
       - name: Create site and install apps
