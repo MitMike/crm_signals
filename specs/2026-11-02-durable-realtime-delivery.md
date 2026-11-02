@@ -25,7 +25,7 @@ Frappe v16 `publish_realtime(after_commit=True)` queues a callback and returns b
 | RT-AC1 | One stable ledger row exists per signal/recipient pair | Bench idempotency test |
 | RT-AC2 | Ledger is committed with the signal transaction and contains no copied message body | DocType/Bench test |
 | RT-AC3 | Publish is user-targeted and includes the stable delivery ID | Bench test |
-| RT-AC4 | Attempted rows are retried after their due time using the same ID | Bench retry test |
+| RT-AC4 | Scheduler retries due Pending/Attempted rows and skips future rows using the same stable ID | Bench scheduler batch recovery test |
 | RT-AC5 | Redis/publish exceptions back off and exhaust to Failed | Bench failure test |
 | RT-AC6 | Permission revocation or relationship removal cancels delivery | Bench permission test |
 | RT-AC7 | Duplicate IDs do not create duplicate toasts in one Desk session | Playwright test |
