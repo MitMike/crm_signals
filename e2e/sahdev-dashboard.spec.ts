@@ -350,7 +350,9 @@ test("CRM Signals dashboard loads its live API", async ({ page }) => {
     ).toBeVisible();
 });
 
-test("CRM Signals dashboard keeps its horizontal inset at desktop and mobile widths", async ({ page }) => {
+test("CRM Signals dashboard keeps its horizontal inset at desktop and mobile widths", async ({
+    page
+}) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await loginAsAdministrator(page);
     await page.route(crmSignalsDashboardMethod, (route) =>
