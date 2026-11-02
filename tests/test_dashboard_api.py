@@ -250,3 +250,21 @@ def test_dashboard_hides_quotation_source_when_field_permission_metadata_fails(m
     recent_query = next(query for query in queries if "message" in query["fields"])
     assert "source_doctype" not in recent_query["fields"]
     assert "source_name" not in recent_query["fields"]
+
+
+def test_dashboard_does_not_link_quotation_for_other_signal_types(monkeypatch):
+    api, _, frappe = load_api(monkeypatch)
+    original_get_list = frappe.get_list
+
+    def return_other_signal_type(doctype, fields=None, filters=None, **kwargs):
+        rows = original_get_list(doctype, fields=fields, filters=filters, **kwargs)
+        if doctype == "CRM Signal" and fields and "message" in fields:
+            for row in rows:
+                row["signal_type"] = "Website Visit"
+        return rows
+
+    frappe.get_list = return_other_signal_type
+    result = api.get_dashboard_data()
+
+    assert result["recent"][0]["source_doctype"] is None
+    assert result["recent"][0]["source_name"] is None
