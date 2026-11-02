@@ -348,6 +348,52 @@ test("CRM Signals dashboard loads its live API", async ({ page }) => {
     ).toBeVisible();
 });
 
+test("High-Value Quote activity opens its permitted source Quotation", async ({ page }) => {
+    await loginAsAdministrator(page);
+    await page.route(
+        "**/api/method/crm_signals.api.get_dashboard_data*",
+        (route) =>
+            route.fulfill({
+                status: 200,
+                contentType: "application/json",
+                body: JSON.stringify({
+                    message: {
+                        stats: {
+                            total: 1,
+                            unread: 1,
+                            high_priority: 1,
+                            last_7_days: 1
+                        },
+                        by_type: [{ signal_type: "High-Value Quote", total: 1 }],
+                        recent: [
+                            {
+                                name: "SIG-HIGHLIGHT-E2E",
+                                creation: "2026-11-02 09:00:00",
+                                signal_type: "High-Value Quote",
+                                priority: "High",
+                                message: "High-value quotation QTN-HIGHLIGHT-E2E submitted",
+                                lead: "LEAD-HIGHLIGHT-E2E",
+                                customer: null,
+                                is_read: 0,
+                                source_doctype: "Quotation",
+                                source_name: "QTN-HIGHLIGHT-E2E"
+                            }
+                        ]
+                    }
+                })
+            })
+    );
+
+    await page.goto("/app/crm-signals-dashboard");
+    const signal = page.locator(".crm-signal-row").filter({
+        hasText: "High-Value Quote"
+    });
+    await expect(signal).toContainText("Quotation: QTN-HIGHLIGHT-E2E");
+    await signal.click();
+    await expect(page).toHaveURL(/\\/app\\/quotation\\/QTN-HIGHLIGHT-E2E/);
+});
+
+
 test("Sales User can open the Executive Compass", async ({ page }) => {
     await loginAsAdministrator(page);
     const email = process.env.E2E_SALES_USER || "e2e-sales-user@example.com";
