@@ -16,7 +16,7 @@ This file records known work that is intentionally not represented as complete. 
 
 ## Repository maintenance
 
-- [ ] **Dependabot refresh (reviewed 2026-11-02 against main `c5720bf`):** PR #15 (Prettier 3.2.5 → 3.9.10) merged as `5fc32b0`; PR #13 (Oxlint 1.50.0 → 1.90.0) merged as `b466ac8`; PR #14 (globals 17.3.0 → 17.13.0) merged as `567f458`. PR #71 then merged as `c5720bf`. Six open Dependabot PRs remain stale: #5/#6/#7/#8/#10 are each one commit ahead and seven behind; #9 is one ahead and 39 behind. Refresh one branch at a time, resolve any lockfile/workflow conflicts, and require all ruleset contexts on the new final head before merge. Do not merge on stale CI.
+- [ ] **Dependabot refresh (reviewed 2026-11-02 against main `51798f2`):** PRs #13/#14/#15 (Oxlint, globals and Prettier) and functional PR #71 are merged; PR #73's docs-only H-AC11 reconciliation merged as `51798f2`. The six remaining open PRs are #5/#6/#7/#8/#9/#10. PR #5 (actions/checkout v7) was refreshed onto current main as merge head `8856f35`; Quality, Security and dependency audits pass, while Bench v15/v16 and the pinned Frappe v16.5.0 / Helpdesk 1.28.0 lane are still running. PRs #6/#7/#8/#10 are each one commit ahead and one behind main; PR #9 (flit-core) is one ahead and 40 behind. Their old-head checks pass, but those results are stale and are not merge approval. Refresh one branch at a time, require all ruleset contexts on the final head, and re-check after every main update. Do not merge on stale CI.
 
 ## P1 — engineering reliability improvements
 
@@ -63,4 +63,4 @@ Do not close a follow-up because code compiles or a mocked unit test passes. Clo
 
 ## P2 — Dependency maintenance
 
-- [ ] **Refresh remaining Dependabot PRs against current main `2cc7725`:** PRs #5/#6/#7/#8/#10 are each one commit ahead and one behind; all their existing-head check runs currently pass (15–17 runs per PR). PRs #9/#13/#14/#15 are each one ahead and 33 behind; all 18 existing-head check runs per PR pass but are stale. Refresh one branch at a time against current main, require all eight ruleset contexts on the new final head, and re-check the remaining branches after every main update. Do not merge based on stale-head CI.
+Track the current six-PR inventory and branch distances in the Repository maintenance section above. Refresh and verify one branch at a time; merge only after fresh final-head checks pass.
