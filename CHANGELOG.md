@@ -1,5 +1,11 @@
 # Changelog
 
+### Read-only preflight source identity — PR pending (ADR-086)
+
+- Extend the server-side target-site preflight to report the exact CRM Signals Git commit SHA using a bounded, fixed read-only Git query; unavailable or malformed revisions fail closed.
+- Add regression tests for valid SHA, Git failure without stderr disclosure and invalid output. Update the administrator guide and target-site acceptance kit to require an exact match with the approved release SHA.
+- Implementation is on `ops/preflight-source-sha-20261103`; final-head CI and merge are pending. No target-site or pilot verification is implied.
+
 ### setup-uv v7 dependency update — PR #7 (merged and CI-verified as `331492c`)
 
 - Updated `astral-sh/setup-uv@v6` to `@v7` in the Frappe v15/v16 Bench and pinned Frappe v16.5.0 workflows.
