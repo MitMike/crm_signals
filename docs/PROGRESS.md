@@ -116,7 +116,7 @@ GitHub ruleset [Protect main](https://github.com/MitMike/crm_signals/rules/26282
 ## Explicitly deferred
 
 See [FOLLOW_UPS.md](FOLLOW_UPS.md) for issues that should not be silently treated as complete:
-- Durable realtime notification retry; audited terminal Failed-row replay merged in PR #38.
+- Target-site acceptance for durable realtime retry (engineering implementation in PR #54); audited terminal Failed-row replay for the transactional signal outbox is merged in PR #38.
 - Multi-company quotation thresholds merged in PR #45; target-site Company amounts and exact-currency fallback approval remain; no implicit FX conversion.
 - D3 field-level permission hardening and target-site acceptance; H privacy/consent decisions, E integration inventory, V retention and A metric-registry work.
 
