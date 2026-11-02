@@ -235,3 +235,22 @@ def test_foreign_currency_quotation_without_company_base_total_fails_closed(monk
     module.on_quotation_submit(quotation)
 
     assert emitted == []
+
+def test_company_currency_grand_total_is_used_when_base_total_is_missing(monkeypatch):
+    module, _, _, _, _, _ = load_events(monkeypatch)
+    emitted = []
+    module.enqueue_signal_event = lambda **values: emitted.append(values)
+    quotation = types.SimpleNamespace(
+        name="QTN-COMPANY-CURRENCY-FALLBACK",
+        company="Example Ltd",
+        currency="USD",
+        grand_total=200000,
+        quotation_to="Lead",
+        party_name=None,
+        modified="2026-11-02 10:15:00",
+    )
+
+    module.on_quotation_submit(quotation)
+
+    assert len(emitted) == 1
+    assert emitted[0]["message"].endswith("(USD 200,000.00)")
