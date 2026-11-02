@@ -16,7 +16,7 @@ This file records known work that is intentionally not represented as complete. 
 
 ## Repository maintenance
 
-- [ ] **Dependabot refresh (reviewed 2026-11-02 against main `51798f2`):** PRs #13/#14/#15 (Oxlint, globals and Prettier) and functional PR #71 are merged; PR #73's docs-only H-AC11 reconciliation merged as `51798f2`. The six remaining open PRs are #5/#6/#7/#8/#9/#10. PR #5 (actions/checkout v7) was refreshed onto current main as merge head `8856f35`; Quality, Security and dependency audits pass, while Bench v15/v16 and the pinned Frappe v16.5.0 / Helpdesk 1.28.0 lane are still running. PRs #6/#7/#8/#10 are each one commit ahead and one behind main; PR #9 (flit-core) is one ahead and 40 behind. Their old-head checks pass, but those results are stale and are not merge approval. Refresh one branch at a time, require all ruleset contexts on the final head, and re-check after every main update. Do not merge on stale CI.
+- [ ] **Dependabot refresh (reviewed 2026-11-02 against main `00e997c`):** PRs #13/#14/#15 (Oxlint, globals and Prettier), functional PR #71, docs-only PR #73 and Dependabot PR #5 (actions/checkout v7) are merged. PR #5's refreshed head passed all 17 final-head check runs, including Quality, Security, Python, dependency audits, Frappe v15/v16 Bench and pinned Frappe v16.5.0 / Helpdesk 1.28.0, then merged as `00e997c`. Five open Dependabot PRs remain: #6/#7/#8/#10 are each one commit ahead and two behind main; #9 (flit-core) is one ahead and 41 behind. Their old-head checks pass, but those results are stale and are not merge approval. Refresh one branch at a time, require all ruleset contexts on the final head, and re-check after every main update. Do not merge on stale CI.
 
 ## P1 — engineering reliability improvements
 

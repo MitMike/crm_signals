@@ -2,7 +2,7 @@
 
 **Started:** 2026-11-01  
 **Last reviewed:** 2026-11-02  
-**Latest main:** `51798f2a2711737cf67ea91c597405c224e6228f` (PR #73 post-H-AC11 documentation reconciliation merged and CI-verified); **latest functional baseline:** `c5720bfb3fbe8b554ec6febd549a8d5e58acc1d7`  
+**Latest main:** `00e997ce25747f24b8af9948527a1738cc6f3920` (PR #5 actions/checkout v7 dependency update merged and CI-verified); **latest functional baseline:** `c5720bfb3fbe8b554ec6febd549a8d5e58acc1d7`  
 **Decision register:** [ADR-046](DECISIONS.md#adr-046--run-release-readiness-as-an-evidence-gated-sprint)  
 **Operating rule:** no item is complete without the evidence listed here. CI evidence and target-site evidence are separate.
 
@@ -24,6 +24,7 @@
 - [x] [PR #69](https://github.com/MitMike/crm_signals/pull/69) adds a real ERPNext POS Profile/Mode of Payment and submitted POS invoice settlement to the disposable D2 fixture (ADR-070); synchronized final head `33b750a` passed all 15 required/target checks and merged as `efe7872`. Target-site native-report reconciliation remains open.
 - [x] [PR #71](https://github.com/MitMike/crm_signals/pull/71) adds permission-gated High-Value Quote source Quotation drill-down (ADR-069/071/072). Exact Prettier 3.9.10 output was applied after the CI diff diagnostic; final head `df0c273` passed Quality, Security, Python 3.10/3.11/3.12/3.14, Bench v15/v16 including Playwright, and pinned Frappe v16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0. Merged as `c5720bf`. Target-site persona and permission-revocation acceptance remains open.
 - [x] [PR #73](https://github.com/MitMike/crm_signals/pull/73) reconciles the merged H-AC11 status and ADR-073 across the project records; final head `446e2bc` passed Quality, Security, Python 3.10/3.11/3.12/3.14 and Bench v15/v16. Merged documentation-only as `51798f2`.
+- [x] [PR #5](https://github.com/MitMike/crm_signals/pull/5) upgrades `actions/checkout` from v4 to v7. The refreshed final head `8856f35` passed all 17 checks, including Quality, Security, Python, dependency audits, Bench v15/v16 and pinned Frappe v16.5.0 / Helpdesk 1.28.0; merged as `00e997c`.
 - [ ] [PR #74](https://github.com/MitMike/crm_signals/pull/74) pins target-site installation/upgrade to an approved full commit SHA, verifies the detached checkout, synchronizes dependencies from that tree, and updates the acceptance kit. This is documentation-only; require all final-head Quality, Security and Bench v15/v16 contexts to pass before merge. It does not constitute a target-site deployment or pilot acceptance.
 - [x] [PR #65](https://github.com/MitMike/crm_signals/pull/65) fixes D2 source-permission independence: Payment Entry receipts remain visible when Sales Invoice access is denied, and partial invoice results are cleared after a query-level PermissionError. Final head `315a49a52f70ecb888e6d9cc91a4c1f4e51535d7` passed Quality, Security/Semgrep, Python 3.10/3.11/3.12/3.14, Bench v15/v16 and pinned Frappe v16.5.0 / ERPNext v16.5.0 / Helpdesk v1.28.0; merged as `0cfeda4fb39f79722fdf733abd06a3460ebcdd4d`.
 
