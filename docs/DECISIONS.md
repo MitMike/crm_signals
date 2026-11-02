@@ -654,3 +654,12 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Rationale:** A reproducible, metadata-only report reduces operator transcription errors without granting a new remote data-export surface or guessing site-specific policy. Explicitly separating static role grants from effective user checks prevents the report from being mistaken for acceptance evidence.
 - **Consequences:** The command is available only to a Bench operator with server-side access. The output is an inventory aid, not a pass/fail certification; an authorized operator must still run the target-site persona matrix, native-report reconciliation, SLA calendar checks and operational rehearsal. The report exposes Company names and configured threshold amounts to the operator, so it must be reviewed and shared only through the site's approved channel.
 - **Revisit criteria:** Revisit if a whitelisted self-service diagnostics endpoint is requested, if new data categories are proposed, or if the Frappe/ERPNext metadata APIs change. Any remote endpoint or expansion into transactional/customer data requires a separate security and privacy decision.
+
+
+## ADR-069 — POS aggregate tests must exercise ERPNext settlement lifecycle
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-02
+- **Decision:** A POS receipt integration fixture must create a real POS Profile and company-specific Mode of Payment, submit an `is_pos` Sales Invoice through ERPNext's document lifecycle, and assert the framework-calculated paid amount settles the invoice. Directly setting `is_pos`, `paid_amount` or `outstanding_amount` is insufficient evidence of POS payment workflow correctness.
+- **Scope boundary:** This CI fixture validates POS Profile/payment configuration and submitted invoice accounting settlement. It does not claim browser checkout, POS Opening/Closing, cash drawer or stock movement coverage.
+- **Evidence:** PR #69 merged as `efe78729881390cacba343749364ceccdcb7ffb2`; final-head Quality, Security, Bench v15/v16 and pinned Frappe v16.5.0 checks passed.
