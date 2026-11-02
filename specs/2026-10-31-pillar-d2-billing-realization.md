@@ -1,6 +1,6 @@
 # D2 — Billing Realization
 
-**Status:** Implemented; return-metadata safety guard and PR #63 read-only D1/D2 Bench query-contract smoke are merged and CI-verified on Frappe v15/v16 plus pinned v16.5.0. PR #65 fixes independent Payment Entry source access when Sales Invoice is unavailable; final-head CI is pending. Target-site financial reconciliation and site-specific permission validation remain outstanding.
+**Status:** Implemented; return-metadata safety guard and PR #63 read-only D1/D2 Bench query-contract smoke are merged and CI-verified on Frappe v15/v16 plus pinned v16.5.0. PR #65 fixes independent Payment Entry source access when Sales Invoice is unavailable and is merged/CI-verified on v15/v16 plus pinned v16.5.0. Target-site financial reconciliation and site-specific permission validation remain outstanding.
 
 ## Problem and user
 

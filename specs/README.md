@@ -6,15 +6,15 @@ Product and engineering changes start with a spec before implementation. The spe
 
 | File | Area | State |
 |---|---|---|
-| [2026-10-31-pillar-d2-billing-realization.md](2026-10-31-pillar-d2-billing-realization.md) | D2 Billing Realization | Return-metadata guard merged in PR #17; target-site reconciliation remains |
+| [2026-10-31-pillar-d2-billing-realization.md](2026-10-31-pillar-d2-billing-realization.md) | D2 Billing Realization | Return-metadata guard, PR #63 v15/v16 + pinned v16.5.0 query smoke, and PR #65 independent Payment Entry permission fix merged/CI-verified; target-site reconciliation and role validation remain |
 | [2026-11-01-crm-signals-core-and-access.md](2026-11-01-crm-signals-core-and-access.md) | CRM Signal model, ingestion, permissions and Console | Baseline implemented; release hardening and target-site acceptance remain |
-| [2026-11-01-settings-and-core-reliability.md](2026-11-01-settings-and-core-reliability.md) | Settings singleton, starter presets, event identity and digest reliability | Implementation in PR #19; CI and merge pending |
-| [2026-11-01-crm-signals-events-and-notifications.md](2026-11-01-crm-signals-events-and-notifications.md) | Quotation/Opportunity events and realtime routing | Baseline implemented; settings/idempotency implementation in PR #19 |
-| [2026-11-01-crm-signals-daily-digest.md](2026-11-01-crm-signals-daily-digest.md) | Scheduled Sales Manager digest | Baseline implemented; configurable schedule and date idempotency in PR #19 |
-| [2026-11-01-pillar-d1-sales-compass.md](2026-11-01-pillar-d1-sales-compass.md) | D1 Sales Compass | Missing-status correctness merged in PR #17; target-site validation remains |
+| [2026-11-01-settings-and-core-reliability.md](2026-11-01-settings-and-core-reliability.md) | Settings singleton, starter presets, event identity and digest reliability | PR #19/#23 merged and CI-verified; target-site configuration and scheduler/mail acceptance remain |
+| [2026-11-01-crm-signals-events-and-notifications.md](2026-11-01-crm-signals-events-and-notifications.md) | Quotation/Opportunity events and realtime routing | Settings/idempotency PR #19/#23, transactional outbox PR #26 and durable realtime retry PR #54 merged/CI-verified; target-site event policy and recovery acceptance remain |
+| [2026-11-01-crm-signals-daily-digest.md](2026-11-01-crm-signals-daily-digest.md) | Scheduled Sales Manager digest | Configurable schedule/date idempotency PR #19/#23 merged/CI-verified; target-site timezone, recipient and mail-queue acceptance remain |
+| [2026-11-01-pillar-d1-sales-compass.md](2026-11-01-pillar-d1-sales-compass.md) | D1 Sales Compass | Missing-status correctness PR #17 and PR #63 v15/v16 + pinned v16.5.0 query-contract smoke merged/CI-verified; target-site workflow and role validation remain |
 | [2026-11-01-pillar-d3-service-resolution-sla.md](2026-11-01-pillar-d3-service-resolution-sla.md) | D3 Service Resolution/SLA | Adapter, aggregate fixture and exact v16.5.0/Helpdesk v1.28.0 reference CI verified; target-site source/permission/SLA acceptance remains |
-| [2026-11-01-pillar-h-highlights.md](2026-11-01-pillar-h-highlights.md) | H Highlights | Partial: high-value quotation alerts and per-Company thresholds merged; VIP proposal-link tracking gated on privacy/consent and retention approval |
-| [2026-11-01-pillar-e-explorer.md](2026-11-01-pillar-e-explorer.md) | E Explorer | Core API merged in PR #57; Desk page/form entry points and first Playwright coverage in PR #59; target-site source inventory and role acceptance remain |
+| [2026-11-01-pillar-h-highlights.md](2026-11-01-pillar-h-highlights.md) | H Highlights | High-value Quotation alerts, per-Company thresholds and PR #60 contract tests merged/CI-verified; VIP escalation needs approved trigger/recipient policy and proposal-link tracking remains gated on privacy/consent and retention approval |
+| [2026-11-01-pillar-e-explorer.md](2026-11-01-pillar-e-explorer.md) | E Explorer | Core API PR #57, Desk UI PR #59 and five-context browser/operational hardening PR #61 merged/CI-verified; target-site role/source acceptance and optional-provider inventory remain |
 | [2026-11-01-pillar-v-vault.md](2026-11-01-pillar-v-vault.md) | V Vault | Design specified; metric registry and retention configuration required |
 | [2026-11-01-pillar-a-analysis.md](2026-11-01-pillar-a-analysis.md) | A Analysis | Design specified; approved metric/query registry required |
 
