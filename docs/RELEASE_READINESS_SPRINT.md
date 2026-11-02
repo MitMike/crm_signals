@@ -2,7 +2,7 @@
 
 **Started:** 2026-11-01  
 **Last reviewed:** 2026-11-02  
-**Baseline:** `main` at `6ef9642b63c24053fb437f67d9d4fb47e360c80a`  
+**Baseline:** `main` at `aeea9599b11f17bff0ef5bbd7904f44f23567e3e`  
 **Decision register:** [ADR-046](DECISIONS.md#adr-046--run-release-readiness-as-an-evidence-gated-sprint)  
 **Operating rule:** no item is complete without the evidence listed here. CI evidence and target-site evidence are separate.
 
@@ -72,7 +72,9 @@
 
 ## Current blockers and known evidence
 
-- `main` baseline is `6ef9642b63c24053fb437f67d9d4fb47e360c80a`; PR #32 D3, PR #38 replay, PR #42 field guard, PR #44 source permission, PR #57/#59/#61 Explorer and PR #61 operator-runbook safeguards are merged and CI-verified.
+- PR #63 is code-complete but not CI-verified. It executes the real D1/D2 query path on Frappe v15/v16 and pinned v16.5.0 without creating business records. It is not a financial reconciliation or target-site permission test.
+
+- `main` baseline is `aeea9599b11f17bff0ef5bbd7904f44f23567e3e`; PR #32 D3, PR #38 replay, PR #42 field guard, PR #44 source permission, PR #57/#59/#61 Explorer, PR #61 operator-runbook safeguards and PR #62 status reconciliation are merged. PR #63 adds D1/D2 query compatibility smoke coverage; final-head CI is pending.
 - PR #38 replay is merged after both Frappe v15/v16 Bench jobs passed.
 - PR #45 threshold feature is merged; only target-site Company-by-Company amount and fallback approval remains.
 - PR #36 ADR-049 is merged; its final required checks passed.
