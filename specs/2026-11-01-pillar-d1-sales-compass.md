@@ -1,6 +1,6 @@
 # D1 — Sales Compass
 
-**Status:** Implemented; status-metadata safety fix is merged. PR #63 adds a read-only D1/D2 Bench query-contract smoke on Frappe v15/v16 and pinned v16.5.0 (final-head CI pending). Target-site workflow/status validation remains.
+**Status:** Implemented; status-metadata safety fix is merged. PR #63 adds a read-only D1/D2 Bench query-contract smoke merged/CI-verified on Frappe v15/v16 and pinned v16.5.0. Target-site workflow/status validation remains.
 
 ## Problem and user
 
