@@ -17,7 +17,9 @@ This file records known work that is intentionally not represented as complete. 
 
 ## Repository maintenance
 
-- [ ] **Current PR queue (reviewed 2026-11-02 against main `de8e78b`):** PR #89 is the docs-only reconciliation and ADR-075 skip-path smoke; its Quality/Security and stable Bench required workflow were queued at review time. Dependabot PRs #7/#8/#10 are each one commit ahead and five behind; #9 is one ahead and 50 behind. Refresh one at a time and require all current-head contexts before merge.
+- [x] **PR #89 documentation/ADR-075 skip-path reconciliation:** merged as `ac6b253`; final head `0967290` passed Quality, Security and Bench Integration/E2E. This confirms the docs-only selector path while stable required contexts pass.
+- [x] **PR #7 setup-uv v7:** merged as `331492c`; final head `a72c82c` passed all 18 check runs, including Quality, Security/Semgrep, Python 3.10/3.11/3.12/3.14, Frappe v15/v16 Bench + Playwright and pinned Frappe v16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0.
+- [ ] **Current PR queue (reviewed against main `331492c`):** PR #8 setup-node v7 and PR #10 setup-python v7 are each one commit ahead and two behind; PR #9 flit-core `>=3.4,<5` is one ahead and 52 behind. Existing checks are on stale heads. Refresh one at a time, inspect exact diffs and require all current-head contexts before merge; #9 also needs package-build/install compatibility on supported Python/Frappe lanes.
 - [x] **Upload-artifact v7 (PR #88):** merged as `de8e78b`; final head `eed57d6` passed Quality, Security, Bench v15/v16 + Playwright and pinned Frappe v16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0. PRs #6 and #87 were closed unmerged; #88 is the verified replacement.
 - [x] **GME workspace label (ADR-076; PR #85):** merged as `5cc4308` after all four final-head workflows passed on `b09a0cb`. Only workspace label/title changed; technical identifiers and routes were preserved.
 - [x] **Dashboard inset fix (BUG-2026-001 / FIX-2026-001; PR #84):** merged as `b1f4ad7`; final head `f0e1909` passed Quality, Security, Bench v15/v16 and pinned v16.5.0. **Still open:** rebuild/refresh the intended UAT site's assets/cache and capture desktop/mobile evidence before marking UAT-verified.
@@ -70,8 +72,9 @@ Do not close a follow-up because code compiles or a mocked unit test passes. Clo
 
 ## P2 — Dependency maintenance
 
-Track the four remaining open Dependabot PRs; refresh and verify one branch at a time. Merge only after fresh final-head checks pass.
+Track the three remaining open Dependabot PRs; refresh and verify one branch at a time. Merge only after fresh final-head checks pass.
 
-- [ ] **PR #7 — setup-uv v7; PR #8 — setup-node v7; PR #10 — setup-python v7:** each is one commit ahead and five commits behind main `de8e78b`. Refresh individually, inspect the exact diff, and rerun current-head required checks.
-- [ ] **PR #9 — flit-core requirement:** one commit ahead and 50 commits behind main `de8e78b`. Inspect the packaging compatibility range and refresh only after the nearer action updates are complete; run Python package install and supported Bench lanes on the refreshed head.
+- [x] **PR #7 — setup-uv v7:** merged as `331492c` after all 18 final-head checks passed.
+- [ ] **PR #8 — setup-node v7 and PR #10 — setup-python v7:** each is one commit ahead and two commits behind main `331492c`; old-head checks are green but stale. Refresh individually and rerun current-head required checks.
+- [ ] **PR #9 — flit-core requirement:** one commit ahead and 52 commits behind main `331492c`. Refresh after the nearer action updates; inspect the `<5` upper bound and run package build/install plus supported Bench lanes before merge.
 - [ ] **PR #80/#81 regression-review template:** both closed unmerged; template not merged. Revisit only if a repository owner explicitly wants this optional review aid; it is not a release gate.
