@@ -149,7 +149,7 @@ Exit criteria:
 **Priority:** P1  
 **Dependencies:** Stage 1 settings, recipient permissions and idempotency.
 
-**Current implementation:** High-value Quotation alerts and Company-specific base-currency thresholds are implemented (PR #45/#49). The hook compares the Company base total with the Company threshold, falls back to transaction total only on an exact currency match, emits on submission at `>=` threshold and preserves the Quotation transaction amount in the message. Current recipients remain the linked party owner and active ToDo assignees, constrained to enabled System Users with read permission. PR #60 adds direct hook-level regression coverage. VIP membership and escalation routing are not defined well enough to implement safely; ADR-061 records the required product decision. Proposal-link tracking remains blocked by privacy/consent and retention approval.
+**Current implementation:** High-value Quotation alerts and Company-specific base-currency thresholds are implemented (PR #45/#49). The hook compares the Company base total with the Company threshold, falls back to transaction total only on an exact currency match, emits on submission at `>=` threshold and preserves the Quotation transaction amount in the message. Current recipients remain the linked party owner and active ToDo assignees, constrained to enabled System Users with read permission. PR #60 adds direct hook-level regression coverage. PR #71 adds a High-Value Quote source link in the CRM Signals Console only when the current user can read both CRM Signal source fields and the exact Quotation; unit and Playwright coverage are code-complete, CI pending. VIP membership and escalation routing are not defined well enough to implement safely; ADR-061 records the required product decision. Proposal-link tracking remains blocked by privacy/consent and retention approval.
 
 Work:
 - [x] Implement Company-specific quotation thresholds (PR #45/#49) with no implicit FX conversion and exact-currency fallback only.
@@ -157,6 +157,7 @@ Work:
 - [x] Route current quote alerts through existing owner/active-assignee recipients after enabled-user and source/party permission checks.
 - [x] Add direct regression coverage for threshold equality, below-threshold suppression, base-total selection and same-currency fallback (PR #60).
 - [ ] Confirm Company-by-Company threshold amounts/currencies and recipient behavior on the target site.
+- [ ] Verify the High-Value Quote source link with target-site Sales User/Manager and non-sales accounts; PR #71's API and browser tests are reference CI evidence only.
 - [ ] Add the admin-managed VIP Customer allowlist and escalation routing only after the product owner approves the triggering events, priority/threshold effect, recipients and cooldown (ADR-061).
 - [ ] Add first-party proposal-link tokens stored as hashes, expiry and revocation only after privacy/consent and retention approval.
 - [ ] Accept stable provider event IDs; deduplicate opens and throttle alert delivery.
