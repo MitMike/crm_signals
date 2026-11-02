@@ -223,4 +223,5 @@ Included in PR #19's merge commit [a495919](https://github.com/MitMike/crm_signa
 
 ### Explorer browser coverage follow-up — PR #61
 - Add Playwright coverage for all five supported timeline context routes and for discarding a late response after the user changes context.
+- Correct the deployment runbook to require Company-specific base-currency thresholds (or an exact-currency legacy fallback) and add Explorer role/context smoke tests.
 - Keep target-site role/field-permission acceptance and optional-provider discovery separate from CI verification.
