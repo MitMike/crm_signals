@@ -180,12 +180,23 @@ class TestRealtimeNotificationDelivery(FrappeTestCase):
             process_pending_signal_notification_deliveries,
         )
 
+        suffix = frappe.generate_hash(length=8)
+        recipient = frappe.get_doc(
+            {
+                "doctype": "User",
+                "email": f"crm-signal-scheduler-{suffix}@example.com",
+                "first_name": "CRM Signal Scheduler Test",
+                "user_type": "System User",
+                "enabled": 1,
+                "send_welcome_email": 0,
+            }
+        ).insert(ignore_permissions=True).name
         due_signal = self._make_signal()
         retry_signal = self._make_signal()
         future_signal = self._make_signal()
-        due = _get_or_create_delivery(due_signal.name, "Administrator")
-        retry = _get_or_create_delivery(retry_signal.name, "Administrator")
-        future = _get_or_create_delivery(future_signal.name, "Administrator")
+        due = _get_or_create_delivery(due_signal.name, recipient)
+        retry = _get_or_create_delivery(retry_signal.name, recipient)
+        future = _get_or_create_delivery(future_signal.name, recipient)
         retry.db_set(
             {
                 "status": "Attempted",
@@ -206,7 +217,7 @@ class TestRealtimeNotificationDelivery(FrappeTestCase):
         with (
             patch(
                 "crm_signals.notifications.get_signal_recipients",
-                return_value=["Administrator"],
+                return_value=[recipient],
             ),
             patch("frappe.publish_realtime") as publish,
             patch("frappe.db.commit"),
