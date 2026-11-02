@@ -4,14 +4,14 @@
 **Repository:** MitMike/crm_signals  
 **Base:** `main` at `cab1796d6432800d229a7cf1512b3be45f72b5bc` (PR #51 merged)  
 **Implementation under audit:** PRs #19/#21/#23/#26/#32/#38/#42/#44/#45/#49/#50/#51, all merged; latest main baseline `cab1796`  
-**Decision:** **Not approved for production sign-off.** PR #19, PR #21 and PR #23 are merged; supported-version CI passes. Target-site acceptance and the roadmap's external discovery/policy inputs remain outstanding. Durable realtime retry is implemented on PR #54 but still needs required CI and target-site recovery evidence. The transactional outbox and audited Failed-row replay are already implemented.
+**Decision:** **Not approved for production sign-off.** PR #19, PR #21 and PR #23 are merged; supported-version CI passes. Target-site acceptance and the roadmap's external discovery/policy inputs remain outstanding. Durable realtime retry is implemented on PR #54 and CI-verified on head `d2ac43e`; target-site Redis/worker recovery evidence remains open. The transactional outbox and audited Failed-row replay are already implemented.
 
 ## 2026-11-02 follow-up status
 
 This is a historical audit of the earlier PR #19/#23 baseline. The following later changes supersede the affected open findings:
 
 - **Signal outbox:** transactional source-event outbox merged in PR #26; audited System Manager replay for terminal Failed rows merged in PR #38. The old P1 replay gap is closed; target-site backup/restore and operational monitoring remain P0 acceptance.
-- **Realtime authorization and retry:** source-document read checks merged in PR #44. PR #54 implements the ADR-053 per-recipient ledger, stable delivery ID, bounded retry, permission recheck and active-session deduplication. `Attempted` means the after-commit callback was queued, not that Redis or a browser confirmed delivery. Required CI and target-site Redis/worker recovery tests remain open.
+- **Realtime authorization and retry:** source-document read checks merged in PR #44. PR #54 implements the ADR-053 per-recipient ledger, stable delivery ID, bounded retry, permission recheck and active-session deduplication. `Attempted` means the after-commit callback was queued, not that Redis or a browser confirmed delivery. Required CI passed on head `d2ac43e`; target-site Redis/worker recovery tests remain open.
 - **Multi-company quotation thresholds:** Company-specific explicit threshold rows merged in PR #45 as `ff434bdf`; all 16 required checks passed on head `84783d15`. No implicit FX conversion; each enabled Company still needs an approved amount or explicit approval of the exact-currency legacy fallback.
 - **D3 Helpdesk:** standard adapter merged in PR #32 and field-level fail-closed guard merged in PR #42. Target-site versions, Sales-role read-only permissions and active SLA calendar remain unverified.
 - **Operator kit:** added a beginner-friendly D3 Support & SLA discovery worksheet, a Frappe v16.5.0 support configuration guide, and the target-site acceptance checklist. The discovery script is metadata-only; the pilot operator still needs to run it and record the site's exact app versions and policy.
