@@ -143,7 +143,6 @@ def test_preflight_includes_workflow_states_and_static_field_permissions(monkeyp
     assert all(not field["present"] for field in ticket["required_fields"])
 
 
-
 def test_preflight_source_revision_reports_exact_full_sha(monkeypatch):
     diagnostics = load_diagnostics(monkeypatch)
     sha = "a" * 40
@@ -212,4 +211,47 @@ def test_preflight_source_revision_rejects_non_sha_output(monkeypatch):
     assert diagnostics._source_revision() == {
         "available": False,
         "reason": "invalid_revision",
+    }
+
+
+
+def test_preflight_source_revision_reports_git_timeout(monkeypatch):
+    diagnostics = load_diagnostics(monkeypatch)
+    monkeypatch.setattr(
+        diagnostics.importlib,
+        "import_module",
+        lambda app: types.SimpleNamespace(
+            __file__="/bench/apps/crm_signals/crm_signals/__init__.py"
+        ),
+    )
+
+    def timed_out(command, **kwargs):
+        raise diagnostics.subprocess.TimeoutExpired(command, timeout=5)
+
+    monkeypatch.setattr(diagnostics.subprocess, "run", timed_out)
+
+    assert diagnostics._source_revision() == {
+        "available": False,
+        "reason": "git_timeout",
+    }
+
+
+def test_preflight_source_revision_reports_missing_git(monkeypatch):
+    diagnostics = load_diagnostics(monkeypatch)
+    monkeypatch.setattr(
+        diagnostics.importlib,
+        "import_module",
+        lambda app: types.SimpleNamespace(
+            __file__="/bench/apps/crm_signals/crm_signals/__init__.py"
+        ),
+    )
+    monkeypatch.setattr(
+        diagnostics.subprocess,
+        "run",
+        lambda *args, **kwargs: (_ for _ in ()).throw(FileNotFoundError()),
+    )
+
+    assert diagnostics._source_revision() == {
+        "available": False,
+        "reason": "git_unavailable",
     }
