@@ -267,6 +267,9 @@ def test_change_aware_bench_filters_cover_frappe_metadata_and_workflows():
         assert path in workflow
         assert path in pinned
 
+    for path in ["e2e/**", "playwright.config.ts"]:
+        assert f"'{path}'" in workflow
+
     assert "workflow_dispatch:" in workflow
     assert "branches:" in workflow
     assert "- main" in workflow
