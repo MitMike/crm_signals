@@ -2,8 +2,8 @@
 
 **Audit date:** 2026-11-02  
 **Repository:** MitMike/crm_signals  
-**Base:** `main` at `efe78729881390cacba343749364ceccdcb7ffb2` (PR #69 POS settlement fixture merged and CI-verified)  
-**Implementation under audit:** PRs #19/#21/#23/#26/#32/#38/#42/#44/#45/#49/#50/#51/#53/#54/#55/#56/#57/#59/#60/#61/#62/#63/#65/#66/#67/#68/#70 merged; PR #69 (POS settlement fixture) is merged and CI-verified as `efe7872`; PR #71 (High-Value Quote source drill-down) remains open, code-complete but CI-blocked by repeated Prettier failures under ADR-071; latest main baseline `efe7872`  
+**Base:** `main` at `b466ac87613afc5b2726ef866d9a28b37ac3fab4` (PR #13 Oxlint update; PR #15 Prettier update also merged)  
+**Implementation under audit:** PRs #13/#15/#19/#21/#23/#26/#32/#38/#42/#44/#45/#49/#50/#51/#53/#54/#55/#56/#57/#59/#60/#61/#62/#63/#65/#66/#67/#68/#69/#70 merged; PR #69 (POS settlement fixture) is CI-verified as `efe7872`; PR #70 (read-only target-site preflight) is CI-verified as `13341b7`; PR #71 (High-Value Quote source drill-down) remains open, code-complete but not CI-verified after a controlled Prettier 3.9.10 revalidation failed under ADR-071/072; latest main baseline `b466ac8`  
 **Decision:** **Not approved for production sign-off.** PR #19, PR #21 and PR #23 are merged; supported-version CI passes. Target-site acceptance and the roadmap's external discovery/policy inputs remain outstanding. Durable realtime retry is implemented on PR #54 and CI-verified on head `d2ac43e`; target-site Redis/worker recovery evidence remains open. The transactional outbox and audited Failed-row replay are already implemented.
 
 ## 2026-11-02 follow-up status
@@ -23,6 +23,10 @@ This is a historical audit of the earlier PR #19/#23 baseline; main now also con
 - **D2 source permissions:** PR #65 merged as `0cfeda4fb39f79722fdf733abd06a3460ebcdd4d`. Payment Entry customer receipts are now evaluated independently of Sales Invoice read access; a query-level invoice `PermissionError` clears partial invoice metrics without suppressing permitted receipts. Final-head Quality, Security/Semgrep, Python, Bench v15/v16 and pinned Frappe v16.5.0 checks passed.
 - **D1/D2 aggregate values:** PR #67 merged as `84ab2ce0b4ce1a9614882635e4c085092cf2a0c5`; final head `cfd7c5ec64786e394374d31ba7b89354565a2070` passed all 15 check runs. The disposable fixture checks Lead/Opportunity and submitted invoice/payment aggregates, INR/USD and party-account currency grouping, overdue/receipt/POS filters, and Payment Entry-only read access. Synthetic records/permissions are rolled back. POS settlement, native-report reconciliation and target-site role acceptance remain outside CI.
 - **Current status:** the historical audit baseline above predates PR #65/#67. These merges improve reference-stack evidence but do not change the production decision: **not approved for production sign-off** until the P0 target-site acceptance gates below have recorded evidence and owner approval. The latest functional baseline is `84ab2ce`; the open PR #68 is documentation-only.
+
+## Current audit status after PR #13/#15 and PR #71 revalidation
+
+The main branch is `b466ac8`; the latest functional baseline remains PR #69 at `efe7872`. PR #13 and PR #15 are merged with all required checks passing. PR #71 is open and code-complete, but the latest controlled formatter revalidation is still failing; the branch now includes a CI-only diff diagnostic and must pass all required checks before merge. Production sign-off remains blocked on P0 target-site acceptance and owner approvals.
 
 ## Scope reviewed
 
