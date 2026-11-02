@@ -438,12 +438,13 @@ def verify_helpdesk_aggregate_fixture():
         baseline_resolution_count, baseline_average_seconds = (
             _d3_ci_baseline_resolution_stats(period_start)
         )
-        sla_name = (
-            frappe.db.get_value(
-                "HD Service Level Agreement", {"enabled": 1}, "name"
-            )
-            or "CRM-Signals-CI-Synthetic-SLA"
+        sla_name = frappe.db.get_value(
+            "HD Service Level Agreement", {"enabled": 1}, "name"
         )
+        if not sla_name:
+            frappe.throw(
+                "D3 aggregate fixture requires at least one enabled Helpdesk SLA"
+            )
         _d3_ci_create_tickets(
             _d3_ci_status_names(), sla_name, now_datetime(), ticket_names
         )
