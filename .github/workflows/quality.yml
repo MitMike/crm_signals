@@ -38,6 +38,8 @@ jobs:
         run: npm ls @playwright/test eslint minimatch --all
       - name: ESLint and Oxlint
         run: npm run lint:js
+      - name: Print Prettier output for Explorer E2E diagnosis
+        run: npx prettier e2e/explorer.spec.ts | sed -n '145,400p'
       - name: Check formatting of tooling and E2E tests
         run: npm run format:check
       - name: Compile Python
