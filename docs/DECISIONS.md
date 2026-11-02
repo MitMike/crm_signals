@@ -709,12 +709,23 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Consequences:** No POS/preflight evidence is dropped; the decision register remains uniquely numbered and the progress/follow-up records have one authoritative update.
 
 
-## ADR-074 — Change-aware CI gates without weakening merge protection
+## ADR-074 — Pin every target-site deployment to an approved commit
 
 - **Status:** Accepted
 - **Recorded:** 2026-11-02
-- **Context:** Pull requests initialized full Bench compatibility lanes even for documentation and workspace metadata changes. Quality also installed JavaScript tooling and ran four Python versions when changed files could not affect those surfaces. The active main ruleset requires the existing lint, four Python matrix, two Bench matrix and Semgrep contexts.
-- **Decision:** Select tests by changed paths on pull requests while preserving all existing required context names. Keep full Bench validation on main pushes and manual dispatch; run all Python versions for Python/runtime-relevant PRs; run JavaScript lint/format for JavaScript, tooling or E2E changes. Narrow pinned v16.5.0/Helpdesk validation to backend, DocType/Page, public asset, tests and packaging changes. Enable pip/npm caches.
-- **Rationale:** Run cheap broad checks first and expensive Frappe site creation/browser integration only when relevant.
-- **Consequences:** Docs/workspace-only PRs should avoid Bench site creation, the Python unit matrix and npm installation while retaining static/config validation, Semgrep and required context names. Runtime changes retain compatibility coverage. First PR must verify skipped required contexts are successful and runtime changes still run the full intended matrix.
-- **Revisit criteria:** Revisit if filters miss runtime-sensitive files, skipped checks remain pending, cache invalidation causes stale dependencies, or measured lead time does not improve. Never remove required checks or bypass branch protection.
+- **Context:** The administrator guide's first-install command cloned the moving `main` branch even though its later instructions required a pinned release revision. That inconsistency could make an installation differ from the revision reviewed by CI or recorded for rollback.
+- **Decision:** First installations may clone the repository, but must immediately detach to the exact approved 40-character commit SHA, verify `rev-parse HEAD`, and run `bench setup requirements` against that pinned tree before `install-app` or migration. Upgrades must fetch the approved source, detach to the same kind of immutable SHA, verify `rev-parse HEAD`, and reconcile Python/Node requirements from the pinned tree before migration. Never deploy a target site from a moving branch.
+- **Rationale:** A deployment must be reproducible, auditable and restorable to the exact source revision that passed the release gate.
+- **Consequences:** The operator guide and deployment runbook now make commit pinning and SHA verification explicit. The target-site acceptance record must retain the verified CRM Signals SHA alongside exact Frappe/ERPNext/Helpdesk versions. This documentation change does not claim a target-site deployment or pilot verification.
+- **Revisit criteria:** Revisit only when release automation publishes and verifies immutable, signed release tags; until then, use the approved full commit SHA.
+
+
+## ADR-075 — Make change-aware CI selection fail closed
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-02
+- **Context:** PR #76 introduces path-aware test execution to avoid creating Frappe sites for documentation and workspace-only changes. A review of the initial workflow found that a failed path-detection job could leave an empty output, skip test execution and also skip the required gate's failure step. The initial Bench/pinned filters also omitted package manifests and packaging/configuration inputs that can affect asset builds or app installation.
+- **Decision:** Preserve the existing required check names and run the full Bench v15/v16 matrix on main pushes and manual dispatch. On PRs, run Python tests for Python/test/script/packaging changes; run Bench and the pinned Frappe v16.5.0 / ERPNext / Helpdesk lane for backend, DocType/Page, public asset, test, package manifest/lockfile, requirements, app config and module metadata changes. If the path detector fails, the static lint job and every affected required Python/Bench gate must fail closed rather than treating an empty output as proof that tests are unnecessary. Keep Security scanning required on every PR.
+- **Rationale:** Test selection may reduce redundant work, but uncertainty about changed paths must never reduce required coverage.
+- **Consequences:** Docs/workspace-only changes may skip expensive execution only after a successful path scan; packaging and asset-build inputs retain Bench and pinned-stack coverage. PR #76's initial head 0637298 passed its four workflows with Python/Bench execution skipped for its workflow/docs-only diff. Temporary PR #77's runtime-path head 96d0d56 ran and passed Python 3.10/3.11/3.12/3.14, Bench v15/v16 including v16 Playwright, and pinned Frappe v16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0; PR #77 was closed unmerged after validation. The fail-closed and packaging-filter corrections require fresh final-head CI before PR #76 can merge.
+- **Revisit criteria:** Revisit if a runtime-sensitive path is omitted, detector failure does not fail the required context, skipped contexts remain pending, or measured lead time does not improve. Never remove required checks or bypass branch protection.
