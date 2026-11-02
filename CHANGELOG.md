@@ -2,24 +2,21 @@
 
 This changelog records user-visible and operationally significant changes. It is not a substitute for commit history. Entries do not imply a production release unless explicitly stated.
 
-### GME CRM Signals workspace label — PR #85 (code-complete; final-head CI pending)
+### GME CRM Signals workspace label — PR #85 (merged and CI-verified as `5cc4308`)
 - Change only the workspace display label/title to GME CRM Signals while preserving technical identifiers, routes, icon, links and shortcuts.
-- Assert both label and title in the static contract test; no separate app-launcher tile is implied.
+- Final head `b09a0cb` passed Quality, Security, Bench v15/v16 and pinned Frappe v16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0. No separate app-launcher tile is implied.
 
 ## Unreleased — Transactional signal outbox, durable realtime retry, D3 Helpdesk, Highlights, Explorer and D1/D2 CI contracts (PR #26, #32, #54, #57, #59, #60, #63, #65, #67, #69, #70, #71)
 
 ### Bug/fix evidence registers — PR #79 (merged as 7904a70)
 - Add durable bug and fix registers with stable IDs, root-cause/reproduction evidence, regression prevention, and separate merged/CI-verified/UAT-verified states.
-- Record the dashboard horizontal-inset regression as BUG-2026-001 / FIX-2026-001; its CSS fix remains in PR #78 and still requires UAT visual verification.
+- Record the dashboard horizontal-inset regression as BUG-2026-001 / FIX-2026-001; PR #84 restored 24px horizontal padding and is merged/CI-verified. Desktop/mobile UAT after asset/cache refresh remains open.
 
-### GME CRM Signals workspace label — PR #75 (pending CI)
-- Rename only the workspace display label/title; preserve technical identifiers, routes and shortcuts. Update the static contract test for the new label/title.
+### Dashboard horizontal inset — PR #84 (merged and CI-verified as `b1f4ad7`)
+- Restore 24px horizontal padding and add a static regression assertion. Final head `f0e1909` passed Quality, Security, Bench v15/v16 and pinned Frappe v16.5.0. Desktop/mobile UAT remains outstanding.
 
-### Dashboard horizontal inset — PR #78 (pending CI)
-- Restore 24px horizontal padding and add a static regression assertion. UAT visual confirmation remains outstanding.
-
-### Regression-review PR template — PR #81 (canonical; prior CI passed, refresh required)
-- Add a reusable checklist for bug-register search, regression tests/manual checks, root-cause review, and honest CI/UAT status. This is advisory, not an automated merge gate. PR #80 was closed as superseded because its bug/fix registers were merged in PR #79 and its template content is carried by PR #81.
+### Regression-review PR template — PRs #80/#81 (closed unmerged)
+- The optional checklist was not merged. The bug/fix registers themselves are present from PR #79. The template is not a required release gate.
 
 ### Change-aware CI execution — PR #76 (merged and CI-verified as cec49e7)
 - Preserve stable required-check names while selecting Python, Bench and pinned Frappe v16.5.0 execution by changed runtime paths.
@@ -36,6 +33,10 @@ This changelog records user-visible and operationally significant changes. It is
 - Replace the unsafe `bench get-app` first-install sequence with direct clone using remote `upstream`, detach and verify the approved full SHA, then run `bench setup requirements crm_signals` before site installation, migration or build.
 - Correct upgrade instructions to inspect the Bench-created `upstream` remote rather than assuming `origin`.
 - Final head `ef4dc09` passed Quality, Security, Frappe v15/v16 Bench + v16 Playwright and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0. Target-site staging rehearsal remains separate.
+
+### Upload-artifact v7 dependency update — PR #88 (merged and CI-verified as `de8e78b`)
+- Upgrade the two workflow upload sites from `actions/upload-artifact@v4` to `@v7`.
+- Final head `eed57d6` passed Quality, Security, Frappe v15/v16 Bench + Playwright and pinned Frappe v16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0. The project uses GitHub-hosted runners; future self-hosted runners must meet the action's Node 24 requirements.
 
 ### D2 POS invoice settlement fixture — PR #69 (merged and CI-verified as efe7872)
 - Create a disposable POS Profile and company-specific Mode of Payment, then submit an `is_pos` Sales Invoice through ERPNext's normal lifecycle.
