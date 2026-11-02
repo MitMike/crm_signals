@@ -158,7 +158,7 @@ def test_preflight_source_revision_reports_exact_full_sha(monkeypatch):
 
     def fake_run(command, **kwargs):
         commands.append((command, kwargs))
-        output = "" if "status" in command else f"{sha}\\n"
+        output = "" if "status" in command else f"{sha}\n"
         return types.SimpleNamespace(stdout=output)
 
     monkeypatch.setattr(diagnostics.subprocess, "run", fake_run)
@@ -185,7 +185,7 @@ def test_preflight_source_revision_fails_closed_for_dirty_checkout(monkeypatch):
 
     def dirty_run(command, **kwargs):
         commands.append(command)
-        return types.SimpleNamespace(stdout=" M private.py\\n")
+        return types.SimpleNamespace(stdout=" M private.py\n")
 
     monkeypatch.setattr(diagnostics.subprocess, "run", dirty_run)
 
@@ -228,7 +228,7 @@ def test_preflight_source_revision_rejects_non_sha_output(monkeypatch):
     )
 
     def fake_run(command, **kwargs):
-        output = "" if "status" in command else "main\\n"
+        output = "" if "status" in command else "main\n"
         return types.SimpleNamespace(stdout=output)
 
     monkeypatch.setattr(diagnostics.subprocess, "run", fake_run)
