@@ -55,3 +55,7 @@ This file records known work that is intentionally not represented as complete. 
 ## Operating rule
 
 Do not close a follow-up because code compiles or a mocked unit test passes. Close it only with evidence from the relevant unit/Bench/E2E tests and, for site-dependent items, a recorded target-site validation result.
+
+## P2 — Dependency maintenance
+
+- [ ] **Refresh stale Dependabot PRs after PR #67:** open PRs #5–#8 and #10 (GitHub Actions major updates) are each one commit ahead and three commits behind current `main`; PRs #9, #13, #14 and #15 (flit-core, oxlint, globals and prettier) are each one commit ahead and 31 commits behind. All check runs on their existing heads currently pass, but those results do not validate the current base. Revisit by updating one branch at a time against current `main`, then require fresh Quality, Security, Bench v15/v16 and pinned Frappe v16.5.0 checks. Merge only green final heads; if a branch conflicts or its update repeatedly fails, close/recreate it and record the exact failure.
