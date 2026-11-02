@@ -1,6 +1,6 @@
 # H — Highlights and event-driven sales alerts
 
-**Status:** Partially implemented. High-value Quotation alerts and per-Company thresholds are implemented in PR #45/#49; this branch adds direct hook-level regression coverage for threshold equality, below-threshold suppression and missing currency basis. VIP allowlist/escalation behavior remains pending a product-owner decision. Proposal-link tracking remains gated on privacy, consent and retention approval.
+**Status:** Partially implemented. High-value Quotation alerts and per-Company thresholds are implemented in PR #45/#49; PR #60 adds direct hook-level threshold regression coverage. PR #71 adds permission-gated CRM Signals Console drill-down to the source Quotation with API and Playwright coverage (code-complete; CI pending). VIP allowlist/escalation behavior remains pending a product-owner decision. Proposal-link tracking remains gated on privacy, consent and retention approval.
 
 ## Problem and users
 
