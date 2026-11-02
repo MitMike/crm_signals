@@ -22,7 +22,7 @@ This is a historical audit of the earlier PR #19/#23 baseline. The following lat
 
 - **D2 source permissions:** PR #65 merged as `0cfeda4fb39f79722fdf733abd06a3460ebcdd4d`. Payment Entry customer receipts are now evaluated independently of Sales Invoice read access; a query-level invoice `PermissionError` clears partial invoice metrics without suppressing permitted receipts. Final-head Quality, Security/Semgrep, Python, Bench v15/v16 and pinned Frappe v16.5.0 checks passed.
 - **D1/D2 aggregate values:** PR #67 merged as `84ab2ce0b4ce1a9614882635e4c085092cf2a0c5`; final head `cfd7c5ec64786e394374d31ba7b89354565a2070` passed all 15 check runs. The disposable fixture checks Lead/Opportunity and submitted invoice/payment aggregates, INR/USD and party-account currency grouping, overdue/receipt/POS filters, and Payment Entry-only read access. Synthetic records/permissions are rolled back. POS settlement, native-report reconciliation and target-site role acceptance remain outside CI.
-- **Current status:** the historical audit baseline above predates PR #65/#67. These merges improve reference-stack evidence but do not change the production decision: **not approved for production sign-off** until the P0 target-site acceptance gates below have recorded evidence and owner approval. The current `main` baseline is `84ab2ce`.
+- **Current status:** the historical audit baseline above predates PR #65/#67. These merges improve reference-stack evidence but do not change the production decision: **not approved for production sign-off** until the P0 target-site acceptance gates below have recorded evidence and owner approval. The latest functional baseline is `84ab2ce`; the open PR #68 is documentation-only.
 
 ## Scope reviewed
 
