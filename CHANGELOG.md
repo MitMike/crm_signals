@@ -19,7 +19,7 @@ This changelog records user-visible and operationally significant changes. It is
 - Add a reusable checklist for bug-register search, regression tests/manual checks, root-cause review, and honest CI/UAT status. This is advisory, not an automated merge gate. Earlier PR #81 was closed as superseded; PR #80 was already closed after its registers moved to PR #79.
 
 ### actions/upload-artifact v7 — PR #87 (code-complete; final-head CI running)
-- Upgrade the Playwright and Python coverage artifact upload steps to `actions/upload-artifact@v7` on current main. Quality and Security passed; Bench v15/v16 and pinned Frappe v16.5.0 checks are running. The earlier Dependabot PR #6 was closed as superseded.
+- Upgrade the Playwright and Python coverage artifact upload steps to `actions/upload-artifact@v7` on current main. All four required workflows passed on current main head `4fcb867`; rebase and rerun if main advances before merge. The earlier Dependabot PR #6 was closed as superseded.
 
 ### Change-aware CI execution — PR #76 (merged and CI-verified as cec49e7)
 - Preserve stable required-check names while selecting Python, Bench and pinned Frappe v16.5.0 execution by changed runtime paths.
