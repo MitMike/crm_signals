@@ -2,7 +2,12 @@
 
 This changelog records user-visible and operationally significant changes. It is not a substitute for commit history. Entries do not imply a production release unless explicitly stated.
 
-## Unreleased — Transactional signal outbox, durable realtime retry, D3 Helpdesk and Explorer (PR #26, #32, #54, #57)
+## Unreleased — Transactional signal outbox, durable realtime retry, D3 Helpdesk, Highlights and Explorer (PR #26, #32, #54, #57, #59, #60)
+
+### H Highlights quotation contract — PR #60
+- Add unit regressions for Company-base-currency threshold equality, below-threshold suppression, transaction-currency message display and fail-closed behavior when a foreign-currency Quotation has no base total.
+- Align the H specification with the implemented Company-currency comparison and distinguish the shipped high-value Quotation alert from deferred VIP escalation and proposal-link tracking.
+- Record ADR-061: do not invent VIP trigger/recipient policy, and do not implement proposal tracking before privacy/consent and retention approval.
 
 ### Explorer core timeline API — PR #57 (field-level permission hardening; CI rerun pending)
 - Add read-only CRM Signal, Quotation and Opportunity adapters for Lead/Customer-centered activity timelines.
