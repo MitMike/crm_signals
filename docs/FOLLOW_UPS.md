@@ -78,3 +78,15 @@ Track the three remaining open Dependabot PRs; refresh and verify one branch at 
 - [ ] **PR #8 — setup-node v7 and PR #10 — setup-python v7:** each is one commit ahead and two commits behind main `331492c`; old-head checks are green but stale. Refresh individually and rerun current-head required checks.
 - [ ] **PR #9 — flit-core requirement:** one commit ahead and 52 commits behind main `331492c`. Refresh after the nearer action updates; inspect the `<5` upper bound and run package build/install plus supported Bench lanes before merge.
 - [ ] **PR #80/#81 regression-review template:** both closed unmerged; template not merged. Revisit only if a repository owner explicitly wants this optional review aid; it is not a release gate.
+
+
+
+## Current maintenance snapshot — 2026-11-03 (supersedes the stale PR #8/#9/#10 queue above)
+
+- [x] **PR #8 — setup-node v7:** merged as `63c2734` after Quality, Dependency Security Audit, Security Scanning, Bench Integration/E2E and pinned Frappe v16.5.0 + Helpdesk 1.28.0 all passed on its final head.
+- [ ] **PR #93 — flit-core compatibility:** refreshed on main `63c2734`; updates only `pyproject.toml` from `flit_core >=3.4,<4` to `>=3.4,<5`. Quality, Security and Dependency Security Audit have passed; Bench v15 has passed; Bench v16 and pinned Frappe v16.5.0 validation are still running at this snapshot. Before merge, verify the built wheel/sdist metadata and install the package on supported Python versions; do not merge solely on green generic CI if packaging compatibility evidence is missing.
+- [ ] **PR #94 — setup-python v7:** refreshed on main `63c2734`; updates the four workflow files that used `actions/setup-python@v6`. Quality, Security, Dependency Security Audit and pinned Frappe v16.5.0 have passed; Bench v15 has passed and Bench v16 is still running at this snapshot.
+- [ ] **Target-site pilot acceptance:** run the read-only preflight on the authorized staging/target site and record sanitized versions, deployed full SHA, currency/threshold configuration, workflows, relevant fields and static DocPerm. Then execute effective-user permission parity, D1/D2 native-report reconciliation by currency, Helpdesk SLA calendar checks, scheduler/mail/realtime/webhook operations and backup/restore/rollback rehearsal. CI is not evidence of these site outcomes.
+- [ ] **Dashboard visual UAT:** after approved staging asset refresh/cache clear, capture desktop and mobile screenshots confirming the restored 24px horizontal inset; update BUG-2026-001/FIX-2026-001 only when evidence exists.
+
+The older dependency queue above is retained as historical context; this dated snapshot is authoritative for the current maintenance state. Never merge a stale PR head or bypass required checks.
