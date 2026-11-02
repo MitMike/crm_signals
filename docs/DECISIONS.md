@@ -770,3 +770,15 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Rationale:** Isolated updates make regressions attributable and prevent stale CI evidence from being treated as current compatibility proof.
 - **Consequences:** PR #7's `setup-uv@v7` update merged as `331492c` after all 18 final-head checks passed. PRs #8/#10 require a fresh base and checks; PR #9 additionally requires packaging compatibility validation. No failing or pending check is bypassed.
 - **Revisit criteria:** Revisit if repository branch protection or the required check matrix changes. Do not relax final-head verification to reduce maintenance effort.
+
+
+
+## ADR-079 — Rebase dependency maintenance on the current protected main head
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-03
+- **Context:** PR #8's setup-node v7 update merged as `63c2734`, advancing main while the separately tested flit-core and setup-python updates were still based on the previous commit. Their checks could not be used to justify merging against the new base. GitHub reported the PRs as behind, so their changes were recreated as #93 and #94 on the new main head; stale PRs #91 and #92 were closed as superseded.
+- **Decision:** Keep dependency updates isolated. Refresh each update on the current main SHA, inspect the exact diff, and require all final-head workflow checks before merge. For build-system/package metadata changes such as flit-core, also verify wheel/sdist build metadata and installation compatibility rather than relying only on unrelated application tests. Never bypass protected-branch checks.
+- **Rationale:** Green checks on an old base do not establish compatibility with the current repository state; packaging changes require direct packaging evidence.
+- **Consequences:** PR #8 is merged. PR #93 contains only the flit-core upper-bound change and PR #94 contains only setup-python action-reference changes; both are pending final-head checks at the time of this decision. Site acceptance remains a separate release gate.
+- **Revisit criteria:** Revisit if main advances before either PR merges, any required check fails/cancels, the exact diff changes, or package build/install evidence identifies a compatibility issue.
