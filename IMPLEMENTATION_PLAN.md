@@ -3,7 +3,7 @@
 **Last reviewed:** 2026-11-03  
 **Repository:** [MitMike/crm_signals](https://github.com/MitMike/crm_signals)  
 **Supported framework coverage:** Frappe / ERPNext v15 and v16. **Primary deployment target:** Frappe v16.5; record the exact patch/build and installed ERPNext/Helpdesk versions.  
-**Reviewed main baseline:** [135e648](https://github.com/MitMike/crm_signals/commit/135e648fe75ebecc692f8cab00841ddc094fdad2) (PR #102 merged); **latest application feature baseline:** [c5720bf](https://github.com/MitMike/crm_signals/commit/c5720bfb3fbe8b554ec6febd549a8d5e58acc1d7).
+**Reviewed main baseline:** [5dbda02](https://github.com/MitMike/crm_signals/commit/5dbda0291358350d5a720127a7d526145d3e3c60) (PR #103 merged); **latest application feature baseline:** [c5720bf](https://github.com/MitMike/crm_signals/commit/c5720bfb3fbe8b554ec6febd549a8d5e58acc1d7).
 
 This is the execution plan and source of truth for delivery order, scope, dependencies, acceptance gates and exit criteria. The operational state is maintained in [docs/PROGRESS.md](docs/PROGRESS.md); durable choices are in [docs/DECISIONS.md](docs/DECISIONS.md); feature contracts are in [specs/](specs/).
 
@@ -354,4 +354,4 @@ ADR-086 closes an operator evidence gap without guessing site configuration: `cr
 
 The administrator guide and target-site acceptance kit require that SHA to match the approved release revision before installation or migration proceeds. If the diagnostic cannot report it or detects local changes, operators must stop and inspect the checkout manually; branch names and package versions are not substitutes.
 
-**Verification state:** implementation and focused unit tests are committed on `ops/preflight-source-sha-20261103`; final-head CI is pending. The feature is not yet CI-verified and has no target-site or pilot evidence. Existing Frappe/ERPNext v15/v16 coverage and the pinned Frappe v16.5.0 / ERPNext v16.5.0 / Helpdesk 1.28.0 lane remain required.
+**Verification state:** merged as PR #103 / `5dbda0291358350d5a720127a7d526145d3e3c60` from final head `fc7f0ae381267d04d7db9f14ec888d965c7fe828`. All 18 final-head check runs passed, including Python 3.10–3.14, Quality, Security/Semgrep, Bench v15/v16 with v16 Playwright E2E, and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0. The feature is code-complete and CI-verified, not pilot-verified; no target-site execution has been performed.
