@@ -88,11 +88,14 @@ def load_diagnostics(monkeypatch):
 
 def test_preflight_report_is_read_only_and_excludes_recipient_addresses(monkeypatch):
     diagnostics = load_diagnostics(monkeypatch)
+    source_revision = {"available": True, "commit_sha": "a" * 40}
+    monkeypatch.setattr(diagnostics, "_source_revision", lambda: source_revision)
     report = diagnostics.get_site_preflight_report()
 
     assert report["read_only"] is True
     assert report["http_whitelisted"] is False
     assert report["framework"]["frappe_version"] == "16.5.0"
+    assert report["framework"]["crm_signals_source"] == source_revision
     assert report["crm_signals_settings"]["opportunity_trigger_statuses"] == ["Replied"]
     assert "private@example.com" not in repr(report)
     assert "Static metadata is not proof" in report["acceptance_warning"]
@@ -138,3 +141,141 @@ def test_preflight_includes_workflow_states_and_static_field_permissions(monkeyp
 
     ticket = report["doctypes"]["HD Ticket"]
     assert all(not field["present"] for field in ticket["required_fields"])
+
+
+def test_preflight_source_revision_reports_exact_full_sha(monkeypatch):
+    diagnostics = load_diagnostics(monkeypatch)
+    sha = "a" * 40
+    commands = []
+
+    monkeypatch.setattr(
+        diagnostics.importlib,
+        "import_module",
+        lambda app: types.SimpleNamespace(
+            __file__="/bench/apps/crm_signals/crm_signals/__init__.py"
+        ),
+    )
+
+    def fake_run(command, **kwargs):
+        commands.append((command, kwargs))
+        output = "" if "status" in command else f"{sha}\n"
+        return types.SimpleNamespace(stdout=output)
+
+    monkeypatch.setattr(diagnostics.subprocess, "run", fake_run)
+
+    assert diagnostics._source_revision() == {"available": True, "commit_sha": sha}
+    assert commands[0][0][-3:] == ["status", "--porcelain", "--untracked-files=all"]
+    assert commands[1][0][-3:] == ["rev-parse", "--verify", "HEAD"]
+    for _, options in commands:
+        assert options["check"] is True
+        assert options["capture_output"] is True
+        assert options["timeout"] == 5
+
+
+def test_preflight_source_revision_fails_closed_for_dirty_checkout(monkeypatch):
+    diagnostics = load_diagnostics(monkeypatch)
+    commands = []
+    monkeypatch.setattr(
+        diagnostics.importlib,
+        "import_module",
+        lambda app: types.SimpleNamespace(
+            __file__="/bench/apps/crm_signals/crm_signals/__init__.py"
+        ),
+    )
+
+    def dirty_run(command, **kwargs):
+        commands.append(command)
+        return types.SimpleNamespace(stdout=" M private.py\n")
+
+    monkeypatch.setattr(diagnostics.subprocess, "run", dirty_run)
+
+    result = diagnostics._source_revision()
+    assert result == {"available": False, "reason": "working_tree_dirty"}
+    assert len(commands) == 1
+    assert "private.py" not in repr(result)
+
+
+def test_preflight_source_revision_fails_closed_without_git_checkout(monkeypatch):
+    diagnostics = load_diagnostics(monkeypatch)
+    monkeypatch.setattr(
+        diagnostics.importlib,
+        "import_module",
+        lambda app: types.SimpleNamespace(
+            __file__="/bench/apps/crm_signals/crm_signals/__init__.py"
+        ),
+    )
+
+    def failed_run(command, **kwargs):
+        raise diagnostics.subprocess.CalledProcessError(
+            128, command, stderr="private checkout path"
+        )
+
+    monkeypatch.setattr(diagnostics.subprocess, "run", failed_run)
+
+    result = diagnostics._source_revision()
+    assert result == {"available": False, "reason": "git_query_failed"}
+    assert "private checkout path" not in repr(result)
+
+
+def test_preflight_source_revision_rejects_non_sha_output(monkeypatch):
+    diagnostics = load_diagnostics(monkeypatch)
+    monkeypatch.setattr(
+        diagnostics.importlib,
+        "import_module",
+        lambda app: types.SimpleNamespace(
+            __file__="/bench/apps/crm_signals/crm_signals/__init__.py"
+        ),
+    )
+
+    def fake_run(command, **kwargs):
+        output = "" if "status" in command else "main\n"
+        return types.SimpleNamespace(stdout=output)
+
+    monkeypatch.setattr(diagnostics.subprocess, "run", fake_run)
+
+    assert diagnostics._source_revision() == {
+        "available": False,
+        "reason": "invalid_revision",
+    }
+
+
+def test_preflight_source_revision_reports_git_timeout(monkeypatch):
+    diagnostics = load_diagnostics(monkeypatch)
+    monkeypatch.setattr(
+        diagnostics.importlib,
+        "import_module",
+        lambda app: types.SimpleNamespace(
+            __file__="/bench/apps/crm_signals/crm_signals/__init__.py"
+        ),
+    )
+
+    def timed_out(command, **kwargs):
+        raise diagnostics.subprocess.TimeoutExpired(command, timeout=5)
+
+    monkeypatch.setattr(diagnostics.subprocess, "run", timed_out)
+
+    assert diagnostics._source_revision() == {
+        "available": False,
+        "reason": "git_timeout",
+    }
+
+
+def test_preflight_source_revision_reports_missing_git(monkeypatch):
+    diagnostics = load_diagnostics(monkeypatch)
+    monkeypatch.setattr(
+        diagnostics.importlib,
+        "import_module",
+        lambda app: types.SimpleNamespace(
+            __file__="/bench/apps/crm_signals/crm_signals/__init__.py"
+        ),
+    )
+
+    def missing_git(command, **kwargs):
+        raise FileNotFoundError()
+
+    monkeypatch.setattr(diagnostics.subprocess, "run", missing_git)
+
+    assert diagnostics._source_revision() == {
+        "available": False,
+        "reason": "git_unavailable",
+    }
