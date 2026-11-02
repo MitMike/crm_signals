@@ -27,7 +27,7 @@ This is the durable record of confirmed defects reported by users or found durin
 - **Severity:** UI regression / usability; no data or permission impact identified.
 - **Fix:** Restore 24px left and right padding while preserving 20px top and 32px bottom padding.
 - **Fix PR:** [#84](https://github.com/MitMike/crm_signals/pull/84), merged as `b1f4ad71f368c346ce16126501982cfe2233c2b9` after all four final-head workflows passed on `f0e19099dc753896f4ffe3a5a370e82cb043cf22`.
-- **Regression prevention:** Keep the horizontal padding declaration explicit; add/retain a CSS/UI regression assertion or a documented UAT visual check at desktop and mobile widths. Verify related CRM Signals pages if they share this wrapper or stylesheet.
+- **Regression prevention:** Keep the horizontal padding declaration explicit. PR #100 adds a Playwright assertion against the rendered Frappe page: 24px left/right at a 1440px desktop viewport and 12px at a 390px mobile viewport. Manual staging UAT remains required to verify rebuilt assets and capture screenshots; the automated assertion is not UAT evidence.
 - **Closure evidence required:** PR merged; relevant CI green; UAT refreshed/rebuilt assets and cache; screenshot confirms the inset at desktop and mobile widths. Until the UAT check is recorded, do not label this UAT-verified.
 
 ## Entry template

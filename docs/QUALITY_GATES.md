@@ -10,7 +10,7 @@ Every push and pull request runs the main code checks. Bench compatibility runs 
 
 The **Dependency Security Audit** workflow runs on pull requests that change dependency-related files, weekly, and on manual dispatch. It runs `pip-audit` for Python and `npm audit` for JavaScript tooling; moderate- and higher-severity npm findings fail the audit.
 
-The Playwright suite authenticates through Frappe, verifies the live S.A.H.D.E.V. dashboard and CRM Signals Console, exercises dashboard empty/unavailable states, checks Sales User/non-sales visibility, and opens CRM Signals Settings to apply a preset and customise it. The v16 Bench lane runs the browser suite against the installed app.
+The Playwright suite authenticates through Frappe, verifies the live S.A.H.D.E.V. dashboard and CRM Signals Console, exercises dashboard empty/unavailable states, checks Sales User/non-sales visibility, and opens CRM Signals Settings to apply a preset and customise it. The v16 Bench lane runs the browser suite against the installed app. Changes under `e2e/**` and changes to `playwright.config.ts` trigger Bench validation so browser-only changes cannot be skipped by the integration-test path selector.
 
 ## Local commands
 

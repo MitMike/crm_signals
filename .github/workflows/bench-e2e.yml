@@ -38,6 +38,8 @@ jobs:
               - 'crm_signals/fixtures/**'
               - 'crm_signals/public/**'
               - 'tests/**'
+              - 'e2e/**'
+              - 'playwright.config.ts'
               - 'pyproject.toml'
               - 'setup.py'
               - 'package.json'

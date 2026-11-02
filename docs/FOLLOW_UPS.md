@@ -101,3 +101,8 @@ This snapshot supersedes the older dependency queue entries above. A green CI re
 - [x] Live open-PR search returned zero immediately after merge.
 - [ ] Dashboard visual UAT: obtain staging desktop/mobile evidence before closing BUG-2026-001/FIX-2026-001.
 - [ ] Target-site pilot: collect authorized v16.5 staging inventory, effective-role tests, D1/D2 reconciliation, Helpdesk SLA evidence, operational recovery and backup/restore/rollback rehearsal.
+
+
+## P1 — dashboard visual regression prevention
+
+- [ ] **BUG-2026-001 / FIX-2026-001 automated guard (ADR-083/084; PR #100):** add a Playwright check on the rendered CRM Signals dashboard that asserts 24px horizontal padding at 1440px and 12px at 390px. The Bench selector now includes `e2e/**` and `playwright.config.ts`, protected by static tests, so this change triggers the v16 browser lane. Code is complete; final-head CI is pending. This does not close the separate desktop/mobile staging UAT item above.

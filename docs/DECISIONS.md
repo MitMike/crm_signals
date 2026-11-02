@@ -803,3 +803,25 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Evidence:** All 20 final-head check runs succeeded: Quality lint/static and Python 3.10/3.11/3.12/3.14; Security/Semgrep; Python and npm dependency audits; Frappe v15/v16 Bench integration including v16 Playwright; pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0. The explicit flit-core v4 wheel and sdist build/install/import checks passed on Python 3.10 and 3.14.
 - **Consequences:** The package build-system range is CI-verified for both supported Python boundaries and the supported Frappe reference matrix. This does not establish target-site deployment or pilot acceptance. The open PR queue was empty immediately after merge.
 - **Revisit criteria:** Revisit if the supported Python floor/ceiling, flit-core major version, package metadata/runtime dependencies, or supported Frappe/ERPNext matrix changes, or if downstream packaging/install evidence fails.
+
+
+## ADR-083 — Protect dashboard horizontal inset with a browser regression test
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-03
+- **Context:** BUG-2026-001 / FIX-2026-001 restored the CRM Signals dashboard's 24px desktop horizontal inset and retained a 12px mobile inset. The existing browser suite exercised dashboard data and navigation but did not assert the rendered wrapper geometry, leaving the specific regression unprotected.
+- **Decision:** Add a Playwright test against the rendered `/app/crm-signals-dashboard` page. Assert computed left/right padding is 24px at a 1440px viewport and 12px at a 390px viewport. Keep the test on the existing Frappe v16 browser lane; do not create a separate visual snapshot baseline.
+- **Rationale:** The regression is a deterministic CSS contract. Computed-style assertions directly fail if either horizontal inset is removed or changed, without introducing brittle screenshot diffs or requiring site-specific visual assets.
+- **Consequences:** The browser suite now protects the exact desktop/mobile inset values. CI verification is separate from manual staging UAT; BUG-2026-001 / FIX-2026-001 remain UAT-pending until the approved site assets are rebuilt and screenshots are reviewed.
+- **Revisit criteria:** Update the expected values only after an intentional layout change is approved and the desktop/mobile design is revalidated. Do not treat this automated check as pilot acceptance.
+
+
+## ADR-084 — Route browser E2E changes through Bench validation
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-03
+- **Context:** PR #100 added a Playwright regression test under `e2e/`. Review of the first PR check run found that the change-aware Bench selector covered `tests/**` and app paths but omitted `e2e/**` and `playwright.config.ts`. An E2E-only change could therefore pass lint/format checks while skipping the workflow that actually executes Playwright.
+- **Decision:** Add `e2e/**` and `playwright.config.ts` to the Bench integration-change selector. Add static contract assertions that both paths remain covered. The existing Frappe v16 matrix continues to execute Playwright; the v15 job remains a non-browser integration lane. Keep the pinned v16.5.0 workflow scoped to application/runtime compatibility paths.
+- **Rationale:** Browser tests must execute when browser tests or their runner configuration change. Formatting/linting alone does not prove the test runs or passes.
+- **Consequences:** PR #100 now makes its own Playwright change trigger the v15/v16 Bench workflow, including the v16 browser suite. This path-selection correction is independently protected by a static contract test. Final-head CI remains the verification gate.
+- **Revisit criteria:** Revisit if the browser suite moves, Playwright configuration changes location, or Bench job selection is redesigned. Any selector change must preserve a successful E2E-only trigger.
