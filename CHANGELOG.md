@@ -1,10 +1,10 @@
 # Changelog
 
-### Read-only preflight source identity — PR pending (ADR-086)
+### Read-only preflight source identity — PR #103 (merged and CI-verified as `5dbda02`)
 
-- Extend the server-side target-site preflight to report the exact CRM Signals Git commit SHA using bounded, fixed read-only Git queries; dirty, unavailable or malformed revisions fail closed.
+- Extend the server-side target-site preflight to report the exact CRM Signals Git commit SHA only for a clean checkout, using bounded, fixed read-only Git queries; dirty, unavailable or malformed revisions fail closed.
 - Add regression tests for clean/dirty checkout, valid SHA, Git failure without stderr disclosure, timeout, missing Git and invalid output. Update the administrator guide and target-site acceptance kit to require an exact match with the approved release SHA.
-- Implementation is on `ops/preflight-source-sha-20261103`; final-head CI and merge are pending. No target-site or pilot verification is implied.
+- Final head `fc7f0ae381267d04d7db9f14ec888d965c7fe828` passed all 18 check runs, including Quality/Python 3.10–3.14, Semgrep, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0. Squash-merged as `5dbda0291358350d5a720127a7d526145d3e3c60`. No target-site or pilot verification is implied.
 
 ### setup-uv v7 dependency update — PR #7 (merged and CI-verified as `331492c`)
 
