@@ -216,6 +216,12 @@ def prepare_e2e_site():
     }
 
 
+def prepare_e2e_sales_api_credentials():
+    from crm_signals.ci_api_credentials import prepare_e2e_sales_api_credentials
+
+    return prepare_e2e_sales_api_credentials()
+
+
 LEGACY_SIGNAL_MESSAGES = (
     "CRM Signals upgrade fixture: legacy row one",
     "CRM Signals upgrade fixture: legacy row two",

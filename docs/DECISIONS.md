@@ -1209,3 +1209,17 @@ All four final-head workflows passed:
 The direct Desk form test observed GET `frappe.desk.form.load.getdoc`: linked-restricted CRM Signal returned 403 without its message; unlinked-owned signal returned 200 with the expected message. The same-head browser-session HTTP API tests also passed. The supported v15 lane passed Bench integration; the v16 lane ran the full Playwright suite. No failing head was merged.
 
 **Classification:** code-complete and reference-stack CI-verified on Frappe v16 and pinned v16.5.0; not pilot-verified. Authorized target-site API-token authentication, live direct-form and other permission paths, D1/D2 finance reconciliation, D3 SLA, deployment/rollback, operational recovery and visual UAT remain open.
+
+
+## ADR-104 — Verify Sales User API-token permissions without session-cookie fallback
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-03
+- **Context:** PR #130 and PR #131 cover browser-session HTTP methods and direct Desk form loading. The operator acceptance kit contains a token-authenticated HTTP smoke, but the reference CI did not prove token authentication or prevent a request from succeeding via the Administrator browser session.
+- **Decision:** create a dedicated API key/secret for the synthetic Sales User using Frappe's `frappe.core.doctype.user.user.generate_keys` on the disposable Bench site. Write credentials only to a runner temp file with mode 0600; have Bench return only a non-sensitive success marker; mask both values before writing step outputs; remove the file with an EXIT trap. Exercise `frappe.auth.get_logged_user`, `frappe.client.get` and `frappe.client.get_list` using Node native `fetch` with an explicit `Authorization: token key:secret` header and manual redirect handling. Node fetch is outside the Playwright page trace; no browser cookie jar is used.
+- **Expected results:** exact synthetic Sales User identity; linked-restricted CRM Signal 403 whose complete response body (JSON or non-JSON text) does not contain the restricted signal message; unlinked-owned CRM Signal 200 whose parsed response contains the expected record name and message; filtered list contains only the unlinked signal. Any redirect, identity mismatch or response-content mismatch fails.
+- **Rationale:** this separates API-token authentication from the already-tested browser-session path and avoids recording the Authorization header in Playwright traces/artifacts.
+- **Scope:** disposable CI fixture/workflow and operator-guide coverage only. No production runtime, schema, package, permission or site configuration change. Keep Frappe v15 Bench integration; run token E2E on supported v16 and pinned Frappe 16.5.0.
+- **Verification:** code head `b9f72471d7cd7102023454cfef3ca491e950d5af` passed Quality/Python (run `41684113964`), Security/Semgrep (`41684114053`), Bench v15/v16 + Playwright (`41684114043`; 19 Playwright tests passed on v16) and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 (`41684113965`; 4 Playwright tests passed). Reference-stack CI-verified; not pilot-verified.
+- **Revisit criteria:** inspect the exact versioned `generate_keys` and API token authentication behavior if either supported lane fails. Do not use Administrator credentials, browser cookies or automatic redirects as fallbacks. If credential exposure is suspected, discard the ephemeral site and fix masking/trace handling before rerun.
+- **Verification status:** implementation and static guards are code-complete on PR #133; final-head CI pending. Not pilot-verified.

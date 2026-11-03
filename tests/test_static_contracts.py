@@ -476,3 +476,83 @@ def test_pinned_v16_5_runs_sales_user_direct_form_permission_e2e():
         '--grep "Sales User"'
         in workflow
     )
+
+
+def test_e2e_api_token_credentials_are_private_and_masked():
+    source = (APP_ROOT / "ci.py").read_text()
+    helper = (APP_ROOT / "ci_api_credentials.py").read_text()
+    assert "def prepare_e2e_sales_api_credentials():" in source
+    assert (
+        "from crm_signals.ci_api_credentials import "
+        "prepare_e2e_sales_api_credentials"
+    ) in source
+    assert "generate_keys(\"e2e-sales-user@example.com\")" in helper
+    assert "previous_user = frappe.session.user" in helper
+    assert "frappe.set_user(previous_user)" in helper
+    assert "os.fchmod(handle.fileno(), 0o600)" in helper
+    assert 'return {"credentials_written": True}' in helper
+
+    workflow_paths = [
+        ROOT / ".github/workflows/bench-e2e.yml",
+        ROOT / ".github/workflows/bench-target-v16-5.yml",
+    ]
+    for path in workflow_paths:
+        workflow = path.read_text()
+        assert "prepare_e2e_sales_api_credentials" in workflow
+        assert 'echo "::add-mask::$api_key"' in workflow
+        assert 'echo "::add-mask::$api_secret"' in workflow
+        assert 'echo "api_key=$api_key" >> "$GITHUB_OUTPUT"' in workflow
+        assert 'echo "api_secret=$api_secret" >> "$GITHUB_OUTPUT"' in workflow
+        assert workflow.index('echo "::add-mask::$api_key"') < workflow.index(
+            'echo "api_key=$api_key" >> "$GITHUB_OUTPUT"'
+        )
+        assert workflow.index('echo "::add-mask::$api_secret"') < workflow.index(
+            'echo "api_secret=$api_secret" >> "$GITHUB_OUTPUT"'
+        )
+        assert 'trap \'rm -f "$credential_file"\' EXIT' in workflow
+        assert (
+            "E2E_SALES_API_KEY: ${{ steps.sales_api_credentials.outputs.api_key }}"
+            in workflow
+        )
+        assert (
+            "E2E_SALES_API_SECRET: ${{ steps.sales_api_credentials.outputs."
+            "api_secret }}" in workflow
+        )
+        assert workflow.index("prepare_e2e_site") < workflow.index(
+            "prepare_e2e_sales_api_credentials"
+        ) < workflow.index("Run Playwright E2E")
+
+
+def test_sales_user_api_token_permission_e2e_uses_isolated_node_fetch():
+    spec = (ROOT / "e2e/sahdev-dashboard.spec.ts").read_text()
+    assert (
+        'test("Sales User API token respects linked Lead User Permission"'
+        in spec
+    )
+    helper = spec.split("async function frappeMethodGetWithToken(", 1)[1]
+    helper = helper.split("\n}\n", 1)[0]
+    assert "process.env.BASE_URL" in helper
+    assert "await fetch(" in helper
+    assert 'redirect: "manual"' in helper
+    assert "page: Page" not in helper
+    assert "page.evaluate" not in helper
+    assert "Authorization: `token ${apiKey}:${apiSecret}`" in helper
+    assert '"frappe.auth.get_logged_user"' in spec
+    assert "expect(restrictedRead.status).toBe(403)" in spec
+    assert "expect(allowedRead.status).toBe(200)" in spec
+    assert "expect(visibleNames).toEqual([unlinkedSignal!.name])" in spec
+
+
+def test_sales_user_api_token_e2e_checks_response_content_boundary():
+    spec = (ROOT / "e2e/sahdev-dashboard.spec.ts").read_text()
+    assert "expect(restrictedBody).not.toContain(linkedMessage)" in spec
+    assert "expect(allowedBody.message?.message).toBe(unlinkedMessage)" in spec
+
+
+def test_sales_user_api_token_e2e_preserves_non_json_response_bodies():
+    spec = (ROOT / "e2e/sahdev-dashboard.spec.ts").read_text()
+    helper = spec.split("async function frappeMethodGetWithToken(", 1)[1]
+    helper = helper.split("\n}\n", 1)[0]
+    assert "const responseText = await response.text()" in helper
+    assert "let body: unknown = responseText" in helper
+    assert "body = JSON.parse(responseText)" in helper
