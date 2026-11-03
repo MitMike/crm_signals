@@ -718,3 +718,10 @@ PR #125 merged as [7029747](https://github.com/MitMike/crm_signals/commit/702974
 - All four final-head workflows passed: Quality/Python [41717651648](https://github.com/MitMike/crm_signals/actions/runs/41717651648), Security/Semgrep [41717651238](https://github.com/MitMike/crm_signals/actions/runs/41717651238), Bench v15/v16 + Playwright [41717651601](https://github.com/MitMike/crm_signals/actions/runs/41717651601), and pinned Frappe 16.5.0 / ERPNext / Helpdesk [41717651416](https://github.com/MitMike/crm_signals/actions/runs/41717651416).
 - The Sales User API-token test verifies dashboard row filtering for linked-restricted versus unlinked-owned signals. The non-sales test directly verifies Executive Compass source availability and CRM Signals dashboard HTTP 403 without read permission. Frappe v15/v16 coverage is retained.
 - Reference-stack CI-verified; authorized Frappe 16.5 staging API/role acceptance remains open. Not pilot-verified.
+
+
+### 2026-11-04 — PR #143 opening — non-sales dashboard API token acceptance smoke
+
+- Extended the target-site HTTPS smoke with a separate non-sales API token, exact identity verification, CRM Signals dashboard HTTP 403/no-disclosure assertion, and Executive Compass source-unavailable assertions.
+- Protected both token pairs with silent prompts, separate temporary curl config files, redirect rejection, cleanup and rotation/revocation instructions.
+- Added a static regression guard and ADR-109. Documentation/test-only; final-head CI pending; not pilot-verified.
