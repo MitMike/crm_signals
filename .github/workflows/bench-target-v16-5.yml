@@ -22,6 +22,8 @@ on:
       - "requirements/**"
       - "crm_signals/config/**"
       - "crm_signals/modules.txt"
+      - "e2e/**"
+      - "playwright.config.ts"
       - ".github/workflows/**"
   workflow_dispatch:
 
@@ -159,6 +161,19 @@ jobs:
           bench --site test.local migrate
           bench --site test.local execute crm_signals.ci.verify_upgrade_site
 
+      - name: Generate ephemeral E2E user passwords
+        id: e2e_credentials
+        run: |
+          echo "sales_password=$(python -c 'import secrets; print(secrets.token_urlsafe(24))')" >> "$GITHUB_OUTPUT"
+          echo "employee_password=$(python -c 'import secrets; print(secrets.token_urlsafe(24))')" >> "$GITHUB_OUTPUT"
+
+      - name: Prepare ERPNext and Sales User permission E2E fixtures
+        working-directory: /home/runner/frappe-bench
+        env:
+          E2E_SALES_PASSWORD: ${{ steps.e2e_credentials.outputs.sales_password }}
+          E2E_EMPLOYEE_PASSWORD: ${{ steps.e2e_credentials.outputs.employee_password }}
+        run: bench --site test.local execute crm_signals.ci.prepare_e2e_site
+
       - name: Build application assets
         working-directory: /home/runner/frappe-bench
         run: bench build
@@ -172,6 +187,47 @@ jobs:
       - name: Run Frappe integration tests
         working-directory: /home/runner/frappe-bench
         run: bench --site test.local run-tests --app crm_signals
+
+      - name: Install Playwright browser
+        working-directory: ${{ github.workspace }}
+        run: |
+          npm install --ignore-scripts --no-audit --no-fund
+          npx playwright install --with-deps chromium
+
+      - name: Start Frappe for browser tests
+        working-directory: /home/runner/frappe-bench
+        run: |
+          sed -i 's/^watch:/# watch:/g' Procfile
+          sed -i 's/^schedule:/# schedule:/g' Procfile
+          bench start > bench_start.log 2>&1 &
+          echo $! > bench_start.pid
+          echo "Waiting for test.local..."
+          timeout 90 bash -c 'until curl -s -H "Host: test.local" http://127.0.0.1:8000 >/dev/null; do sleep 2; done'
+          echo "Frappe is ready."
+
+      - name: Run Playwright E2E
+        working-directory: ${{ github.workspace }}
+        env:
+          BASE_URL: http://test.local:8000
+          FRAPPE_USER: Administrator
+          FRAPPE_PASSWORD: admin
+          E2E_SALES_USER: e2e-sales-user@example.com
+          E2E_SALES_PASSWORD: ${{ steps.e2e_credentials.outputs.sales_password }}
+          E2E_EMPLOYEE_USER: e2e-employee@example.com
+          E2E_EMPLOYEE_PASSWORD: ${{ steps.e2e_credentials.outputs.employee_password }}
+          CI: "true"
+        run: npm run test:e2e
+
+      - name: Upload Playwright report
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report-pinned-v16-5
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
+          retention-days: 7
 
       - name: Show Bench logs on failure
         if: failure()
