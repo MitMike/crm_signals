@@ -422,3 +422,10 @@ The README now uses the established safe order: direct clone with the `upstream`
 PR #112 updates documentation and the static operator-installation contract test; no runtime or dependency changes. The test change must trigger Python 3.10–3.14, Bench v15/v16 and pinned Frappe 16.5.0 validation in addition to Quality and Security. **Status at opening:** documentation and static regression code-complete, CI pending, not pilot-verified.
 
 **Next release gate remains unchanged:** execute the first-install and upgrade sequence, preflight, effective-role tests, D1/D2 finance reconciliation, Helpdesk SLA acceptance, dashboard visual UAT, operational recovery and backup/restore/rollback on an authorized Frappe v16.5 staging site. No such site evidence is available from repository CI.
+
+
+## 23. D3 support setup guide accuracy — PR #113 opening snapshot (2026-11-03)
+
+ADR-091 corrects the beginner-friendly Support & SLA setup guide. The standard Frappe Helpdesk `HD Ticket` / `HD Service Level Agreement` adapter is implemented; operators should validate the site's exact version, schema, field-level permissions, active SLA calendar, holidays, timezone and pause/resume behavior against that contract, then run staging scenarios. A different/custom ticket DocType is not automatically supported and requires a separate approved scope.
+
+PR #113 updates the guide and adds a static contract test for the implementation-status wording. No runtime code, schema, dependency or site configuration changes. Final-head Quality, Python 3.10–3.14, Security, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 validation are required. **Status at opening:** documentation and static regression code-complete, CI pending, not pilot-verified.
