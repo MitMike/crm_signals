@@ -407,3 +407,18 @@ PR #110 merged as [`fe7dca4`](https://github.com/MitMike/crm_signals/commit/fe7d
 The PR refreshed the release-readiness sprint and historical production-audit notice, reconciled the implementation/progress/follow-up records and changelog, and corrected the README's obsolete D3 implementation prerequisite. D3 is implemented; target-site Helpdesk version/schema/field permissions and active SLA calendar acceptance remain open.
 
 **Status:** documentation complete and reference CI-verified. Main is `fe7dca402293faa1e7e60f147d53adaef63009d6`; the live repository query immediately after merge returned no open PRs or issues. Production sign-off remains blocked by authorized Frappe v16.5 target-site acceptance. No pilot verification is claimed.
+
+
+## 21. PR #111 release-document reconciliation — merged (2026-11-03)
+
+PR #111 merged as [`166ca6b`](https://github.com/MitMike/crm_signals/commit/166ca6b2cc9838ffd68c551b327ee41d2a5316b4) from final head `30d44ffd48a1f39ef39d658a6bdc12b07f8130da`. All 13 final-head checks completed: 11 passed and two runtime selectors were skipped as expected for the documentation-only diff. Main commit `166ca6b` subsequently completed 17 check runs: 16 passed and the docs-only integration-test selector was skipped. No application behavior or target-site configuration changed.
+
+## 22. README pin-before-install consistency correction — PR #112 opening snapshot (2026-11-03)
+
+ADR-090 corrects the root README's first-install command. The former `bench get-app ... --branch main` example contradicted the Administrator Guide and Deployment Runbook: Bench installs dependencies from the fetched tree before returning, so a later SHA checkout cannot guarantee the installed tree was the approved release.
+
+The README now uses the established safe order: direct clone with the `upstream` remote, fetch, detach at the approved full SHA, verify `HEAD`, then run `bench setup requirements crm_signals`, site install, migration, asset build and restart. Existing-install upgrades link to the detailed operator procedure.
+
+PR #112 is documentation-only and has no runtime or dependency changes. Final-head Quality, Security and stable Bench checks must pass; runtime execution may skip only after successful path detection. **Status at opening:** documentation code-complete, CI pending, not pilot-verified.
+
+**Next release gate remains unchanged:** execute the first-install and upgrade sequence, preflight, effective-role tests, D1/D2 finance reconciliation, Helpdesk SLA acceptance, dashboard visual UAT, operational recovery and backup/restore/rollback on an authorized Frappe v16.5 staging site. No such site evidence is available from repository CI.
