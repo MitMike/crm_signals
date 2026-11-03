@@ -3,7 +3,7 @@
 **Last reviewed:** 2026-11-04  
 **Repository:** [MitMike/crm_signals](https://github.com/MitMike/crm_signals)  
 **Supported framework coverage:** Frappe / ERPNext v15 and v16. **Primary deployment target:** Frappe v16.5; record the exact patch/build and installed ERPNext/Helpdesk versions.  
-**Reviewed main baseline:** [f75dd24](https://github.com/MitMike/crm_signals/commit/f75dd241a2ca30505517bb2fd259e2ec62648c50) (PR #143 non-sales dashboard API operator smoke merged after all four final-head workflows passed) (PR #141 direct dashboard API permission regressions merged after all four final-head workflows passed); **latest application permission baseline:** [70aa4d8](https://github.com/MitMike/crm_signals/commit/70aa4d8953cc8a69d1317aad1c72654f05a1b29e).
+**Reviewed main baseline:** [9225a1e](https://github.com/MitMike/crm_signals/commit/9225a1e858be3c289067034b76f7ec4eabc057f4); **latest application permission baseline:** [70aa4d8](https://github.com/MitMike/crm_signals/commit/70aa4d8953cc8a69d1317aad1c72654f05a1b29e).
 
 This is the execution plan and source of truth for delivery order, scope, dependencies, acceptance gates and exit criteria. The operational state is maintained in [docs/PROGRESS.md](docs/PROGRESS.md); durable choices are in [docs/DECISIONS.md](docs/DECISIONS.md); feature contracts are in [specs/](specs/).
 
@@ -736,3 +736,8 @@ The token-authenticated resource GET boundary is reference-stack CI-verified: li
 PR [#143](https://github.com/MitMike/crm_signals/pull/143) was squash-merged as `f75dd241a2ca30505517bb2fd259e2ec62648c50` from exact tested head `6dd697c8a124244299599ec972b19d153a0cc1c2`. The target-site HTTPS acceptance script now verifies the non-sales API token identity separately from the Sales User, requires CRM Signals dashboard HTTP 403 with no synthetic signal disclosure, and requires Executive Compass HTTP 200 with Lead, Opportunity, Billing and Helpdesk sections unavailable when the non-sales account has no corresponding read grants. Both credential pairs use silent prompts, separate mode-0600 curl config files in a mode-0700 directory, redirect rejection, cleanup and rotation/revocation instructions. This is operator documentation/static-contract coverage only; no runtime permissions or site roles changed.
 
 All four final-head workflows passed: Quality/Python [41728280197](https://github.com/MitMike/crm_signals/actions/runs/41728280197), Security/Semgrep [41728280109](https://github.com/MitMike/crm_signals/actions/runs/41728280109), Bench v15/v16 + Playwright [41728279918](https://github.com/MitMike/crm_signals/actions/runs/41728279918), and pinned Frappe 16.5.0 / ERPNext / Helpdesk [41728280316](https://github.com/MitMike/crm_signals/actions/runs/41728280316). Reference-stack CI-verified; authorized Frappe 16.5 staging execution remains open. Not pilot-verified.
+
+
+## PR #145 opening — independent permission acceptance matrix (2026-11-04)
+
+The target-site permission matrix now separates Signal list, direct form, RPC API, REST resource API, Report View, CSV export, print view, dashboard UI, dashboard API, digest email and realtime. Each persona/path cell must record Pass/Fail/Blocked and a sanitized evidence reference. Separate acceptance items now cover CSV export, print rendering and dashboard UI/API behavior. ADR-110 records the decision not to infer authorization across different Frappe request/render paths. A static contract test protects the matrix. This is documentation/test scope only; no runtime permission behavior changed.
