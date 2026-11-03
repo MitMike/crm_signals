@@ -118,6 +118,7 @@ Run these checks with named test accounts. Record the user, role, result and evi
 
 - Test a Sales User who owns a Lead, a Sales User assigned through an active ToDo, a Sales User with a restrictive User Permission, a Sales Manager, a System Manager and a non-sales user.
 - Verify list view, direct form, API read, report, export and print paths. Test both linked and unlinked signals.
+- Verify the Sales User's direct API read using `frappe.client.get` denies the linked restricted CRM Signal and returns the unlinked owned signal; verify `frappe.client.get_list` returns only the unlinked signal. Use the Sales User's own authenticated session/API credentials, not Administrator, and record redacted HTTP evidence.
 - Verify that an owner/assignee without read permission on the linked Lead/Customer and CRM Signal receives no realtime payload.
 - Verify that an unreadable linked signal does not appear in a user's list merely because that user owns the CRM Signal record.
 - Run the Sales User linked/unlinked CRM Signal `test_records` preflight described in [Target-Site Acceptance Kit §2](TARGET_SITE_ACCEPTANCE.md#2-preflight-inventory): a Lead User Permission must hide the owned signal linked to the restricted Lead while leaving an unlinked signal owned by the same user visible.
