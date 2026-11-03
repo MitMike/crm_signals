@@ -552,3 +552,5 @@ PR #125 merged as [7029747](https://github.com/MitMike/crm_signals/commit/702974
 - Prior head `7bd1837` had Quality and Security passed; Bench v15/v16 and pinned v16.5 were still running. All four workflows must run on the corrected head before merge. Not pilot-verified.
 
 - Masked the pinned Frappe 16.5 E2E Sales User and Employee passwords with GitHub Actions `add-mask` before writing step outputs; added static regression assertions for masking order and lockfile-based npm installation.
+
+- Wrapped the new pinned-workflow static contract test to stay within the configured Python line-length limit; lint enforcement remains unchanged.
