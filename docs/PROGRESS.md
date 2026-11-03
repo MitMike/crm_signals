@@ -352,6 +352,6 @@ PR #100 is code-complete and CI-verified, not pilot-verified. The automated comp
 
 - **Finding:** the root README still used `bench get-app ... --branch main`, while the Administrator Guide and Deployment Runbook correctly require pinning the approved full SHA before Bench dependency setup. That README example could install/build a moving branch before the release revision was checked.
 - **Decision:** ADR-090 makes the README first-install path match the existing pin-before-install operator sequence. Existing-install upgrade instructions link to the Administrator Guide and Deployment Runbook.
-- **Implementation:** PR #112 changes documentation only; no runtime code, dependency or site configuration changes.
-- **Verification at opening:** the shell sequence was compared with the existing operator guide and runbook. Final-head Quality, Security and stable Bench checks remain required; docs-only runtime selectors may skip only when the path detector confirms the diff is non-runtime.
-- **Status:** documentation code-complete; CI pending; not pilot-verified. The authorized staging first-install/upgrade rehearsal remains a separate P0 acceptance gate.
+- **Implementation:** PR #112 updates the README and release records and extends `test_operator_installation_pins_source_before_bench_setup` to assert that README's shell block verifies the approved SHA before Bench setup. No runtime code, dependency or site configuration changes.
+- **Verification at opening:** the shell sequence was compared with the existing operator guide and runbook; a static regression test now protects the README ordering. Final-head Quality, Security, Python and Bench v15/v16 plus pinned Frappe 16.5.0 checks remain required because a test path changed.
+- **Status:** documentation and static regression code-complete; CI pending; not pilot-verified. The authorized staging first-install/upgrade rehearsal remains a separate P0 acceptance gate.
