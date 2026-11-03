@@ -910,3 +910,6 @@ Append a new ADR with the next available identifier. Include status, date record
 
 
 - **ADR-091 CI triage:** the first final-head run exposed a second stale sentence in the setup guide's workflow list ("We build a small adapter for the support app actually installed") and an incorrect footer label. Python 3.11 and 3.12 each had 1 failure, 125 passes and 36 skips. The guide now describes validating/configuring the existing standard adapter, keeps custom sources behind separate approval, and uses the correct footer; the static test rejects both stale statements. Require a fresh full final-head matrix before merge.
+
+
+- **ADR-091 second CI triage:** the next head's Python 3.11, 3.12 and 3.14 jobs each reported 1 failed, 125 passed and 36 skipped. The guide wording was correct; the static test still expected the obsolete phrase `separately scoped adapter change`. Update the assertion to the approved phrase `custom sources require separate approval and scope`; rerun the full matrix before merge. This was a test expectation mismatch, not a runtime defect.
