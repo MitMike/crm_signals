@@ -500,3 +500,13 @@ All four final-head workflows completed successfully: Quality Checks (run 416037
 The first Python run had five failures from a stale helper signature; it was corrected and the final-head matrix passed. A separate review correction ensured a frappe.set_user call that mutates session state and then raises still flows through the restoration finally; the final-head regression verifies restoration is attempted, no list query runs and record names/exception messages are not disclosed. No failing head was merged.
 
 The optional preflight is code-complete and reference-stack CI-verified, not pilot-verified. It checks bounded permission-filtered list visibility for exact supplied synthetic records and returns labels/booleans only. Direct form, REST API, report, export, print and dashboard access remain separate acceptance paths. Authorized Frappe v16.5 staging, approved release SHA, named owners and controlled synthetic records are still required for pilot acceptance, alongside D1/D2 native-report reconciliation, Helpdesk SLA, deployment/rollback, operational recovery, backup/restore and desktop/mobile UAT.
+
+
+## PR #124 opening snapshot — real Sales User record-filter preflight regression (2026-11-03)
+
+- **Reviewed main:** `c9df68e3728fe675e4eb3b4d5dafaf8b4d29fcc6` (PR #122 and PR #123 merged; no open PRs or issues at branch creation).
+- **Finding:** PR #122's real-Frappe preflight smoke proves a System Manager can list a synthetic CRM Signal, but does not invoke the new `test_records` path for a restricted Sales User. The existing Bench permission test already creates a Sales User, a linked Lead excluded by a User Permission, and an unlinked signal owned by that user.
+- **Decision (ADR-095):** reuse that controlled fixture to call `get_site_preflight_report(test_users=..., test_records=...)` and assert the probe reports the linked/restricted signal as false and the unlinked/owned signal as true. Assert the result is checked, the original session user is restored, and neither record name nor user identity is returned.
+- **Scope:** integration-test-only; no runtime behavior, schema, dependency or site configuration change. The existing Bench v15/v16 + Playwright and pinned Frappe 16.5.0 workflows execute the integration test suite.
+- **Status at opening:** code-complete; final-head Quality, Python, Security/Semgrep, Bench v15/v16 and pinned Frappe 16.5.0 checks pending. Not pilot-verified.
+- **Revisit criteria:** if Frappe v15/v16 returns a different list result, inspect the real `crm_signal_query` and User Permission behavior; do not weaken the expected false/true boundary or replace permission-filtered `get_list` with `get_all`. Authorized target-site direct form/API/report/export/print/dashboard tests remain separate.
