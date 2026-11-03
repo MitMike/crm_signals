@@ -1175,3 +1175,14 @@ PR #130 merged as `2b697b4d37a12b2e339bcf680ff808f23b97850f` from final tested h
 - **Consequences:** disposable CI fixture and operator-guide coverage only. No production runtime, schema, dependency or site configuration changes. API-token authentication, report/export/print/dashboard and target-site acceptance remain separate.
 - **Revisit criteria:** if the route or loader method changes on supported v15/v16, inspect the exact Frappe router and loader implementation and retain the linked-denied/unlinked-allowed assertions. Never treat the Desk shell's HTTP response as proof that the document loaded, and never use Administrator for the Sales User assertions.
 - **Verification status:** code-complete on branch `test/sales-user-direct-form-permission-20261103`; final-head CI pending. Not pilot-verified.
+
+## ADR-103 — Enforce lockfile-based npm installation in every Bench E2E lane
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-03
+- **Context:** PR #130 corrected the pinned Frappe 16.5.0 workflow to use `npm ci`, but review of the supported Frappe v15/v16 `bench-e2e.yml` lane found it still used `npm install`. That allowed the two browser-test lanes to resolve different dependency trees despite sharing the same committed package lock.
+- **Decision:** use `npm ci --ignore-scripts --no-audit --no-fund` before Playwright browser installation in both supported v15/v16 and pinned Frappe 16.5.0 workflows. Extend static regression coverage to require the lockfile command, reject `npm install`, and verify generated Sales User/Employee passwords are masked before being written to GitHub step outputs in both workflows.
+- **Rationale:** the browser tests should execute against the exact committed dependency graph on every supported reference lane. This removes lane-specific npm resolution drift without changing package versions or the lockfile.
+- **Scope:** CI workflow and static-test only. No runtime dependency, package manifest, lockfile, schema or site configuration changes.
+- **Revisit criteria:** if `npm ci` reports a lockfile mismatch, update the lockfile deliberately in a separate dependency change and rerun dependency audits; do not fall back to `npm install` or suppress the static contract.
+- **Verification status:** code-complete on PR #131 branch; final-head Quality/Python, Security and Bench v15/v16 + pinned v16.5 workflows pending. Not pilot-verified.
