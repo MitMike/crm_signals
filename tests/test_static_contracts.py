@@ -386,6 +386,16 @@ def test_operator_installation_pins_source_before_bench_setup():
             "bench setup requirements crm_signals"
         ) < workflow.index("bench --site test.local install-app crm_signals")
 
+def test_support_setup_guide_describes_the_existing_helpdesk_adapter():
+    guide = (ROOT / "docs/CRM_SIGNALS_SUPPORT_CONFIGURATION_GUIDE.html").read_text()
+    assert (
+        "standard Frappe Helpdesk adapter is already implemented"
+        in guide
+    )
+    assert "We build a small adapter" not in guide
+    assert "separately scoped adapter change" in guide
+
+
 def test_crm_signals_dashboard_retains_horizontal_inset():
     stylesheet = (
         APP_ROOT / "crm_signals/page/crm_signals_dashboard/crm_signals_dashboard.css"
