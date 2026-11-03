@@ -288,13 +288,13 @@ PR #100 is code-complete and CI-verified, not pilot-verified. The automated comp
 - **Next gate:** authorized Frappe v16.5 staging remains required for dashboard visual UAT, exact installed app/full-SHA inventory, effective-role permissions, D1/D2 native-report reconciliation, Helpdesk SLA validation, scheduler/mail/realtime/webhook recovery and backup/restore/rollback evidence.
 
 
-## Real-Git nested-parent regression — PR in progress (2026-11-03)
+## Real-Git nested-parent regression — PR-opening snapshot (2026-11-03)
 
 - **Reviewed main:** `5cc7137c331db8c5026ed560d74573640a486a82` (PR #106 merged).
 - **Decision:** ADR-088 complements ADR-087's mocked root-mismatch test with an actual temporary parent Git repository and nested Bench-style app path. This directly exercises Git's upward repository discovery.
 - **Implementation:** [PR #107](https://github.com/MitMike/crm_signals/pull/107), branch `test/preflight-real-parent-git-regression-20261103`; creates a parent repo and empty commit, then invokes the real preflight helper and asserts it fails closed with `repository_root_mismatch`.
 - **Scope:** test-only; no runtime code or site configuration changes. Existing mocked tests retain coverage of timeout, missing Git, dirty checkout, command failure and invalid SHA.
-- **Status:** code-complete; CI pending. Not pilot-verified. Merge only after the final-head Python, Quality, Security, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 checks pass.
+- **Status at PR opening:** code-complete; CI pending. Final merge and CI evidence are recorded in the later PR #107 section below. Not pilot-verified.
 
 
 ## Real-Git parent-repository regression — PR #107 merged (2026-11-03)
