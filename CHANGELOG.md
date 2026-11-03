@@ -321,3 +321,10 @@ Included in PR #19's merge commit [a495919](https://github.com/MitMike/crm_signa
 - Add a temporary committed parent repository and nested Bench-style CRM Signals package path to exercise Git's real upward repository discovery.
 - Assert the read-only preflight rejects the enclosing root with `repository_root_mismatch` instead of reporting the parent's SHA. Existing mocked failure-path coverage remains unchanged.
 - No runtime code or site configuration changes; final-head CI is required before merge.
+
+
+### 2026-11-03 — Real-Git preflight parent-repository regression (PR #107)
+- Add an isolated integration regression that creates a committed enclosing Git repository and a nested Bench-style CRM Signals package path without child Git metadata.
+- Invoke the real preflight source-revision helper and assert it rejects the enclosing repository with `repository_root_mismatch`, rather than reporting the parent's SHA.
+- PR #107 merged as [`a472f19`](https://github.com/MitMike/crm_signals/commit/a472f1981f758ce7b6233d95fc0682fe69d7a304); all 19 final-head check runs passed across Python, Quality, Security, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 validation.
+- No runtime behavior or site configuration changed. Target-site pilot acceptance remains outstanding.
