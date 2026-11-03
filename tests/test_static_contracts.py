@@ -447,3 +447,13 @@ def test_playwright_sales_user_permission_test_checks_authenticated_identity():
     assert ".toBe(email)" in spec
     assert "currentUserRoles" not in spec
     assert "frappe.core.doctype.user.user.get_current_user_roles" not in spec
+
+def test_e2e_non_sales_account_uses_explicit_desk_role():
+    source = (APP_ROOT / "ci.py").read_text()
+    assert 'E2E_NON_SALES_ROLE = "CRM Signals E2E Non-Sales"' in source
+    assert '"desk_access": 1' in source
+    assert "non_sales_role = _ensure_e2e_non_sales_role()" in source
+    assert "non_sales_role not in employee_roles" in source
+    assert 'frappe.throw("E2E non-sales role boundary is invalid")' in source
+    assert 'frappe.get_roles("e2e-employee@example.com")' in source
+
