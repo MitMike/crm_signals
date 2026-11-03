@@ -50,7 +50,7 @@ Record, do not infer:
 - [ ] After testing, rotate the API secret or disable/delete the dedicated synthetic user, then verify the old credential pair is rejected. Record only the test alias and rotation/revocation outcome.
 - [ ] With the dedicated Sales User's own API credentials (never Administrator), run the authenticated HTTP smoke below. It verifies the authenticated identity first, then expects HTTP 403 for the linked restricted document, HTTP 200 for the unlinked owned document, and a list containing exactly the unlinked record. Do not follow redirects; a redirect is a failed check because the token must not be forwarded to another origin.
 - [ ] Keep response bodies in a mode-0600 temporary directory and remove them after checking. Record only the authenticated profile alias, HTTP status codes, pass/fail outcomes, site/Frappe version, deployed full SHA and timestamp. Never attach raw response bodies, API keys/secrets, record names or user identifiers.
-- [ ] The script below requires Bash, curl and Python 3.10+. It uses GET query parameters exactly as Frappe's method wrappers expect. PR #130 is merged and CI-verified: Playwright exercises the same methods over a browser session cookie on Frappe v16 and pinned v16.5. PR #131 is merged and CI-verified: the direct Desk form-loader permission regression passed in supported Frappe v16 and pinned Frappe 16.5.0 Playwright. PR #133 merged as `b2f1d07` from final PR head `9a1a19c`; its code head `b9f7247` and final PR head passed all four reference-stack workflows: Quality/Python, Security/Semgrep, Bench v15/v16 + Playwright (19 tests on v16) and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 (4 Playwright tests). This does not verify the target site's TLS, reverse proxy, gateway or credential policy and does not replace the live API-token smoke or browser-form acceptance below. Report/export/print/dashboard behavior remains separate.
+- [ ] The script below requires Bash, curl and Python 3.10+. It uses GET query parameters exactly as Frappe's method wrappers expect. PR #130 is merged and CI-verified: Playwright exercises the same methods over a browser session cookie on Frappe v16 and pinned v16.5. PR #131 is merged and CI-verified: the direct Desk form-loader permission regression passed in supported Frappe v16 and pinned Frappe 16.5.0 Playwright. PR #133 is merged and CI-verified: cookie-independent token authentication is exercised on supported v16 and pinned v16.5. PR #135 adds the separate `/api/resource/CRM%20Signal` single-document and list API-token checks; final-head CI is pending. These are reference-stack tests and do not verify the target site's TLS, reverse proxy, gateway or credential policy or replace live API-token/browser-form acceptance below. Report/export/print/dashboard behavior remains separate.
 
 ```bash
 set -euo pipefail
@@ -134,6 +134,48 @@ names = {row.get("name") for row in payload.get("message", [])}
 if names != {sys.argv[2]}:
     raise SystemExit("FAIL: list response did not contain exactly the unlinked owned record")
 print("PASS: list contains only the unlinked owned record (HTTP 200)")
+PY
+
+
+
+# The standard REST resource endpoint must enforce the same linked-party boundary.
+status="$(request "$base_url/api/resource/CRM%20Signal/$LINKED_RESTRICTED_SIGNAL" "$tmp_dir/resource-restricted.json" --header "Accept: application/json")"
+[[ "$status" == "403" ]] || { echo "FAIL: restricted REST resource expected HTTP 403, got $status" >&2; exit 1; }
+if grep -Fq -- "$LINKED_RESTRICTED_SIGNAL" "$tmp_dir/resource-restricted.json"; then
+  echo "FAIL: restricted REST resource response disclosed the record name" >&2
+  exit 1
+fi
+echo "PASS: linked restricted REST resource denied without record-name disclosure (HTTP 403)"
+
+status="$(request "$base_url/api/resource/CRM%20Signal/$UNLINKED_OWNED_SIGNAL" "$tmp_dir/resource-allowed.json" --header "Accept: application/json")"
+[[ "$status" == "200" ]] || { echo "FAIL: allowed REST resource expected HTTP 200, got $status" >&2; exit 1; }
+python3 - "$tmp_dir/resource-allowed.json" "$UNLINKED_OWNED_SIGNAL" <<'PY'
+import json
+import sys
+
+with open(sys.argv[1], encoding="utf-8") as response_file:
+    payload = json.load(response_file)
+if payload.get("data", {}).get("name") != sys.argv[2]:
+    raise SystemExit("FAIL: REST resource response did not match the synthetic record")
+print("PASS: unlinked owned REST resource readable (HTTP 200)")
+PY
+
+status="$(request "$base_url/api/resource/CRM%20Signal" "$tmp_dir/resource-list.json" \
+  --get --header "Accept: application/json" \
+  --data-urlencode 'fields=["name"]' \
+  --data-urlencode "filters=[[\\\"CRM Signal\\\",\\\"name\\\",\\\"in\\\",[\\\"$LINKED_RESTRICTED_SIGNAL\\\",\\\"$UNLINKED_OWNED_SIGNAL\\\"]]]" \
+  --data-urlencode "limit_page_length=10")"
+[[ "$status" == "200" ]] || { echo "FAIL: REST resource list expected HTTP 200, got $status" >&2; exit 1; }
+python3 - "$tmp_dir/resource-list.json" "$UNLINKED_OWNED_SIGNAL" <<'PY'
+import json
+import sys
+
+with open(sys.argv[1], encoding="utf-8") as response_file:
+    payload = json.load(response_file)
+names = {row.get("name") for row in payload.get("data", [])}
+if names != {sys.argv[2]}:
+    raise SystemExit("FAIL: REST resource list did not contain exactly the unlinked owned record")
+print("PASS: REST resource list contains only the unlinked owned record (HTTP 200)")
 PY
 
 echo "PASS: authenticated Sales User API permission boundary verified"
