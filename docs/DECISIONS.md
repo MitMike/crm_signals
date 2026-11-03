@@ -1045,3 +1045,14 @@ The first correction moved aliased API imports into the guarded Frappe import bl
 - Pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 `41634012853`: installation, effective-user permission checks, D1/D2, Helpdesk schema/read-role, D3 aggregate, upgrade, assets, Python and Frappe integration steps passed.
 - PR #126 merged as `812aa1eb76fbabc0e7f73a664caa72a1e208feb6`. The merge commit has no separate combined-status entries; verification is the four completed PR final-head workflows.
 - Scope remains integration-test and operator-documentation coverage. Direct HTTP authentication/routing and browser form acceptance remain staging checks; no pilot verification is implied.
+
+
+## ADR-097 — Make authenticated Sales User HTTP permission acceptance reproducible
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-03
+- **Context:** ADR-096 and PR #126 exercise Frappe's Python method wrappers under a real Sales User in Bench CI. The target-site checklist named the HTTP GET endpoints but did not provide complete query parameters, credential-identity validation, exact expected statuses or secret-safe evidence handling.
+- **Decision:** document a copy/paste Bash/curl/Python standard-library smoke check for the canonical HTTPS staging URL. Before permission assertions, call `frappe.auth.get_logged_user` and require the returned identity to match the explicitly supplied dedicated synthetic Sales User; reject Administrator. Call `frappe.client.get` for the linked restricted signal and require HTTP 403; call it for the unlinked owned signal and require HTTP 200 with the exact synthetic document name; call `frappe.client.get_list` for both and require a 200 response containing only the unlinked record.
+- **Safety:** read API credentials without echo; write the Authorization header only to a mode-0600 temporary curl config; do not follow redirects; keep response bodies in a mode-0600 temporary directory; remove secrets and response files on exit; print only identity-match and pass/fail outcomes, never names, raw response bodies or secrets.
+- **Consequences:** documentation-only. The procedure verifies HTTP authentication/routing and method response behavior only when actually run against the authorized target site. It does not prove browser form, REST resource, report/export/print/dashboard or broader pilot acceptance. No runtime, schema, dependency or site configuration changes.
+- **Revisit criteria:** if the pinned Frappe build returns a different documented status or response shape, capture sanitized status/error class and exact build, inspect the versioned wrapper/authentication behavior, and revise the procedure without Administrator credentials or weaker permission expectations.

@@ -528,3 +528,10 @@ PR #125 merged as [7029747](https://github.com/MitMike/crm_signals/commit/702974
 - Updated Administrator Guide, Deployment Runbook and Target-Site Acceptance Kit with the direct API acceptance boundary and retained HTTP/browser checks as staging requirements.
 - Final-head Quality/Python, Security/Semgrep, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 workflows all passed; merged as `812aa1eb76fbabc0e7f73a664caa72a1e208feb6`.
 - Reference-stack CI verification only; not pilot or production acceptance.
+
+
+### 2026-11-03 — PR #128: reproducible authenticated Sales User HTTP acceptance
+
+- Added copy/paste HTTPS-only curl checks for authenticated identity, linked restricted document denial (403), unlinked owned document read (200) and permission-filtered list visibility.
+- Added safe temporary credential/response handling and linked the procedure from the Administrator Guide.
+- Documentation-only; must still be executed on authorized Frappe v16.5 staging. Not pilot verification.
