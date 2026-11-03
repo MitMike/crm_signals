@@ -429,3 +429,14 @@ PR #112 updates documentation and the static operator-installation contract test
 ADR-091 corrects the beginner-friendly Support & SLA setup guide. The standard Frappe Helpdesk `HD Ticket` / `HD Service Level Agreement` adapter is implemented; operators should validate the site's exact version, schema, field-level permissions, active SLA calendar, holidays, timezone and pause/resume behavior against that contract, then run staging scenarios. A different/custom ticket DocType is not automatically supported and requires a separate approved scope.
 
 PR #113 updates the guide and adds a static contract test for the implementation-status wording. No runtime code, schema, dependency or site configuration changes. Final-head Quality, Python 3.10–3.14, Security, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 validation are required. **Status at opening:** documentation and static regression code-complete, CI pending, not pilot-verified.
+
+
+## 24. README pin-before-install correction — PR #112 merged (2026-11-03)
+
+PR #112 merged as [`d2e1d87`](https://github.com/MitMike/crm_signals/commit/d2e1d873a8f257545596379e179aeb3e4de40dd4) from final head `f68939ba5e2977ed62698e2a78084277fa091479`. All 18 final-head check runs passed: Quality/lint, Python 3.10/3.11/3.12/3.14, Security/Semgrep, Bench integration v15/v16 including Playwright, and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 validation.
+
+The README now uses the same safe sequence as the operator guide: clone directly into `apps/crm_signals`, fetch the approved release, detach at and verify the full SHA, then run Bench dependency setup and site installation/migration/build. The static contract test protects the command order. No runtime behavior, dependency or site configuration changed.
+
+PR #113 was retargeted from the merged PR #112 branch to `main` after this merge. Its existing final-head run had 18 successful checks before retargeting; confirm the current PR head/base check state before merge. **Status:** PR #112 documentation/static-test work is merged and reference-stack CI-verified; the staging first-install/upgrade rehearsal is not complete and this is not pilot verification.
+
+**Release gate:** authorized Frappe v16.5 staging remains required for first-install and upgrade rehearsal, exact installed app/full-SHA inventory, effective-role permissions, D1/D2 native-report reconciliation by currency, Helpdesk SLA acceptance, dashboard visual UAT, operational recovery and backup/restore/rollback. No such site evidence is available from repository CI.
