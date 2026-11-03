@@ -355,3 +355,12 @@ PR #100 is code-complete and CI-verified, not pilot-verified. The automated comp
 - **Implementation:** PR #112 updates the README and release records and extends `test_operator_installation_pins_source_before_bench_setup` to assert that README's shell block verifies the approved SHA before Bench setup. No runtime code, dependency or site configuration changes.
 - **Verification at opening:** the shell sequence was compared with the existing operator guide and runbook; a static regression test now protects the README ordering. Final-head Quality, Security, Python and Bench v15/v16 plus pinned Frappe 16.5.0 checks remain required because a test path changed.
 - **Status:** documentation and static regression code-complete; CI pending; not pilot-verified. The authorized staging first-install/upgrade rehearsal remains a separate P0 acceptance gate.
+
+
+## D3 support setup guide correction — PR #113 opening snapshot (2026-11-03)
+
+- **Finding:** `docs/CRM_SIGNALS_SUPPORT_CONFIGURATION_GUIDE.html` still said that a small adapter would be built after discovery, although the standard Frappe Helpdesk `HD Ticket` / `HD Service Level Agreement` adapter is already implemented and reference-stack tested.
+- **Decision:** ADR-091 updates the guide to explain how to validate the installed schema, field permissions and SLA calendar against the existing adapter. Custom ticket sources remain a separate, explicitly approved scope.
+- **Implementation:** PR #113 updates the HTML guide and adds a static contract test that rejects the stale implementation promise. No runtime code or site configuration changes.
+- **Verification at opening:** documentation/test diff; final-head Quality, Python 3.10–3.14, Security, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 checks pending.
+- **Status:** documentation and static regression code-complete; CI pending; not pilot-verified. The target-site Helpdesk schema, effective permissions and active SLA calendar still require staging evidence.
