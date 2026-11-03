@@ -482,7 +482,7 @@ def test_e2e_api_token_credentials_are_private_and_masked():
     source = (APP_ROOT / "ci.py").read_text()
     assert "def prepare_e2e_sales_api_credentials():" in source
     helper = source.split("def prepare_e2e_sales_api_credentials():", 1)[1]
-    helper = helper.split("\\n\\nLEGACY_SIGNAL_MESSAGES", 1)[0]
+    helper = helper.split("\n\nLEGACY_SIGNAL_MESSAGES", 1)[0]
     assert "generate_keys(\"e2e-sales-user@example.com\")" in helper
     assert "previous_user = frappe.session.user" in helper
     assert "frappe.set_user(previous_user)" in helper
