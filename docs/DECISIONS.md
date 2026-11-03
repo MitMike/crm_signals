@@ -973,3 +973,13 @@ The optional permission probe now requires each supplied test account to be an e
 
 ### ADR-094 CI triage — initial validator signature failure
 The first Python matrix run found five failures in the new record-visibility tests because _validate_test_record_doctypes retained a stale total_records parameter after the count-accounting refactor. The call site had already moved to the return-value form. The helper signature was corrected; the failing head remains unmergeable until a fresh full final-head matrix passes.
+
+
+
+### ADR-094 review hardening — restore after a partially failed user switch
+A focused code review found that the first implementation returned immediately when `frappe.set_user(test_user)` raised. If that API mutated the session before raising, the original Bench command session could remain switched because the early return bypassed the restoration `finally` block.
+
+- **Decision:** route both successful and failed user switches through one restoration `finally`; never return from the switch-error handler. If switching fails, mark every requested record as `session_switch_failed`, disclose only the exception type, and still attempt to restore the original session user.
+- **Implementation:** add a regression where the fake `set_user` mutates `frappe.session.user` and then raises. Assert the original user is set again, no list query runs, the result is partial/fail-closed and neither record names nor exception messages are disclosed.
+- **Revisit:** if restoration itself fails, keep the report partial with `session_restore` exception type and stop operator acceptance; do not fall back to direct mutation of Frappe's session object.
+- **Verification:** this correction is on PR #122 after its first complete CI matrix passed; a fresh final-head Python, Quality, Security, Bench v15/v16 + Playwright and pinned v16.5.0 matrix is required before merge.
