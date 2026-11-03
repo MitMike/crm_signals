@@ -608,7 +608,7 @@ PR #125 merged as [7029747](https://github.com/MitMike/crm_signals/commit/702974
 
 ### 2026-11-03 — PR #131 opening — direct CRM Signal form-load permission regression
 
-- Add Playwright coverage for the actual Desk route `/app/crm-signal/<name>`, observing Frappe's `frappe.desk.form.load.getdoc` GET request under the synthetic Sales User.
+- Add the `Sales User CRM Signal form permission boundary` Playwright test for the actual Desk route `/app/crm-signal/<name>`, observing Frappe's `frappe.desk.form.load.getdoc` GET request under the synthetic Sales User.
 - Require 403/no restricted message for the linked signal and 200/expected message for the unlinked owned signal; include both HTTP API and direct-form tests in the pinned Frappe 16.5.0 Playwright selector.
 - Add a static regression guard and document the target-site form check. No production runtime, schema, dependency or site configuration changes.
 - Code-complete on the focused branch; final-head CI pending. Not pilot-verified.
