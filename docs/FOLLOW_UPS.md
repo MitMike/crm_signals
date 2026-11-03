@@ -410,7 +410,9 @@ PR #128 merged as `85c492ea2c84444d7cc45c0d61706736fa972a83`. Quality/Python run
 - [x] Add the `Sales User CRM Signal form permission boundary` browser test that opens `/app/crm-signal/<name>` as the synthetic Sales User, expects 403 and no restricted message for the linked signal, and expects 200 plus the expected message for the unlinked owned signal.
 - [x] Include the new test in the pinned Frappe 16.5.0 Playwright selector and add a static regression guard.
 - [x] Replace `npm install` with lockfile-enforced `npm ci` in the supported v15/v16 Bench E2E workflow; extend static checks to require `npm ci` and pre-output password masking in both supported and pinned lanes.
-- [ ] Pass final-head Quality/Python, Security/Semgrep, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 workflows.
+- [x] Diagnose the first Python 3.11 static failure: the new guard expected the bare method name, but the spec matches the full `/api/method/frappe.desk.form.load.getdoc` pathname; correct the guard only.
+- [ ] Pass final-head Quality/Python, Security/Semgrep, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 workflows after the static-guard correction.
 - [ ] Merge only after all required checks pass on the exact current head; then reconcile the main baseline and close this follow-up.
 - [ ] Execute the direct form check on authorized Frappe v16.5 staging and retain sanitized evidence with the deployed full SHA and exact app versions.
+- **Evidence:** Quality run `41675705153`, Python 3.11 job `126055881118`; 143 passed, 36 skipped, one static assertion failed before runtime/browser tests. The assertion mismatch is corrected on the branch; require a fresh full final-head matrix.
 - **Revisit criteria:** if the form route does not trigger the expected GET loader or the permission status differs, inspect the Playwright trace and versioned Frappe router/loader. Do not accept a successful Desk shell response as document access and do not weaken the restricted/allowed record boundary.
