@@ -11,6 +11,12 @@ from pathlib import Path
 import frappe
 
 TARGET_ROLES = ("Sales User", "Sales Manager", "System Manager")
+TEST_USER_PROFILES = {
+    "sales_user": ("Sales User", {"Sales Manager", "System Manager"}),
+    "sales_manager": ("Sales Manager", {"System Manager"}),
+    "system_manager": ("System Manager", set()),
+    "non_sales": (None, set(TARGET_ROLES)),
+}
 PREFLIGHT_DOCTYPES = {
     "CRM Signal": ("signal_type", "priority", "lead", "customer", "source_doctype", "source_name", "source_event_id"),
     "Lead": ("status",),
@@ -253,12 +259,173 @@ def _workflow_summary():
     return {"available": True, "items": items}
 
 
-def get_site_preflight_report():
+
+def _check_test_user_identity(profile, username, seen_users):
+    """Validate a supplied synthetic account without retaining its identity."""
+    expected_role, disallowed_roles = TEST_USER_PROFILES[profile]
+    result = {
+        "expected_role": expected_role,
+        "account_active": None,
+        "system_user": None,
+        "role_membership_valid": False,
+        "status": None,
+        "doctype_read": {},
+        "required_field_read": {},
+        "error_types": {},
+    }
+    if not isinstance(username, str) or not username.strip():
+        raise ValueError("Each test user profile must map to a non-empty User name")
+    username = username.strip()
+    if username == "Administrator":
+        result["status"] = "administrator_not_allowed"
+        return result, None
+    if username in seen_users:
+        result["status"] = "duplicate_test_user"
+        return result, None
+    seen_users.add(username)
+
+    try:
+        enabled = frappe.db.get_value("User", username, "enabled")
+    except Exception as error:
+        result["status"] = "user_lookup_failed"
+        result["error_types"]["User"] = type(error).__name__
+        return result, None
+    if enabled is None:
+        result["status"] = "user_not_found"
+        return result, None
+    result["account_active"] = bool(_as_int(enabled))
+    if not result["account_active"]:
+        result["status"] = "user_disabled"
+        return result, None
+
+    try:
+        user_type = frappe.db.get_value("User", username, "user_type")
+    except Exception as error:
+        result["status"] = "user_lookup_failed"
+        result["error_types"]["User"] = type(error).__name__
+        return result, None
+    result["system_user"] = user_type == "System User"
+    if not result["system_user"]:
+        result["status"] = "user_type_not_system"
+        return result, None
+
+    try:
+        roles = set(frappe.get_roles(username))
+    except Exception as error:
+        result["status"] = "role_lookup_failed"
+        result["error_types"]["roles"] = type(error).__name__
+        return result, None
+
+    expected_role_present = expected_role in roles if expected_role else not bool(
+        roles.intersection(TARGET_ROLES)
+    )
+    result["role_membership_valid"] = expected_role_present and not bool(
+        roles.intersection(disallowed_roles)
+    )
+    if not result["role_membership_valid"]:
+        result["status"] = "role_membership_invalid"
+        return result, None
+    return result, username
+
+
+def _test_user_doctype_permissions(username, doctype_reports):
+    """Return DocType and required-field read checks for one validated account."""
+    doctype_read = {}
+    required_field_read = {}
+    error_types = {}
+    for doctype, summary in doctype_reports.items():
+        required_fields = [field["fieldname"] for field in summary["required_fields"]]
+        if not summary["available"]:
+            doctype_read[doctype] = None
+            required_field_read[doctype] = {field: None for field in required_fields}
+            continue
+
+        try:
+            can_read = bool(
+                frappe.has_permission(doctype, ptype="read", user=username, throw=False)
+            )
+        except Exception as error:
+            doctype_read[doctype] = None
+            required_field_read[doctype] = {field: None for field in required_fields}
+            error_types[doctype] = type(error).__name__
+            continue
+
+        doctype_read[doctype] = can_read
+        if not can_read:
+            required_field_read[doctype] = {field: False for field in required_fields}
+            continue
+
+        try:
+            permitted_fields = set(
+                frappe.get_meta(doctype).get_permitted_fieldnames(user=username)
+            )
+        except Exception as error:
+            required_field_read[doctype] = {field: None for field in required_fields}
+            error_types[doctype] = type(error).__name__
+            continue
+
+        required_field_read[doctype] = {
+            field: field in permitted_fields for field in required_fields
+        }
+    return doctype_read, required_field_read, error_types
+
+
+def _effective_user_permissions(test_users, doctype_reports):
+    """Check explicitly supplied synthetic users without returning their identities."""
+    scope = (
+        "DocType-level and field-level read checks only; record-level User Permissions, "
+        "ownership and document-share visibility must still be tested with representative records."
+    )
+    if test_users is None:
+        return {
+            "available": False,
+            "reason": "test_users_not_supplied",
+            "profiles": {},
+            "scope": scope,
+        }
+    if not isinstance(test_users, dict):
+        raise ValueError("test_users must map approved profile aliases to User names")
+    if not test_users:
+        return {
+            "available": False,
+            "reason": "test_users_not_supplied",
+            "profiles": {},
+            "scope": scope,
+        }
+    if set(test_users) - set(TEST_USER_PROFILES):
+        raise ValueError("Unsupported test user profile")
+
+    profiles = {}
+    seen_users = set()
+    for profile, username in sorted(test_users.items()):
+        result, validated_user = _check_test_user_identity(
+            profile, username, seen_users
+        )
+        if validated_user:
+            doctype_read, field_read, errors = _test_user_doctype_permissions(
+                validated_user, doctype_reports
+            )
+            result["doctype_read"] = doctype_read
+            result["required_field_read"] = field_read
+            result["error_types"] = errors
+            result["status"] = "partial" if errors else "checked"
+        profiles[profile] = result
+
+    return {
+        "available": True,
+        "reason": None,
+        "profiles": profiles,
+        "scope": scope,
+    }
+
+
+def get_site_preflight_report(test_users=None):
     """Return a bounded, read-only site inventory for bench execute.
 
     Run as an operator from the Bench server with:
     bench --site <site> execute crm_signals.diagnostics.get_site_preflight_report
-    This function is intentionally not whitelisted for HTTP access.
+    This function is intentionally not whitelisted for HTTP access. Optional
+    test_users maps profile aliases to dedicated, non-Administrator test accounts.
     """
     companies = frappe.get_all(
         "Company",
@@ -303,6 +470,7 @@ def get_site_preflight_report():
         },
         "active_lead_opportunity_workflows": _workflow_summary(),
         "doctypes": doctype_reports,
+        "effective_user_permissions": _effective_user_permissions(test_users, doctype_reports),
         "acceptance_warning": (
             "Static metadata is not proof of effective user permissions, financial "
             "reconciliation, SLA calendar behavior, or pilot acceptance."

@@ -916,3 +916,42 @@ Append a new ADR with the next available identifier. Include status, date record
 
 
 - **ADR-091 final status:** the two early static-test failures were corrected and all 35 checks on PR #117's final head passed. The D3 setup/discovery guides and static regressions are merged; no runtime or site configuration changed. Keep custom ticket sources unavailable until separately approved. Target-site D3 acceptance remains required.
+
+
+## ADR-092 — Add an optional effective-user permission probe to target-site preflight
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-03
+- **Context:** The read-only target-site preflight reports static DocPerm rows and field permlevels, but those rows do not prove that the actual Sales User, Sales Manager, System Manager or non-sales test accounts are active, carry the intended role boundary, or can read the fields required by CRM Signals. The operator acceptance matrix still required manual inspection before running record-level checks.
+- **Decision:** Add an optional `test_users` mapping to `get_site_preflight_report`, keyed only by the aliases `sales_user`, `sales_manager`, `system_manager` and `non_sales`. Require active, distinct, non-Administrator accounts and validate the expected role boundary. For each installed preflight DocType, use Frappe's `has_permission(..., user=..., throw=False)` and `Meta.get_permitted_fieldnames(user=...)` APIs to report DocType read access and the required fields' read access. Return aliases and boolean outcomes only; never return User names, email addresses, credentials or error text. If no mapping is supplied, report the matrix as unavailable rather than passing it.
+- **Rationale:** The probe turns the static inventory into a useful, repeatable DocType/field-level check using Frappe's own permission APIs while avoiding disclosure of test identities. The signatures and field-permission methods exist on both supported Frappe v15 and v16 lines.
+- **Consequences:** The report remains server-side, non-whitelisted and read-only. It does not inspect business-document rows and does not prove row-level User Permissions, ownership, document shares, list filters, API/report/export behavior or actual dashboard visibility; the controlled-record acceptance matrix remains mandatory. Dedicated synthetic accounts are supplied explicitly by the authorized operator, not discovered or selected automatically.
+- **Revisit criteria:** Revisit if Frappe v15/v16 changes the `has_permission` or `get_permitted_fieldnames` contract, if the required profile/role policy changes, or if a security review identifies identity leakage. Keep row-level and end-to-end permission acceptance separate even if the API evolves.
+- **Verification status:** implementation and regression tests are in PR #120; final-head Python, Quality, Security, Bench v15/v16 + Playwright and pinned Frappe v16.5.0 validation are pending. No pilot verification is claimed.
+
+
+## ADR-093 — Exercise the effective-user preflight on real supported Frappe stacks
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-03
+- **Context:** ADR-092's new permission probe had unit coverage using a mocked Frappe module. The existing Bench workflows installed real Frappe v15/v16 and the pinned v16.5.0 stack, but did not invoke the new optional probe with real User records. A mocked API signature cannot establish that the user-aware permission methods work on the supported runtime versions.
+- **Decision:** Add a CI-only Bench helper guarded by `allow_tests`. It creates four disposable synthetic System Users with Sales User, Sales Manager, System Manager and Employee roles, calls the production `get_site_preflight_report(test_users=...)`, and asserts active accounts, role boundaries, complete boolean DocType/required-field outcomes for installed DocTypes, unavailable outcomes for absent DocTypes, no permission API errors and no User-identity disclosure. Invoke it in the Frappe v15/v16 Bench matrix and the pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 workflow.
+- **Rationale:** This directly exercises the actual `frappe.has_permission(..., user=...)` and `Meta.get_permitted_fieldnames(user=...)` contracts on the runtime versions the project supports. The fixture uses only disposable CI sites and random throwaway passwords; it does not read or create business records.
+- **Consequences:** CI now validates that the optional preflight can execute against real Frappe metadata and synthetic Users. The CI helper refuses to run unless `allow_tests` is enabled. The helper's test Users remain in the disposable CI site; no test accounts are added to a real deployment. This does not prove target-site row-level permissions, shares, list/API/report/export/dashboard visibility, business-role expectations or pilot acceptance.
+- **Revisit criteria:** Revisit if Frappe changes either permission API, the CI site bootstrap changes, or `allow_tests` semantics change. Keep the helper isolated to disposable sites and retain the explicit guard. Do not use this smoke test as a substitute for authorized target-site acceptance.
+- **Verification:** Added to PR #120 after the initial final-head workflows passed. The new final-head Python, Quality, Security, Bench v15/v16 and pinned v16.5.0 checks must all pass before merge.
+
+
+### ADR-093 CI triage — complexity guard
+
+The first implementation head `51c8e6d` failed Quality lint with Ruff C901: `verify_effective_user_preflight` complexity 19 exceeded the configured maximum 15. The validation logic was split into profile-level and report-level helpers; the complexity rule was not weakened or suppressed. A fresh final-head matrix is required before merge.
+
+
+### ADR-092 input-validation clarification
+
+Only `None` or an empty dictionary represents an omitted optional user mapping. Falsey non-mapping inputs (for example an empty list or empty string) are rejected with `ValueError` rather than silently reported as “not supplied”; a regression test protects this fail-closed input contract.
+
+
+### ADR-092 account-type boundary clarification
+
+The optional permission probe now requires each supplied test account to be an enabled Frappe System User, not merely an enabled User with a matching role. Website Users are rejected before DocType checks because they do not have Desk access; the result reports `system_user` as a boolean and `user_type_not_system` without exposing account identity.

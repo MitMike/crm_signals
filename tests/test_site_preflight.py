@@ -8,6 +8,28 @@ import types
 def load_diagnostics(monkeypatch):
     fake = types.ModuleType("frappe")
     fake.__version__ = "16.5.0"
+    enabled_users = {
+        "sales.user@example.invalid": 1,
+        "sales.manager@example.invalid": 1,
+        "system.manager@example.invalid": 1,
+        "non.sales@example.invalid": 1,
+        "disabled.user@example.invalid": 0,
+        "website.user@example.invalid": 1,
+    }
+    user_types = {
+        username: "System User"
+        for username in enabled_users
+        if username != "website.user@example.invalid"
+    }
+    user_types["website.user@example.invalid"] = "Website User"
+
+    def fake_get_value(doctype, name, field):
+        if field == "enabled":
+            return enabled_users.get(name)
+        if field == "user_type":
+            return user_types.get(name)
+        return None
+
     fake.db = types.SimpleNamespace(
         exists=lambda doctype, name: name in {
             "CRM Signal", "Lead", "Customer", "Opportunity", "Quotation",
@@ -15,9 +37,21 @@ def load_diagnostics(monkeypatch):
             "HD Service Level Agreement",
         },
         get_single_value=lambda *args: "Asia/Kolkata",
+        get_value=fake_get_value,
     )
     fake.utils = types.SimpleNamespace(now_datetime=lambda: "2026-11-02 12:00:00")
     fake.get_installed_apps = lambda: ["frappe", "erpnext", "crm_signals", "helpdesk"]
+    fake.get_roles = lambda user: {
+        "sales.user@example.invalid": ["Sales User"],
+        "sales.manager@example.invalid": ["Sales Manager"],
+        "system.manager@example.invalid": ["System Manager"],
+        "non.sales@example.invalid": ["Employee"],
+        "disabled.user@example.invalid": ["Sales User"],
+        "website.user@example.invalid": ["Sales User"],
+    }.get(user, [])
+    fake.has_permission = lambda doctype, ptype="read", user=None, throw=False: (
+        user != "non.sales@example.invalid"
+    )
     fake.get_all = lambda doctype, **kwargs: {
         "Company": [
             {"name": "IN Company", "default_currency": "INR"},
@@ -53,6 +87,9 @@ def load_diagnostics(monkeypatch):
             {"role": "System Manager", "read": 1, "permlevel": 0},
             {"role": "Sales User", "read": 0, "permlevel": 1},
         ],
+    )
+    meta.get_permitted_fieldnames = lambda user=None: (
+        ["status"] if user in {"sales.manager@example.invalid", "system.manager@example.invalid"} else []
     )
     fake.get_meta = lambda doctype: meta
     monkeypatch.setitem(sys.modules, "frappe", fake)
@@ -142,6 +179,98 @@ def test_preflight_includes_workflow_states_and_static_field_permissions(monkeyp
     ticket = report["doctypes"]["HD Ticket"]
     assert all(not field["present"] for field in ticket["required_fields"])
 
+
+
+def test_preflight_reports_effective_test_user_doctype_and_field_permissions(monkeypatch):
+    diagnostics = load_diagnostics(monkeypatch)
+    users = {
+        "sales_user": "sales.user@example.invalid",
+        "sales_manager": "sales.manager@example.invalid",
+        "system_manager": "system.manager@example.invalid",
+        "non_sales": "non.sales@example.invalid",
+    }
+
+    report = diagnostics.get_site_preflight_report(test_users=users)
+    matrix = report["effective_user_permissions"]
+
+    assert matrix["available"] is True
+    assert matrix["reason"] is None
+    assert all(matrix["profiles"][profile]["system_user"] is True for profile in users)
+    assert matrix["profiles"]["sales_user"]["status"] == "checked"
+    assert matrix["profiles"]["sales_user"]["role_membership_valid"] is True
+    assert matrix["profiles"]["sales_user"]["doctype_read"]["Lead"] is True
+    assert matrix["profiles"]["sales_user"]["required_field_read"]["Lead"]["status"] is False
+    assert matrix["profiles"]["sales_manager"]["required_field_read"]["Lead"]["status"] is True
+    assert matrix["profiles"]["system_manager"]["status"] == "checked"
+    assert matrix["profiles"]["system_manager"]["required_field_read"]["Lead"]["status"] is True
+    assert matrix["profiles"]["non_sales"]["role_membership_valid"] is True
+    assert matrix["profiles"]["non_sales"]["doctype_read"]["Lead"] is False
+    assert matrix["profiles"]["non_sales"]["required_field_read"]["Lead"]["status"] is False
+    assert "record-level User Permissions" in matrix["scope"]
+    assert all(username not in repr(report) for username in users.values())
+
+
+def test_preflight_rejects_disabled_and_administrator_test_accounts(monkeypatch):
+    diagnostics = load_diagnostics(monkeypatch)
+    report = diagnostics.get_site_preflight_report(
+        test_users={
+            "sales_user": "disabled.user@example.invalid",
+            "sales_manager": "Administrator",
+        }
+    )
+    profiles = report["effective_user_permissions"]["profiles"]
+
+    assert profiles["sales_user"]["status"] == "user_disabled"
+    assert profiles["sales_user"]["account_active"] is False
+    assert profiles["sales_manager"]["status"] == "administrator_not_allowed"
+    assert profiles["sales_manager"]["account_active"] is None
+
+
+
+def test_preflight_rejects_wrong_role_and_duplicate_test_accounts(monkeypatch):
+    diagnostics = load_diagnostics(monkeypatch)
+    wrong_role = diagnostics.get_site_preflight_report(
+        test_users={"sales_user": "sales.manager@example.invalid"}
+    )
+    assert (
+        wrong_role["effective_user_permissions"]["profiles"]["sales_user"]["status"]
+        == "role_membership_invalid"
+    )
+
+    duplicate = diagnostics.get_site_preflight_report(
+        test_users={
+            "sales_user": "sales.user@example.invalid",
+            "sales_manager": "sales.user@example.invalid",
+        }
+    )
+    profiles = duplicate["effective_user_permissions"]["profiles"]
+    assert profiles["sales_user"]["status"] == "duplicate_test_user"
+    assert profiles["sales_manager"]["status"] == "role_membership_invalid"
+
+def test_preflight_without_test_users_marks_effective_matrix_unavailable(monkeypatch):
+    diagnostics = load_diagnostics(monkeypatch)
+    report = diagnostics.get_site_preflight_report()
+
+    assert report["effective_user_permissions"] == {
+        "available": False,
+        "reason": "test_users_not_supplied",
+        "profiles": {},
+        "scope": (
+            "DocType-level and field-level read checks only; record-level User Permissions, "
+            "ownership and document-share visibility must still be tested with representative records."
+        ),
+    }
+
+
+def test_preflight_rejects_unknown_test_user_profile(monkeypatch):
+    diagnostics = load_diagnostics(monkeypatch)
+
+    try:
+        diagnostics.get_site_preflight_report(test_users={"administrator": "someone@example.invalid"})
+    except ValueError as error:
+        assert str(error) == "Unsupported test user profile"
+    else:
+        raise AssertionError("unknown profile must be rejected")
 
 def test_preflight_source_revision_reports_exact_full_sha(monkeypatch):
     diagnostics = load_diagnostics(monkeypatch)
@@ -436,3 +565,30 @@ def test_preflight_source_revision_uses_real_clean_sha_and_rejects_untracked_fil
     assert commands[0][-2:] == ["rev-parse", "--show-toplevel"]
     assert commands[1][-3:] == ["status", "--porcelain", "--untracked-files=all"]
     assert "local_override.py" not in repr(dirty_result)
+
+
+
+def test_preflight_rejects_falsey_non_mapping_test_users(monkeypatch):
+    diagnostics = load_diagnostics(monkeypatch)
+
+    for invalid in ([], "", 0):
+        try:
+            diagnostics.get_site_preflight_report(test_users=invalid)
+        except ValueError as error:
+            assert str(error) == "test_users must map approved profile aliases to User names"
+        else:
+            raise AssertionError("falsey non-mapping test_users must be rejected")
+
+
+
+def test_preflight_rejects_website_user_even_with_sales_role(monkeypatch):
+    diagnostics = load_diagnostics(monkeypatch)
+    report = diagnostics.get_site_preflight_report(
+        test_users={"sales_user": "website.user@example.invalid"}
+    )
+    result = report["effective_user_permissions"]["profiles"]["sales_user"]
+
+    assert result["account_active"] is True
+    assert result["system_user"] is False
+    assert result["status"] == "user_type_not_system"
+    assert result["doctype_read"] == {}

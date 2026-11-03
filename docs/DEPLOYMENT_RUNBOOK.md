@@ -14,6 +14,7 @@ Record the following before scheduling a change:
 - System Settings timezone.
 - Opportunity statuses and terminal Lead statuses used by the live workflows.
 - Sales User, Sales Manager, System Manager and non-sales test accounts.
+- Optional effective DocType/field permission probe: use dedicated active synthetic System User accounts (not Website Users) and the alias-only `effective_user_permissions` section of the read-only preflight report. See the Administrator Guide for the exact `--kwargs` invocation.
 - Approved digest recipients and business owner for the stale-Lead definition.
 - Dedicated integration user, API credential owner, gateway/TLS/rate-limit configuration and secret-rotation contact.
 

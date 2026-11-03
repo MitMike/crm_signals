@@ -38,6 +38,12 @@ Record, do not infer:
 - [ ] Relevant custom fields, custom scripts, server scripts and permission overrides are inventoried.
 - [ ] Sales roles and representative users are identified for the permission matrix.
 - [ ] Review static DocPerm rows and field permlevels, then independently complete the effective user/persona matrix below; static role grants do not prove effective access.
+- [ ] Run the optional effective DocType/field permission probe with dedicated active synthetic System User accounts (never Administrator or Website User) and attach its alias-only `effective_user_permissions` result:
+  ```bash
+  bench --site <site-name> execute crm_signals.diagnostics.get_site_preflight_report --kwargs "{'test_users': {'sales_user': 'crm-sales-user-test', 'sales_manager': 'crm-sales-manager-test', 'system_manager': 'crm-system-manager-test', 'non_sales': 'crm-non-sales-test'}}"
+  ```
+- [ ] Confirm each supplied profile reports `status: checked`, active System User account and valid role membership; review every DocType and required-field result against the permission matrix. `partial`, missing, invalid-role or false results require investigation, not sign-off.
+- [ ] Separately test row-level User Permissions, ownership, document shares, list filters, API, reports, exports and dashboard behavior with approved controlled records. The optional preflight does not inspect business-document rows.
 - [ ] Email account, sender policy, mail queue and realtime deployment topology are recorded.
 - [ ] Current CRM Signals Settings values and enabled presets are captured.
 

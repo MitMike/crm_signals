@@ -398,3 +398,31 @@ Included in PR #19's merge commit [a495919](https://github.com/MitMike/crm_signa
 - All 11 applicable final-head checks passed; two runtime selectors were skipped as expected for documentation-only changes.
 - Updated project plan, progress, follow-ups, ADR-091 verification and changelog to record PR #117's 35/35 CI result and remaining target-site gates.
 - No runtime code, dependencies, schema or site configuration changed.
+
+
+### 2026-11-03 — Optional effective-user permission preflight (ADR-092 / PR #120)
+- Extend the read-only Bench preflight with an optional alias-to-synthetic-User mapping for Sales User, Sales Manager, System Manager and non-sales profiles.
+- Validate account activity and expected role boundary, then use Frappe's user-aware DocType and permitted-field APIs to report required read access. Reject Administrator, disabled, duplicate and invalid-role accounts; return profile aliases only and omit User identities.
+- Update the Administrator Guide, Deployment Runbook and Target-Site Acceptance Kit. Add regression tests for allowed/denied DocType and field results, invalid accounts/profiles, default-unavailable behavior and identity non-disclosure.
+- No schema, dependency, metric or site configuration changes. Row-level permissions and end-to-end site acceptance remain separate. PR #120 final-head CI is pending; no pilot verification is claimed.
+
+
+### 2026-11-03 — Exercise effective-user preflight on real Frappe stacks (ADR-093 / PR #120)
+- Add an `allow_tests`-guarded CI fixture that creates disposable synthetic Sales User, Sales Manager, System Manager and Employee accounts with random throwaway passwords.
+- Invoke the production effective-user preflight against real Frappe metadata and assert complete DocType/field result shapes, valid roles, no permission API errors and no account-identity disclosure.
+- Run the fixture in Frappe v15/v16 Bench and pinned Frappe v16.5.0 / ERPNext / Helpdesk CI. It is compatibility evidence only; target-site record-level permission acceptance remains separate.
+
+
+### 2026-11-03 — Refactor effective-user CI fixture after lint feedback
+- The first ADR-093 head failed Ruff C901 because the orchestration function exceeded the complexity limit (19 > 15).
+- Split profile and report validation into focused helpers without relaxing lint rules; final-head CI must rerun.
+
+
+### 2026-11-03 — Reject malformed falsey permission-probe input
+- Treat only `None` and an empty dictionary as an omitted optional user mapping.
+- Reject falsey non-mapping values and add regression coverage so malformed operator input cannot silently look like an intentionally unavailable probe.
+
+
+### 2026-11-03 — Require System User accounts in effective-user preflight
+- Reject enabled Website Users before DocType/field checks, even if they carry a sales role, because they cannot access Desk.
+- Add a Website User regression test and extend the real-Frappe CI fixture to assert all synthetic profiles are System Users.
