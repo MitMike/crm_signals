@@ -205,3 +205,12 @@ The PR's CI result does not establish that a customer site has the approved SHA,
 - **Scope:** documentation and static-test-only; no runtime behavior, dependencies or site settings change.
 - [ ] **Still open — target-site D3 acceptance:** confirm the installed Helpdesk version, required fields and permlevels, Sales read access, active SLA schedule/holidays/timezone, pause/resume and retention rules; run synthetic ticket/SLA tests in authorized staging and record results.
 - **Revisit criteria:** scope a custom adapter only when the site owner supplies exact DocType/field/lifecycle/relationship metadata and support/security/business owners approve the mapping and KPI semantics. Do not infer support from a DocType name.
+
+
+## PR #112 merged — README pin-before-install (2026-11-03)
+
+- [x] PR #112 merged as [`d2e1d87`](https://github.com/MitMike/crm_signals/commit/d2e1d873a8f257545596379e179aeb3e4de40dd4); all 18 final-head checks passed, including Python 3.10–3.14 coverage as configured, Semgrep, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0.
+- [x] README now verifies the approved full SHA before Bench dependency setup; the static contract test prevents reintroducing a moving-branch install example.
+- [ ] **Still open — staging rehearsal:** execute first-install and upgrade on an authorized Frappe v16.5 Bench; capture approved/deployed SHA, `bench version`, installed-app inventory, command output, migration, asset build, restart and rollback evidence.
+- **Revisit criteria:** begin only when an authorized Frappe v16.5 staging window, approved full SHA, named technical owner and site/Bench operator are available. CI does not establish this.
+- [ ] **PR #113:** after #112 merged, PR #113 was retargeted to `main`. Wait for the final-head checks on the retargeted PR to complete; fix any failure before considering merge. The earlier pre-retarget check run is supporting evidence only.
