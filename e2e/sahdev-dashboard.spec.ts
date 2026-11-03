@@ -90,6 +90,7 @@ async function openCrmSignalForm(page: Page, name: string) {
         { timeout: 30_000 }
     );
 
+    // The Desk shell can return 200 even when the document loader denies this record.
     await page.goto(`/app/crm-signal/${encodeURIComponent(name)}`);
     return responsePromise;
 }
