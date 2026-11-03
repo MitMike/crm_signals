@@ -547,3 +547,17 @@ PR #125 merged as [7029747](https://github.com/MitMike/crm_signals/commit/702974
 - **Decision:** import the `frappe.client` module itself (`import frappe.client`) inside the existing guarded block and call `frappe.client.get` / `frappe.client.get_list`. This preserves the no-Frappe unit-test fallback and removes the aliased member import ordering ambiguity.
 - **Correction:** replace the aliased imports and rerun the full final-head matrix. Do not suppress I001 or relax lint.
 - **Revisit criteria:** if I001 persists, retrieve Ruff's exact `--fix` diff from the job or run the pinned Ruff 0.8.1 formatter against the file before another commit; if the integration test fails after lint passes, inspect the exact v15/v16 API result and keep the denied/allowed assertions intact.
+
+
+### PR #126 review correction — restore session when the initial user switch raises
+
+- **Finding:** final-head CI passed, but review found the API helper called `frappe.set_user(test_user)` immediately before its `try`. If that call changed session state and then raised, the `finally` restoration would not run.
+- **Decision:** move the initial user switch inside the existing `try`, so every attempted switch is covered by restoration. Keep the original user captured before the switch and retain the denied/allowed API assertions.
+- **Status:** the prior head `30a3890a994a3402b4efdf15732843f86a62b789` passed all four workflows (Quality/Python, Semgrep, Bench v15/v16 + Playwright, pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0). This correction creates a new head and requires a fresh complete matrix before merge.
+- **Revisit criteria:** if the new matrix fails, inspect the exact v15/v16 API wrapper and session behavior. Do not move the switch back outside the `try`, bypass permissions, or weaken the linked-denied/unlinked-allowed assertions.
+
+
+### PR #126 prior-head CI result (2026-11-03)
+
+- Head `30a3890a994a3402b4efdf15732843f86a62b789` passed all four final-head workflows: Quality Checks (run 41625444794; lint/static and Python 3.10/3.11/3.12/3.14 jobs), Security/Semgrep (41625444741), Bench Integration and E2E (41625444749; v15/v16 integration and v16 Playwright), and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 (41625444908).
+- A subsequent review found the initial `frappe.set_user(test_user)` was just outside the helper's `try`; it is now moved inside so a partial switch failure still enters `finally`. Fresh final-head CI is required; do not merge based on the prior head alone.
