@@ -46,8 +46,9 @@ Record, do not infer:
 - [ ] For the Sales User linked-party boundary, create an allowed synthetic Lead and a restricted synthetic Lead; set the Sales User's Lead User Permission to the allowed Lead; create a linked CRM Signal for the restricted Lead owned by that Sales User; and create an unlinked CRM Signal owned by the same user. Verify both signals exist with the authorized setup account, then run the `test_records` probe for those two exact CRM Signal names. Expect `linked_restricted: false` and `unlinked_owned: true` with checked status. The linked signal must remain hidden despite CRM Signal ownership; do not add a share or replace permission-filtered reads with `get_all`. This mirrors the real-Frappe regression in PR #124.
 - [ ] Confirm each supplied profile reports `status: checked`, active System User account and valid role membership; review every DocType and required-field result plus any supplied record-visibility result. `partial`, missing, invalid-role, false or unavailable results require investigation, not sign-off.
 - [ ] As an authorized System Manager, open the dedicated synthetic Sales User's User form and generate or rotate API credentials through its API Access controls (typically "Generate Keys"; confirm the label on the installed Frappe patch). Do not use Administrator credentials or print the secret with a Bench command.
+- [ ] Create a separate active synthetic non-sales System User with no CRM Signal, Lead, Opportunity, Sales Invoice, Payment Entry, HD Ticket or SLA read grants. Generate its API key/secret through that user's API Access controls; do not reuse the Sales User token.
 - [ ] Store the API key/secret only in the site's approved password manager or secret store. Enter them at the script's silent prompts; do not place credentials in command arguments, environment files, shell history, tickets or acceptance evidence.
-- [ ] After testing, rotate the API secret or disable/delete the dedicated synthetic user, then verify the old credential pair is rejected. Record only the test alias and rotation/revocation outcome.
+- [ ] After testing, rotate both API secrets or disable/delete the dedicated synthetic users, then verify the old credential pairs are rejected. Record only the test aliases and rotation/revocation outcomes.
 - [ ] With the dedicated Sales User's own API credentials (never Administrator), run the authenticated HTTP smoke below. It verifies the authenticated identity first, then expects HTTP 403 for the linked restricted document, HTTP 200 for the unlinked owned document, and a list containing exactly the unlinked record. Do not follow redirects; a redirect is a failed check because the token must not be forwarded to another origin.
 - [ ] Keep response bodies in a mode-0600 temporary directory and remove them after checking. Record only the authenticated profile alias, HTTP status codes, pass/fail outcomes, site/Frappe version, deployed full SHA and timestamp. Never attach raw response bodies, API keys/secrets, record names or user identifiers.
 - [ ] The script below requires Bash, curl and Python 3.10+. It uses GET query parameters exactly as Frappe's method wrappers expect. PR #130 is merged and CI-verified: Playwright exercises the same methods over a browser session cookie on Frappe v16 and pinned v16.5. PR #131 is merged and CI-verified: the direct Desk form-loader permission regression passed in supported Frappe v16 and pinned Frappe 16.5.0 Playwright. PR #133 is merged and CI-verified: cookie-independent token authentication is exercised on supported v16 and pinned v16.5. PR #135 is merged and CI-verified: the separate `/api/resource/CRM%20Signal` single-document and list API-token checks passed on supported v16 and pinned v16.5.0. PR #137 is merged and its final-head print-view regression passed on supported Frappe v16 and pinned v16.5.0. The linked-restricted/unlinked-owned browser print check below still requires authorized target-site execution. These are reference-stack tests and do not verify the target site's TLS, reverse proxy, gateway or credential policy or replace live API-token/browser-form acceptance below. Report/export/print/dashboard behavior remains separate.
@@ -59,10 +60,12 @@ set +x
 
 : "${SITE_URL:?Set the canonical HTTPS staging site URL}"
 : "${EXPECTED_SALES_USER:?Set the dedicated non-Administrator Sales User name}"
+: "${EXPECTED_NON_SALES_USER:?Set the dedicated non-Administrator non-sales test user name}"
 : "${LINKED_RESTRICTED_SIGNAL:?Set the CRM Signal linked to a Lead excluded by the Sales User User Permission}"
 : "${UNLINKED_OWNED_SIGNAL:?Set the unlinked CRM Signal owned by the same Sales User}"
 [[ "$SITE_URL" == https://* ]] || { echo "SITE_URL must use HTTPS" >&2; exit 2; }
 [[ "$EXPECTED_SALES_USER" != "Administrator" ]] || { echo "Administrator is not an acceptable test identity" >&2; exit 2; }
+[[ "$EXPECTED_NON_SALES_USER" != "Administrator" && "$EXPECTED_NON_SALES_USER" != "$EXPECTED_SALES_USER" ]] || { echo "Use a distinct non-sales test identity" >&2; exit 2; }
 [[ "$LINKED_RESTRICTED_SIGNAL" != "$UNLINKED_OWNED_SIGNAL" ]] || { echo "Use two distinct synthetic records" >&2; exit 2; }
 
 read -r -s -p "Frappe API key: " CRM_SIGNALS_API_KEY; printf '\n'
@@ -71,7 +74,7 @@ read -r -s -p "Frappe API secret: " CRM_SIGNALS_API_SECRET; printf '\n'
 umask 077
 tmp_dir="$(mktemp -d)"
 curl_config="$tmp_dir/curl.conf"
-trap 'rm -rf "$tmp_dir"; unset CRM_SIGNALS_API_KEY CRM_SIGNALS_API_SECRET' EXIT
+trap 'rm -rf "$tmp_dir"; unset CRM_SIGNALS_API_KEY CRM_SIGNALS_API_SECRET CRM_SIGNALS_NON_SALES_API_KEY CRM_SIGNALS_NON_SALES_API_SECRET' EXIT
 printf 'header = "Authorization: token %s:%s"\n' "$CRM_SIGNALS_API_KEY" "$CRM_SIGNALS_API_SECRET" > "$curl_config"
 
 request() {
@@ -238,7 +241,64 @@ if sys.argv[3] not in names or "CRM Signals E2E unlinked owned signal" not in re
 print("PASS: CRM Signals dashboard API preserves linked-party row visibility (HTTP 200)")
 PY
 
+# Switch to a separate token for the dedicated non-sales account.
+read -r -s -p "Frappe non-sales API key: " CRM_SIGNALS_NON_SALES_API_KEY; printf '\n'
+read -r -s -p "Frappe non-sales API secret: " CRM_SIGNALS_NON_SALES_API_SECRET; printf '\n'
+non_sales_curl_config="$tmp_dir/non-sales-curl.conf"
+printf 'header = "Authorization: token %s:%s"\n' "$CRM_SIGNALS_NON_SALES_API_KEY" "$CRM_SIGNALS_NON_SALES_API_SECRET" > "$non_sales_curl_config"
+curl_config="$non_sales_curl_config"
+
+status="$(request "$base_url/api/method/frappe.auth.get_logged_user" "$tmp_dir/non-sales-user.json")"
+[[ "$status" == "200" ]] || { echo "FAIL: non-sales identity endpoint returned HTTP $status" >&2; exit 1; }
+python3 - "$tmp_dir/non-sales-user.json" "$EXPECTED_NON_SALES_USER" <<'PY'
+import json
+import sys
+
+with open(sys.argv[1], encoding="utf-8") as response_file:
+    payload = json.load(response_file)
+if payload.get("message") != sys.argv[2]:
+    raise SystemExit("FAIL: non-sales API credentials do not match the expected account")
+print("PASS: authenticated identity matches the dedicated non-sales account")
+PY
+
+status="$(request "$base_url/api/method/crm_signals.api.get_dashboard_data" "$tmp_dir/non-sales-signals-dashboard.json")"
+[[ "$status" == "403" ]] || { echo "FAIL: non-sales CRM Signals dashboard expected HTTP 403, got $status" >&2; exit 1; }
+python3 - "$tmp_dir/non-sales-signals-dashboard.json" "$LINKED_RESTRICTED_SIGNAL" "$UNLINKED_OWNED_SIGNAL" <<'PY'
+from pathlib import Path
+import sys
+
+body = Path(sys.argv[1]).read_text(encoding="utf-8")
+for secret_value in (
+    sys.argv[2],
+    sys.argv[3],
+    "CRM Signals E2E linked restricted signal",
+    "CRM Signals E2E unlinked owned signal",
+):
+    if secret_value in body:
+        raise SystemExit("FAIL: non-sales CRM Signals dashboard disclosed a synthetic signal")
+print("PASS: non-sales CRM Signals dashboard denied without signal disclosure (HTTP 403)")
+PY
+
+status="$(request "$base_url/api/method/crm_signals.api.get_sales_compass_data" "$tmp_dir/non-sales-compass.json")"
+[[ "$status" == "200" ]] || { echo "FAIL: non-sales Executive Compass API expected HTTP 200, got $status" >&2; exit 1; }
+python3 - "$tmp_dir/non-sales-compass.json" <<'PY'
+import json
+import sys
+
+with open(sys.argv[1], encoding="utf-8") as response_file:
+    payload = json.load(response_file)
+message = payload.get("message", {})
+for source in ("leads", "opportunities", "billing", "service"):
+    section = message.get(source)
+    if not isinstance(section, dict) or section.get("available") is not False:
+        raise SystemExit(
+            f"FAIL: non-sales source without read permission was marked available: {source}"
+        )
+print("PASS: non-sales Executive Compass sources without read grants are unavailable (HTTP 200)")
+PY
+
 echo "PASS: authenticated Sales User API permission boundary verified"
+echo "PASS: authenticated non-sales dashboard API permission boundary verified"
 ```
 
 If any status or payload assertion fails, stop acceptance. Preserve the redacted status and sanitized error class only; inspect the target Frappe version, API authentication, User Permission and CRM Signal permission-query path. Do not retry with Administrator or weaken the linked-denied/unlinked-allowed expectation.
@@ -349,7 +409,7 @@ Acceptance criteria:
 - [ ] Record only persona alias, Report View/export status, permitted row count, exact Frappe build, deployed full SHA and timestamp. Do not attach the CSV, record names, messages, credentials or raw response bodies.
 - [x] PR #139 adds cookie-independent API-token CI coverage for `frappe.desk.reportview.get_list` and `frappe.desk.reportview.export_query`; merged as `ac2d83d823bdcad46fe84ccd5d2b8954c0b0d959` from final tested head `2e30fd02a1074e26adbf1d0de1f4fb715e2d837a` after all four final-head workflows passed on supported Frappe v15/v16 and pinned Frappe 16.5.0. CI does not replace execution on the authorized target site.
 - [ ] As the dedicated Sales User, call /api/method/crm_signals.api.get_dashboard_data with the same API token. Confirm the recent list contains the unlinked-owned signal and excludes the linked-restricted signal and message. Record only HTTP status and permitted row count; do not retain response bodies.
-- [ ] As a non-sales synthetic account with no CRM Signal read grant, call /api/method/crm_signals.api.get_dashboard_data directly and require HTTP 403 with no synthetic signal content. Call /api/method/crm_signals.api.get_sales_compass_data; confirm each source without a corresponding DocType/field read grant is unavailable, never a fabricated zero or leaked row. Record only source availability booleans and HTTP status.
+- [ ] Run the non-sales portion of the script above with the separate non-sales API token. Require HTTP 403 with no synthetic signal content from crm_signals.api.get_dashboard_data; require HTTP 200 and available=false for Lead, Opportunity, Billing and Helpdesk sections from crm_signals.api.get_sales_compass_data when the account has no corresponding source read grants. Record only source availability booleans and HTTP status.
 - [x] PR #141 adds reference CI coverage for these direct dashboard API boundaries. All four final-head workflows passed on tested head `cbd69b80607473b65c4619b2495568be70fb1750`; merged as `70aa4d8953cc8a69d1317aad1c72654f05a1b29e`. CI does not replace execution on authorized staging.
 - [ ] Export and print do not expose rows unavailable in the corresponding report/list.
 - [ ] Helpdesk HD Ticket field-level read access is checked independently for `status_category`, `resolution_date`, `resolution_time`, `sla` and `agreement_status` using the installed version's actual permlevels (all are permlevel 0 in the v1.28.0 reference).
