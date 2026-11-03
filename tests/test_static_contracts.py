@@ -512,8 +512,8 @@ def test_e2e_api_token_credentials_are_private_and_masked():
             in workflow
         )
         assert (
-            "E2E_SALES_API_SECRET: ${{ steps.sales_api_credentials.outputs.api_secret }}"
-            in workflow
+            "E2E_SALES_API_SECRET: ${{ steps.sales_api_credentials.outputs."
+            "api_secret }}" in workflow
         )
         assert workflow.index("prepare_e2e_site") < workflow.index(
             "prepare_e2e_sales_api_credentials"
