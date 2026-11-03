@@ -442,3 +442,10 @@ Included in PR #19's merge commit [a495919](https://github.com/MitMike/crm_signa
 - Enforce known-DocType, label, 50-record-per-profile and 100-record-total bounds; restore the prior session user and fail closed on query/session errors.
 - Add unit tests and a disposable real-Frappe CI smoke using a synthetic CRM Signal that is rolled back. Update the Administrator Guide, Deployment Runbook and Target-Site Acceptance Kit.
 - This checks list visibility only. Direct form/API/report/export/print/dashboard acceptance and all other target-site release gates remain open.
+
+
+
+### 2026-11-03 — Restore preflight session after partial user-switch failure (PR #122 review)
+- Keep original-session restoration in a common `finally` even when `frappe.set_user(test_user)` mutates session state and then raises.
+- Add regression coverage for the mutate-then-raise path, fail-closed output and record-name/exception-message non-disclosure.
+- Prior PR #122 head passed all four CI workflows; this correction requires a fresh final-head matrix. No schema, dependency, metric or site-configuration change.
