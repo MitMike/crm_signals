@@ -744,3 +744,12 @@ The direct Desk form test observed GET `frappe.desk.form.load.getdoc`: linked-re
 - Finding: the first response-content assertion parsed JSON only and replaced non-JSON bodies with an empty object. That could hide a restricted message returned in an HTML/plain-text error response.
 - Decision (ADR-104): preserve raw response text when JSON parsing fails, so restricted-message non-disclosure covers JSON and non-JSON bodies. The allowed response must still parse as JSON and contain the expected record name/message. Add a static guard for the raw-body fallback.
 - This commit supersedes the prior in-progress matrix. Require a fresh complete final-head Quality/Python, Security, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 matrix before merge. Not pilot-verified.
+
+
+### PR #133 final code-head verification — 2026-11-03
+
+- Final code head `b9f72471d7cd7102023454cfef3ca491e950d5af` passed all four required reference-stack workflows.
+- Quality/Python passed across Python 3.10, 3.11, 3.12 and 3.14, including lint/static checks (run `41684113964`). Security/Semgrep passed (run `41684114053`).
+- Bench v15/v16 integration passed (run `41684114043`); v15 integration passed and v16 Playwright completed with 19 passing tests. The pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 lane passed (run `41684113965`), including 4 Playwright tests.
+- The raw-body fallback ensures non-JSON error content is included in the restricted-message non-disclosure assertion. No production runtime/schema changes were made. PR #133 remains open pending documentation-only reconciliation checks; no failing checks were merged.
+- **Classification:** code-complete and reference-stack CI-verified; not pilot-verified. Authorized target-site API-token, form/report/export/print/dashboard, D1/D2 finance, D3 SLA, operational recovery, backup/restore/rollback and visual UAT remain staging gates.

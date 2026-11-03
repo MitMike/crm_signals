@@ -651,3 +651,5 @@ PR #125 merged as [7029747](https://github.com/MitMike/crm_signals/commit/702974
 
 - Hardened the token test parser to retain non-JSON response text, preventing an HTML/plain-text error body from bypassing the restricted-message non-disclosure assertion. Added a static guard for the fallback.
 - Expanded the target-site acceptance kit with safe API-key/secret generation, silent entry, and post-test rotation/revocation instructions for the dedicated synthetic Sales User.
+
+- Final code head `b9f72471d7cd7102023454cfef3ca491e950d5af` passed Quality/Python, Security/Semgrep, Bench v15/v16 + Playwright (19 tests on v16) and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 (4 Playwright tests). The operator kit now documents API-key generation, silent entry and post-test rotation/revocation; the smoke script disables shell xtrace before handling secrets.

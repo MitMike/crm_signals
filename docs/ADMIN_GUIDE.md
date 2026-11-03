@@ -192,7 +192,7 @@ Use the authenticated POST method:
 
 `/api/method/crm_signals.api.ingest_signal`
 
-Use a dedicated Frappe integration user with only the required CRM Signal create permission. Send API key/secret over HTTPS. Configure TLS, gateway rate limiting, secret rotation and secure secret storage outside this app.
+Use a dedicated Frappe integration user with only the required CRM Signal create permission. Send API key/secret over HTTPS. Configure TLS, gateway rate limiting, secret rotation and secure secret storage outside this app. For the synthetic Sales User permission smoke, generate credentials through the User form's API Access controls and follow the [Target-Site Acceptance Kit](TARGET_SITE_ACCEPTANCE.md) for silent entry and post-test rotation/revocation; never use Administrator credentials.
 
 Example:
 
