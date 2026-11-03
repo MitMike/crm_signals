@@ -100,8 +100,11 @@ def _prepare_e2e_sales_user_permission_fixture(sales_user):
     unlinked_name = _ensure_e2e_signal(unlinked_message, None, sales_user)
     frappe.clear_cache(user=sales_user)
 
-    if "Sales User" not in frappe.get_roles(sales_user):
-        frappe.throw("E2E Sales User role is missing")
+    sales_roles = set(frappe.get_roles(sales_user))
+    if "Sales User" not in sales_roles or sales_roles.intersection(
+        {"Sales Manager", "System Manager"}
+    ):
+        frappe.throw("E2E Sales User role boundary is invalid")
 
     if frappe.has_permission(
         "Lead", ptype="read", doc=restricted_lead.name, user=sales_user
@@ -166,6 +169,11 @@ def prepare_e2e_site():
     _ensure_system_user(
         "e2e-employee@example.com", "E2E Employee", "Employee", employee_password
     )
+    employee_roles = set(frappe.get_roles("e2e-employee@example.com"))
+    if "Employee" not in employee_roles or employee_roles.intersection(
+        {"Sales User", "Sales Manager", "System Manager"}
+    ):
+        frappe.throw("E2E Employee role boundary is invalid")
     permission_fixture_ready = _prepare_e2e_sales_user_permission_fixture(
         "e2e-sales-user@example.com"
     )
