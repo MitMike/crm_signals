@@ -1174,7 +1174,7 @@ PR #130 merged as `2b697b4d37a12b2e339bcf680ff808f23b97850f` from final tested h
 - **Rationale:** exercise the actual browser route and Frappe form-loader permission boundary rather than inferring form behavior from the generic document API wrapper or the Desk shell response.
 - **Consequences:** disposable CI fixture and operator-guide coverage only. No production runtime, schema, dependency or site configuration changes. API-token authentication, report/export/print/dashboard and target-site acceptance remain separate.
 - **Revisit criteria:** if the route or loader method changes on supported v15/v16, inspect the exact Frappe router and loader implementation and retain the linked-denied/unlinked-allowed assertions. Never treat the Desk shell's HTTP response as proof that the document loaded, and never use Administrator for the Sales User assertions.
-- **Verification status:** code-complete on branch `test/sales-user-direct-form-permission-20261103`; final-head CI pending. Not pilot-verified.
+- **Verification status:** PR #131 merged as `08f269cdfaedc58fd4ce396c823d589e7dd3481b` from final head `a72ebffbae116adf06830473bb15d764a169651b`; all four required workflows passed. The direct form-loader test passed in the supported v16 18-test Playwright suite and pinned v16.5 three-test Playwright selection. Reference-stack CI-verified, not pilot-verified.
 
 ## ADR-103 — Enforce lockfile-based npm installation in every Bench E2E lane
 
@@ -1194,3 +1194,18 @@ The first Quality/Python run on the PR #131 head failed one Python 3.11 static a
 ### ADR-102 second CI triage — match the actual template-literal route and Prettier output
 
 Quality run `41675975692` found a second static assertion mismatch: the route is authored as a template literal (`/app/crm-signal/`), not a double-quoted string. Its lint job `126056667745` reported exactly two Prettier changes: remove one extra blank line before `openCrmSignalForm` and keep the short test callback signature on one line. Apply those source-aligned corrections only. No browser or Frappe permission assertion ran in the failed jobs; fresh final-head CI is required.
+
+
+### ADR-102/103 verification — PR #131 merged (2026-11-03)
+
+PR #131 merged as [08f269c](https://github.com/MitMike/crm_signals/commit/08f269cdfaedc58fd4ce396c823d589e7dd3481b) from final tested head [a72ebff](https://github.com/MitMike/crm_signals/commit/a72ebffbae116adf06830473bb15d764a169651b).
+
+All four final-head workflows passed:
+- Quality Checks run [41676858036](https://github.com/MitMike/crm_signals/actions/runs/41676858036): lint/static checks and Python 3.10, 3.11, 3.12 and 3.14.
+- Security/Semgrep run [41676862616](https://github.com/MitMike/crm_signals/actions/runs/41676862616).
+- Bench Integration/E2E run [41676858619](https://github.com/MitMike/crm_signals/actions/runs/41676858619): Frappe v15 integration passed; Frappe v16 integration and the complete 18-test Playwright suite passed.
+- Pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 run [41676858020](https://github.com/MitMike/crm_signals/actions/runs/41676858020): the focused three-test Playwright selection passed after site installation, preflight, D1/D2, Helpdesk, schema upgrade, Python and Frappe integration checks.
+
+The direct Desk form test observed GET `frappe.desk.form.load.getdoc`: linked-restricted CRM Signal returned 403 without its message; unlinked-owned signal returned 200 with the expected message. The same-head browser-session HTTP API tests also passed. The supported v15 lane passed Bench integration; the v16 lane ran the full Playwright suite. No failing head was merged.
+
+**Classification:** code-complete and reference-stack CI-verified on Frappe v16 and pinned v16.5.0; not pilot-verified. Authorized target-site API-token authentication, live direct-form and other permission paths, D1/D2 finance reconciliation, D3 SLA, deployment/rollback, operational recovery and visual UAT remain open.
