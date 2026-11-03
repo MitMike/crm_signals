@@ -174,3 +174,12 @@ The PR's CI result does not establish that a customer site has the approved SHA,
 - **Decision:** ADR-089 closes the real clean/dirty Git behavior gap; retain the mocked timeout, missing-Git, command-failure and invalid-SHA tests for deterministic failure injection.
 - **Status:** code-complete and reference-stack CI-verified; test-only; not pilot-verified.
 - [ ] **Release blocker / revisit criteria:** proceed only when an authorized Frappe v16.5 staging window, approved full SHA, named technical/business owners and test accounts are available. Then collect exact installed app inventory, dashboard desktop/mobile screenshots after approved asset rebuild/cache refresh, effective-role permission results, D1/D2 finance reconciliation by currency, Helpdesk SLA evidence, scheduler/mail/realtime/webhook recovery and backup/restore/rollback rehearsal. No target-site evidence is available from repository CI.
+
+
+## PR #110 release-document reconciliation — merged (2026-11-03)
+
+- [x] **PR #110:** merged as [`fe7dca4`](https://github.com/MitMike/crm_signals/commit/fe7dca402293faa1e7e60f147d53adaef63009d6) from final head `f4904b7bd88725017f5f2254de9ceb3c123163cc`.
+- [x] All 13 final-head check runs completed: 11 succeeded and two runtime selectors were skipped as expected for documentation-only changes.
+- [x] Reconciled the plan, progress, follow-ups, release sprint, production-audit snapshot, changelog and README's D3 prerequisite. D3 implementation is complete; Helpdesk target-site version/schema/field permissions and SLA calendar validation remain pilot gates.
+- **Status:** documentation complete; no runtime/site configuration change; reference CI-verified; not pilot-verified.
+- [ ] **Next action / revisit criteria:** no further repository feature work is justified by the current evidence. Resume target-site acceptance only when an authorized Frappe v16.5 staging window, approved full SHA, named technical/business owners and test accounts are available. Then collect exact installed app inventory, dashboard desktop/mobile screenshots after approved asset rebuild/cache refresh, effective-role permission results, D1/D2 finance reconciliation by currency, Helpdesk SLA evidence, scheduler/mail/realtime/webhook recovery and backup/restore/rollback rehearsal. If new code or documentation changes, add their specific evidence and retest criteria in a focused PR.

@@ -342,3 +342,10 @@ Included in PR #19's merge commit [a495919](https://github.com/MitMike/crm_signa
 - All 18 final-head checks passed across Quality, Python 3.10–3.14, Security/Semgrep, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0.
 - The test proves the read-only preflight returns the real SHA for a clean checkout and rejects an untracked Python override without querying `HEAD`.
 - Test-only; no runtime or site configuration change. Not pilot verification.
+
+
+### 2026-11-03 — Release-document reconciliation merged (PR #110)
+- PR #110 merged as [`fe7dca4`](https://github.com/MitMike/crm_signals/commit/fe7dca402293faa1e7e60f147d53adaef63009d6) from final head `f4904b7bd88725017f5f2254de9ceb3c123163cc`.
+- All 13 final-head check runs completed: 11 succeeded and two runtime selectors were skipped as expected for documentation-only changes.
+- Updated the implementation plan, progress, follow-ups, release-readiness sprint and historical production-audit notice; corrected README D3 acceptance wording.
+- No runtime code or site configuration changed. Target-site pilot acceptance remains outstanding.
