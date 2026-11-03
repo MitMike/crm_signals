@@ -163,7 +163,7 @@ PY
 status="$(request "$base_url/api/resource/CRM%20Signal" "$tmp_dir/resource-list.json" \
   --get --header "Accept: application/json" \
   --data-urlencode 'fields=["name"]' \
-  --data-urlencode "filters=$(python3 -c 'import json,sys; print(json.dumps([[\"CRM Signal\",\"name\",\"in\",sys.argv[1:]]]))' "$LINKED_RESTRICTED_SIGNAL" "$UNLINKED_OWNED_SIGNAL")" \
+  --data-urlencode "filters=$(python3 -c 'import json,sys; print(json.dumps([["CRM Signal","name","in",sys.argv[1:]]]))' "$LINKED_RESTRICTED_SIGNAL" "$UNLINKED_OWNED_SIGNAL")" \
   --data-urlencode "limit_page_length=10")"
 [[ "$status" == "200" ]] || { echo "FAIL: REST resource list expected HTTP 200, got $status" >&2; exit 1; }
 python3 - "$tmp_dir/resource-list.json" "$UNLINKED_OWNED_SIGNAL" <<'PY'
