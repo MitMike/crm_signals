@@ -3,7 +3,7 @@
 **Last reviewed:** 2026-11-03  
 **Repository:** [MitMike/crm_signals](https://github.com/MitMike/crm_signals)  
 **Supported framework coverage:** Frappe / ERPNext v15 and v16. **Primary deployment target:** Frappe v16.5; record the exact patch/build and installed ERPNext/Helpdesk versions.  
-**Reviewed main baseline:** [3774170](https://github.com/MitMike/crm_signals/commit/3774170a2d49227991c561cde3fdab779b48b079) (PR #104 merged; main Quality, Security and Bench validation completed successfully); **latest application feature baseline:** [c5720bf](https://github.com/MitMike/crm_signals/commit/c5720bfb3fbe8b554ec6febd549a8d5e58acc1d7).
+**Reviewed main baseline:** [db95812](https://github.com/MitMike/crm_signals/commit/db958124bca6a6704a75f606629c22444716f5b9) (PR #104 merged; main Quality, Security and Bench validation completed successfully); **latest application feature baseline:** [c5720bf](https://github.com/MitMike/crm_signals/commit/c5720bfb3fbe8b554ec6febd549a8d5e58acc1d7).
 
 This is the execution plan and source of truth for delivery order, scope, dependencies, acceptance gates and exit criteria. The operational state is maintained in [docs/PROGRESS.md](docs/PROGRESS.md); durable choices are in [docs/DECISIONS.md](docs/DECISIONS.md); feature contracts are in [specs/](specs/).
 
@@ -357,8 +357,10 @@ The administrator guide and target-site acceptance kit require that SHA to match
 **Verification state:** merged as PR #103 / `5dbda0291358350d5a720127a7d526145d3e3c60` from final head `fc7f0ae381267d04d7db9f14ec888d965c7fe828`. All 18 final-head check runs passed, including Python 3.10–3.14, Quality, Security/Semgrep, Bench v15/v16 with v16 Playwright E2E, and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0. The feature is code-complete and CI-verified, not pilot-verified; no target-site execution has been performed.
 
 
-## 15. Preflight repository-root identity hardening — 2026-11-03
+## 15. Preflight repository-root identity hardening — merged and CI-verified (2026-11-03)
 
 ADR-087 records a source-identity edge case: Git searches parent directories, so a clean app directory nested under another repository could otherwise report the enclosing repository's commit. The preflight now verifies `git rev-parse --show-toplevel` resolves to the CRM Signals repository root derived from the imported package path before checking working-tree cleanliness and `HEAD`. A mismatch is an explicit unavailable state (`repository_root_mismatch`); the diagnostic never returns the enclosing repository SHA.
 
-The change is isolated in [PR #105](https://github.com/MitMike/crm_signals/pull/105), branch `fix/preflight-verify-app-git-root-20261103`. Regression tests cover matching and parent repository roots, while retaining clean/dirty checkout, timeout, missing Git, failed command and invalid SHA coverage. The administrator guide and target-site acceptance kit describe the root check. **Status: code-complete; final-head CI pending; not pilot-verified.** Merge only after all required Python, Quality, Security, Frappe v15/v16 Bench + Playwright and pinned Frappe v16.5.0 checks pass. If the package layout changes, re-derive the expected repository root from observed Bench layout and add a corresponding test before changing the check.
+PR #105 merged as [`db95812`](https://github.com/MitMike/crm_signals/commit/db958124bca6a6704a75f606629c22444716f5b9) from final head `fd2161dc933fbaf74fd5a50a5261e5f1501b283e`. Its 19 final-head check runs all completed successfully: Quality/lint, Python 3.10/3.11/3.12/3.14, Security/Semgrep, Bench v15/v16 (including the v16 Playwright lane), and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 validation. The corrected dirty-checkout assertion verifies root validation precedes status and that `HEAD` is not read for a dirty tree.
+
+The administrator guide, target-site acceptance kit and deployment runbook require the root check. **Status: code-complete and reference-stack CI-verified; not pilot-verified.** Revisit the root derivation only if the package layout changes, the app is installed without a Git checkout, or Bench's app layout changes; add a matching-layout regression test before changing the rule.
