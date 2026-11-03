@@ -992,3 +992,15 @@ A focused code review found that the first implementation returned immediately w
 - Bench Integration and E2E run `41603744404`: Frappe v15/v16 integration passed; v16 Playwright passed.
 - Pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 run `41603744511`: synthetic record visibility, D1/D2, D3, upgrade, assets and Bench tests passed.
 - PR #122 merged as `de16ead6ed2f155e83189196755048a264c2ec74`. No target-site or pilot acceptance is implied.
+
+
+## ADR-095 — Exercise Sales User record filtering through the preflight on real Frappe
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-03
+- **Context:** PR #122's disposable real-Frappe fixture verifies that System Manager can list one synthetic CRM Signal through the new preflight. It does not invoke the preflight list probe for a Sales User whose linked-party visibility is restricted by a Frappe User Permission. The existing Bench permission test already creates the relevant Lead/User Permission/CRM Signal fixture and directly proves the underlying query boundary.
+- **Decision:** Extend that existing Frappe integration test to call `get_site_preflight_report` with the Sales User and two synthetic CRM Signal records: one linked to a Lead excluded by the user's Lead User Permission, and one unlinked signal owned by that user. Assert the preflight reports the linked record as not visible and the unlinked record as visible, returns a definitive checked status, restores the original session user and discloses neither record names nor user identity.
+- **Rationale:** This exercises the actual preflight code path against Frappe's `frappe.get_list` permission filtering and CRM Signals' `permission_query_conditions` hook on the supported runtime matrix. It closes the gap between the existing direct list-query test and the new operator probe without introducing a new fixture or weakening the expected access boundary.
+- **Consequences:** Integration-test-only. No runtime, schema, dependency, metric or site configuration changes. Final-head Bench v15/v16 and pinned v16.5.0 workflows must execute the test before merge. The test remains reference-stack evidence, not pilot acceptance.
+- **Revisit criteria:** If Frappe v15/v16 changes User Permission or `frappe.get_list` behavior, inspect the actual query hook and permission API. Do not substitute `frappe.get_all`, remove the denied linked-record assertion or infer target-site role behavior from CI.
+- **Verification status:** PR #124 is code-complete; final-head CI pending. Not pilot-verified.
