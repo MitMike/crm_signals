@@ -335,3 +335,10 @@ Included in PR #19's merge commit [a495919](https://github.com/MitMike/crm_signa
 - Add an untracked Python override and verify the preflight fails closed with `working_tree_dirty` without querying `HEAD`.
 - Complements ADR-087 root matching, ADR-088 enclosing-parent rejection and mocked error-path tests; no runtime behavior or target-site configuration changes.
 - PR #109 requires final-head Python, Quality, Security, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 validation before merge.
+
+
+### 2026-11-03 — Real-Git clean/dirty preflight regression merged (PR #109)
+- PR #109 merged as [`94d14f5`](https://github.com/MitMike/crm_signals/commit/94d14f56a526670d2c0ecb150ab9f08b4f034389) from final head `d8b65eedc45c05947409f9781a9caaee848aa4ba`.
+- All 18 final-head checks passed across Quality, Python 3.10–3.14, Security/Semgrep, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0.
+- The test proves the read-only preflight returns the real SHA for a clean checkout and rejects an untracked Python override without querying `HEAD`.
+- Test-only; no runtime or site configuration change. Not pilot verification.
