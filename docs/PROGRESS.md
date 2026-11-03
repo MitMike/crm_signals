@@ -629,3 +629,12 @@ The guide now validates the API token identity, rejects Administrator, expects 4
 - Downloaded the Playwright artifact and inspected the retry trace. The login form submitted POST /login and received HTTP 200, but the shared helper waited only for POST /api/method/login; the browser successfully reached the Administrator Desk, while the response waiter timed out. This is a version-specific test-harness mismatch, not a permission assertion failure.
 - Decision ADR-099: accept both exact POST pathnames /login and /api/method/login; keep response success, non-Guest session-cookie and Desk-navigation assertions. Add a static contract test for both routes and POST method.
 - Status: correction committed on PR #130; fresh final-head Quality, Security, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 workflows required. PR remains open/unmerged. No pilot verification.
+
+
+
+## PR #130 — pinned Frappe 16.5 Sales User identity assertion diagnosis (2026-11-03)
+
+- Corrected head b6128589c40d3b2c7bedf639cc62d1ab3bd16f77 passed Quality Checks run 41647478518, Security/Semgrep run 41647478481, and the supported Bench v15/v16 + Playwright run 41647478402.
+- Pinned Frappe 16.5.0 run 41647478405 completed site/app installation, effective-user preflight, D1/D2, Helpdesk schema/aggregate, schema upgrade, E2E fixture setup, asset build, Python tests, Frappe integration tests, browser installation and server startup. Its focused Playwright test failed at expect(roles).toContain("Sales User") because currentUserRoles received an empty array from frappe.core.doctype.user.user.get_current_user_roles. The test did not reach the 403/200/list assertions.
+- Decision ADR-100: assert the Sales User role server-side with frappe.get_roles(sales_user) during fixture preparation, then verify the browser's authenticated identity through frappe.auth.get_logged_user equals the configured synthetic Sales User email. Remove the version-sensitive browser role lookup; retain every permission assertion.
+- Correction is code-complete on the focused PR branch. All four final-head workflows must rerun; prior-head successes do not verify this correction. PR #130 remains open/unmerged. Not pilot-verified.
