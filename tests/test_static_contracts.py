@@ -286,9 +286,28 @@ def test_operator_installation_pins_source_before_bench_setup():
     guide = (ROOT / "docs/ADMIN_GUIDE.md").read_text()
     runbook = (ROOT / "docs/DEPLOYMENT_RUNBOOK.md").read_text()
     acceptance = (ROOT / "docs/TARGET_SITE_ACCEPTANCE.md").read_text()
+    readme = (ROOT / "README.md").read_text()
 
-    for document in [guide, runbook, acceptance]:
+    for document in [guide, runbook, acceptance, readme]:
         assert "\nbench get-app crm_signals\n" not in document
+
+    readme_first = readme.split("## Installation (pinned release)", 1)[1].split(
+        "## Webhook authentication", 1
+    )[0]
+    readme_commands = readme_first.split("```bash", 1)[1].split("```", 1)[0]
+    assert 'test "${#APP_SHA}" -eq 40' in readme_commands
+    assert "bench get-app" not in readme_commands
+    assert "git clone --origin upstream" in readme_commands
+    assert "fetch upstream --tags" in readme_commands
+    assert "rev-parse HEAD" in readme_commands
+    assert (
+        readme_commands.index("git clone --origin upstream")
+        < readme_commands.index("fetch upstream --tags")
+        < readme_commands.index("checkout --detach")
+        < readme_commands.index("rev-parse HEAD")
+        < readme_commands.index("bench setup requirements crm_signals")
+        < readme_commands.index("install-app crm_signals")
+    )
 
     guide_first = guide.split("### First installation", 1)[1].split(
         "### Upgrade an existing installation", 1
