@@ -15,9 +15,24 @@ def load_diagnostics(monkeypatch):
             "HD Service Level Agreement",
         },
         get_single_value=lambda *args: "Asia/Kolkata",
+        get_value=lambda doctype, name, field: {
+            "sales.user@example.invalid": 1,
+            "sales.manager@example.invalid": 1,
+            "non.sales@example.invalid": 1,
+            "disabled.user@example.invalid": 0,
+        }.get(name),
     )
     fake.utils = types.SimpleNamespace(now_datetime=lambda: "2026-11-02 12:00:00")
     fake.get_installed_apps = lambda: ["frappe", "erpnext", "crm_signals", "helpdesk"]
+    fake.get_roles = lambda user: {
+        "sales.user@example.invalid": ["Sales User"],
+        "sales.manager@example.invalid": ["Sales Manager"],
+        "non.sales@example.invalid": ["Employee"],
+        "disabled.user@example.invalid": ["Sales User"],
+    }.get(user, [])
+    fake.has_permission = lambda doctype, ptype="read", user=None, throw=False: (
+        user != "non.sales@example.invalid"
+    )
     fake.get_all = lambda doctype, **kwargs: {
         "Company": [
             {"name": "IN Company", "default_currency": "INR"},
@@ -53,6 +68,9 @@ def load_diagnostics(monkeypatch):
             {"role": "System Manager", "read": 1, "permlevel": 0},
             {"role": "Sales User", "read": 0, "permlevel": 1},
         ],
+    )
+    meta.get_permitted_fieldnames = lambda user=None: (
+        ["status"] if user == "sales.manager@example.invalid" else []
     )
     fake.get_meta = lambda doctype: meta
     monkeypatch.setitem(sys.modules, "frappe", fake)
@@ -142,6 +160,73 @@ def test_preflight_includes_workflow_states_and_static_field_permissions(monkeyp
     ticket = report["doctypes"]["HD Ticket"]
     assert all(not field["present"] for field in ticket["required_fields"])
 
+
+
+def test_preflight_reports_effective_test_user_doctype_and_field_permissions(monkeypatch):
+    diagnostics = load_diagnostics(monkeypatch)
+    users = {
+        "sales_user": "sales.user@example.invalid",
+        "sales_manager": "sales.manager@example.invalid",
+        "non_sales": "non.sales@example.invalid",
+    }
+
+    report = diagnostics.get_site_preflight_report(test_users=users)
+    matrix = report["effective_user_permissions"]
+
+    assert matrix["available"] is True
+    assert matrix["reason"] is None
+    assert matrix["profiles"]["sales_user"]["status"] == "checked"
+    assert matrix["profiles"]["sales_user"]["role_membership_valid"] is True
+    assert matrix["profiles"]["sales_user"]["doctype_read"]["Lead"] is True
+    assert matrix["profiles"]["sales_user"]["required_field_read"]["Lead"]["status"] is False
+    assert matrix["profiles"]["sales_manager"]["required_field_read"]["Lead"]["status"] is True
+    assert matrix["profiles"]["non_sales"]["role_membership_valid"] is True
+    assert matrix["profiles"]["non_sales"]["doctype_read"]["Lead"] is False
+    assert matrix["profiles"]["non_sales"]["required_field_read"]["Lead"]["status"] is False
+    assert "record-level User Permissions" in matrix["scope"]
+    assert all(username not in repr(report) for username in users.values())
+
+
+def test_preflight_rejects_disabled_and_administrator_test_accounts(monkeypatch):
+    diagnostics = load_diagnostics(monkeypatch)
+    report = diagnostics.get_site_preflight_report(
+        test_users={
+            "sales_user": "disabled.user@example.invalid",
+            "sales_manager": "Administrator",
+        }
+    )
+    profiles = report["effective_user_permissions"]["profiles"]
+
+    assert profiles["sales_user"]["status"] == "user_disabled"
+    assert profiles["sales_user"]["account_active"] is False
+    assert profiles["sales_manager"]["status"] == "administrator_not_allowed"
+    assert profiles["sales_manager"]["account_active"] is None
+
+
+def test_preflight_without_test_users_marks_effective_matrix_unavailable(monkeypatch):
+    diagnostics = load_diagnostics(monkeypatch)
+    report = diagnostics.get_site_preflight_report()
+
+    assert report["effective_user_permissions"] == {
+        "available": False,
+        "reason": "test_users_not_supplied",
+        "profiles": {},
+        "scope": (
+            "DocType-level and field-level read checks only; record-level User Permissions, "
+            "ownership and document-share visibility must still be tested with representative records."
+        ),
+    }
+
+
+def test_preflight_rejects_unknown_test_user_profile(monkeypatch):
+    diagnostics = load_diagnostics(monkeypatch)
+
+    try:
+        diagnostics.get_site_preflight_report(test_users={"administrator": "someone@example.invalid"})
+    except ValueError as error:
+        assert str(error) == "Unsupported test user profile"
+    else:
+        raise AssertionError("unknown profile must be rejected")
 
 def test_preflight_source_revision_reports_exact_full_sha(monkeypatch):
     diagnostics = load_diagnostics(monkeypatch)
