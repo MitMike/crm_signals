@@ -140,3 +140,11 @@ The PR's CI result does not establish that a customer site has the approved SHA,
 - **CI triage:** initial Python 3.11 and 3.12 runs each exposed one stale test assertion for the added root-check call. The corrected final head passed all required contexts; no application behavior failure remained.
 - **Status:** code-complete and reference-stack CI-verified; not pilot-verified.
 - [ ] **Independent release blocker:** target-site visual UAT and pilot acceptance still require an authorized Frappe v16.5 staging session, approved SHA, named owners and the evidence listed in `TARGET_SITE_ACCEPTANCE.md`. No pilot verification is claimed.
+
+
+
+## Real-Git nested-parent regression — PR #107 pending (2026-11-03)
+
+- [ ] **PR #107:** [test: exercise real parent-repository discovery in preflight](https://github.com/MitMike/crm_signals/pull/107). The new test creates a committed temporary parent repository and nested Bench-style app path, then verifies the real preflight rejects the enclosing Git root.
+- **Decision:** ADR-088 supplements mocked root-mismatch coverage with a real Git integration test because the failure mode depends on Git's upward repository discovery.
+- **Revisit criteria:** If any final-head Python/Quality/Security/Bench/pinned lane fails, inspect its job log and correct the test/environment issue before merge. If Git is unavailable in a supported CI environment, make that prerequisite explicit rather than silently skipping the regression. This test is not pilot verification.
