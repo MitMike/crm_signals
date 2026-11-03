@@ -3,7 +3,7 @@
 **Last reviewed:** 2026-11-03  
 **Repository:** [MitMike/crm_signals](https://github.com/MitMike/crm_signals)  
 **Supported framework coverage:** Frappe / ERPNext v15 and v16. **Primary deployment target:** Frappe v16.5; record the exact patch/build and installed ERPNext/Helpdesk versions.  
-**Reviewed main baseline:** [2b697b4](https://github.com/MitMike/crm_signals/commit/2b697b4d37a12b2e339bcf680ff808f23b97850f) (PR #130 merged after all four final-head workflows passed: Quality/Python, Security/Semgrep, Bench v15/v16 + Playwright, and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0); **latest application feature baseline:** [c5720bf](https://github.com/MitMike/crm_signals/commit/c5720bfb3fbe8b554ec6febd549a8d5e58acc1d7).
+**Reviewed main baseline:** [08f269c](https://github.com/MitMike/crm_signals/commit/08f269cdfaedc58fd4ce396c823d589e7dd3481b) (PR #131 merged after all four final-head workflows passed; direct Desk form-load permission coverage is CI-verified on supported Frappe v16 and pinned Frappe 16.5.0); **latest application feature baseline:** [c5720bf](https://github.com/MitMike/crm_signals/commit/c5720bfb3fbe8b554ec6febd549a8d5e58acc1d7).
 
 This is the execution plan and source of truth for delivery order, scope, dependencies, acceptance gates and exit criteria. The operational state is maintained in [docs/PROGRESS.md](docs/PROGRESS.md); durable choices are in [docs/DECISIONS.md](docs/DECISIONS.md); feature contracts are in [specs/](specs/).
 
@@ -633,3 +633,18 @@ ADR-101 replaces that assumption with a CI-only custom `CRM Signals E2E Non-Sale
 - **Scope:** disposable CI fixture and operator-guide coverage only. No production runtime, schema, dependency or site configuration change. Report/export/print/dashboard and target-site browser acceptance remain separate.
 - **Status:** code-complete on focused branch `test/sales-user-direct-form-permission-20261103`; final-head Quality/Python, Security, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 workflows pending. Not pilot-verified.
 - **Revisit criteria:** if the form route or loader method differs on v15/v16, inspect the exact Frappe router and `frappe.desk.form.load.getdoc` behavior. Keep the linked-denied/unlinked-allowed boundary and do not substitute Administrator for the Sales User assertion.
+
+
+## 38. PR #131 merged — direct CRM Signal form-load permission regression (2026-11-03)
+
+PR #131 merged as [08f269c](https://github.com/MitMike/crm_signals/commit/08f269cdfaedc58fd4ce396c823d589e7dd3481b) from final tested head [a72ebff](https://github.com/MitMike/crm_signals/commit/a72ebffbae116adf06830473bb15d764a169651b).
+
+All four final-head workflows passed:
+- Quality Checks run [41676858036](https://github.com/MitMike/crm_signals/actions/runs/41676858036): lint/static checks and Python 3.10, 3.11, 3.12 and 3.14.
+- Security/Semgrep run [41676862616](https://github.com/MitMike/crm_signals/actions/runs/41676862616).
+- Bench Integration/E2E run [41676858619](https://github.com/MitMike/crm_signals/actions/runs/41676858619): Frappe v15 integration passed; Frappe v16 integration and the complete 18-test Playwright suite passed.
+- Pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 run [41676858020](https://github.com/MitMike/crm_signals/actions/runs/41676858020): the focused three-test Playwright selection passed after site installation, preflight, D1/D2, Helpdesk, schema upgrade, Python and Frappe integration checks.
+
+The direct Desk form test observed GET `frappe.desk.form.load.getdoc`: linked-restricted CRM Signal returned 403 without its message; unlinked-owned signal returned 200 with the expected message. The same-head browser-session HTTP API tests also passed. The supported v15 lane passed Bench integration; the v16 lane ran the full Playwright suite. No failing head was merged.
+
+**Classification:** code-complete and reference-stack CI-verified on Frappe v16 and pinned v16.5.0; not pilot-verified. Authorized target-site API-token authentication, live direct-form and other permission paths, D1/D2 finance reconciliation, D3 SLA, deployment/rollback, operational recovery and visual UAT remain open.
