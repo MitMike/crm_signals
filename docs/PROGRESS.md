@@ -644,6 +644,14 @@ The guide now validates the API token identity, rejects Administrator, expects 4
 ### PR #130 — final-head static regression found a stale non-sales helper call (2026-11-03)
 
 - Final head 50f765b78f32dc3b9ac33cded20d6aa39e09a9e5 triggered Quality run 41663119127, Security run 41663119185, Bench v15/v16 run 41663118791 and pinned Frappe 16.5 run 41663118948.
-- Quality's Python 3.12 job failed tests/test_static_contracts.py because the new regression correctly found that the existing non-sales dashboard E2E test still referenced the removed currentUserRoles helper. The Sales User test's role lookup had been replaced, but the helper remained in use by the Employee test. 141 tests passed, 36 were skipped; no browser permission assertion was involved.
+- Quality's Python 3.12 job failed tests/test_static_contracts.py because the new regression correctly found stale currentUserRoles references after the first replacement. Full-file inspection showed references remained in the new HTTP permission test and the existing Employee dashboard test; the first broad replacement had changed a separate Sales User dashboard test. 141 tests passed, 36 were skipped; no browser permission assertion was involved. The Employee test was converted to identity verification, and final review then removed the remaining HTTP-test reference.
 - Decision ADR-100 triage: replace the non-sales role lookup with frappe.auth.get_logged_user identity verification; validate the Employee-only role boundary in server-side fixture setup and reject Sales Manager/System Manager roles on both synthetic profiles.
 - Correction is code-complete; the failed head is not mergeable. Fresh final-head CI is required. Not pilot-verified.
+
+
+
+### PR #130 — final role-helper reference removed from the new HTTP test (2026-11-03)
+
+- Full-file review after the static failure found one remaining currentUserRoles call in the new Sales User HTTP permission test. The prior replacement had changed a separate Sales User dashboard test; the Employee test was subsequently converted to identity verification.
+- Replaced the final role lookup with frappe.auth.get_logged_user and exact synthetic Sales User email equality. Server-side fixture checks now enforce Sales User and Employee role boundaries and reject elevated roles.
+- The failed static-contract head is not mergeable. Fresh final-head Quality, Security, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 workflows are required. Not pilot-verified.
