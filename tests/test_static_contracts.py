@@ -558,7 +558,6 @@ def test_sales_user_api_token_e2e_preserves_non_json_response_bodies():
     assert "body = JSON.parse(responseText)" in helper
 
 
-
 def test_sales_user_rest_resource_api_token_permission_e2e_uses_isolated_node_fetch():
     spec = (ROOT / "e2e/sahdev-dashboard.spec.ts").read_text()
     assert (
@@ -588,3 +587,12 @@ def test_sales_user_rest_resource_api_token_e2e_preserves_non_json_bodies():
     assert "const responseText = await response.text()" in helper
     assert "let body: unknown = responseText" in helper
     assert "body = JSON.parse(responseText)" in helper
+
+
+
+def test_target_site_acceptance_script_checks_rest_resource_permission_boundary():
+    acceptance = (ROOT / "docs/TARGET_SITE_ACCEPTANCE.md").read_text()
+    assert '/api/resource/CRM%20Signal/$LINKED_RESTRICTED_SIGNAL' in acceptance
+    assert '/api/resource/CRM%20Signal/$UNLINKED_OWNED_SIGNAL' in acceptance
+    assert "restricted REST resource expected HTTP 403" in acceptance
+    assert "REST resource list did not contain exactly the unlinked owned record" in acceptance
