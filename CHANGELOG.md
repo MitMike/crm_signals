@@ -372,3 +372,9 @@ Included in PR #19's merge commit [a495919](https://github.com/MitMike/crm_signa
 - Clarify in both HTML guides that the standard Helpdesk adapter is implemented and custom/different ticket sources require a separately approved scope.
 - Add static contract coverage for both guide statements.
 - No runtime or site configuration change. D3 target-site acceptance remains outstanding.
+
+
+### 2026-11-03 — D3 setup guide CI correction
+- Python 3.11 and 3.12 each exposed one static-contract failure (125 passed, 36 skipped, 1 failed): a second stale promise to build a custom adapter remained in the guide's final workflow list.
+- Replace that promise with existing-adapter validation/configuration steps, retain separate approval for custom sources, and correct the guide footer label.
+- Extend static contract coverage to reject the stale promise and wrong footer. No runtime behavior or site configuration change; rerun the full final-head matrix before merge.
