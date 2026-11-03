@@ -76,7 +76,6 @@ async function frappeMethodGet(
     );
 }
 
-
 async function openCrmSignalForm(page: Page, name: string) {
     const responsePromise = page.waitForResponse(
         (response) => {
@@ -576,9 +575,7 @@ test("Sales User HTTP API respects linked Lead User Permission", async ({
     expect(visibleNames).toEqual([unlinkedSignal!.name]);
 });
 
-test("Sales User CRM Signal form permission boundary", async ({
-    page
-}) => {
+test("Sales User CRM Signal form permission boundary", async ({ page }) => {
     await loginAsAdministrator(page);
 
     const linkedMessage = "CRM Signals E2E linked restricted signal";
