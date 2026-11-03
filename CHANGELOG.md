@@ -421,3 +421,8 @@ Included in PR #19's merge commit [a495919](https://github.com/MitMike/crm_signa
 ### 2026-11-03 — Reject malformed falsey permission-probe input
 - Treat only `None` and an empty dictionary as an omitted optional user mapping.
 - Reject falsey non-mapping values and add regression coverage so malformed operator input cannot silently look like an intentionally unavailable probe.
+
+
+### 2026-11-03 — Require System User accounts in effective-user preflight
+- Reject enabled Website Users before DocType/field checks, even if they carry a sales role, because they cannot access Desk.
+- Add a Website User regression test and extend the real-Frappe CI fixture to assert all synthetic profiles are System Users.
