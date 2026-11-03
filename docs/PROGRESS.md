@@ -655,3 +655,12 @@ The guide now validates the API token identity, rejects Administrator, expects 4
 - Full-file review after the static failure found one remaining currentUserRoles call in the new Sales User HTTP permission test. The prior replacement had changed a separate Sales User dashboard test; the Employee test was subsequently converted to identity verification.
 - Replaced the final role lookup with frappe.auth.get_logged_user and exact synthetic Sales User email equality. Server-side fixture checks now enforce Sales User and Employee role boundaries and reject elevated roles.
 - The failed static-contract head is not mergeable. Fresh final-head Quality, Security, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 workflows are required. Not pilot-verified.
+
+
+
+### PR #130 — corrected final head and fresh CI run IDs (2026-11-03)
+
+- Corrected head: fd855ae056c81b16defa1eac6085ab481ef08ac9.
+- Fresh final-head workflows: Quality Checks 41663665399 (pending), Security/Semgrep 41663665370 (job 126013401701 in progress), Bench Integration/E2E 41663665401 (pending), and pinned Frappe 16.5.0 / Helpdesk 1.28.0 41663665390 (pending).
+- The corrected E2E file has no currentUserRoles references; all three Sales User/Employee browser identity checks use frappe.auth.get_logged_user. Server-side fixtures enforce Sales User and Employee role boundaries and reject elevated roles.
+- PR #130 remains open and unmerged. Wait for all four final-head workflows; no earlier-head result is reusable. Not pilot-verified.
