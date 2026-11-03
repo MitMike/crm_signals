@@ -408,7 +408,7 @@ PR #128 merged as `85c492ea2c84444d7cc45c0d61706736fa972a83`. Quality/Python run
 
 - [x] Confirm from the supported Frappe v16 form loader that the direct Desk form calls `frappe.desk.form.load.getdoc` with GET and that the loader invokes `doc.check_permission("read")` before returning the document.
 - [x] Add the `Sales User CRM Signal form permission boundary` browser test that opens `/app/crm-signal/<name>` as the synthetic Sales User, expects 403 and no restricted message for the linked signal, and expects 200 plus the expected message for the unlinked owned signal.
-- [x] Include the new test in the pinned Frappe 16.5.0 Playwright selector and add a static regression guard.
+- [x] Include the new test in the pinned Frappe 16.5.0 Playwright selector and add a static regression guard for the exact route/GET request, DocType/name filters, linked-record 403/no-message, unlinked-record 200/message and workflow selector.
 - [x] Replace `npm install` with lockfile-enforced `npm ci` in the supported v15/v16 Bench E2E workflow; extend static checks to require `npm ci` and pre-output password masking in both supported and pinned lanes.
 - [x] Diagnose the first Python 3.11 static failure: the new guard expected the bare method name, but the spec matches the full `/api/method/frappe.desk.form.load.getdoc` pathname; correct the guard only.
 - [ ] Pass final-head Quality/Python, Security/Semgrep, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 workflows after the static-guard correction.
