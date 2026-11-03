@@ -386,14 +386,17 @@ def test_operator_installation_pins_source_before_bench_setup():
             "bench setup requirements crm_signals"
         ) < workflow.index("bench --site test.local install-app crm_signals")
 
-def test_support_setup_guide_describes_the_existing_helpdesk_adapter():
+def test_support_guides_describe_existing_adapter_and_custom_scope_boundary():
     guide = (ROOT / "docs/CRM_SIGNALS_SUPPORT_CONFIGURATION_GUIDE.html").read_text()
+    discovery = (ROOT / "docs/D3_SUPPORT_SLA_DISCOVERY_GUIDE.html").read_text()
     assert (
         "standard Frappe Helpdesk adapter is already implemented"
         in guide
     )
     assert "We build a small adapter" not in guide
     assert "separately scoped adapter change" in guide
+    assert "standard adapter does not cover a custom or different ticket DocType" in discovery
+    assert "approve a separate adapter scope" in discovery
 
 
 def test_crm_signals_dashboard_retains_horizontal_inset():
