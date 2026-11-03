@@ -167,6 +167,7 @@ def test_sales_user_can_print_signal_for_readable_parent(monkeypatch):
 def test_sales_user_can_print_unlinked_owned_signal(monkeypatch):
     permissions = load_permissions(monkeypatch, parent_access=True)
     signal = Signal()
+    signal.owner = "rep@example.com"
     signal.lead = None
     assert (
         permissions.crm_signal_has_permission(
