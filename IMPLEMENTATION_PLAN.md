@@ -436,7 +436,7 @@ The README now uses the same safe sequence as the operator guide: clone directly
 
 The Support & SLA setup guide now states that the standard Frappe Helpdesk `HD Ticket` / `HD Service Level Agreement` adapter is implemented and directs operators to validate the target site's exact versions, schema, field permissions and active SLA calendar. The D3 discovery guide's custom-DocType FAQ now explicitly says custom/different ticket sources are outside the standard adapter and remain unavailable until support, security and business owners approve a separate adapter scope, mapping and KPI semantics. Static contract coverage protects both statements.
 
-No runtime code, dependencies, schema or site configuration changed. **Status:** documentation and static regression code-complete; final-head CI pending in the replacement PR; not pilot-verified. Merge only after the full Quality, Python, Security, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 validation set passes.
+No runtime code, dependencies, schema or site configuration changed. **Status at PR opening:** documentation and static regression code-complete; final-head CI pending; not pilot-verified. Final verification and merge evidence are recorded in Section 25.
 
 **Target-site gate:** D3 remains not pilot-verified until authorized Frappe v16.5 staging confirms exact Helpdesk version/schema, effective Sales field permissions, active SLA schedule/holidays/timezone, pause/resume behavior and native metric outcomes.
 
@@ -445,3 +445,14 @@ No runtime code, dependencies, schema or site configuration changed. **Status:**
 
 
 **Second CI triage:** on head `87a5f8f479d291ddaf119c8d4938a9a2d30d54bc`, Python 3.11, 3.12 and 3.14 each reported 1 failed, 125 passed and 36 skipped. The guide correction was present; the static test still expected the old phrase `separately scoped adapter change`, while the revised guide correctly says `custom sources require separate approval and scope`. Updated the assertion to the actual operator wording. This was a test expectation mismatch, not a runtime or product defect. Require a fresh full matrix on the corrected head.
+
+
+## 25. D3 operator-guide correction — PR #117 merged (2026-11-03)
+
+PR #117 merged as 93e7e16 (merge commit 93e7e16271d727476618b4981498ad901835bad4) from final head 2d7463f5e73bec3741ef9fb68d9b707b9bb1afc6. All 35 final-head check runs passed: Python 3.10–3.14, lint/static checks, Semgrep, Bench v15/v16 including Playwright, pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 validation and both bench-validation selectors.
+
+The D3 Support & SLA setup guide now describes the implemented standard Helpdesk adapter, its actual validation/configuration sequence and separate approval for custom sources. The discovery FAQ enforces the same boundary. Static tests protect the implementation status, custom-source scope and guide footer. Two early CI failures were fixed and retained as historical evidence; no failing head was merged. No runtime code, dependency, schema or site configuration changed.
+
+Status: D3 guide and static regression are merged and reference-stack CI-verified. They are not pilot-verified.
+
+Remaining target-site gate: authorized Frappe v16.5 staging must confirm exact Helpdesk version/schema, effective Sales field permissions, active SLA schedule/holidays/timezone, pause/resume behavior and native metric outcomes. The README first-install/upgrade rehearsal, D1/D2 native-report reconciliation, desktop/mobile visual UAT, scheduler/mail/realtime/webhook recovery and backup/restore/rollback remain separate site acceptance work.
