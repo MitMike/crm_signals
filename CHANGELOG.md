@@ -433,3 +433,12 @@ Included in PR #19's merge commit [a495919](https://github.com/MitMike/crm_signa
 - All 18 final-head check runs passed: Quality/lint, Python 3.10–3.14, Security/Semgrep, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0. The real-Frappe effective-user preflight smoke passed on v15, v16 and pinned v16.5.0.
 - The optional read-only probe reports DocType and required-field read outcomes for explicitly supplied active synthetic System Users, with alias-only output and no business-document rows. Website Users, Administrator, disabled, duplicate and invalid-role accounts are rejected.
 - The probe and its CI fixture are code-complete and reference-stack CI-verified, not pilot-verified. Controlled-record permission, finance reconciliation, Helpdesk SLA, operational recovery, rollback and dashboard visual acceptance remain target-site gates.
+
+
+
+### 2026-11-03 — Synthetic-record list-visibility preflight (ADR-094 / PR #122)
+- Add an optional bounded \`test_records\` input to the non-whitelisted target-site preflight for exact synthetic record names grouped by profile, DocType and non-sensitive label.
+- Temporarily switch to each explicitly supplied System User and call permission-filtered \`frappe.get_list\` with an exact name filter and \`fields=["name"]\`; return labels/booleans only. Missing and inaccessible records both report false.
+- Enforce known-DocType, label, 50-record-per-profile and 100-record-total bounds; restore the prior session user and fail closed on query/session errors.
+- Add unit tests and a disposable real-Frappe CI smoke using a synthetic CRM Signal that is rolled back. Update the Administrator Guide, Deployment Runbook and Target-Site Acceptance Kit.
+- This checks list visibility only. Direct form/API/report/export/print/dashboard acceptance and all other target-site release gates remain open.
