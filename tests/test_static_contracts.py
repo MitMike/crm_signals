@@ -438,3 +438,11 @@ def test_playwright_login_wait_supports_frappe_16_5_login_route():
     assert "const url = new URL(response.url());" in spec
     assert '["/login", "/api/method/login"].includes(url.pathname)' in spec
     assert 'response.request().method() === "POST"' in spec
+
+
+
+def test_playwright_sales_user_permission_test_checks_authenticated_identity():
+    spec = (ROOT / "e2e/sahdev-dashboard.spec.ts").read_text()
+    assert '"frappe.auth.get_logged_user"' in spec
+    assert ".toBe(email)" in spec
+    assert "currentUserRoles" not in spec
