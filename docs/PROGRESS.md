@@ -375,3 +375,14 @@ PR #100 is code-complete and CI-verified, not pilot-verified. The automated comp
 - **Reviewed main at merge:** `d2e1d873a8f257545596379e179aeb3e4de40dd4`. The main-push workflow had started separately; its in-progress checks are not substituted for PR final-head evidence.
 - **Open PR:** [PR #113](https://github.com/MitMike/crm_signals/pull/113) is now based on `main` after #112 merged. Its D3 guide/static-contract change is code-complete; check the post-retarget final-head run before merge.
 - **Status:** PR #112 is merged and reference-stack CI-verified; first-install/upgrade staging rehearsal and all other target-site acceptance remain open. Not pilot-verified.
+
+
+## D3 operator-guide correction — replacement PR #114 (2026-11-03)
+
+- **Finding:** the setup guide's promise to build the standard adapter was stale; the discovery FAQ also implied custom sources could be adapted without an explicit approval boundary.
+- **Decision (ADR-091):** state that the standard `HD Ticket` / `HD Service Level Agreement` adapter already exists. Custom/different ticket DocTypes remain unavailable until support, security and business owners approve a separate adapter scope, mapping and KPI semantics.
+- **Implementation:** both HTML guides are corrected; `test_support_guides_describe_existing_adapter_and_custom_scope_boundary` protects the implemented standard-adapter statement and custom-source approval boundary.
+- **Verification issue:** PR #113's original head `e9a3a3001bc146642a0c98223b0201feaa04ae44` passed 18 checks. After retargeting and the extra FAQ/test change, the new head returned zero check runs and zero workflow runs; closing/reopening did not trigger CI.
+- **Decision:** do not merge a head without current required checks. PR #113 was closed as superseded; replacement [PR #114](https://github.com/MitMike/crm_signals/pull/114) was opened from the exact final tree to trigger the PR-opened workflows.
+- **Status at replacement opening:** code-complete; CI pending; not pilot-verified. No runtime code or site configuration changed.
+- [ ] **Target-site D3 gate:** verify exact installed Helpdesk/Frappe versions, required schema and effective Sales field permissions, active SLA schedule/holidays/timezone, pause/resume and native outcomes on authorized Frappe v16.5 staging. Repository CI is not pilot evidence.
