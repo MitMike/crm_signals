@@ -605,4 +605,10 @@ The first complete PR #130 final-head matrix passed Quality/Python, Security/Sem
 
 ### PR #130 — static-test follow-up for both Sales and non-sales browser identities (2026-11-03)
 
-The first ADR-100 correction changed the Sales User test but left the existing non-sales dashboard test calling the removed currentUserRoles helper. Quality/Python run 41663119127 caught this in the static contract (Python 3.12: 141 passed, 36 skipped, one failed). The follow-up replaces that role lookup with exact frappe.auth.get_logged_user identity verification and validates the synthetic Employee-only role server-side. The Sales User fixture now rejects elevated Sales Manager/System Manager roles as well. All four workflows must pass on the new final head; the failed head is not mergeable. Not pilot-verified.
+The first ADR-100 correction changed a separate Sales User dashboard test but left currentUserRoles references in both the new HTTP permission test and the Employee dashboard test. Quality/Python run 41663119127 caught this in the static contract (Python 3.12: 141 passed, 36 skipped, one failed). The Employee test was converted to exact frappe.auth.get_logged_user identity verification; final full-file review then removed the remaining role lookup from the new HTTP test. The fixture validates the Sales User and Employee role boundaries server-side and rejects elevated Sales Manager/System Manager roles. All four workflows must pass on the new final head; the failed head is not mergeable. Not pilot-verified.
+
+
+
+### PR #130 — final HTTP permission test identity assertion correction
+
+Full-file review found that the new Sales User HTTP permission test still called currentUserRoles after the earlier broad replacement changed a separate Sales User dashboard test. The remaining call is now replaced with frappe.auth.get_logged_user and exact synthetic email equality. The Employee dashboard test uses the same identity check, and server-side fixture setup validates both role boundaries. The Python static-contract failure remains a failed result for its original head; all four workflows must rerun on the corrected head.
