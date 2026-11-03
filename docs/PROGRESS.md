@@ -338,3 +338,20 @@ PR #100 is code-complete and CI-verified, not pilot-verified. The automated comp
 - **Reviewed main:** `fe7dca402293faa1e7e60f147d53adaef63009d6`. The open PR and issue queries both returned zero immediately after merge.
 - **Status:** documentation complete and reference CI-verified. No application runtime code or site configuration changed.
 - [ ] **Release gate:** authorized Frappe v16.5 staging remains necessary for exact installed app/full-SHA inventory, dashboard screenshots after asset/cache refresh, effective-role permissions, D1/D2 native-report reconciliation by currency, Helpdesk SLA calendar, scheduler/mail/realtime/webhook recovery and backup/restore/rollback rehearsal. No pilot verification is claimed.
+
+
+## PR #111 merged — release-document reconciliation (2026-11-03)
+
+- [x] PR #111 merged as [`166ca6b`](https://github.com/MitMike/crm_signals/commit/166ca6b2cc9838ffd68c551b327ee41d2a5316b4) from final head `30d44ffd48a1f39ef39d658a6bdc12b07f8130da`.
+- [x] All 13 final-head checks completed: 11 passed and two runtime selectors were skipped as expected for a documentation-only change. Quality/lint, Security/Semgrep, Python 3.10–3.14, stable Bench v15/v16 checks and change detectors passed.
+- [x] Main commit `166ca6b` subsequently completed all 17 check runs: 16 succeeded and the docs-only integration-test selector was skipped.
+- **Reviewed repository state:** main is `166ca6b2cc9838ffd68c551b327ee41d2a5316b4`; live open-PR and open-issue searches returned zero.
+- **Status:** documentation complete and reference CI-verified. No runtime behavior or site configuration changed. Pilot acceptance remains open.
+
+## README pinned-install correction — PR #112 opening snapshot (2026-11-03)
+
+- **Finding:** the root README still used `bench get-app ... --branch main`, while the Administrator Guide and Deployment Runbook correctly require pinning the approved full SHA before Bench dependency setup. That README example could install/build a moving branch before the release revision was checked.
+- **Decision:** ADR-090 makes the README first-install path match the existing pin-before-install operator sequence. Existing-install upgrade instructions link to the Administrator Guide and Deployment Runbook.
+- **Implementation:** PR #112 changes documentation only; no runtime code, dependency or site configuration changes.
+- **Verification at opening:** the shell sequence was compared with the existing operator guide and runbook. Final-head Quality, Security and stable Bench checks remain required; docs-only runtime selectors may skip only when the path detector confirms the diff is non-runtime.
+- **Status:** documentation code-complete; CI pending; not pilot-verified. The authorized staging first-install/upgrade rehearsal remains a separate P0 acceptance gate.
