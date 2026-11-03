@@ -426,3 +426,10 @@ Included in PR #19's merge commit [a495919](https://github.com/MitMike/crm_signa
 ### 2026-11-03 — Require System User accounts in effective-user preflight
 - Reject enabled Website Users before DocType/field checks, even if they carry a sales role, because they cannot access Desk.
 - Add a Website User regression test and extend the real-Frappe CI fixture to assert all synthetic profiles are System Users.
+
+
+### 2026-11-03 — Effective-user permission preflight merged (PR #120 / ADR-092/093)
+- PR #120 merged as [`a778c47`](https://github.com/MitMike/crm_signals/commit/a778c47b5078ac69dd89bdcd3ecab41de09b8072) from final head `e95efccec019df3fbadd1703f34c5682340b7f58`.
+- All 18 final-head check runs passed: Quality/lint, Python 3.10–3.14, Security/Semgrep, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0. The real-Frappe effective-user preflight smoke passed on v15, v16 and pinned v16.5.0.
+- The optional read-only probe reports DocType and required-field read outcomes for explicitly supplied active synthetic System Users, with alias-only output and no business-document rows. Website Users, Administrator, disabled, duplicate and invalid-role accounts are rejected.
+- The probe and its CI fixture are code-complete and reference-stack CI-verified, not pilot-verified. Controlled-record permission, finance reconciliation, Helpdesk SLA, operational recovery, rollback and dashboard visual acceptance remain target-site gates.

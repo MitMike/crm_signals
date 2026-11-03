@@ -3,7 +3,7 @@
 **Last reviewed:** 2026-11-03  
 **Repository:** [MitMike/crm_signals](https://github.com/MitMike/crm_signals)  
 **Supported framework coverage:** Frappe / ERPNext v15 and v16. **Primary deployment target:** Frappe v16.5; record the exact patch/build and installed ERPNext/Helpdesk versions.  
-**Reviewed main baseline:** [e57d3de](https://github.com/MitMike/crm_signals/commit/e57d3de9bad76d67caaa378bfb91bd0d692b9ec4) (PR #119 merged; 11 applicable PR checks passed and the post-merge main push completed 15 successful checks plus one expected docs-only skip); **latest application feature baseline:** [c5720bf](https://github.com/MitMike/crm_signals/commit/c5720bfb3fbe8b554ec6febd549a8d5e58acc1d7).
+**Reviewed main baseline:** [a778c47](https://github.com/MitMike/crm_signals/commit/a778c47b5078ac69dd89bdcd3ecab41de09b8072) (PR #120 merged; all 18 final-head check runs passed across Quality, Security/Semgrep, Python 3.10–3.14, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0); **latest application feature baseline:** [c5720bf](https://github.com/MitMike/crm_signals/commit/c5720bfb3fbe8b554ec6febd549a8d5e58acc1d7).
 
 This is the execution plan and source of truth for delivery order, scope, dependencies, acceptance gates and exit criteria. The operational state is maintained in [docs/PROGRESS.md](docs/PROGRESS.md); durable choices are in [docs/DECISIONS.md](docs/DECISIONS.md); feature contracts are in [specs/](specs/).
 
@@ -474,3 +474,12 @@ The Administrator Guide, Deployment Runbook and Target-Site Acceptance Kit docum
 **Status at PR opening:** code-complete; CI pending. Tests cover allowed/denied DocType and field results, disabled and Administrator rejection, absent-user unavailable state, unknown alias rejection and identity non-disclosure. Final-head Python 3.10–3.14, Quality, Security/Semgrep, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 validation are required before merge. This is not pilot verification.
 
 **Release blocker remains:** no authorized Frappe v16.5 staging session, approved full SHA, named owners or synthetic site accounts are available in this repository review. Revisit only when those inputs are supplied; then run the optional probe and the full controlled-record permission matrix, finance reconciliation, Helpdesk SLA, deployment/rollback and operational recovery acceptance. Do not treat reference-stack CI as site evidence.
+
+
+## 28. Effective-user permission preflight — merged and CI-verified (2026-11-03)
+
+PR #120 merged as [`a778c47`](https://github.com/MitMike/crm_signals/commit/a778c47b5078ac69dd89bdcd3ecab41de09b8072) from final head `e95efccec019df3fbadd1703f34c5682340b7f58`. All 18 final-head check runs passed: Quality/lint, Python 3.10–3.14, Security/Semgrep, Bench v15/v16 with Playwright and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 validation.
+
+The optional read-only preflight accepts explicit aliases for active, distinct System User accounts; validates the Sales User, Sales Manager, System Manager and non-sales role boundaries; and reports Frappe user-aware DocType and required-field read outcomes without returning account identities or business rows. The CI-only `allow_tests` fixture exercised the production preflight on real Frappe v15, v16 and pinned v16.5.0 disposable sites. It creates no business documents and does not establish row-level permission or pilot acceptance.
+
+**Status:** code-complete and reference-stack CI-verified; not pilot-verified. The target-site permission matrix still requires controlled-record tests for User Permissions, ownership, shares, list filters, API/report/export and dashboard behavior. The broader P0 gates remain exact deployed SHA/version inventory, D1/D2 native-report reconciliation by currency, Helpdesk SLA calendar and metrics, first-install/upgrade, scheduler/mail/realtime/webhook/worker recovery, backup/restore/rollback and desktop/mobile visual UAT. No authorized staging evidence is available; do not infer it from CI.
