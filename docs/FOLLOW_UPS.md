@@ -438,3 +438,15 @@ PR #128 merged as `85c492ea2c84444d7cc45c0d61706736fa972a83`. Quality/Python run
 - [ ] Pinned Frappe 16.5.0 / Helpdesk 1.28.0 41663665390.
 - [ ] Merge only after all four runs pass on this exact head.
 - **Revisit criteria:** inspect the first failing job log and Playwright artifact; fix the actual assertion or fixture contract, record evidence, and rerun the complete final-head matrix.
+
+### PR #130 — deterministic non-sales role fixture correction
+
+- [x] Inspect failed pinned and supported-v16 Bench job logs and identify the common failure at `prepare_e2e_site`: `E2E Employee role boundary is invalid`.
+- [x] Confirm all preceding site setup, preflight, D1/D2, Helpdesk and schema-upgrade steps passed; browser permission assertions did not run.
+- [x] Replace the built-in Employee role assumption with a dedicated CI-only `CRM Signals E2E Non-Sales` role configured with Desk access and enabled status.
+- [x] Add a static regression requiring the explicit role, Desk access and server-side role-boundary assertion.
+- [ ] Require fresh final-head Quality/Python, Security/Semgrep, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 workflows to pass.
+- [ ] Merge PR #130 only after all required final-head checks pass; then reconcile main progress and follow-ups.
+- **Evidence:** pre-correction head `7525c1521835e93245faf5840c0af1c47f9d590b`; Quality `41663853566` passed; Security `41663853347` passed; pinned Frappe `41663853279` failed job `126013961022`; Bench v15/v16 `41663853266` failed v16 job `126014347249` and its runtime-required validation selectors. Both runtime failures point to `crm_signals/ci.py:176`; no Playwright permission assertion ran.
+- **Revisit criteria:** if the custom role is missing from `frappe.get_roles`, inspect the synthetic Role metadata and Has Role rows on the exact v15/v16/pinned build, including disabled and Desk-access flags. Do not use Administrator for non-sales browser checks, relax the role-boundary assertion, or weaken the Sales User 403/200/list-only-unlinked expectations.
+
