@@ -3,7 +3,7 @@
 **Last reviewed:** 2026-11-03  
 **Repository:** [MitMike/crm_signals](https://github.com/MitMike/crm_signals)  
 **Supported framework coverage:** Frappe / ERPNext v15 and v16. **Primary deployment target:** Frappe v16.5; record the exact patch/build and installed ERPNext/Helpdesk versions.  
-**Reviewed main baseline:** [08f269c](https://github.com/MitMike/crm_signals/commit/08f269cdfaedc58fd4ce396c823d589e7dd3481b) (PR #131 merged after all four final-head workflows passed; direct Desk form-load permission coverage is CI-verified on supported Frappe v16 and pinned Frappe 16.5.0); **latest application feature baseline:** [c5720bf](https://github.com/MitMike/crm_signals/commit/c5720bfb3fbe8b554ec6febd549a8d5e58acc1d7).
+**Reviewed main baseline:** [aa2e211](https://github.com/MitMike/crm_signals/commit/aa2e2112be4956f270cd730375c8da1e3d396f1f) (PR #131's final-head verification is reconciled by merged documentation PR #132); **latest application feature baseline:** [c5720bf](https://github.com/MitMike/crm_signals/commit/c5720bfb3fbe8b554ec6febd549a8d5e58acc1d7).
 
 This is the execution plan and source of truth for delivery order, scope, dependencies, acceptance gates and exit criteria. The operational state is maintained in [docs/PROGRESS.md](docs/PROGRESS.md); durable choices are in [docs/DECISIONS.md](docs/DECISIONS.md); feature contracts are in [specs/](specs/).
 
@@ -648,3 +648,15 @@ All four final-head workflows passed:
 The direct Desk form test observed GET `frappe.desk.form.load.getdoc`: linked-restricted CRM Signal returned 403 without its message; unlinked-owned signal returned 200 with the expected message. The same-head browser-session HTTP API tests also passed. The supported v15 lane passed Bench integration; the v16 lane ran the full Playwright suite. No failing head was merged.
 
 **Classification:** code-complete and reference-stack CI-verified on Frappe v16 and pinned v16.5.0; not pilot-verified. Authorized target-site API-token authentication, live direct-form and other permission paths, D1/D2 finance reconciliation, D3 SLA, deployment/rollback, operational recovery and visual UAT remain open.
+
+
+## 39. PR #133 — API-token authentication permission regression (2026-11-03)
+
+## PR #133 — synthetic Sales User API-token permission regression
+
+- **Reviewed main:** `aa2e2112be4956f270cd730375c8da1e3d396f1f` (PR #131 merged and CI-verified; PR #132 reconciled the final verification and operator records).
+- **Finding:** PR #130/131 verify the same Sales User record boundary through browser-session HTTP and direct Desk form loading. The operator kit has an API-token smoke, but CI did not exercise Frappe's token authentication or prove the requests could not fall back to the Administrator browser cookie.
+- **Decision (ADR-104):** generate API credentials for the disposable Sales User with Frappe's supported `generate_keys` function. Write them only to a runner temporary file with mode 0600; return only a boolean from Bench; mask both values before GitHub step-output propagation; remove the file with an EXIT trap. Use Node's native fetch (outside the Playwright page/trace) with an explicit `Authorization: token key:secret` header and manual redirect handling. Verify token identity, linked-restricted 403, unlinked-owned 200 and list-only-unlinked.
+- **Scope:** disposable CI fixture, E2E workflow and operator guide only. No production runtime, schema, dependency, permission or site configuration change. Keep Frappe v15 Bench integration; run the token E2E in supported v16 and pinned Frappe 16.5.0.
+- **Status:** implementation code and static regression guards are committed on `test/sales-user-api-token-permission-20261103`; final-head Quality/Python, Security, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 validation pending. Not pilot-verified.
+- **Revisit criteria:** if `generate_keys` or token auth differs by version, inspect the exact v15/v16 implementation; do not fall back to Administrator credentials or session cookies. If any request redirects, fail rather than follow it. Keep API credentials out of Playwright traces/artifacts and logs; if a test failure reveals a credential, revoke it by discarding the ephemeral site and correct the handling before rerun.
