@@ -1089,3 +1089,8 @@ The first correction moved aliased API imports into the guarded Frappe import bl
 - **Rationale:** this tests actual HTTP routing, session-cookie authentication and method response mapping without placing API secrets in CI or weakening the linked-party permission boundary. The fixture is disposable and test-only.
 - **Consequences:** test/workflow-only. No runtime, schema, dependency or site configuration changes. It does not test API-token authentication, reverse-proxy behavior on a target site, browser form rendering, REST resource endpoints, reports/exports/print/dashboard or production acceptance.
 - **Revisit criteria:** if the restricted record returns anything other than 403 or appears in list results, inspect the exact Frappe build's User Permission and CRM Signal query conditions; do not use Administrator for Sales User assertions. If pinned E2E exceeds 60 minutes, profile setup, install and browser steps before extending the timeout.
+
+
+### ADR-098 implementation review note (2026-11-03)
+
+The first Quality run flagged `_prepare_e2e_sales_user_permission_fixture` at 102 non-blank lines against the repository's 100-line hard limit. The setup was split into `_ensure_e2e_lead`, `_ensure_e2e_signal` and the smaller fixture coordinator. No threshold was changed or suppressed; corrected final-head checks are required before merge.
