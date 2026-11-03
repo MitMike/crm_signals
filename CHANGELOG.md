@@ -648,3 +648,6 @@ PR #125 merged as [7029747](https://github.com/MitMike/crm_signals/commit/702974
 
 - Review hardening: the API-token E2E now asserts a linked-restricted 403 body omits the synthetic signal message and the unlinked-owned 200 body includes its expected name and message; a static contract test protects both checks.
 - The initial head `687233baa1e3a4a747c01124b35ad13b188ee760` passed Quality/Python and Security while both integration workflows were in progress. The review commit supersedes those runs; require all four workflows to pass on the new final head.
+
+- Hardened the token test parser to retain non-JSON response text, preventing an HTML/plain-text error body from bypassing the restricted-message non-disclosure assertion. Added a static guard for the fallback.
+- Expanded the target-site acceptance kit with safe API-key/secret generation, silent entry, and post-test rotation/revocation instructions for the dedicated synthetic Sales User.

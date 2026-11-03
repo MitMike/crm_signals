@@ -547,3 +547,12 @@ def test_sales_user_api_token_e2e_checks_response_content_boundary():
     spec = (ROOT / "e2e/sahdev-dashboard.spec.ts").read_text()
     assert "expect(restrictedBody).not.toContain(linkedMessage)" in spec
     assert "expect(allowedBody.message?.message).toBe(unlinkedMessage)" in spec
+
+
+def test_sales_user_api_token_e2e_preserves_non_json_response_bodies():
+    spec = (ROOT / "e2e/sahdev-dashboard.spec.ts").read_text()
+    helper = spec.split("async function frappeMethodGetWithToken(", 1)[1]
+    helper = helper.split("\n}\n", 1)[0]
+    assert "const responseText = await response.text()" in helper
+    assert "let body: unknown = responseText" in helper
+    assert "body = JSON.parse(responseText)" in helper

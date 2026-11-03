@@ -736,3 +736,11 @@ The direct Desk form test observed GET `frappe.desk.form.load.getdoc`: linked-re
 - Finding: the token test asserted HTTP 403 for the linked-restricted document but did not assert that the error body omitted its sensitive signal message; the allowed read asserted the record name but not the expected content.
 - Decision (ADR-104): require the denied token response body not to contain the restricted signal message and require the allowed token response to contain the expected unlinked signal name and message. Add a static contract test for both assertions. No permission expectation or runtime behavior changes.
 - The new commit supersedes the in-progress runs on the prior head. Require a fresh complete Quality/Python, Security, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 matrix on the exact new head before merge. Not pilot-verified.
+
+
+### PR #133 second review hardening — preserve non-JSON response bodies (2026-11-03)
+
+- Reviewed head `64e3466960c67d8c28ac10a4960c2397234dee43` after Quality/Python and Security passed; pinned Frappe 16.5.0 was still running and Bench v15/v16 was pending.
+- Finding: the first response-content assertion parsed JSON only and replaced non-JSON bodies with an empty object. That could hide a restricted message returned in an HTML/plain-text error response.
+- Decision (ADR-104): preserve raw response text when JSON parsing fails, so restricted-message non-disclosure covers JSON and non-JSON bodies. The allowed response must still parse as JSON and contain the expected record name/message. Add a static guard for the raw-body fallback.
+- This commit supersedes the prior in-progress matrix. Require a fresh complete final-head Quality/Python, Security, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 matrix before merge. Not pilot-verified.

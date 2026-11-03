@@ -175,7 +175,13 @@ async function frappeMethodGetWithToken(
             redirect: "manual"
         }
     );
-    const body = await response.json().catch(() => ({}));
+    const responseText = await response.text();
+    let body: unknown = responseText;
+    try {
+        body = JSON.parse(responseText);
+    } catch {
+        // Preserve non-JSON error bodies for the response-content assertion.
+    }
     return { status: response.status, body };
 }
 
