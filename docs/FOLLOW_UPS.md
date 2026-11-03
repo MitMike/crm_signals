@@ -143,11 +143,11 @@ The PR's CI result does not establish that a customer site has the approved SHA,
 
 
 
-## Real-Git nested-parent regression — PR #107 pending (2026-11-03)
+## Real-Git nested-parent regression — PR #107 opening checklist (2026-11-03)
 
-- [ ] **PR #107:** [test: exercise real parent-repository discovery in preflight](https://github.com/MitMike/crm_signals/pull/107). The new test creates a committed temporary parent repository and nested Bench-style app path, then verifies the real preflight rejects the enclosing Git root.
+- **At PR opening:** [PR #107](https://github.com/MitMike/crm_signals/pull/107) created a committed temporary parent repository and nested Bench-style app path, then verified the real preflight rejects the enclosing Git root. Final merge and CI evidence are recorded in the later PR #107 section below.
 - **Decision:** ADR-088 supplements mocked root-mismatch coverage with a real Git integration test because the failure mode depends on Git's upward repository discovery.
-- **Revisit criteria:** If any final-head Python/Quality/Security/Bench/pinned lane fails, inspect its job log and correct the test/environment issue before merge. If Git is unavailable in a supported CI environment, make that prerequisite explicit rather than silently skipping the regression. This test is not pilot verification.
+- **Revisit criteria at PR opening:** If any final-head Python/Quality/Security/Bench/pinned lane failed, inspect its job log and correct the test/environment issue before merge. If Git is unavailable in a supported CI environment, make that prerequisite explicit rather than silently skipping the regression. This test is not pilot verification.
 
 
 ## Real-Git nested-parent regression — PR #107 merged (2026-11-03)
