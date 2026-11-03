@@ -336,6 +336,46 @@ def test_preflight_rejects_invalid_record_probe_input(monkeypatch):
     else:
         raise AssertionError("test_records without test_users must be rejected")
 
+    too_many_for_profile = {
+        "sales_user": {
+            "Lead": {f"lead_{index}": f"LEAD-{index}" for index in range(51)}
+        }
+    }
+    too_many_total = {
+        "sales_user": {
+            "Lead": {f"sales_{index}": f"SALES-{index}" for index in range(50)}
+        },
+        "sales_manager": {
+            "Lead": {f"manager_{index}": f"MANAGER-{index}" for index in range(50)}
+        },
+        "system_manager": {"Lead": {"extra": "LEAD-EXTRA"}},
+    }
+    three_users = {
+        "sales_user": "sales.user@example.invalid",
+        "sales_manager": "sales.manager@example.invalid",
+        "system_manager": "system.manager@example.invalid",
+    }
+    for records, expected in (
+        (too_many_for_profile, "Too many test records for profile"),
+        (too_many_total, "Too many test records"),
+        (
+            {"sales_user": {"Lead": {1: "DOC-1", "valid": "DOC-2"}}},
+            "Test record labels must be strings",
+        ),
+        (
+            {"sales_user": {1: {"valid": "DOC-1"}}},
+            "Test record DocType names must be strings",
+        ),
+    ):
+        try:
+            diagnostics.get_site_preflight_report(
+                test_users=three_users, test_records=records
+            )
+        except ValueError as error:
+            assert str(error) == expected
+        else:
+            raise AssertionError("invalid or unbounded test_records must be rejected")
+
 
 def test_preflight_rejects_disabled_and_administrator_test_accounts(monkeypatch):
     diagnostics = load_diagnostics(monkeypatch)
