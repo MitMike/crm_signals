@@ -644,3 +644,27 @@ def test_target_site_acceptance_checks_report_view_and_csv_export_permissions():
     assert "frappe.desk.reportview.export_query" in acceptance
     assert "Report View did not return only the unlinked owned record" in acceptance
     assert "CSV export disclosed the linked restricted record name" in acceptance
+
+
+def test_sales_user_crm_signals_dashboard_api_preserves_linked_party_permissions():
+    spec = (ROOT / "e2e/sahdev-dashboard.spec.ts").read_text()
+    assert (
+        'test("Sales User CRM Signals dashboard API respects linked Lead User Permission"'
+        in spec
+    )
+    assert '"crm_signals.api.get_dashboard_data"' in spec
+    assert "expect(recent.some((row) => row.name === linkedSignal!.name)).toBe(false)" in spec
+    assert "expect(recentText).not.toContain(linkedMessage)" in spec
+
+
+def test_non_sales_dashboard_api_respects_effective_source_permissions():
+    spec = (ROOT / "e2e/sahdev-dashboard.spec.ts").read_text()
+    assert (
+        'test("Sales User and non-sales dashboard API permission boundaries"'
+        in spec
+    )
+    assert "expect(compass?.leads?.available).toBe(false)" in spec
+    assert "expect(compass?.opportunities?.available).toBe(false)" in spec
+    assert "expect(compass?.billing?.available).toBe(false)" in spec
+    assert "expect(compass?.service?.available).toBe(false)" in spec
+    assert "expect(signalsResponse.status).toBe(403)" in spec
