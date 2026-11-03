@@ -212,3 +212,7 @@ The PR's CI result does not establish that a customer site has the approved SHA,
 
 - [x] **CI defect corrected:** Python 3.11 and 3.12 each found one stale setup-guide promise (125 passed, 36 skipped, 1 failed). The page now describes configuring the existing adapter, separate custom-source approval and the correct footer; the static contract test protects both.
 - [ ] **Re-run final-head checks:** confirm Python 3.10–3.14, Quality, Security, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 all complete successfully on the corrected head. The earlier failing run must remain visible as historical evidence; do not merge until the corrected head passes.
+
+
+- [x] **Second CI defect corrected:** Python 3.11, 3.12 and 3.14 each found one stale test expectation (125 passed, 36 skipped, 1 failed). The guide's new wording was correct; the test expected an obsolete phrase. The assertion now checks "custom sources require separate approval and scope".
+- [ ] **Final verification:** require a fresh full matrix on the corrected head. Do not treat the prior failed run or successful lint/Semgrep as merge approval.
