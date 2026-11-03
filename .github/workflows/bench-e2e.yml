@@ -187,6 +187,41 @@ jobs:
           E2E_EMPLOYEE_PASSWORD: ${{ steps.e2e_credentials.outputs.employee_password }}
         run: bench --site test.local execute crm_signals.ci.prepare_e2e_site
 
+      - name: Generate ephemeral Sales User API credentials
+        if: ${{ matrix.run_e2e }}
+        id: sales_api_credentials
+        shell: bash
+        working-directory: /home/runner/frappe-bench
+        run: |
+          set -euo pipefail
+          credential_file="$(mktemp "$RUNNER_TEMP/crm-signals-sales-api.XXXXXX")"
+          chmod 600 "$credential_file"
+          trap 'rm -f "$credential_file"' EXIT
+          export E2E_SALES_API_CREDENTIAL_FILE="$credential_file"
+          bench --site test.local execute crm_signals.ci.prepare_e2e_sales_api_credentials
+          credentials_json="$(python - "$credential_file" <<'PY'
+          import json
+          import sys
+
+          with open(sys.argv[1], encoding="utf-8") as handle:
+              credentials = json.load(handle)
+          print(credentials["api_key"])
+          print(credentials["api_secret"])
+          PY
+          )"
+          mapfile -t credentials <<< "$credentials_json"
+          api_key="${credentials[0]:-}"
+          api_secret="${credentials[1]:-}"
+          if [[ -z "$api_key" || -z "$api_secret" ]]; then
+            echo "E2E API credentials were not generated" >&2
+            exit 1
+          fi
+          echo "::add-mask::$api_key"
+          echo "::add-mask::$api_secret"
+          echo "api_key=$api_key" >> "$GITHUB_OUTPUT"
+          echo "api_secret=$api_secret" >> "$GITHUB_OUTPUT"
+          unset credentials_json api_key api_secret credentials
+
       - name: Build application assets
         working-directory: /home/runner/frappe-bench
         run: bench build
@@ -229,6 +264,8 @@ jobs:
           FRAPPE_PASSWORD: admin
           E2E_SALES_USER: e2e-sales-user@example.com
           E2E_SALES_PASSWORD: ${{ steps.e2e_credentials.outputs.sales_password }}
+          E2E_SALES_API_KEY: ${{ steps.sales_api_credentials.outputs.api_key }}
+          E2E_SALES_API_SECRET: ${{ steps.sales_api_credentials.outputs.api_secret }}
           E2E_EMPLOYEE_USER: e2e-employee@example.com
           E2E_EMPLOYEE_PASSWORD: ${{ steps.e2e_credentials.outputs.employee_password }}
           CI: "true"
