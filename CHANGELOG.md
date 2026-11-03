@@ -618,3 +618,8 @@ PR #125 merged as [7029747](https://github.com/MitMike/crm_signals/commit/702974
 - Review found the supported Frappe v15/v16 Bench E2E workflow still used `npm install` while the pinned v16.5 workflow used `npm ci`.
 - Replaced the supported-lane command with `npm ci --ignore-scripts --no-audit --no-fund`; extended static checks to require lockfile installation and password masking before output propagation in both workflows.
 - No package versions or lockfile changed. Final-head CI pending; not pilot verification.
+
+### 2026-11-03 — PR #131 static guard correction
+
+- The first Quality/Python run failed one Python 3.11 static assertion because the guard expected the bare `frappe.desk.form.load.getdoc` string while the spec correctly matches the full `/api/method/frappe.desk.form.load.getdoc` pathname.
+- Corrected the static assertion only. The failure occurred before runtime or browser permission tests; fresh final-head CI is required. No permission expectations changed.
