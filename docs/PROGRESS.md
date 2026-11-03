@@ -326,5 +326,5 @@ PR #100 is code-complete and CI-verified, not pilot-verified. The automated comp
 - [x] Real Git test proved a clean temporary checkout returns its exact `HEAD` SHA; after an untracked Python override is added, preflight returns `working_tree_dirty` and does not query `HEAD`.
 - **Decision:** ADR-089 adds real Git clean/dirty coverage alongside ADR-087/088 root identity tests; mocked tests retain deterministic error-path coverage.
 - **Scope/status:** test-only; no runtime or target-site configuration change. Code-complete and reference-stack CI-verified; not pilot-verified.
-- **Reviewed main:** `94d14f56a526670d2c0ecb150ab9f08b4f034389`. The main-push workflow checks were queued immediately after merge; PR final-head required checks were all successful.
+- **Reviewed main:** `94d14f56a526670d2c0ecb150ab9f08b4f034389`. The PR final-head required checks were all successful; the separate main-push workflow is not used as a substitute for the PR's final-head evidence.
 - [ ] **Next gate:** authorized Frappe v16.5 staging remains required for deployed SHA, dashboard screenshots, effective-role permissions, D1/D2 native-report reconciliation, Helpdesk SLA, scheduler/mail/realtime/webhook recovery and backup/restore/rollback evidence.
