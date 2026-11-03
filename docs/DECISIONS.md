@@ -897,6 +897,9 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Verification:** PR #112 updates documentation and a static contract test. Require final-head Quality, Security, Python 3.10–3.14 and Bench v15/v16 (including pinned Frappe 16.5.0) checks. The test-path change must trigger the Python and Bench lanes; this is not pilot verification.
 
 
+- **ADR-090 final verification:** PR #112 merged as [`d2e1d873a8f257545596379e179aeb3e4de40dd4`](https://github.com/MitMike/crm_signals/commit/d2e1d873a8f257545596379e179aeb3e4de40dd4) from final head `f68939ba5e2977ed62698e2a78084277fa091479`. All 18 final-head check runs passed, including Quality, Python 3.10/3.11/3.12/3.14, Semgrep, Bench v15/v16 + Playwright and the pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 lane. This proves reference-stack CI only; first-install/upgrade rehearsal on the target staging site remains required.
+
+
 ## ADR-091 — Describe the implemented standard Helpdesk adapter accurately in the support guide
 
 - **Status:** Accepted
