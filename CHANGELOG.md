@@ -653,3 +653,9 @@ PR #125 merged as [7029747](https://github.com/MitMike/crm_signals/commit/702974
 - Expanded the target-site acceptance kit with safe API-key/secret generation, silent entry, and post-test rotation/revocation instructions for the dedicated synthetic Sales User.
 
 - Final code head `b9f72471d7cd7102023454cfef3ca491e950d5af` passed Quality/Python, Security/Semgrep, Bench v15/v16 + Playwright (19 tests on v16) and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 (4 Playwright tests). The operator kit now documents API-key generation, silent entry and post-test rotation/revocation; the smoke script disables shell xtrace before handling secrets.
+
+### 2026-11-03 — PR #133 merged — cookie-independent Sales User API-token permission regression
+
+- PR #133 merged as `b2f1d07db7fdf8b6cafdaced7b0aaeefc74f9397` from final PR head `9a1a19c207e9bdff6cfb8df445bacb390d9478b6`; code head `b9f72471d7cd7102023454cfef3ca491e950d5af` contains the implementation and E2E test.
+- All four fresh final-head workflows passed: Quality/Python `41685961000`, Security/Semgrep `41685960990`, Bench v15/v16 + Playwright `41685961276` (19 tests on v16), and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 `41685961014` (4 focused Playwright tests).
+- The operator kit covers API credential generation, silent entry, HTTPS/no-redirect handling and post-test rotation/revocation. CI evidence is reference-stack only; authorized target-site transport and permission acceptance remain open.
