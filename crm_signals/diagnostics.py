@@ -364,7 +364,7 @@ def _effective_user_permissions(test_users, doctype_reports):
         "DocType-level and field-level read checks only; record-level User Permissions, "
         "ownership and document-share visibility must still be tested with representative records."
     )
-    if not test_users:
+    if test_users is None:
         return {
             "available": False,
             "reason": "test_users_not_supplied",
@@ -373,6 +373,13 @@ def _effective_user_permissions(test_users, doctype_reports):
         }
     if not isinstance(test_users, dict):
         raise ValueError("test_users must map approved profile aliases to User names")
+    if not test_users:
+        return {
+            "available": False,
+            "reason": "test_users_not_supplied",
+            "profiles": {},
+            "scope": scope,
+        }
     if set(test_users) - set(TEST_USER_PROFILES):
         raise ValueError("Unsupported test user profile")
 

@@ -547,3 +547,16 @@ def test_preflight_source_revision_uses_real_clean_sha_and_rejects_untracked_fil
     assert commands[0][-2:] == ["rev-parse", "--show-toplevel"]
     assert commands[1][-3:] == ["status", "--porcelain", "--untracked-files=all"]
     assert "local_override.py" not in repr(dirty_result)
+
+
+
+def test_preflight_rejects_falsey_non_mapping_test_users(monkeypatch):
+    diagnostics = load_diagnostics(monkeypatch)
+
+    for invalid in ([], "", 0):
+        try:
+            diagnostics.get_site_preflight_report(test_users=invalid)
+        except ValueError as error:
+            assert str(error) == "test_users must map approved profile aliases to User names"
+        else:
+            raise AssertionError("falsey non-mapping test_users must be rejected")

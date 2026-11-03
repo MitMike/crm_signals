@@ -416,3 +416,8 @@ Included in PR #19's merge commit [a495919](https://github.com/MitMike/crm_signa
 ### 2026-11-03 — Refactor effective-user CI fixture after lint feedback
 - The first ADR-093 head failed Ruff C901 because the orchestration function exceeded the complexity limit (19 > 15).
 - Split profile and report validation into focused helpers without relaxing lint rules; final-head CI must rerun.
+
+
+### 2026-11-03 — Reject malformed falsey permission-probe input
+- Treat only `None` and an empty dictionary as an omitted optional user mapping.
+- Reject falsey non-mapping values and add regression coverage so malformed operator input cannot silently look like an intentionally unavailable probe.

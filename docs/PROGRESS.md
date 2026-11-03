@@ -438,3 +438,10 @@ PR #100 is code-complete and CI-verified, not pilot-verified. The automated comp
 - **Observed:** Quality Checks on head `51c8e6d` failed in lint with `C901 verify_effective_user_preflight is too complex (19 > 15)`. Other workflows were still running; this was a deterministic code-quality failure, not a Frappe runtime result.
 - **Decision:** keep the same integration coverage and split validation into profile-level and report-level helpers. Do not suppress the complexity rule.
 - **Correction:** refactored the fixture into `_validate_effective_user_preflight_profile`, `_validate_effective_user_preflight_report` and a short orchestration function. A fresh final-head Quality and full integration matrix is required.
+
+
+### PR #120 input-validation hardening
+
+- **Finding:** `_effective_user_permissions` treated every falsey value as “not supplied” before validating the input type. An empty list/string could therefore be reported as an unavailable optional probe instead of rejected as malformed configuration.
+- **Decision:** only `None` or an empty dictionary means the optional mapping was omitted. Reject all non-dictionary values before testing whether the mapping is empty.
+- **Implementation:** added regression coverage for falsey non-mappings (`[]`, empty string and `0`). This is a focused input-contract correction; final-head CI must rerun.

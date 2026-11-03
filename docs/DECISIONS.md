@@ -945,3 +945,8 @@ Append a new ADR with the next available identifier. Include status, date record
 ### ADR-093 CI triage — complexity guard
 
 The first implementation head `51c8e6d` failed Quality lint with Ruff C901: `verify_effective_user_preflight` complexity 19 exceeded the configured maximum 15. The validation logic was split into profile-level and report-level helpers; the complexity rule was not weakened or suppressed. A fresh final-head matrix is required before merge.
+
+
+### ADR-092 input-validation clarification
+
+Only `None` or an empty dictionary represents an omitted optional user mapping. Falsey non-mapping inputs (for example an empty list or empty string) are rejected with `ValueError` rather than silently reported as “not supplied”; a regression test protects this fail-closed input contract.
