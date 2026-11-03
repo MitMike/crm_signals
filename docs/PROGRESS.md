@@ -445,3 +445,11 @@ PR #100 is code-complete and CI-verified, not pilot-verified. The automated comp
 - **Finding:** `_effective_user_permissions` treated every falsey value as “not supplied” before validating the input type. An empty list/string could therefore be reported as an unavailable optional probe instead of rejected as malformed configuration.
 - **Decision:** only `None` or an empty dictionary means the optional mapping was omitted. Reject all non-dictionary values before testing whether the mapping is empty.
 - **Implementation:** added regression coverage for falsey non-mappings (`[]`, empty string and `0`). This is a focused input-contract correction; final-head CI must rerun.
+
+
+### PR #120 account-type validation hardening
+
+- **Finding:** role membership and enabled status alone could accept a Website User carrying a sales role, even though the CRM Signals Desk is intended for System Users.
+- **Decision:** require `User.user_type == System User` before effective DocType/field permission checks. Reject Website Users as `user_type_not_system`; do not run permission checks for them.
+- **Implementation:** add a regression test for an enabled Website User with the Sales User role; assert the probe rejects it without returning account identity. Extend the real-Frappe CI fixture to assert every synthetic profile is a System User.
+- **Status:** code-complete; final-head CI must rerun after this change.

@@ -950,3 +950,8 @@ The first implementation head `51c8e6d` failed Quality lint with Ruff C901: `ver
 ### ADR-092 input-validation clarification
 
 Only `None` or an empty dictionary represents an omitted optional user mapping. Falsey non-mapping inputs (for example an empty list or empty string) are rejected with `ValueError` rather than silently reported as “not supplied”; a regression test protects this fail-closed input contract.
+
+
+### ADR-092 account-type boundary clarification
+
+The optional permission probe now requires each supplied test account to be an enabled Frappe System User, not merely an enabled User with a matching role. Website Users are rejected before DocType checks because they do not have Desk access; the result reports `system_user` as a boolean and `user_type_not_system` without exposing account identity.

@@ -250,3 +250,11 @@ The PR's CI result does not establish that a customer site has the approved SHA,
 - [x] Added a disposable-site Bench smoke that creates synthetic users only when `allow_tests` is enabled and calls the production preflight on real Frappe metadata.
 - [ ] Require final-head Frappe v15, v16 and pinned v16.5.0 workflow success before merging PR #120.
 - [ ] On authorized staging, run the optional probe with approved synthetic accounts and separately verify controlled-record User Permissions, ownership, shares, list/API/report/export and dashboard behavior. CI does not satisfy this gate.
+
+
+## Effective-user probe account-type boundary — PR #120
+
+- [x] Require enabled Frappe System Users; reject Website Users even if they carry a sales role.
+- [x] Add unit regression coverage and assert System User type in the real-Frappe disposable CI fixture.
+- [ ] Require final-head Python, Quality, Security, Bench v15/v16 and pinned v16.5.0 success before merge.
+- [ ] Keep controlled-record and actual Desk/API/report/export/dashboard acceptance as target-site gates.
