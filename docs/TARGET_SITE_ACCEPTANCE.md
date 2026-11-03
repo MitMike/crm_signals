@@ -29,7 +29,7 @@ Record, do not infer:
 
 - [ ] Frappe reports the expected v16.5 patch/build; ERPNext and Helpdesk exact versions are recorded and compatible.
 - [ ] Run the read-only Bench preflight command (`bench --site <site-name> execute crm_signals.diagnostics.get_site_preflight_report`) after deploying a revision containing it; attach reviewed output through the site's approved secure channel. The report includes Company names and threshold amounts and must not be shared publicly.
-- [ ] Confirm `framework.crm_signals_source.available` is true (the checkout has no tracked or untracked changes) and `framework.crm_signals_source.commit_sha` exactly matches the approved full 40-character release SHA recorded above. If unavailable, dirty or mismatched, stop and resolve the checkout/release identity before installation, migration or acceptance; do not infer it from a branch, tag or package version.
+- [ ] Confirm `framework.crm_signals_source.available` is true (the imported package resolves to the CRM Signals Git repository itself, the checkout has no tracked or untracked changes, and Git returned a valid full SHA) and `framework.crm_signals_source.commit_sha` exactly matches the approved full 40-character release SHA recorded above. The preflight rejects an enclosing Bench/monorepo Git root. If unavailable, dirty or mismatched, stop and resolve the checkout/release identity before installation, migration or acceptance; do not infer it from a branch, tag or package version.
 - [ ] CRM Signals is installed and migrated on the intended site.
 - [ ] Installed support, helpdesk, telephony, email and activity apps are inventoried with exact versions.
 - [ ] Every enabled Company and its default currency are recorded.

@@ -92,6 +92,17 @@ bench restart
 
 ## 4. Post-deploy smoke tests
 
+### Release identity preflight
+
+After installation and migration, run the read-only target-site report:
+
+```bash
+bench --site <site-name> execute crm_signals.diagnostics.get_site_preflight_report
+```
+
+Proceed only when `framework.crm_signals_source.available` is true and `framework.crm_signals_source.commit_sha` exactly matches the approved full release SHA. The diagnostic verifies that Git's top-level directory is the CRM Signals repository itself (not an enclosing Bench/monorepo), checks tracked and untracked changes, and validates the full SHA. Each fixed Git query is read-only and bounded to five seconds. A dirty checkout, root mismatch, missing Git, timeout or invalid revision is a stop condition; do not infer identity from a branch or package version. See [Administrator Guide — read-only preflight](ADMIN_GUIDE.md#read-only-target-site-preflight-report) and [Target-Site Acceptance Kit §2](TARGET_SITE_ACCEPTANCE.md#2-preflight-inventory).
+
+
 Run these checks with named test accounts. Record the user, role, result and evidence for each check.
 
 ### Installation and settings

@@ -158,18 +158,47 @@ def test_preflight_source_revision_reports_exact_full_sha(monkeypatch):
 
     def fake_run(command, **kwargs):
         commands.append((command, kwargs))
-        output = "" if "status" in command else f"{sha}\n"
+        if "--show-toplevel" in command:
+            output = "/bench/apps/crm_signals\n"
+        elif "status" in command:
+            output = ""
+        else:
+            output = f"{sha}\n"
         return types.SimpleNamespace(stdout=output)
 
     monkeypatch.setattr(diagnostics.subprocess, "run", fake_run)
 
     assert diagnostics._source_revision() == {"available": True, "commit_sha": sha}
-    assert commands[0][0][-3:] == ["status", "--porcelain", "--untracked-files=all"]
-    assert commands[1][0][-3:] == ["rev-parse", "--verify", "HEAD"]
+    assert commands[0][0][-2:] == ["rev-parse", "--show-toplevel"]
+    assert commands[1][0][-3:] == ["status", "--porcelain", "--untracked-files=all"]
+    assert commands[2][0][-3:] == ["rev-parse", "--verify", "HEAD"]
     for _, options in commands:
         assert options["check"] is True
         assert options["capture_output"] is True
         assert options["timeout"] == 5
+
+
+def test_preflight_source_revision_rejects_parent_git_repository(monkeypatch):
+    diagnostics = load_diagnostics(monkeypatch)
+    commands = []
+    monkeypatch.setattr(
+        diagnostics.importlib,
+        "import_module",
+        lambda app: types.SimpleNamespace(
+            __file__="/bench/apps/crm_signals/crm_signals/__init__.py"
+        ),
+    )
+
+    def parent_repository_run(command, **kwargs):
+        commands.append(command)
+        return types.SimpleNamespace(stdout="/bench/apps\n")
+
+    monkeypatch.setattr(diagnostics.subprocess, "run", parent_repository_run)
+
+    result = diagnostics._source_revision()
+    assert result == {"available": False, "reason": "repository_root_mismatch"}
+    assert len(commands) == 1
+    assert "crm_signals" not in repr(result)
 
 
 def test_preflight_source_revision_fails_closed_for_dirty_checkout(monkeypatch):
@@ -185,13 +214,16 @@ def test_preflight_source_revision_fails_closed_for_dirty_checkout(monkeypatch):
 
     def dirty_run(command, **kwargs):
         commands.append(command)
-        return types.SimpleNamespace(stdout=" M private.py\n")
+        output = "/bench/apps/crm_signals\n" if "--show-toplevel" in command else " M private.py\n"
+        return types.SimpleNamespace(stdout=output)
 
     monkeypatch.setattr(diagnostics.subprocess, "run", dirty_run)
 
     result = diagnostics._source_revision()
     assert result == {"available": False, "reason": "working_tree_dirty"}
-    assert len(commands) == 1
+    assert len(commands) == 2
+    assert commands[0][-2:] == ["rev-parse", "--show-toplevel"]
+    assert commands[1][-3:] == ["status", "--porcelain", "--untracked-files=all"]
     assert "private.py" not in repr(result)
 
 
@@ -228,7 +260,12 @@ def test_preflight_source_revision_rejects_non_sha_output(monkeypatch):
     )
 
     def fake_run(command, **kwargs):
-        output = "" if "status" in command else "main\n"
+        if "--show-toplevel" in command:
+            output = "/bench/apps/crm_signals\n"
+        elif "status" in command:
+            output = ""
+        else:
+            output = "main\n"
         return types.SimpleNamespace(stdout=output)
 
     monkeypatch.setattr(diagnostics.subprocess, "run", fake_run)
