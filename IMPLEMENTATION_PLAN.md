@@ -600,3 +600,9 @@ The first complete PR #130 final-head matrix passed Quality/Python, Security/Sem
 - **Implementation:** remove the version-sensitive currentUserRoles browser helper; add the server-side role guard, browser identity assertion and static regression test. Retain linked document 403, unlinked document 200 and list-only-unlinked assertions.
 - **Status:** correction code-complete on PR #130. Require all four final-head workflows on the corrected commit before merge. Not pilot-verified.
 - **Revisit criteria:** if role fixture validation fails, inspect the User role rows and Frappe role API; if session identity fails, inspect the exact login route, session cookie and identity endpoint response. Do not remove identity validation or weaken permission expectations.
+
+
+
+### PR #130 — static-test follow-up for both Sales and non-sales browser identities (2026-11-03)
+
+The first ADR-100 correction changed the Sales User test but left the existing non-sales dashboard test calling the removed currentUserRoles helper. Quality/Python run 41663119127 caught this in the static contract (Python 3.12: 141 passed, 36 skipped, one failed). The follow-up replaces that role lookup with exact frappe.auth.get_logged_user identity verification and validates the synthetic Employee-only role server-side. The Sales User fixture now rejects elevated Sales Manager/System Manager roles as well. All four workflows must pass on the new final head; the failed head is not mergeable. Not pilot-verified.
