@@ -30,6 +30,9 @@ def load_diagnostics(monkeypatch):
             return user_types.get(name)
         return None
 
+    fake.session = types.SimpleNamespace(user="Administrator")
+    fake.set_user = lambda user: setattr(fake.session, "user", user)
+    fake.get_list = lambda doctype, **kwargs: []
     fake.db = types.SimpleNamespace(
         exists=lambda doctype, name: name in {
             "CRM Signal", "Lead", "Customer", "Opportunity", "Quotation",
@@ -206,8 +209,132 @@ def test_preflight_reports_effective_test_user_doctype_and_field_permissions(mon
     assert matrix["profiles"]["non_sales"]["role_membership_valid"] is True
     assert matrix["profiles"]["non_sales"]["doctype_read"]["Lead"] is False
     assert matrix["profiles"]["non_sales"]["required_field_read"]["Lead"]["status"] is False
-    assert "record-level User Permissions" in matrix["scope"]
+    assert "permission-filtered name-only queries" in matrix["scope"]
+    assert matrix["profiles"]["sales_user"]["record_visibility"] == {
+        "available": False,
+        "reason": "test_records_not_supplied",
+        "doctypes": {},
+        "error_types": {},
+    }
     assert all(username not in repr(report) for username in users.values())
+
+
+
+def test_preflight_reports_record_list_visibility_without_record_or_user_names(monkeypatch):
+    diagnostics = load_diagnostics(monkeypatch)
+    fake = diagnostics.frappe
+    requested = ["LEAD-SYNTHETIC-OWNED", "LEAD-SYNTHETIC-RESTRICTED"]
+    calls = []
+
+    def fake_get_list(doctype, **kwargs):
+        calls.append((fake.session.user, doctype, kwargs))
+        assert fake.session.user == "sales.user@example.invalid"
+        assert kwargs["filters"] == {"name": ["in", requested]}
+        assert kwargs["fields"] == ["name"]
+        assert kwargs["limit_page_length"] == 2
+        return [{"name": requested[0]}]
+
+    monkeypatch.setattr(fake, "get_list", fake_get_list)
+    report = diagnostics.get_site_preflight_report(
+        test_users={"sales_user": "sales.user@example.invalid"},
+        test_records={
+            "sales_user": {
+                "Lead": {
+                    "owned": requested[0],
+                    "restricted": requested[1],
+                }
+            }
+        },
+    )
+    result = report["effective_user_permissions"]["profiles"]["sales_user"]
+    assert result["status"] == "checked"
+    assert result["record_visibility"] == {
+        "available": True,
+        "reason": None,
+        "doctypes": {
+            "Lead": {
+                "status": "checked",
+                "records": {"owned": True, "restricted": False},
+            }
+        },
+        "error_types": {},
+    }
+    assert calls and fake.session.user == "Administrator"
+    serialized = repr(report)
+    assert all(name not in serialized for name in requested)
+    assert "sales.user@example.invalid" not in serialized
+
+
+def test_preflight_record_visibility_skips_queries_when_doctype_read_is_denied(monkeypatch):
+    diagnostics = load_diagnostics(monkeypatch)
+
+    def unexpected_query(*args, **kwargs):
+        raise AssertionError("denied DocType must not be queried")
+
+    monkeypatch.setattr(diagnostics.frappe, "get_list", unexpected_query)
+    report = diagnostics.get_site_preflight_report(
+        test_users={"non_sales": "non.sales@example.invalid"},
+        test_records={
+            "non_sales": {"Lead": {"restricted": "LEAD-SYNTHETIC-RESTRICTED"}}
+        },
+    )
+    result = report["effective_user_permissions"]["profiles"]["non_sales"]
+    assert result["status"] == "checked"
+    assert result["record_visibility"]["doctypes"]["Lead"] == {
+        "status": "doctype_read_denied",
+        "records": {"restricted": False},
+    }
+
+
+def test_preflight_record_visibility_query_errors_fail_closed_and_restore_user(monkeypatch):
+    diagnostics = load_diagnostics(monkeypatch)
+
+    def failed_query(*args, **kwargs):
+        assert diagnostics.frappe.session.user == "sales.user@example.invalid"
+        raise PermissionError("private record name must not be returned")
+
+    monkeypatch.setattr(diagnostics.frappe, "get_list", failed_query)
+    report = diagnostics.get_site_preflight_report(
+        test_users={"sales_user": "sales.user@example.invalid"},
+        test_records={"sales_user": {"Lead": {"sample": "LEAD-SYNTHETIC-ERROR"}}},
+    )
+    result = report["effective_user_permissions"]["profiles"]["sales_user"]
+    assert result["status"] == "partial"
+    assert result["record_visibility"]["doctypes"]["Lead"] == {
+        "status": "error",
+        "records": {"sample": None},
+    }
+    assert result["record_visibility"]["error_types"] == {"Lead": "PermissionError"}
+    assert diagnostics.frappe.session.user == "Administrator"
+    assert "LEAD-SYNTHETIC-ERROR" not in repr(report)
+    assert "private record name" not in repr(report)
+
+
+def test_preflight_rejects_invalid_record_probe_input(monkeypatch):
+    diagnostics = load_diagnostics(monkeypatch)
+    users = {"sales_user": "sales.user@example.invalid"}
+    invalid_records = (
+        ({"sales_user": {"Unknown": {"sample": "DOC-1"}}}, "Unsupported test record DocType"),
+        ({"sales_user": {"Lead": {"Bad Label": "DOC-1"}}}, "Invalid test record label"),
+        ({"sales_user": {"Lead": {"sample": ""}}}, "Test record names must be non-empty strings"),
+        ({"system_manager": {"Lead": {"sample": "DOC-1"}}}, "test_records require a supplied test user profile"),
+    )
+    for records, expected in invalid_records:
+        try:
+            diagnostics.get_site_preflight_report(test_users=users, test_records=records)
+        except ValueError as error:
+            assert expected in str(error)
+        else:
+            raise AssertionError("invalid test_records input must be rejected")
+
+    try:
+        diagnostics.get_site_preflight_report(
+            test_records={"sales_user": {"Lead": {"sample": "DOC-1"}}}
+        )
+    except ValueError as error:
+        assert str(error) == "test_records require test_users"
+    else:
+        raise AssertionError("test_records without test_users must be rejected")
 
 
 def test_preflight_rejects_disabled_and_administrator_test_accounts(monkeypatch):
@@ -256,8 +383,10 @@ def test_preflight_without_test_users_marks_effective_matrix_unavailable(monkeyp
         "reason": "test_users_not_supplied",
         "profiles": {},
         "scope": (
-            "DocType-level and field-level read checks only; record-level User Permissions, "
-            "ownership and document-share visibility must still be tested with representative records."
+            "DocType and required-field read checks; optional bounded list-visibility checks use "
+            "Frappe permission-filtered name-only queries for exact supplied synthetic records. "
+            "Missing and inaccessible records both report false. This does not prove direct form, "
+            "API, report, export, print or dashboard access."
         ),
     }
 
