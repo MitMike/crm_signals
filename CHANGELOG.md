@@ -541,4 +541,4 @@ PR #125 merged as [7029747](https://github.com/MitMike/crm_signals/commit/702974
 
 - Added disposable Sales User/User Permission fixtures for a linked restricted CRM Signal and an unlinked owned signal.
 - Added Playwright same-origin HTTP assertions for document denial, allowed read and filtered list visibility.
-- Extended the pinned Frappe 16.5.0 workflow to run the Playwright suite; final-head CI pending.
+- Extended the pinned Frappe 16.5.0 workflow to run the focused Playwright permission test. The first lint run found a 102-line fixture helper above the 100-line hard limit; split the helper into focused functions without changing the threshold. Corrected final-head CI pending.
