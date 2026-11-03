@@ -193,6 +193,6 @@ The PR's CI result does not establish that a customer site has the approved SHA,
 ## README pinned first-install path — PR #112
 
 - [x] **Documentation consistency fix (ADR-090):** remove the moving `bench get-app --branch main` example. The README now clones directly into `apps/crm_signals`, detaches and verifies the approved full SHA, then runs `bench setup requirements crm_signals` and site installation/migration/build/restart. Existing upgrades link to the Administrator Guide and Deployment Runbook.
-- **Scope:** docs-only; no runtime or dependency changes. The root quick-start now agrees with the already CI-verified detailed operator procedure.
+- **Scope:** documentation and static-test-only; no runtime or dependency changes. The root quick-start now agrees with the detailed operator procedure, and the Python contract test protects the pin-before-requirements ordering.
 - [ ] **Still open — staging rehearsal:** execute both first-install and upgrade sequences on an authorized Frappe v16.5 staging Bench; record the exact approved/deployed SHA, `bench version`, installed-app inventory, command output, migration, asset build, restart and rollback evidence.
 - **Revisit criteria:** staging rehearsal can begin only when an authorized Frappe v16.5 staging window, approved full SHA, named technical owner and site/Bench operator are available. Do not infer success from repository CI.
