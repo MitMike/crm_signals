@@ -622,7 +622,7 @@ def _validate_effective_user_preflight_profile(profile, result, doctypes):
     return failures, doctype_checks, required_field_checks
 
 
-def _validate_effective_user_preflight_report(report, fixtures):
+def _validate_effective_user_preflight_report(report, fixtures, probe_record_name):
     matrix = report.get("effective_user_permissions", {})
     profiles = matrix.get("profiles", {})
     failures = []
@@ -650,9 +650,20 @@ def _validate_effective_user_preflight_report(report, fixtures):
         doctype_checks += profile_doctype_checks
         required_field_checks += profile_field_checks
 
+    record_visibility = profiles.get("system_manager", {}).get("record_visibility", {})
+    signal_visibility = record_visibility.get("doctypes", {}).get("CRM Signal", {})
+    if record_visibility.get("available") is not True:
+        failures.append("synthetic record visibility probe is unavailable")
+    if signal_visibility.get("status") != "checked":
+        failures.append("synthetic CRM Signal list visibility was not checked")
+    if signal_visibility.get("records", {}).get("ci_probe") is not True:
+        failures.append("System Manager cannot list the synthetic CRM Signal")
+
     serialized_matrix = repr(matrix)
     if any(email in serialized_matrix for email, _, _ in fixtures.values()):
         failures.append("effective-user matrix disclosed a synthetic User identity")
+    if probe_record_name in serialized_matrix:
+        failures.append("effective-user matrix disclosed a synthetic record name")
     if failures:
         frappe.throw("Effective-user preflight CI fixture failed: " + "; ".join(failures))
 
@@ -663,13 +674,15 @@ def _validate_effective_user_preflight_report(report, fixtures):
         "available_doctypes": len(available_doctypes),
         "doctype_checks": doctype_checks,
         "required_field_checks": required_field_checks,
+        "record_visibility_checks": 1,
         "identity_disclosed": False,
+        "record_name_disclosed": False,
         "target_site_acceptance": False,
     }
 
 
 def verify_effective_user_preflight():
-    """Exercise the effective-user preflight against real Frappe APIs on a disposable CI site."""
+    """Exercise real Frappe DocType, field and synthetic-record list permissions on a disposable CI site."""
     from crm_signals.diagnostics import get_site_preflight_report
 
     if not frappe.conf.get("allow_tests"):
@@ -705,9 +718,28 @@ def verify_effective_user_preflight():
         for email, first_name, role in fixtures.values():
             _ensure_system_user(email, first_name, role, secrets.token_urlsafe(32))
         frappe.db.commit()
+
+        probe = frappe.get_doc(
+            {
+                "doctype": "CRM Signal",
+                "signal_type": "Website Visit",
+                "priority": "Medium",
+                "message": "CRM Signals CI record visibility probe",
+            }
+        ).insert(ignore_permissions=True)
         report = get_site_preflight_report(
-            test_users={profile: fixture[0] for profile, fixture in fixtures.items()}
+            test_users={profile: fixture[0] for profile, fixture in fixtures.items()},
+            test_records={
+                "system_manager": {
+                    "CRM Signal": {"ci_probe": probe.name},
+                }
+            },
         )
-        return _validate_effective_user_preflight_report(report, fixtures)
+        result = _validate_effective_user_preflight_report(
+            report, fixtures, probe.name
+        )
+        frappe.db.rollback()
+        return result
     finally:
+        frappe.db.rollback()
         frappe.set_user(previous_user)
