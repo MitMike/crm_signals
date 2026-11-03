@@ -520,3 +520,11 @@ PR #125 merged as [7029747](https://github.com/MitMike/crm_signals/commit/702974
 ### 2026-11-03 — PR #126 prior-head verification and session restoration correction
 - The pre-correction head `30a3890a994a3402b4efdf15732843f86a62b789` passed Quality/Python, Security/Semgrep, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 validation.
 - Review found the initial API-test session switch sat outside `try`; move it inside so `finally` restores the original user even if the switch mutates then raises. The corrected head must rerun all four workflows before merge.
+
+
+### 2026-11-03 — PR #126: direct API permission regression
+
+- Added real-Frappe Sales User coverage for `frappe.client.get` and `frappe.client.get_list` using the linked-restricted/unlinked-owned CRM Signal pair; asserted denial, allowed read, filtered list and session restoration.
+- Updated Administrator Guide, Deployment Runbook and Target-Site Acceptance Kit with the direct API acceptance boundary and retained HTTP/browser checks as staging requirements.
+- Final-head Quality/Python, Security/Semgrep, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 workflows all passed; merged as `812aa1eb76fbabc0e7f73a664caa72a1e208feb6`.
+- Reference-stack CI verification only; not pilot or production acceptance.
