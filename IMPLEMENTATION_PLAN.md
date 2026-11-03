@@ -3,7 +3,7 @@
 **Last reviewed:** 2026-11-03  
 **Repository:** [MitMike/crm_signals](https://github.com/MitMike/crm_signals)  
 **Supported framework coverage:** Frappe / ERPNext v15 and v16. **Primary deployment target:** Frappe v16.5; record the exact patch/build and installed ERPNext/Helpdesk versions.  
-**Reviewed main baseline:** [db95812](https://github.com/MitMike/crm_signals/commit/db958124bca6a6704a75f606629c22444716f5b9) (PR #104 merged; main Quality, Security and Bench validation completed successfully); **latest application feature baseline:** [c5720bf](https://github.com/MitMike/crm_signals/commit/c5720bfb3fbe8b554ec6febd549a8d5e58acc1d7).
+**Reviewed main baseline:** [e57d3de](https://github.com/MitMike/crm_signals/commit/e57d3de9bad76d67caaa378bfb91bd0d692b9ec4) (PR #119 merged; 11 applicable PR checks passed and the post-merge main push completed 15 successful checks plus one expected docs-only skip); **latest application feature baseline:** [c5720bf](https://github.com/MitMike/crm_signals/commit/c5720bfb3fbe8b554ec6febd549a8d5e58acc1d7).
 
 This is the execution plan and source of truth for delivery order, scope, dependencies, acceptance gates and exit criteria. The operational state is maintained in [docs/PROGRESS.md](docs/PROGRESS.md); durable choices are in [docs/DECISIONS.md](docs/DECISIONS.md); feature contracts are in [specs/](specs/).
 
@@ -92,7 +92,7 @@ Exit criteria:
 
 Work:
 - [x] **Pin-before-install correction (ADR-077; PR #82 merged as `ac030b1`, CI-verified):** direct clone CRM Signals with remote `upstream`, detach and verify the approved full SHA before `bench setup requirements crm_signals`, site install, migration or asset build; upgrade guidance verifies the Bench remote. Final head `ef4dc09` passed Quality, Security, Frappe v15/v16 Bench + Playwright and pinned Frappe v16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0. Authorized staging rehearsal and target-site acceptance remain open.
-- Run a target-site preflight: framework versions, installed apps, Company default currency, timezone, roles, DocType metadata, workflows, custom fields and permissions.
+- Run a target-site preflight: framework versions, installed apps, Company default currency, timezone, roles, DocType metadata, workflows, custom fields and permissions. ADR-092 / PR #120 adds an optional explicit synthetic-user DocType/field permission probe; record-level and end-to-end checks remain separate.
 - Configure a dedicated integration user, rotateable API credentials, HTTPS, gateway rate limiting and secret storage.
 - Add source DocType, source document name and source event ID to CRM Signals; enforce idempotent inserts for identifiable events.
 - Add a validated CRM Signals Settings singleton for the quotation threshold, Opportunity trigger statuses, Lead stale window, digest time and escalation recipients.
@@ -463,3 +463,14 @@ Remaining target-site gate: authorized Frappe v16.5 staging must confirm exact H
 PR #118 merged as 3cb9f017b1694727f0b1729d5e2af9a7913a7715. All 11 applicable final-head checks passed; the two runtime selectors were skipped as expected for the documentation-only change. It records PR #117's 35/35 final-head verification and the remaining target-site acceptance gates. No runtime code, dependency, schema or site configuration changed.
 
 Main at this reconciliation point: 3cb9f017b1694727f0b1729d5e2af9a7913a7715. The live repository query returned no open PRs or issues. Main-push Quality/Security checks for this documentation merge were still running at the time of review; PR final-head checks passed.
+
+
+## 27. Effective-user permission preflight — PR #120 opening snapshot (2026-11-03)
+
+ADR-092 adds an optional, read-only effective DocType/field permission probe to the existing target-site inventory. The operator supplies aliases mapped to dedicated active synthetic accounts; the code does not search for or choose site users. It validates the expected Sales User, Sales Manager, System Manager or non-sales role boundary, then calls Frappe's `has_permission(..., user=..., throw=False)` and `Meta.get_permitted_fieldnames(user=...)` for the installed preflight DocTypes. Only profile aliases, permission outcomes, status and exception type are returned; account names/emails, credentials and business-document rows are not included.
+
+The Administrator Guide, Deployment Runbook and Target-Site Acceptance Kit document the optional `--kwargs` invocation. The output proves only DocType-level and required-field-level read access for the supplied accounts. Row-level User Permissions, ownership, shares, list filters, API/report/export and dashboard visibility still require controlled-record acceptance on the site.
+
+**Status at PR opening:** code-complete; CI pending. Tests cover allowed/denied DocType and field results, disabled and Administrator rejection, absent-user unavailable state, unknown alias rejection and identity non-disclosure. Final-head Python 3.10–3.14, Quality, Security/Semgrep, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 validation are required before merge. This is not pilot verification.
+
+**Release blocker remains:** no authorized Frappe v16.5 staging session, approved full SHA, named owners or synthetic site accounts are available in this repository review. Revisit only when those inputs are supplied; then run the optional probe and the full controlled-record permission matrix, finance reconciliation, Helpdesk SLA, deployment/rollback and operational recovery acceptance. Do not treat reference-stack CI as site evidence.
