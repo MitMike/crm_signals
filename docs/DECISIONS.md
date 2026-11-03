@@ -1190,3 +1190,7 @@ PR #130 merged as `2b697b4d37a12b2e339bcf680ff808f23b97850f` from final tested h
 ### ADR-102 CI triage — static contract matched the full endpoint path (2026-11-03)
 
 The first Quality/Python run on the PR #131 head failed one Python 3.11 static assertion (143 passed, 36 skipped, 1 failed). The spec correctly matches the full `/api/method/frappe.desk.form.load.getdoc` URL pathname; the new guard incorrectly searched for a quoted bare method name. Correct the guard to assert the full path. No browser test or permission assertion ran in the failed job; the direct-form test and 403/200 expectations are unchanged. Require a fresh complete final-head matrix.
+
+### ADR-102 second CI triage — match the actual template-literal route and Prettier output
+
+Quality run `41675975692` found a second static assertion mismatch: the route is authored as a template literal (`/app/crm-signal/`), not a double-quoted string. Its lint job `126056667745` reported exactly two Prettier changes: remove one extra blank line before `openCrmSignalForm` and keep the short test callback signature on one line. Apply those source-aligned corrections only. No browser or Frappe permission assertion ran in the failed jobs; fresh final-head CI is required.
