@@ -649,7 +649,7 @@ def test_target_site_acceptance_checks_report_view_and_csv_export_permissions():
 def test_sales_user_crm_signals_dashboard_api_preserves_linked_party_permissions():
     spec = (ROOT / "e2e/sahdev-dashboard.spec.ts").read_text()
     assert (
-        'test("Sales User and non-sales dashboard API permission boundaries"'
+        'test("Sales User CRM Signals dashboard API respects linked Lead User Permission"'
         in spec
     )
     assert '"crm_signals.api.get_dashboard_data"' in spec
@@ -660,7 +660,7 @@ def test_sales_user_crm_signals_dashboard_api_preserves_linked_party_permissions
 def test_non_sales_dashboard_api_respects_effective_source_permissions():
     spec = (ROOT / "e2e/sahdev-dashboard.spec.ts").read_text()
     assert (
-        'test("Sales User and non-sales dashboard API permission boundaries"'
+        'test("Users without a Sales role cannot open the Compass"'
         in spec
     )
     assert "expect(compass?.leads?.available).toBe(false)" in spec
