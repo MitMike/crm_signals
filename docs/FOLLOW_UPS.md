@@ -160,7 +160,7 @@ The PR's CI result does not establish that a customer site has the approved SHA,
 
 ## Real-Git clean/dirty source identity regression — PR #109 opening snapshot (merged; see below)
 
-- [ ] **PR #109:** [test: exercise real clean and dirty preflight Git states](https://github.com/MitMike/crm_signals/pull/109). The test initializes a temporary CRM Signals repository, commits the package, checks that preflight returns the exact real SHA, then adds an untracked Python file and checks that preflight fails closed with `working_tree_dirty` without reading `HEAD`.
+- **PR #109 at opening:** [test: exercise real clean and dirty preflight Git states](https://github.com/MitMike/crm_signals/pull/109). The test initializes a temporary CRM Signals repository, commits the package, checks that preflight returns the exact real SHA, then adds an untracked Python file and checks that preflight fails closed with `working_tree_dirty` without reading `HEAD`.
 - **Decision:** ADR-089 complements ADR-087/088 by exercising both real clean and dirty Git behavior; mocked tests remain responsible for deterministic error injection.
 - **Revisit criteria:** if a final-head Python/Quality/Security/Bench/pinned lane fails, inspect the exact job log and fix the test/environment issue before merge. If Git is absent in any supported CI lane, make that prerequisite explicit rather than silently skipping the integration test. No runtime or site configuration change is included.
 - **Status at PR opening:** code-complete; CI pending; not pilot-verified. Final merge evidence is recorded below. The separate target-site acceptance blocker remains unchanged.
