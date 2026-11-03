@@ -1016,3 +1016,8 @@ A focused code review found that the first implementation returned immediately w
 - **Consequences:** Integration-test only. The CI test calls the whitelisted Python functions directly; it does not validate HTTP authentication, cookies, routing, reverse-proxy behavior or browser form loading. Those remain staging checks. No runtime, schema, dependency, metric or site configuration changes.
 - **Revisit criteria:** If Frappe v15/v16 changes the `frappe.client.get` or `get_list` wrapper contracts, inspect the exact versioned implementation and update the regression without weakening the denied/allowed record boundary. Do not replace the API wrappers with `get_all` or use Administrator credentials.
 - **Verification status:** PR #126 is code-complete; final-head Quality/Python, Security/Semgrep, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 validation are pending. Not pilot-verified.
+
+
+### ADR-096 CI triage — Ruff import ordering
+
+The first Quality lint run on head `a5998ec` failed only on Ruff `I001` for a local `frappe.client` import. Move `get`/`get_list` imports into the module's existing guarded Frappe import block so non-Bench unit environments still skip the integration class cleanly. Keep Ruff enforcement unchanged and rerun the full final-head matrix. If the import issue recurs, apply Ruff's exact import ordering; if the real-Frappe API methods differ, inspect v15/v16 implementations without weakening the expected denied/allowed boundary.
