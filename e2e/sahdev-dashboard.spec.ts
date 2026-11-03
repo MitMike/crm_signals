@@ -156,29 +156,26 @@ function dashboardPayload(overrides: Record<string, unknown> = {}) {
 }
 
 async function frappeMethodGetWithToken(
-    page: Page,
     method: string,
     params: Record<string, string>,
     apiKey: string,
     apiSecret: string
 ): Promise<{ status: number; body: unknown }> {
-    return page.evaluate(
-        async ({ method, params, apiKey, apiSecret }) => {
-            const query = new URLSearchParams(params);
-            const response = await fetch(
-                "/api/method/" + method + "?" + query.toString(),
-                {
-                    credentials: "omit",
-                    headers: {
-                        Authorization: `token ${apiKey}:${apiSecret}`
-                    }
-                }
-            );
-            const body = await response.json().catch(() => ({}));
-            return { status: response.status, body };
-        },
-        { method, params, apiKey, apiSecret }
+    const baseUrl = process.env.BASE_URL;
+    if (!baseUrl) throw new Error("BASE_URL is required for API-token E2E");
+
+    const query = new URLSearchParams(params);
+    const response = await fetch(
+        new URL("/api/method/" + method + "?" + query.toString(), baseUrl),
+        {
+            headers: {
+                Authorization: `token ${apiKey}:${apiSecret}`
+            },
+            redirect: "manual"
+        }
     );
+    const body = await response.json().catch(() => ({}));
+    return { status: response.status, body };
 }
 
 async function mockDashboard(page: Page, message: Record<string, unknown>) {
@@ -646,7 +643,6 @@ test("Sales User API token respects linked Lead User Permission", async ({
     expect(apiSecret).toBeTruthy();
 
     const identity = await frappeMethodGetWithToken(
-        page,
         "frappe.auth.get_logged_user",
         {},
         apiKey!,
