@@ -628,3 +628,12 @@ PR #125 merged as [7029747](https://github.com/MitMike/crm_signals/commit/702974
 
 - The next Quality run exposed a second static guard mismatch because the direct form route is a TypeScript template literal, and Prettier reported two exact formatting differences in the new Playwright spec.
 - Updated the guard to match the actual route syntax and applied the Prettier output. No runtime or permission assertion failed; fresh final-head CI is required.
+
+
+### 2026-11-03 — PR #131 merged — direct CRM Signal form-load permission regression
+
+- Added a Sales User Playwright check for the actual Desk form loader GET request: linked-restricted CRM Signal returns 403 without exposing its message; unlinked-owned CRM Signal returns 200 with its expected message.
+- Ran the new direct-form test in the supported Frappe v16 suite and pinned Frappe 16.5.0 lane; retained Frappe v15 Bench integration coverage.
+- Standardized both Bench E2E workflows on lockfile-enforced `npm ci` and masked generated E2E passwords before GitHub Actions step-output propagation.
+- Final head `a72ebffbae116adf06830473bb15d764a169651b` passed Quality/Python `41676858036`, Security/Semgrep `41676862616`, Bench v15/v16 + Playwright `41676858619` (18 Playwright tests passed on v16), and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 `41676858020` (3 focused Playwright tests passed).
+- Merged as `08f269cdfaedc58fd4ce396c823d589e7dd3481b`. Reference-stack CI verification only; live API-token, direct-form, report/export/print/dashboard and production acceptance remain outstanding.
