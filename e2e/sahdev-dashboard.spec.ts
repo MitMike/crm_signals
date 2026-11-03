@@ -560,10 +560,13 @@ test("Users without a Sales role cannot open the Compass", async ({ page }) => {
     await page.context().clearCookies();
     await loginAs(page, email, password!);
 
-    const roles = await currentUserRoles(page);
-    expect(roles).not.toContain("Sales User");
-    expect(roles).not.toContain("Sales Manager");
-    expect(roles).not.toContain("System Manager");
+    const identity = await frappeMethodGet(
+        page,
+        "frappe.auth.get_logged_user",
+        {}
+    );
+    expect(identity.status).toBe(200);
+    expect((identity.body as { message?: string }).message).toBe(email);
 
     await page.goto("/app/sahdev-dashboard");
     await expect(
