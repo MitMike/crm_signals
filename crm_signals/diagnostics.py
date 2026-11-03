@@ -423,13 +423,10 @@ def _validate_test_record_doctypes(doctypes, total_records):
                 label, name, seen_names
             )
             profile_records += 1
-            total_records[0] += 1
             if profile_records > MAX_TEST_RECORDS_PER_PROFILE:
                 raise ValueError("Too many test records for profile")
-            if total_records[0] > MAX_TEST_RECORDS_TOTAL:
-                raise ValueError("Too many test records")
         normalized[doctype] = normalized_records
-    return normalized
+    return normalized, profile_records
 
 
 def _validate_test_records(test_records, test_users):
@@ -448,9 +445,12 @@ def _validate_test_records(test_records, test_users):
         raise ValueError("test_records require a supplied test user profile")
 
     normalized = {}
-    total_records = [0]
+    total_records = 0
     for profile, doctypes in sorted(test_records.items()):
-        normalized[profile] = _validate_test_record_doctypes(doctypes, total_records)
+        normalized[profile], profile_records = _validate_test_record_doctypes(doctypes)
+        total_records += profile_records
+        if total_records > MAX_TEST_RECORDS_TOTAL:
+            raise ValueError("Too many test records")
     return normalized
 
 
