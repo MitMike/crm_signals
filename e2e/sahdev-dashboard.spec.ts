@@ -842,6 +842,110 @@ test("Sales User REST resource API token respects linked Lead User Permission", 
     expect(visibleNames).toEqual([unlinkedSignal!.name]);
 });
 
+test("Sales User report view and CSV export respect linked Lead User Permission", async ({
+    page
+}) => {
+    await loginAsAdministrator(page);
+
+    const linkedMessage = "CRM Signals E2E linked restricted signal";
+    const unlinkedMessage = "CRM Signals E2E unlinked owned signal";
+    const fixtureResponse = await frappeMethodGet(
+        page,
+        "frappe.client.get_list",
+        {
+            doctype: "CRM Signal",
+            fields: JSON.stringify(["name", "message"]),
+            filters: JSON.stringify([
+                ["message", "in", [linkedMessage, unlinkedMessage]]
+            ]),
+            limit_page_length: "10"
+        }
+    );
+    expect(fixtureResponse.status).toBe(200);
+    const fixtureRows =
+        (
+            fixtureResponse.body as {
+                message?: Array<{ name: string; message: string }>;
+            }
+        ).message || [];
+    expect(fixtureRows).toHaveLength(2);
+
+    const linkedSignal = fixtureRows.find(
+        (row) => row.message === linkedMessage
+    );
+    const unlinkedSignal = fixtureRows.find(
+        (row) => row.message === unlinkedMessage
+    );
+    expect(linkedSignal).toBeTruthy();
+    expect(unlinkedSignal).toBeTruthy();
+
+    const apiKey = process.env.E2E_SALES_API_KEY;
+    const apiSecret = process.env.E2E_SALES_API_SECRET;
+    const email = process.env.E2E_SALES_USER || "e2e-sales-user@example.com";
+    expect(apiKey).toBeTruthy();
+    expect(apiSecret).toBeTruthy();
+
+    const identity = await frappeMethodGetWithToken(
+        "frappe.auth.get_logged_user",
+        {},
+        apiKey!,
+        apiSecret!
+    );
+    expect(identity.status).toBe(200);
+    expect((identity.body as { message?: string }).message).toBe(email);
+
+    const filters = JSON.stringify([
+        [
+            "CRM Signal",
+            "name",
+            "in",
+            [linkedSignal!.name, unlinkedSignal!.name]
+        ]
+    ]);
+    const reportView = await frappeMethodGetWithToken(
+        "frappe.desk.reportview.get_list",
+        {
+            doctype: "CRM Signal",
+            fields: JSON.stringify(["name", "message"]),
+            filters,
+            limit_page_length: "10"
+        },
+        apiKey!,
+        apiSecret!
+    );
+    expect(reportView.status).toBe(200);
+    const reportRows =
+        (reportView.body as {
+            message?: Array<{ name: string; message: string }>;
+        }).message || [];
+    expect(reportRows.map((row) => row.name)).toEqual([
+        unlinkedSignal!.name
+    ]);
+    expect(reportRows[0]?.message).toBe(unlinkedMessage);
+
+    const exportResponse = await frappeMethodGetWithToken(
+        "frappe.desk.reportview.export_query",
+        {
+            doctype: "CRM Signal",
+            fields: JSON.stringify(["name", "message"]),
+            filters,
+            file_format_type: "CSV",
+            title: "CRM Signals E2E permission export",
+            csv_delimiter: ",",
+            csv_quoting: "2"
+        },
+        apiKey!,
+        apiSecret!
+    );
+    expect(exportResponse.status).toBe(200);
+    expect(typeof exportResponse.body).toBe("string");
+    const csv = exportResponse.body as string;
+    expect(csv).toContain(unlinkedSignal!.name);
+    expect(csv).toContain(unlinkedMessage);
+    expect(csv).not.toContain(linkedSignal!.name);
+    expect(csv).not.toContain(linkedMessage);
+});
+
 test("Sales User CRM Signal form permission boundary", async ({ page }) => {
     await loginAsAdministrator(page);
 
