@@ -419,6 +419,6 @@ ADR-090 corrects the root README's first-install command. The former `bench get-
 
 The README now uses the established safe order: direct clone with the `upstream` remote, fetch, detach at the approved full SHA, verify `HEAD`, then run `bench setup requirements crm_signals`, site install, migration, asset build and restart. Existing-install upgrades link to the detailed operator procedure.
 
-PR #112 is documentation-only and has no runtime or dependency changes. Final-head Quality, Security and stable Bench checks must pass; runtime execution may skip only after successful path detection. **Status at opening:** documentation code-complete, CI pending, not pilot-verified.
+PR #112 updates documentation and the static operator-installation contract test; no runtime or dependency changes. The test change must trigger Python 3.10–3.14, Bench v15/v16 and pinned Frappe 16.5.0 validation in addition to Quality and Security. **Status at opening:** documentation and static regression code-complete, CI pending, not pilot-verified.
 
 **Next release gate remains unchanged:** execute the first-install and upgrade sequence, preflight, effective-role tests, D1/D2 finance reconciliation, Helpdesk SLA acceptance, dashboard visual UAT, operational recovery and backup/restore/rollback on an authorized Frappe v16.5 staging site. No such site evidence is available from repository CI.
