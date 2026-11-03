@@ -410,9 +410,19 @@ PR #128 merged as `85c492ea2c84444d7cc45c0d61706736fa972a83`. Quality/Python run
 
 - [x] Inspect the Python 3.12 failure and identify the static regression assertion that found the remaining currentUserRoles call in the Employee browser test.
 - [x] Replace the Employee browser role lookup with exact frappe.auth.get_logged_user identity verification.
+- [x] Remove the final currentUserRoles reference from the new Sales User HTTP permission test after full-file review found the earlier replacement had targeted a different Sales User dashboard test.
 - [x] Enforce the Employee-only role boundary server-side and reject Sales Manager/System Manager on the synthetic Sales User fixture.
 - [x] Keep the static contract guarding against reintroduction of the version-sensitive role endpoint.
 - [ ] Require fresh Quality/Python, Security/Semgrep, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 Playwright workflows on the latest head.
 - [ ] Merge only after all required final-head checks pass and the branch remains current.
-- **Evidence:** Quality run 41663119127, Python 3.12 job 126011616454; 141 passed, 36 skipped, one failed static contract because currentUserRoles remained in the non-sales test. No permission assertion was run.
+- **Evidence:** Quality run 41663119127, Python 3.12 job 126011616454; 141 passed, 36 skipped, one failed static contract because currentUserRoles remained in the new HTTP permission test and Employee dashboard test. No permission assertion was run.
 - **Revisit criteria:** if role fixture guards fail, inspect exact User role rows; if browser identity fails, inspect session cookie and frappe.auth.get_logged_user. Do not weaken permission expectations or use Administrator for Sales User requests.
+
+
+
+### PR #130 — final HTTP-test role lookup removal (2026-11-03)
+
+- [x] Inspect the full E2E file after the static contract failure; identify the remaining role lookup in the new Sales User HTTP permission test.
+- [x] Replace it with exact frappe.auth.get_logged_user identity verification.
+- [ ] Rerun all four final-head workflows; the previous Python failure remains a failed check on its own head and cannot be reused as verification.
+- **Revisit criteria:** if the identity endpoint fails, inspect the browser session and response; if the permission assertions fail, inspect the exact Frappe 16.5 permission behavior without weakening linked-denied/unlinked-allowed expectations.
