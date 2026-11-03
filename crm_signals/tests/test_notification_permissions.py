@@ -227,8 +227,8 @@ class TestCRMSignalNotificationPermissions(FrappeTestCase):
 
     def _assert_sales_user_document_api_visibility(self, user, linked_signal, unlinked_signal):
         original_user = frappe.session.user
-        frappe.set_user(user.name)
         try:
+            frappe.set_user(user.name)
             with self.assertRaises(frappe.PermissionError):
                 frappe.client.get("CRM Signal", linked_signal.name)
 
