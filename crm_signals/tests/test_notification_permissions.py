@@ -223,3 +223,32 @@ class TestCRMSignalNotificationPermissions(FrappeTestCase):
         self.assertNotIn(user.name, serialized_report)
         self.assertNotIn(linked_signal.name, serialized_report)
         self.assertNotIn(unlinked_signal.name, serialized_report)
+        self._assert_sales_user_document_api_visibility(user, linked_signal, unlinked_signal)
+
+    def _assert_sales_user_document_api_visibility(self, user, linked_signal, unlinked_signal):
+        from frappe.client import get as api_get, get_list as api_get_list
+
+        original_user = frappe.session.user
+        frappe.set_user(user.name)
+        try:
+            with self.assertRaises(frappe.PermissionError):
+                api_get("CRM Signal", linked_signal.name)
+
+            visible_document = api_get("CRM Signal", unlinked_signal.name)
+            self.assertEqual(visible_document["name"], unlinked_signal.name)
+
+            visible_rows = api_get_list(
+                "CRM Signal",
+                fields=["name"],
+                filters={"name": ["in", [linked_signal.name, unlinked_signal.name]]},
+                limit_page_length=10,
+            )
+            self.assertEqual(
+                {row["name"] for row in visible_rows},
+                {unlinked_signal.name},
+            )
+        finally:
+            frappe.set_user(original_user)
+
+        self.assertEqual(frappe.session.user, original_user)
+
