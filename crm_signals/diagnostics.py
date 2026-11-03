@@ -1,10 +1,12 @@
 """Read-only target-site inventory for operators using bench execute.
 
-This module intentionally exposes no whitelisted HTTP method. The report reads
-configuration and DocType metadata only; it never reads business-document rows.
+This module exposes no whitelisted HTTP method. By default, the report reads
+configuration and DocType metadata only. An explicitly requested synthetic-record
+probe performs bounded, permission-filtered name-only list queries.
 """
 
 import importlib
+import re
 import subprocess
 from pathlib import Path
 
@@ -35,6 +37,10 @@ PREFLIGHT_DOCTYPES = {
     "HD Service Level Agreement": (),
 }
 WORKFLOW_DOCTYPES = {"Lead", "Opportunity"}
+TEST_RECORD_DOCTYPES = set(PREFLIGHT_DOCTYPES) - {"HD Service Level Agreement"}
+MAX_TEST_RECORDS_PER_PROFILE = 50
+MAX_TEST_RECORDS_TOTAL = 100
+TEST_RECORD_LABEL_PATTERN = re.compile(r"^[a-z][a-z0-9_]{0,39}$")
 
 
 def _value(row, key, default=None):
@@ -370,13 +376,203 @@ def _test_user_doctype_permissions(username, doctype_reports):
     return doctype_read, required_field_read, error_types
 
 
-def _effective_user_permissions(test_users, doctype_reports):
-    """Check explicitly supplied synthetic users without returning their identities."""
+def _empty_record_visibility(reason):
+    return {
+        "available": False,
+        "reason": reason,
+        "doctypes": {},
+        "error_types": {},
+    }
+
+
+def _validate_test_record_name(label, name, seen_names):
+    """Validate one non-sensitive output label and normalize its supplied record name."""
+    if not isinstance(label, str) or not TEST_RECORD_LABEL_PATTERN.fullmatch(label):
+        raise ValueError("Invalid test record label")
+    if not isinstance(name, str) or not name.strip() or len(name.strip()) > 140:
+        raise ValueError(
+            "Test record names must be non-empty strings of at most 140 characters"
+        )
+    name = name.strip()
+    if name in seen_names:
+        raise ValueError("Duplicate test record name for DocType")
+    seen_names.add(name)
+    return name
+
+
+def _validate_test_record_doctypes(doctypes):
+    """Validate one profile's bounded DocType-to-record mapping."""
+    if not isinstance(doctypes, dict) or not doctypes:
+        raise ValueError("Each test record profile must contain DocType mappings")
+    if not all(isinstance(doctype, str) for doctype in doctypes):
+        raise ValueError("Test record DocType names must be strings")
+
+    normalized = {}
+    profile_records = 0
+    for doctype, records in sorted(doctypes.items()):
+        if doctype not in TEST_RECORD_DOCTYPES:
+            raise ValueError("Unsupported test record DocType")
+        if not isinstance(records, dict) or not records:
+            raise ValueError("Each test record DocType must contain labeled records")
+        if not all(isinstance(label, str) for label in records):
+            raise ValueError("Test record labels must be strings")
+        normalized_records = {}
+        seen_names = set()
+        for label, name in sorted(records.items()):
+            normalized_records[label] = _validate_test_record_name(
+                label, name, seen_names
+            )
+            profile_records += 1
+            if profile_records > MAX_TEST_RECORDS_PER_PROFILE:
+                raise ValueError("Too many test records for profile")
+        normalized[doctype] = normalized_records
+    return normalized, profile_records
+
+
+def _validate_test_records(test_records, test_users):
+    """Validate bounded alias-to-synthetic-record input without retaining output identities."""
+    if test_records is None or test_records == {}:
+        return {}
+    if not isinstance(test_records, dict):
+        raise ValueError("test_records must map profile aliases to DocType record labels")
+    if not isinstance(test_users, dict) or not test_users:
+        raise ValueError("test_records require test_users")
+    if not all(isinstance(profile, str) for profile in test_records):
+        raise ValueError("Test record profile aliases must be strings")
+    if set(test_records) - set(TEST_USER_PROFILES):
+        raise ValueError("Unsupported test record profile")
+    if set(test_records) - set(test_users):
+        raise ValueError("test_records require a supplied test user profile")
+
+    normalized = {}
+    total_records = 0
+    for profile, doctypes in sorted(test_records.items()):
+        normalized[profile], profile_records = _validate_test_record_doctypes(doctypes)
+        total_records += profile_records
+        if total_records > MAX_TEST_RECORDS_TOTAL:
+            raise ValueError("Too many test records")
+    return normalized
+
+
+def _record_visibility_for_doctype(doctype, records, summary, doctype_read):
+    """Check one bounded DocType group and return labels only."""
+    labels = list(records)
+    unavailable = {label: None for label in labels}
+    if not summary.get("available"):
+        return {"status": "doctype_unavailable", "records": unavailable}, None
+    if doctype_read.get(doctype) is False:
+        return {
+            "status": "doctype_read_denied",
+            "records": {label: False for label in labels},
+        }, None
+    if doctype_read.get(doctype) is not True:
+        return {
+            "status": "doctype_permission_unavailable",
+            "records": unavailable,
+        }, None
+
+    names = list(records.values())
+    try:
+        rows = frappe.get_list(
+            doctype,
+            filters={"name": ["in", names]},
+            fields=["name"],
+            limit_page_length=len(names),
+        )
+        visible_names = set()
+        for row in rows:
+            name = _value(row, "name")
+            if name:
+                visible_names.add(str(name))
+        return {
+            "status": "checked",
+            "records": {
+                label: name in visible_names for label, name in records.items()
+            },
+        }, None
+    except Exception as error:
+        return {
+            "status": "error",
+            "records": unavailable,
+        }, type(error).__name__
+
+
+def _test_user_record_visibility(username, record_specs, doctype_reports, doctype_read):
+    """Check exact synthetic record names with permission-filtered name-only list queries."""
+    if not record_specs:
+        return _empty_record_visibility("test_records_not_supplied")
+
+    session = getattr(frappe, "session", None)
+    previous_user = getattr(session, "user", None)
+    if not isinstance(previous_user, str) or not previous_user:
+        return _empty_record_visibility("session_user_unavailable")
+
+    results = {}
+    errors = {}
+    try:
+        try:
+            frappe.set_user(username)
+        except Exception as error:
+            errors["session_switch"] = type(error).__name__
+            results = {
+                doctype: {
+                    "status": "session_switch_failed",
+                    "records": {label: None for label in records},
+                }
+                for doctype, records in record_specs.items()
+            }
+        else:
+            for doctype, records in sorted(record_specs.items()):
+                result, error_type = _record_visibility_for_doctype(
+                    doctype,
+                    records,
+                    doctype_reports.get(doctype, {}),
+                    doctype_read,
+                )
+                results[doctype] = result
+                if error_type:
+                    errors[doctype] = error_type
+    finally:
+        try:
+            frappe.set_user(previous_user)
+        except Exception as error:
+            errors["session_restore"] = type(error).__name__
+
+    return {
+        "available": True,
+        "reason": None,
+        "doctypes": results,
+        "error_types": errors,
+    }
+
+
+def _record_visibility_has_errors(record_visibility):
+    """Identify supplied record probes that did not reach a definitive outcome."""
+    if not record_visibility.get("available") or record_visibility.get("error_types"):
+        return True
+    incomplete_statuses = {
+        "doctype_unavailable",
+        "doctype_permission_unavailable",
+        "session_switch_failed",
+        "error",
+    }
+    return any(
+        result.get("status") in incomplete_statuses
+        for result in record_visibility.get("doctypes", {}).values()
+    )
+
+
+def _effective_user_permissions(test_users, doctype_reports, test_records=None):
+    """Check explicit synthetic users and, optionally, exact synthetic record visibility."""
     scope = (
-        "DocType-level and field-level read checks only; record-level User Permissions, "
-        "ownership and document-share visibility must still be tested with representative records."
+        "DocType and required-field read checks; optional bounded list-visibility checks use "
+        "Frappe permission-filtered name-only queries for exact supplied synthetic records. "
+        "Missing and inaccessible records both report false. This does not prove direct form, "
+        "API, report, export, print or dashboard access."
     )
     if test_users is None:
+        if test_records not in (None, {}):
+            raise ValueError("test_records require test_users")
         return {
             "available": False,
             "reason": "test_users_not_supplied",
@@ -386,6 +582,8 @@ def _effective_user_permissions(test_users, doctype_reports):
     if not isinstance(test_users, dict):
         raise ValueError("test_users must map approved profile aliases to User names")
     if not test_users:
+        if test_records not in (None, {}):
+            raise ValueError("test_records require test_users")
         return {
             "available": False,
             "reason": "test_users_not_supplied",
@@ -394,6 +592,7 @@ def _effective_user_permissions(test_users, doctype_reports):
         }
     if set(test_users) - set(TEST_USER_PROFILES):
         raise ValueError("Unsupported test user profile")
+    normalized_records = _validate_test_records(test_records, test_users)
 
     profiles = {}
     seen_users = set()
@@ -405,10 +604,22 @@ def _effective_user_permissions(test_users, doctype_reports):
             doctype_read, field_read, errors = _test_user_doctype_permissions(
                 validated_user, doctype_reports
             )
+            record_specs = normalized_records.get(profile, {})
+            record_visibility = _test_user_record_visibility(
+                validated_user, record_specs, doctype_reports, doctype_read
+            )
             result["doctype_read"] = doctype_read
             result["required_field_read"] = field_read
+            result["record_visibility"] = record_visibility
             result["error_types"] = errors
-            result["status"] = "partial" if errors else "checked"
+            has_record_error = bool(record_specs) and _record_visibility_has_errors(
+                record_visibility
+            )
+            result["status"] = "partial" if errors or has_record_error else "checked"
+        else:
+            result["record_visibility"] = _empty_record_visibility(
+                "test_user_not_validated"
+            )
         profiles[profile] = result
 
     return {
@@ -419,13 +630,16 @@ def _effective_user_permissions(test_users, doctype_reports):
     }
 
 
-def get_site_preflight_report(test_users=None):
+
+
+def get_site_preflight_report(test_users=None, test_records=None):
     """Return a bounded, read-only site inventory for bench execute.
 
     Run as an operator from the Bench server with:
     bench --site <site> execute crm_signals.diagnostics.get_site_preflight_report
     This function is intentionally not whitelisted for HTTP access. Optional
-    test_users maps profile aliases to dedicated, non-Administrator test accounts.
+    test_users maps profile aliases to synthetic accounts; test_records maps
+    those profiles to exact synthetic records for name-only list visibility checks.
     """
     companies = frappe.get_all(
         "Company",
@@ -470,7 +684,9 @@ def get_site_preflight_report(test_users=None):
         },
         "active_lead_opportunity_workflows": _workflow_summary(),
         "doctypes": doctype_reports,
-        "effective_user_permissions": _effective_user_permissions(test_users, doctype_reports),
+        "effective_user_permissions": _effective_user_permissions(
+            test_users, doctype_reports, test_records
+        ),
         "acceptance_warning": (
             "Static metadata is not proof of effective user permissions, financial "
             "reconciliation, SLA calendar behavior, or pilot acceptance."

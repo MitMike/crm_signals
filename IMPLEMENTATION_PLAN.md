@@ -3,7 +3,7 @@
 **Last reviewed:** 2026-11-03  
 **Repository:** [MitMike/crm_signals](https://github.com/MitMike/crm_signals)  
 **Supported framework coverage:** Frappe / ERPNext v15 and v16. **Primary deployment target:** Frappe v16.5; record the exact patch/build and installed ERPNext/Helpdesk versions.  
-**Reviewed main baseline:** [a778c47](https://github.com/MitMike/crm_signals/commit/a778c47b5078ac69dd89bdcd3ecab41de09b8072) (PR #120 merged; all 18 final-head check runs passed across Quality, Security/Semgrep, Python 3.10–3.14, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0); **latest application feature baseline:** [c5720bf](https://github.com/MitMike/crm_signals/commit/c5720bfb3fbe8b554ec6febd549a8d5e58acc1d7).
+**Reviewed main baseline:** [8543da5](https://github.com/MitMike/crm_signals/commit/8543da5c2270a816608ba23927a6ee35571e5bde) (PR #121 merged; post-merge Quality Checks, Security Scanning and Bench Integration/E2E workflows completed successfully; PR #120 final-head 18/18 checks passed); **latest application feature baseline:** [c5720bf](https://github.com/MitMike/crm_signals/commit/c5720bfb3fbe8b554ec6febd549a8d5e58acc1d7).
 
 This is the execution plan and source of truth for delivery order, scope, dependencies, acceptance gates and exit criteria. The operational state is maintained in [docs/PROGRESS.md](docs/PROGRESS.md); durable choices are in [docs/DECISIONS.md](docs/DECISIONS.md); feature contracts are in [specs/](specs/).
 
@@ -92,7 +92,7 @@ Exit criteria:
 
 Work:
 - [x] **Pin-before-install correction (ADR-077; PR #82 merged as `ac030b1`, CI-verified):** direct clone CRM Signals with remote `upstream`, detach and verify the approved full SHA before `bench setup requirements crm_signals`, site install, migration or asset build; upgrade guidance verifies the Bench remote. Final head `ef4dc09` passed Quality, Security, Frappe v15/v16 Bench + Playwright and pinned Frappe v16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0. Authorized staging rehearsal and target-site acceptance remain open.
-- Run a target-site preflight: framework versions, installed apps, Company default currency, timezone, roles, DocType metadata, workflows, custom fields and permissions. ADR-092 / PR #120 adds an optional explicit synthetic-user DocType/field permission probe; record-level and end-to-end checks remain separate.
+- Run a target-site preflight: framework versions, installed apps, Company default currency, timezone, roles, DocType metadata, workflows, custom fields and permissions. ADR-092 / PR #120 adds an optional explicit synthetic-user DocType/field probe; ADR-094 / PR #122 adds a bounded name-only `frappe.get_list` visibility probe for explicitly supplied synthetic records. Direct form/API/report/export/print/dashboard acceptance remains separate.
 - Configure a dedicated integration user, rotateable API credentials, HTTPS, gateway rate limiting and secret storage.
 - Add source DocType, source document name and source event ID to CRM Signals; enforce idempotent inserts for identifiable events.
 - Add a validated CRM Signals Settings singleton for the quotation threshold, Opportunity trigger statuses, Lead stale window, digest time and escalation recipients.
@@ -483,3 +483,13 @@ PR #120 merged as [`a778c47`](https://github.com/MitMike/crm_signals/commit/a778
 The optional read-only preflight accepts explicit aliases for active, distinct System User accounts; validates the Sales User, Sales Manager, System Manager and non-sales role boundaries; and reports Frappe user-aware DocType and required-field read outcomes without returning account identities or business rows. The CI-only `allow_tests` fixture exercised the production preflight on real Frappe v15, v16 and pinned v16.5.0 disposable sites. It creates no business documents and does not establish row-level permission or pilot acceptance.
 
 **Status:** code-complete and reference-stack CI-verified; not pilot-verified. The target-site permission matrix still requires controlled-record tests for User Permissions, ownership, shares, list filters, API/report/export and dashboard behavior. The broader P0 gates remain exact deployed SHA/version inventory, D1/D2 native-report reconciliation by currency, Helpdesk SLA calendar and metrics, first-install/upgrade, scheduler/mail/realtime/webhook/worker recovery, backup/restore/rollback and desktop/mobile visual UAT. No authorized staging evidence is available; do not infer it from CI.
+
+
+
+## 29. Synthetic-record list-visibility preflight — PR #122 (2026-11-03)
+
+ADR-094 adds an optional, non-whitelisted `test_records` input to the existing Bench preflight. It accepts exact synthetic record names only for explicitly supplied test-user profiles, known preflight business DocTypes and lowercase non-sensitive labels; limits each profile to 50 records and the request to 100 total. The probe switches to each validated System User, uses permission-filtered `frappe.get_list` with `fields=["name"]`, and returns labels/booleans only. Missing and inaccessible records both return false. Direct form/API/report/export/print/dashboard behavior remains a separate target-site gate.
+
+A review found and corrected a session-safety edge case: if `frappe.set_user(test_user)` mutated the current session and then raised, the old error path returned before restoration. The corrected path records the exception type, marks requested results unavailable and always attempts to restore the original user in a shared `finally`. A regression injects the mutate-then-raise behavior and verifies restoration and non-disclosure.
+
+**Status:** code-complete on PR #122; the prior head passed all four required workflows, but this correction requires a fresh final-head Python 3.10–3.14, Quality, Security/Semgrep, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 matrix. Not merged and not pilot-verified. Authorized Frappe v16.5 staging remains required for actual role/record acceptance.

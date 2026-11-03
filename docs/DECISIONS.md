@@ -955,3 +955,31 @@ Only `None` or an empty dictionary represents an omitted optional user mapping. 
 ### ADR-092 account-type boundary clarification
 
 The optional permission probe now requires each supplied test account to be an enabled Frappe System User, not merely an enabled User with a matching role. Website Users are rejected before DocType checks because they do not have Desk access; the result reports `system_user` as a boolean and `user_type_not_system` without exposing account identity.
+
+
+
+## ADR-094 — Add bounded synthetic-record list-visibility checks to preflight
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-03
+- **Context:** ADR-092/093 verifies that explicit synthetic System Users are active, correctly profiled and have DocType/required-field read access. It does not exercise Frappe's row-filtered list query for a representative record, leaving the first row-level permission step to manual staging checks.
+- **Decision:** Add an optional \`test_records\` mapping keyed by an already supplied profile alias, supported preflight DocType and non-sensitive label, with the exact synthetic record name as the input value. For each validated user, temporarily switch the Frappe session user and call \`frappe.get_list\` with an exact \`name in [...] \` filter, \`fields=["name"]\` and a bounded page size. Return only labels and visibility booleans. Missing and inaccessible records are indistinguishable and both return false. Restore the original session user in \`finally\`.
+- **Safety limits:** accept only the known preflight business DocTypes (not the SLA policy DocType), labels matching lowercase snake case, at most 50 records per profile and 100 total. Never return record names, field values, raw exceptions or user identities. Skip queries when DocType read is denied or unavailable; report only exception type on query/session failure. The probe remains non-whitelisted and read-only.
+- **Rationale:** this exercises Frappe's actual permission-filtered list API, including the DocType's configured User Permission/share/permission-query filters, without exposing business data or allowing arbitrary queries. It reduces manual setup work but does not replace direct form, REST API, report, export, print or dashboard acceptance.
+- **Consequences:** operators must create dedicated synthetic records with known expected visibility and pass their names explicitly. The command can report actual list visibility, but the operator still compares it to the approved role/record matrix. A false result can mean either missing or denied; verify synthetic fixture existence through the controlled setup record. The real-Frappe CI fixture validates one System Manager-visible CRM Signal and rolls it back; it is compatibility evidence only.
+- **Revisit criteria:** revisit if Frappe v15/v16 changes \`frappe.get_list\` permission behavior or \`frappe.set_user\` session semantics, if the preflight DocType allowlist changes, or if security review finds a data-exposure or session-restoration issue. Keep input bounds and identity/name non-disclosure tests.
+- **Verification status:** implementation and tests are in PR #122. Final-head Python 3.10–3.14, Quality, Security/Semgrep, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 checks are required before merge. No pilot verification is claimed.
+
+
+### ADR-094 CI triage — initial validator signature failure
+The first Python matrix run found five failures in the new record-visibility tests because _validate_test_record_doctypes retained a stale total_records parameter after the count-accounting refactor. The call site had already moved to the return-value form. The helper signature was corrected; the failing head remains unmergeable until a fresh full final-head matrix passes.
+
+
+
+### ADR-094 review hardening — restore after a partially failed user switch
+A focused code review found that the first implementation returned immediately when `frappe.set_user(test_user)` raised. If that API mutated the session before raising, the original Bench command session could remain switched because the early return bypassed the restoration `finally` block.
+
+- **Decision:** route both successful and failed user switches through one restoration `finally`; never return from the switch-error handler. If switching fails, mark every requested record as `session_switch_failed`, disclose only the exception type, and still attempt to restore the original session user.
+- **Implementation:** add a regression where the fake `set_user` mutates `frappe.session.user` and then raises. Assert the original user is set again, no list query runs, the result is partial/fail-closed and neither record names nor exception messages are disclosed.
+- **Revisit:** if restoration itself fails, keep the report partial with `session_restore` exception type and stop operator acceptance; do not fall back to direct mutation of Frappe's session object.
+- **Verification:** this correction is on PR #122 after its first complete CI matrix passed; a fresh final-head Python, Quality, Security, Bench v15/v16 + Playwright and pinned v16.5.0 matrix is required before merge.
