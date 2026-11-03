@@ -612,3 +612,9 @@ PR #125 merged as [7029747](https://github.com/MitMike/crm_signals/commit/702974
 - Require 403/no restricted message for the linked signal and 200/expected message for the unlinked owned signal; include both HTTP API and direct-form tests in the pinned Frappe 16.5.0 Playwright selector.
 - Add a static regression guard and document the target-site form check. No production runtime, schema, dependency or site configuration changes.
 - Code-complete on the focused branch; final-head CI pending. Not pilot-verified.
+
+### 2026-11-03 — PR #131 reproducible Bench E2E install correction (ADR-103)
+
+- Review found the supported Frappe v15/v16 Bench E2E workflow still used `npm install` while the pinned v16.5 workflow used `npm ci`.
+- Replaced the supported-lane command with `npm ci --ignore-scripts --no-audit --no-fund`; extended static checks to require lockfile installation and password masking before output propagation in both workflows.
+- No package versions or lockfile changed. Final-head CI pending; not pilot verification.
