@@ -1080,17 +1080,15 @@ The first correction moved aliased API imports into the guarded Frappe import bl
 - **Revisit criteria:** if the restricted record returns anything other than 403 or appears in list results, inspect the exact Frappe build's User Permission and CRM Signal query conditions; do not use Administrator for Sales User assertions. If pinned E2E exceeds 60 minutes, profile setup, install and browser steps before extending the timeout.
 
 
-## ADR-098 — Exercise Sales User record permissions through browser-session HTTP on the pinned target
-
-- **Status:** Accepted
-- **Recorded:** 2026-11-03
-- **Context:** ADR-096's Bench test calls `frappe.client.get` / `get_list` Python wrappers directly; ADR-097 documents a separate API-token HTTP check for operators. The existing Playwright suite only checked dashboard access and did not prove these permission boundaries over a real browser session cookie. The pinned Frappe 16.5.0 workflow did not run Playwright.
-- **Decision:** extend the disposable E2E site bootstrap to create two Leads (one allowed by a Sales User Lead User Permission, one restricted), a linked CRM Signal owned by the Sales User and an unlinked CRM Signal owned by the same user. Verify the fixture's permission-filtered list result before browser tests. In Playwright, discover the synthetic records as Administrator, switch to the dedicated Sales User, then call `frappe.client.get` and `frappe.client.get_list` through same-origin `fetch` with browser session credentials. Require linked get HTTP 403, unlinked get HTTP 200 with the expected name, and list output containing exactly the unlinked signal. Run the same E2E suite on Frappe v16 and pinned Frappe 16.5.0.
-- **Rationale:** this tests actual HTTP routing, session-cookie authentication and method response mapping without placing API secrets in CI or weakening the linked-party permission boundary. The fixture is disposable and test-only.
-- **Consequences:** test/workflow-only. No runtime, schema, dependency or site configuration changes. It does not test API-token authentication, reverse-proxy behavior on a target site, browser form rendering, REST resource endpoints, reports/exports/print/dashboard or production acceptance.
-- **Revisit criteria:** if the restricted record returns anything other than 403 or appears in list results, inspect the exact Frappe build's User Permission and CRM Signal query conditions; do not use Administrator for Sales User assertions. If pinned E2E exceeds 60 minutes, profile setup, install and browser steps before extending the timeout.
-
-
 ### ADR-098 implementation review note (2026-11-03)
 
 The first Quality run flagged `_prepare_e2e_sales_user_permission_fixture` at 102 non-blank lines against the repository's 100-line hard limit. The setup was split into `_ensure_e2e_lead`, `_ensure_e2e_signal` and the smaller fixture coordinator. The next Quality run passed Ruff/code standards and Python but failed Prettier formatting in `e2e/sahdev-dashboard.spec.ts`; the exact formatter diff was applied. No threshold or formatter check was changed or suppressed; corrected final-head checks are required before merge.
+
+
+### ADR-098 workflow reproducibility correction (2026-11-03)
+
+- **Finding:** the new pinned-target Playwright step installed the repository's locked Node dependencies with `npm install`, while Stage 0 and Quality Checks require lockfile-enforced `npm ci`. This made the new integration lane less reproducible than the existing validation policy.
+- **Decision:** use `npm ci --ignore-scripts --no-audit --no-fund` before the explicit `npx playwright install --with-deps chromium` step. Preserve script suppression and the committed package-lock; do not relax the repository's deterministic-install rule.
+- **Documentation cleanup:** remove the duplicated ADR-098 decision block, retaining one canonical decision and its implementation/verification notes.
+- **Verification:** the prior PR head `7bd1837e39b994daae04158eff5a1559fe48f4d8` had Quality and Security passed while Bench v15/v16 and pinned v16.5.0 were still running. This workflow correction creates a new head; all four final-head workflows must pass again before merge. Not pilot-verified.
+- **Revisit criteria:** if `npm ci` reports a package/lock mismatch, repair and commit the lockfile in a separate focused change; do not revert to an unlocked install. If the pinned browser job exceeds the documented 60-minute threshold, inspect job-step durations and logs before changing timeouts.
