@@ -164,8 +164,12 @@ jobs:
       - name: Generate ephemeral E2E user passwords
         id: e2e_credentials
         run: |
-          echo "sales_password=$(python -c 'import secrets; print(secrets.token_urlsafe(24))')" >> "$GITHUB_OUTPUT"
-          echo "employee_password=$(python -c 'import secrets; print(secrets.token_urlsafe(24))')" >> "$GITHUB_OUTPUT"
+          sales_password="$(python -c 'import secrets; print(secrets.token_urlsafe(24))')"
+          employee_password="$(python -c 'import secrets; print(secrets.token_urlsafe(24))')"
+          echo "::add-mask::$sales_password"
+          echo "::add-mask::$employee_password"
+          echo "sales_password=$sales_password" >> "$GITHUB_OUTPUT"
+          echo "employee_password=$employee_password" >> "$GITHUB_OUTPUT"
 
       - name: Prepare ERPNext and Sales User permission E2E fixtures
         working-directory: /home/runner/frappe-bench
