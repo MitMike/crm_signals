@@ -1102,3 +1102,8 @@ The first Quality run flagged `_prepare_e2e_sales_user_permission_fixture` at 10
 - **Regression guard:** the static workflow contract now checks that both generated credentials are masked before their step outputs are written, in addition to requiring lockfile-enforced `npm ci`.
 - **Verification:** this creates a new PR head and requires fresh Quality/Python, Security, Bench v15/v16 + Playwright and pinned v16.5 Playwright checks. Not pilot-verified.
 - **Revisit criteria:** if workflow structure changes, keep masking before output propagation; never log credentials or move them into repository variables/secrets.
+
+
+### ADR-098 static-test formatting triage (2026-11-03)
+
+The first final-head Quality run after adding the workflow regression guard is expected to enforce the repository's 88-character Python line limit. A newly added split expression was 92 characters; it has been wrapped without changing assertions. Keep Ruff enforcement unchanged and require a fresh final-head Quality run.
