@@ -18,6 +18,7 @@ def load_diagnostics(monkeypatch):
         get_value=lambda doctype, name, field: {
             "sales.user@example.invalid": 1,
             "sales.manager@example.invalid": 1,
+            "system.manager@example.invalid": 1,
             "non.sales@example.invalid": 1,
             "disabled.user@example.invalid": 0,
         }.get(name),
@@ -27,6 +28,7 @@ def load_diagnostics(monkeypatch):
     fake.get_roles = lambda user: {
         "sales.user@example.invalid": ["Sales User"],
         "sales.manager@example.invalid": ["Sales Manager"],
+        "system.manager@example.invalid": ["System Manager"],
         "non.sales@example.invalid": ["Employee"],
         "disabled.user@example.invalid": ["Sales User"],
     }.get(user, [])
@@ -70,7 +72,7 @@ def load_diagnostics(monkeypatch):
         ],
     )
     meta.get_permitted_fieldnames = lambda user=None: (
-        ["status"] if user == "sales.manager@example.invalid" else []
+        ["status"] if user in {"sales.manager@example.invalid", "system.manager@example.invalid"} else []
     )
     fake.get_meta = lambda doctype: meta
     monkeypatch.setitem(sys.modules, "frappe", fake)
@@ -167,6 +169,7 @@ def test_preflight_reports_effective_test_user_doctype_and_field_permissions(mon
     users = {
         "sales_user": "sales.user@example.invalid",
         "sales_manager": "sales.manager@example.invalid",
+        "system_manager": "system.manager@example.invalid",
         "non_sales": "non.sales@example.invalid",
     }
 
@@ -180,6 +183,8 @@ def test_preflight_reports_effective_test_user_doctype_and_field_permissions(mon
     assert matrix["profiles"]["sales_user"]["doctype_read"]["Lead"] is True
     assert matrix["profiles"]["sales_user"]["required_field_read"]["Lead"]["status"] is False
     assert matrix["profiles"]["sales_manager"]["required_field_read"]["Lead"]["status"] is True
+    assert matrix["profiles"]["system_manager"]["status"] == "checked"
+    assert matrix["profiles"]["system_manager"]["required_field_read"]["Lead"]["status"] is True
     assert matrix["profiles"]["non_sales"]["role_membership_valid"] is True
     assert matrix["profiles"]["non_sales"]["doctype_read"]["Lead"] is False
     assert matrix["profiles"]["non_sales"]["required_field_read"]["Lead"]["status"] is False
