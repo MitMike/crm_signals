@@ -616,3 +616,5 @@ The guide now validates the API token identity, rejects Administrator, expects 4
 - PR #130 remains open and unmerged. The HTTP test is code-complete but not CI-verified until the corrected final-head matrix passes; no target-site or pilot verification is claimed.
 
 - Added a static contract regression requiring the pinned Frappe workflow to use lockfile-enforced `npm ci` before explicit Playwright browser installation; it rejects a return to `npm install`. This test change also requires a fresh final-head matrix.
+
+- Hardened the pinned E2E credential step: generated Sales User and Employee passwords are now registered with GitHub Actions log masking before being written to step outputs. The static contract test protects both masking order and the `npm ci` lockfile-install requirement; this creates another final-head CI run.
