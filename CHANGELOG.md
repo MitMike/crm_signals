@@ -700,3 +700,13 @@ PR #125 merged as [7029747](https://github.com/MitMike/crm_signals/commit/702974
 - All four final-head workflows passed: Quality/Python [41709078949](https://github.com/MitMike/crm_signals/actions/runs/41709078949), Security/Semgrep [41709078877](https://github.com/MitMike/crm_signals/actions/runs/41709078877), Bench v15/v16 + Playwright [41709078919](https://github.com/MitMike/crm_signals/actions/runs/41709078919), and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 [41709078884](https://github.com/MitMike/crm_signals/actions/runs/41709078884).
 - The token-authenticated Report View query returned only the unlinked-owned CRM Signal; CSV export included the permitted record and excluded the linked-restricted record name/message. Frappe v15 Bench integration coverage was retained.
 - Reference-stack CI-verified; authorized Frappe 16.5 staging role/transport acceptance remains open. Not pilot-verified.
+
+
+### 2026-11-04 — PR #141 opening — direct dashboard API permission boundaries
+
+- Added a token-authenticated Sales User regression for crm_signals.api.get_dashboard_data, requiring the unlinked-owned CRM Signal and excluding the linked-restricted record/message.
+- Extended the dedicated non-sales E2E to call the Executive Compass API directly and require unavailable source metrics without source read grants, and to require HTTP 403 from the CRM Signals dashboard API without CRM Signal read permission.
+- Added static regression guards and updated the Administrator Guide and Target-Site Acceptance Kit. ADR-108 records the effective-user API permission decision.
+- Test/documentation scope only; no production runtime, role grant, schema, dependency or site configuration change. Final-head CI pending; not pilot-verified.
+- CI triage on superseded head: Quality/Python `41717036495` passed all four Python versions but identified only Prettier formatting differences; applied exact formatter output in `2b40f63`. Security/Semgrep `41717036375` passed. Fresh final-head matrix required.
+- A second superseded-head Quality run `41717358086` found one remaining extra blank line; removed it in `85ed8d8`. Python 3.10–3.14 passed and Security/Semgrep `41717358293` passed. Bench/pinned results were not final-head evidence and must be repeated.

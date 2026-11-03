@@ -948,6 +948,52 @@ test("Sales User report view and CSV export respect linked Lead User Permission"
     expect(csv).not.toContain(linkedMessage);
 });
 
+test("Sales User CRM Signals dashboard API respects linked Lead User Permission", async ({
+    page
+}) => {
+    await loginAsAdministrator(page);
+    const { linkedSignal, unlinkedSignal, linkedMessage, unlinkedMessage } =
+        await getSalesUserSignalPair(page);
+    const apiKey = process.env.E2E_SALES_API_KEY;
+    const apiSecret = process.env.E2E_SALES_API_SECRET;
+    const salesEmail =
+        process.env.E2E_SALES_USER || "e2e-sales-user@example.com";
+    expect(apiKey).toBeTruthy();
+    expect(apiSecret).toBeTruthy();
+
+    const salesIdentity = await frappeMethodGetWithToken(
+        "frappe.auth.get_logged_user",
+        {},
+        apiKey!,
+        apiSecret!
+    );
+    expect(salesIdentity.status).toBe(200);
+    expect((salesIdentity.body as { message?: string }).message).toBe(
+        salesEmail
+    );
+
+    const salesDashboard = await frappeMethodGetWithToken(
+        "crm_signals.api.get_dashboard_data",
+        {},
+        apiKey!,
+        apiSecret!
+    );
+    expect(salesDashboard.status).toBe(200);
+    const recent =
+        (
+            salesDashboard.body as {
+                message?: {
+                    recent?: Array<{ name: string; message: string }>;
+                };
+            }
+        ).message?.recent || [];
+    expect(recent.some((row) => row.name === unlinkedSignal!.name)).toBe(true);
+    expect(recent.some((row) => row.name === linkedSignal!.name)).toBe(false);
+    const recentText = JSON.stringify(recent);
+    expect(recentText).toContain(unlinkedMessage);
+    expect(recentText).not.toContain(linkedMessage);
+});
+
 test("Sales User CRM Signal form permission boundary", async ({ page }) => {
     await loginAsAdministrator(page);
 
@@ -1078,6 +1124,7 @@ test("Sales User print view respects linked Lead User Permission", async ({
 
 test("Users without a Sales role cannot open the Compass", async ({ page }) => {
     await loginAsAdministrator(page);
+
     const email = process.env.E2E_EMPLOYEE_USER || "e2e-employee@example.com";
     const password = process.env.E2E_EMPLOYEE_PASSWORD;
     expect(password).toBeTruthy();
@@ -1091,6 +1138,39 @@ test("Users without a Sales role cannot open the Compass", async ({ page }) => {
     );
     expect(identity.status).toBe(200);
     expect((identity.body as { message?: string }).message).toBe(email);
+
+    const compassResponse = await frappeMethodGet(
+        page,
+        "crm_signals.api.get_sales_compass_data",
+        {}
+    );
+    expect(compassResponse.status).toBe(200);
+    const compass = (
+        compassResponse.body as {
+            message?: {
+                leads?: { available?: boolean };
+                opportunities?: { available?: boolean };
+                billing?: { available?: boolean };
+                service?: { available?: boolean };
+            };
+        }
+    ).message;
+    expect(compass?.leads?.available).toBe(false);
+    expect(compass?.opportunities?.available).toBe(false);
+    expect(compass?.billing?.available).toBe(false);
+    expect(compass?.service?.available).toBe(false);
+
+    const signalsResponse = await frappeMethodGet(
+        page,
+        "crm_signals.api.get_dashboard_data",
+        {}
+    );
+    expect(signalsResponse.status).toBe(403);
+    const signalsText = JSON.stringify(signalsResponse.body);
+    expect(signalsText).not.toContain(
+        "CRM Signals E2E linked restricted signal"
+    );
+    expect(signalsText).not.toContain("CRM Signals E2E unlinked owned signal");
 
     await page.goto("/app/sahdev-dashboard");
     await expect(

@@ -220,6 +220,24 @@ if sys.argv[3] not in csv_text:
 print("PASS: CSV export includes only the permitted synthetic record (HTTP 200)")
 PY
 
+status="$(request "$base_url/api/method/crm_signals.api.get_dashboard_data" "$tmp_dir/signals-dashboard.json" --get)"
+[[ "$status" == "200" ]] || { echo "FAIL: CRM Signals dashboard API expected HTTP 200, got $status" >&2; exit 1; }
+python3 - "$tmp_dir/signals-dashboard.json" "$LINKED_RESTRICTED_SIGNAL" "$UNLINKED_OWNED_SIGNAL" <<'PY'
+import json
+import sys
+
+with open(sys.argv[1], encoding="utf-8") as response_file:
+    payload = json.load(response_file)
+recent = payload.get("message", {}).get("recent", [])
+names = {row.get("name") for row in recent}
+recent_text = json.dumps(recent)
+if sys.argv[2] in names or "CRM Signals E2E linked restricted signal" in recent_text:
+    raise SystemExit("FAIL: CRM Signals dashboard disclosed the linked restricted signal")
+if sys.argv[3] not in names or "CRM Signals E2E unlinked owned signal" not in recent_text:
+    raise SystemExit("FAIL: CRM Signals dashboard omitted the unlinked owned signal")
+print("PASS: CRM Signals dashboard API preserves linked-party row visibility (HTTP 200)")
+PY
+
 echo "PASS: authenticated Sales User API permission boundary verified"
 ```
 
@@ -330,6 +348,9 @@ Acceptance criteria:
 - [ ] As the dedicated Sales User, open the CRM Signal Report View with the linked-restricted and unlinked-owned synthetic pair. Confirm only the unlinked owned record appears. Export the filtered result as CSV and confirm it contains the unlinked record but not the linked-restricted record or message. Repeat with the Sales Manager and System Manager and record each persona separately; do not infer their results from the Sales User.
 - [ ] Record only persona alias, Report View/export status, permitted row count, exact Frappe build, deployed full SHA and timestamp. Do not attach the CSV, record names, messages, credentials or raw response bodies.
 - [x] PR #139 adds cookie-independent API-token CI coverage for `frappe.desk.reportview.get_list` and `frappe.desk.reportview.export_query`; merged as `ac2d83d823bdcad46fe84ccd5d2b8954c0b0d959` from final tested head `2e30fd02a1074e26adbf1d0de1f4fb715e2d837a` after all four final-head workflows passed on supported Frappe v15/v16 and pinned Frappe 16.5.0. CI does not replace execution on the authorized target site.
+- [ ] As the dedicated Sales User, call /api/method/crm_signals.api.get_dashboard_data with the same API token. Confirm the recent list contains the unlinked-owned signal and excludes the linked-restricted signal and message. Record only HTTP status and permitted row count; do not retain response bodies.
+- [ ] As a non-sales synthetic account with no CRM Signal read grant, call /api/method/crm_signals.api.get_dashboard_data directly and require HTTP 403 with no synthetic signal content. Call /api/method/crm_signals.api.get_sales_compass_data; confirm each source without a corresponding DocType/field read grant is unavailable, never a fabricated zero or leaked row. Record only source availability booleans and HTTP status.
+- [ ] PR #141 adds reference CI coverage for these direct dashboard API boundaries; final-head Quality, Security, Bench v15/v16 and pinned Frappe 16.5.0 checks are pending. CI does not replace execution on authorized staging.
 - [ ] Export and print do not expose rows unavailable in the corresponding report/list.
 - [ ] Helpdesk HD Ticket field-level read access is checked independently for `status_category`, `resolution_date`, `resolution_time`, `sla` and `agreement_status` using the installed version's actual permlevels (all are permlevel 0 in the v1.28.0 reference).
 - [ ] If Helpdesk v1.29.0, v1.30.2 or v1.31.1 is installed, verify the exact Frappe build contains the `frappe/ui` package required by `@framework/ui`; if v1.31.1, also verify the `Notification Type` DocType/controller. Stop if absent.
