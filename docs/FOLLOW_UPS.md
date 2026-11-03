@@ -196,3 +196,12 @@ The PR's CI result does not establish that a customer site has the approved SHA,
 - **Scope:** documentation and static-test-only; no runtime or dependency changes. The root quick-start now agrees with the detailed operator procedure, and the Python contract test protects the pin-before-requirements ordering.
 - [ ] **Still open — staging rehearsal:** execute both first-install and upgrade sequences on an authorized Frappe v16.5 staging Bench; record the exact approved/deployed SHA, `bench version`, installed-app inventory, command output, migration, asset build, restart and rollback evidence.
 - **Revisit criteria:** staging rehearsal can begin only when an authorized Frappe v16.5 staging window, approved full SHA, named technical owner and site/Bench operator are available. Do not infer success from repository CI.
+
+
+## D3 support setup guide correction — PR #113
+
+- [x] **Documentation/status correction (ADR-091):** the standard Frappe Helpdesk adapter is already implemented for `HD Ticket` and `HD Service Level Agreement`. The setup guide now directs operators to validate the installed version/schema, effective field permissions and active SLA policy against that contract.
+- [x] Custom/different ticket DocTypes are explicitly not treated as supported automatically; a separate adapter requires exact metadata plus technical and business approval.
+- **Scope:** documentation and static-test-only; no runtime behavior, dependencies or site settings change.
+- [ ] **Still open — target-site D3 acceptance:** confirm the installed Helpdesk version, required fields and permlevels, Sales read access, active SLA schedule/holidays/timezone, pause/resume and retention rules; run synthetic ticket/SLA tests in authorized staging and record results.
+- **Revisit criteria:** scope a custom adapter only when the site owner supplies exact DocType/field/lifecycle/relationship metadata and support/security/business owners approve the mapping and KPI semantics. Do not infer support from a DocType name.
