@@ -393,6 +393,8 @@ def _validate_test_records(test_records, test_users):
         raise ValueError("test_records must map profile aliases to DocType record labels")
     if not isinstance(test_users, dict) or not test_users:
         raise ValueError("test_records require test_users")
+    if not all(isinstance(profile, str) for profile in test_records):
+        raise ValueError("Test record profile aliases must be strings")
     if set(test_records) - set(TEST_USER_PROFILES):
         raise ValueError("Unsupported test record profile")
     if set(test_records) - set(test_users):
@@ -403,6 +405,8 @@ def _validate_test_records(test_records, test_users):
     for profile, doctypes in sorted(test_records.items()):
         if not isinstance(doctypes, dict) or not doctypes:
             raise ValueError("Each test record profile must contain DocType mappings")
+        if not all(isinstance(doctype, str) for doctype in doctypes):
+            raise ValueError("Test record DocType names must be strings")
         profile_records = 0
         normalized[profile] = {}
         for doctype, records in sorted(doctypes.items()):
@@ -410,10 +414,12 @@ def _validate_test_records(test_records, test_users):
                 raise ValueError("Unsupported test record DocType")
             if not isinstance(records, dict) or not records:
                 raise ValueError("Each test record DocType must contain labeled records")
+            if not all(isinstance(label, str) for label in records):
+                raise ValueError("Test record labels must be strings")
             normalized_records = {}
             seen_names = set()
             for label, name in sorted(records.items()):
-                if not isinstance(label, str) or not TEST_RECORD_LABEL_PATTERN.fullmatch(label):
+                if not TEST_RECORD_LABEL_PATTERN.fullmatch(label):
                     raise ValueError("Invalid test record label")
                 if not isinstance(name, str) or not name.strip() or len(name.strip()) > 140:
                     raise ValueError(
