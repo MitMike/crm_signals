@@ -900,6 +900,9 @@ Append a new ADR with the next available identifier. Include status, date record
 - **ADR-090 final verification:** PR #112 merged as [`d2e1d873a8f257545596379e179aeb3e4de40dd4`](https://github.com/MitMike/crm_signals/commit/d2e1d873a8f257545596379e179aeb3e4de40dd4) from final head `f68939ba5e2977ed62698e2a78084277fa091479`. All 18 final-head check runs passed, including Quality, Python 3.10/3.11/3.12/3.14, Semgrep, Bench v15/v16 + Playwright and the pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 lane. This proves reference-stack CI only; first-install/upgrade rehearsal on the target staging site remains required.
 
 
+- **ADR-091 CI decision:** PR #113's original head passed 18 checks, but its retargeted/extended head had no check runs or workflow runs; a close/reopen did not schedule new CI. The unverified head was not merged. A replacement PR #114 was opened from the exact final tree so PR-opened workflows can verify the complete D3 guide/test change. Merge only after the replacement head's full required matrix passes.
+
+
 ## ADR-091 — Describe the implemented standard Helpdesk adapter accurately in the support guide
 
 - **Status:** Accepted
