@@ -824,3 +824,13 @@ ADR-107 records the decision. No production permission hook, DocType role grant,
 - Pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 [41709078884](https://github.com/MitMike/crm_signals/actions/runs/41709078884): setup, preflight, D1/D2, Helpdesk, schema upgrade, Python/Frappe integration and focused Sales User Playwright checks passed.
 
 **Merge:** PR #139 was squash-merged as [ac2d83d](https://github.com/MitMike/crm_signals/commit/ac2d83d823bdcad46fe84ccd5d2b8954c0b0d959). Main is now `ac2d83d823bdcad46fe84ccd5d2b8954c0b0d959`. GitHub reports no open PRs and no open issues after the merge. The Report View/CSV regression is code-complete and reference-stack CI-verified; it is not pilot-verified. Authorized Frappe 16.5 staging execution remains required for Sales User, Sales Manager, System Manager and non-sales role acceptance.
+
+## PR #141 — Direct dashboard API permission boundaries (2026-11-04)
+
+Reviewed main 069c984ddc40ce4eb77b0dbf864f062e3906ad5f after PR #139 and PR #140 were merged; no open PRs or issues were present. The next highest-value independent permission gap was direct dashboard API access: the CRM Signals dashboard was exercised live only as Administrator, and the non-sales test checked only that the Executive Compass page was hidden.
+
+Added a Sales User API-token E2E for crm_signals.api.get_dashboard_data. It verifies the token identity and requires the recent CRM Signal rows to include the unlinked-owned record while excluding the linked-restricted record and message. Extended the dedicated non-sales browser-session test to call both dashboard APIs directly: the Executive Compass response must mark Lead, Opportunity, Billing and Helpdesk sources unavailable for the non-sales account with no source grants; the CRM Signals dashboard API must return HTTP 403 without either synthetic signal message.
+
+ADR-108 records the decision to test effective-user API permissions independently of page visibility. The existing API permission-aware reads and source checks are retained; no runtime permission hook, role grant, schema, dependency or site configuration changed. The target-site acceptance kit now includes a Sales User dashboard API check and a separate non-sales direct-API check.
+
+Status: code-complete on focused branch test/dashboard-api-permission-boundaries-20261104; Quality/Python, Security/Semgrep, supported Frappe v15/v16 Bench + Playwright and pinned Frappe 16.5.0 final-head CI pending. Not pilot-verified. If the tests expose data from a denied source, inspect the exact API query and installed role/field permissions; do not add a blanket role gate or weaken the denied/allowed assertions without a documented policy basis.
