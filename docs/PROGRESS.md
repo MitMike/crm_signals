@@ -618,3 +618,5 @@ The guide now validates the API token identity, rejects Administrator, expects 4
 - Added a static contract regression requiring the pinned Frappe workflow to use lockfile-enforced `npm ci` before explicit Playwright browser installation; it rejects a return to `npm install`. This test change also requires a fresh final-head matrix.
 
 - Hardened the pinned E2E credential step: generated Sales User and Employee passwords are now registered with GitHub Actions log masking before being written to step outputs. The static contract test protects both masking order and the `npm ci` lockfile-install requirement; this creates another final-head CI run.
+
+- Wrapped the new workflow-contract test's split expression after a local line-length review found it exceeded the 88-character Ruff limit; no lint rule was weakened. Fresh final-head checks remain required.
