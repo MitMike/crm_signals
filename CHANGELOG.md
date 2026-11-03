@@ -535,3 +535,10 @@ PR #125 merged as [7029747](https://github.com/MitMike/crm_signals/commit/702974
 - Added copy/paste HTTPS-only curl checks for authenticated identity, linked restricted document denial (403), unlinked owned document read (200) and permission-filtered list visibility.
 - Added safe temporary credential/response handling and linked the procedure from the Administrator Guide.
 - PR #128 merged as `85c492ea2c84444d7cc45c0d61706736fa972a83`; Quality/Python, Security/Semgrep and documentation-only Bench path-selector checks passed. The embedded Bash passed `bash -n` (ShellCheck unavailable). Must still be executed on authorized Frappe v16.5 staging. Not pilot verification.
+
+
+### 2026-11-03 — PR #130: browser-session permission regression on Frappe v16 and pinned v16.5
+
+- Added disposable Sales User/User Permission fixtures for a linked restricted CRM Signal and an unlinked owned signal.
+- Added Playwright same-origin HTTP assertions for document denial, allowed read and filtered list visibility.
+- Extended the pinned Frappe 16.5.0 workflow to run the Playwright suite; final-head CI pending.
