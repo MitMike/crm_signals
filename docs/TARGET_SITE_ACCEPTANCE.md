@@ -78,7 +78,7 @@ trap 'rm -rf "$tmp_dir"; unset CRM_SIGNALS_API_KEY CRM_SIGNALS_API_SECRET CRM_SI
 printf 'header = "Authorization: token %s:%s"\n' "$CRM_SIGNALS_API_KEY" "$CRM_SIGNALS_API_SECRET" > "$curl_config"
 
 request() {
-  curl --proto '=https' --config "$curl_config" --silent --show-error --output "$2" --write-out '%{http_code}' "${@:3}" "$1"
+  curl --disable --proto '=https' --config "$curl_config" --silent --show-error --output "$2" --write-out '%{http_code}' "${@:3}" "$1"
 }
 
 base_url="${SITE_URL%/}"
