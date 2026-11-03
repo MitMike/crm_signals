@@ -399,6 +399,7 @@ def _effective_user_permissions(test_users, doctype_reports):
         "scope": scope,
     }
 
+
 def get_site_preflight_report(test_users=None):
     """Return a bounded, read-only site inventory for bench execute.
 
