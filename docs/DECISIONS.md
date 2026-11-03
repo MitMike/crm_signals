@@ -1093,3 +1093,12 @@ The first Quality run flagged `_prepare_e2e_sales_user_permission_fixture` at 10
 - **Regression guard:** add a static contract test requiring the pinned workflow to use `npm ci` before the explicit Playwright browser installation and rejecting `npm install` in that workflow.
 - **Verification:** the prior PR head `7bd1837e39b994daae04158eff5a1559fe48f4d8` had Quality and Security passed while Bench v15/v16 and pinned v16.5.0 were still running. This workflow correction creates a new head; all four final-head workflows must pass again before merge. Not pilot-verified.
 - **Revisit criteria:** if `npm ci` reports a package/lock mismatch, repair and commit the lockfile in a separate focused change; do not revert to an unlocked install. If the pinned browser job exceeds the documented 60-minute threshold, inspect job-step durations and logs before changing timeouts.
+
+
+### ADR-098 ephemeral E2E credential masking correction (2026-11-03)
+
+- **Finding:** the pinned workflow generated random Sales User and Employee passwords and passed them as step outputs, but did not register the values with the GitHub Actions log masker.
+- **Decision:** generate each value once, issue `::add-mask::` for both values before writing either to `GITHUB_OUTPUT`, then pass them only through the existing step/job environment. Keep the credentials ephemeral and do not print them.
+- **Regression guard:** the static workflow contract now checks that both generated credentials are masked before their step outputs are written, in addition to requiring lockfile-enforced `npm ci`.
+- **Verification:** this creates a new PR head and requires fresh Quality/Python, Security, Bench v15/v16 + Playwright and pinned v16.5 Playwright checks. Not pilot-verified.
+- **Revisit criteria:** if workflow structure changes, keep masking before output propagation; never log credentials or move them into repository variables/secrets.
