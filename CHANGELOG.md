@@ -688,3 +688,5 @@ PR #125 merged as [7029747](https://github.com/MitMike/crm_signals/commit/702974
 - Require Report View results to contain only the unlinked owned record; require CSV export to contain the unlinked record name/message and exclude the restricted record name/message.
 - Added a static regression guard and updated the Administrator Guide and Target-Site Acceptance Kit. ADR-107 records why Report View and export need endpoint-specific coverage.
 - Scope is CI E2E/static tests and operator documentation only; no production runtime, DocType role grant, schema, dependency or site configuration change. Final-head CI pending; not pilot-verified.
+
+- PR #139 CI triage: initial Quality run `41708443112` identified only Prettier formatting differences in the new E2E test; applied the exact formatter output in `c75dae2`. Python 3.12 passed on the superseded head. Corrected-head full matrix required; not pilot-verified.
