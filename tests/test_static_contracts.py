@@ -394,6 +394,7 @@ def test_support_guides_describe_existing_adapter_and_custom_scope_boundary():
         in guide
     )
     assert "We build a small adapter" not in guide
+    assert "Read-only discovery guide" not in guide
     assert "separately scoped adapter change" in guide
     assert (
         "standard adapter does not cover a custom or different ticket DocType"
