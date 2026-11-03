@@ -440,3 +440,14 @@ The README now uses the same safe sequence as the operator guide: clone directly
 PR #113 was retargeted from the merged PR #112 branch to `main` after this merge. Its existing final-head run had 18 successful checks before retargeting; confirm the current PR head/base check state before merge. **Status:** PR #112 documentation/static-test work is merged and reference-stack CI-verified; the staging first-install/upgrade rehearsal is not complete and this is not pilot verification.
 
 **Release gate:** authorized Frappe v16.5 staging remains required for first-install and upgrade rehearsal, exact installed app/full-SHA inventory, effective-role permissions, D1/D2 native-report reconciliation by currency, Helpdesk SLA acceptance, dashboard visual UAT, operational recovery and backup/restore/rollback. No such site evidence is available from repository CI.
+
+
+## 25. D3 operator-guide scope correction — replacement PR #114 (2026-11-03)
+
+The D3 Support & SLA setup guide now states that the standard Frappe Helpdesk `HD Ticket` / `HD Service Level Agreement` adapter is implemented and directs operators to validate the target site's exact versions, schema, field permissions and active SLA calendar. The discovery guide's custom-DocType FAQ now explicitly says that custom/different ticket sources are outside the standard adapter and remain unavailable until support, security and business owners approve a separate adapter scope, mapping and KPI semantics. Static contract coverage protects both statements.
+
+PR #113's original final head `e9a3a3001bc146642a0c98223b0201feaa04ae44` passed 18 checks, but after retargeting and the additional discovery-FAQ regression, the updated head had zero check runs and no workflow runs. Closing/reopening the PR did not schedule checks. Decision: do not merge an unverified head; open a replacement PR #114 from the exact final tree so the pull-request-opened workflows execute. PR #113 is closed as superseded. No runtime code, dependencies, schema or site configuration changed.
+
+**Status at replacement PR opening:** documentation and static regression code-complete; final-head CI pending; not pilot-verified. The next merge gate is the full Quality, Python, Security, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 validation set.
+
+**Independent target-site gate:** D3 remains not pilot-verified until authorized Frappe v16.5 staging confirms exact Helpdesk version/schema, effective Sales field permissions, active SLA schedule/holidays/timezone, pause/resume behavior and native metric outcomes.
