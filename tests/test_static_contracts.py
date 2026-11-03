@@ -463,7 +463,7 @@ def test_pinned_v16_5_runs_sales_user_direct_form_permission_e2e():
         'test("Sales User CRM Signal form permission boundary"'
         in spec
     )
-    assert '"frappe.desk.form.load.getdoc"' in spec
+    assert '"/api/method/frappe.desk.form.load.getdoc"' in spec
     assert '"/app/crm-signal/' in spec
     assert 'response.request().method() === "GET"' in spec
     assert (
