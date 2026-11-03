@@ -592,3 +592,11 @@ PR #125 merged as [7029747](https://github.com/MitMike/crm_signals/commit/702974
 
 - Corrected head fd855ae056c81b16defa1eac6085ab481ef08ac9 removes the final currentUserRoles reference, verifies Sales User and Employee browser session identities with frappe.auth.get_logged_user, and validates role boundaries server-side.
 - Fresh Quality run 41663665399, Security run 41663665370, Bench v15/v16 run 41663665401 and pinned Frappe 16.5.0 run 41663665390 were queued; Security had started. Await all four final-head results before merge.
+
+### 2026-11-03 — PR #130 deterministic non-sales E2E role correction (ADR-101)
+
+- Final head `7525c1521835e93245faf5840c0af1c47f9d590b` passed Quality `41663853566` and Security `41663853347`, but pinned Frappe 16.5.0 `41663853279` and supported v16 Bench `41663853266` failed before Playwright at `E2E Employee role boundary is invalid` in `crm_signals/ci.py:176`.
+- Site setup, effective-user preflight, D1/D2, Helpdesk and schema-upgrade steps passed. The CI log did not print the effective role set; no specific built-in role filtering cause is claimed.
+- Replaced the built-in Employee-role dependency with a dedicated CI-only `CRM Signals E2E Non-Sales` role, explicitly enabled for Desk access; added a static regression guard. Sales User permission assertions remain unchanged.
+- Commits: `eb55ca5` and `1e7c911`. Fresh final-head four-workflow verification required; PR remains unmerged and not pilot-verified.
+
