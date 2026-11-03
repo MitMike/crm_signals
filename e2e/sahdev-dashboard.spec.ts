@@ -69,15 +69,18 @@ async function frappeMethodGet(
     method: string,
     params: Record<string, string>
 ): Promise<{ status: number; body: unknown }> {
-    return page.evaluate(async ({ method, params }) => {
-        const query = new URLSearchParams(params);
-        const response = await fetch(
-            "/api/method/" + method + "?" + query.toString(),
-            { credentials: "same-origin" }
-        );
-        const body = await response.json().catch(() => ({}));
-        return { status: response.status, body };
-    }, { method, params });
+    return page.evaluate(
+        async ({ method, params }) => {
+            const query = new URLSearchParams(params);
+            const response = await fetch(
+                "/api/method/" + method + "?" + query.toString(),
+                { credentials: "same-origin" }
+            );
+            const body = await response.json().catch(() => ({}));
+            return { status: response.status, body };
+        },
+        { method, params }
+    );
 }
 
 function dashboardPayload(overrides: Record<string, unknown> = {}) {
@@ -474,7 +477,9 @@ test("Sales User can open the Executive Compass", async ({ page }) => {
     ).toBeVisible();
 });
 
-test("Sales User HTTP API respects linked Lead User Permission", async ({ page }) => {
+test("Sales User HTTP API respects linked Lead User Permission", async ({
+    page
+}) => {
     await loginAsAdministrator(page);
 
     const linkedMessage = "CRM Signals E2E linked restricted signal";
@@ -492,11 +497,12 @@ test("Sales User HTTP API respects linked Lead User Permission", async ({ page }
         }
     );
     expect(fixtureResponse.status).toBe(200);
-    const fixtureRows = (
-        fixtureResponse.body as {
-            message?: Array<{ name: string; message: string }>;
-        }
-    ).message || [];
+    const fixtureRows =
+        (
+            fixtureResponse.body as {
+                message?: Array<{ name: string; message: string }>;
+            }
+        ).message || [];
     expect(fixtureRows).toHaveLength(2);
 
     const linkedSignal = fixtureRows.find(
@@ -532,22 +538,19 @@ test("Sales User HTTP API respects linked Lead User Permission", async ({ page }
         (allowedRead.body as { message?: { name?: string } }).message?.name
     ).toBe(unlinkedSignal!.name);
 
-    const listResponse = await frappeMethodGet(
-        page,
-        "frappe.client.get_list",
-        {
-            doctype: "CRM Signal",
-            fields: JSON.stringify(["name"]),
-            filters: JSON.stringify({
-                name: ["in", [linkedSignal!.name, unlinkedSignal!.name]]
-            }),
-            limit_page_length: "10"
-        }
-    );
+    const listResponse = await frappeMethodGet(page, "frappe.client.get_list", {
+        doctype: "CRM Signal",
+        fields: JSON.stringify(["name"]),
+        filters: JSON.stringify({
+            name: ["in", [linkedSignal!.name, unlinkedSignal!.name]]
+        }),
+        limit_page_length: "10"
+    });
     expect(listResponse.status).toBe(200);
-    const visibleNames = (
-        listResponse.body as { message?: Array<{ name: string }> }
-    ).message?.map((row) => row.name) || [];
+    const visibleNames =
+        (
+            listResponse.body as { message?: Array<{ name: string }> }
+        ).message?.map((row) => row.name) || [];
     expect(visibleNames).toEqual([unlinkedSignal!.name]);
 });
 
