@@ -40,6 +40,14 @@ For a bounded list-visibility check, create synthetic records and supply only th
 bench --site <site-name> execute crm_signals.diagnostics.get_site_preflight_report --kwargs "{'test_users': {'sales_user': 'crm-sales-user-test', 'sales_manager': 'crm-sales-manager-test'}, 'test_records': {'sales_user': {'Lead': {'owned': 'LEAD-SYNTHETIC-OWNED', 'restricted': 'LEAD-SYNTHETIC-RESTRICTED'}}, 'sales_manager': {'Lead': {'owned': 'LEAD-SYNTHETIC-OWNED', 'restricted': 'LEAD-SYNTHETIC-RESTRICTED'}}}}"
 ```
 
+
+For the Sales User linked-party boundary exercised by the real-Frappe integration test, use one synthetic Lead allowed by the test user's Lead User Permission and a second synthetic Lead excluded by that permission. Create a CRM Signal linked to the excluded Lead and owned by the Sales User, plus an unlinked CRM Signal owned by the same user. Verify both synthetic signals exist with the authorized setup account before interpreting the probe's output, because an absent record and a denied record both report false.
+
+```bash
+bench --site <site-name> execute crm_signals.diagnostics.get_site_preflight_report --kwargs "{'test_users': {'sales_user': 'crm-sales-user-test'}, 'test_records': {'sales_user': {'CRM Signal': {'linked_restricted': 'CRM-SIGNAL-LINKED-RESTRICTED', 'unlinked_owned': 'CRM-SIGNAL-UNLINKED-OWNED'}}}}"
+```
+
+For effective_user_permissions.profiles.sales_user.record_visibility.doctypes["CRM Signal"], expect status: checked and records: {linked_restricted: false, unlinked_owned: true}. The linked signal must remain hidden even though the Sales User owns it; the unlinked owned signal should remain visible. Do not add a share or broaden the User Permission to force the expected result. This is list-query evidence only; complete direct form/API/report/export/print/dashboard tests separately.
 Use only dedicated synthetic test records; do not probe customer or production records. The check exercises list-query visibility, including the Frappe permission filters used by that DocType. It does not prove direct form, REST API, report, export, print or dashboard access. Complete those paths in the controlled-record acceptance matrix separately.
 
 ## Installation and upgrade

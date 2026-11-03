@@ -3,7 +3,7 @@
 **Last reviewed:** 2026-11-03  
 **Repository:** [MitMike/crm_signals](https://github.com/MitMike/crm_signals)  
 **Supported framework coverage:** Frappe / ERPNext v15 and v16. **Primary deployment target:** Frappe v16.5; record the exact patch/build and installed ERPNext/Helpdesk versions.  
-**Reviewed main baseline:** [c9df68e](https://github.com/MitMike/crm_signals/commit/c9df68e3728fe675e4eb3b4d5dafaf8b4d29fcc6) (PR #123 merged to reconcile PR #122's four successful final-head workflows); **latest application feature baseline:** [c5720bf](https://github.com/MitMike/crm_signals/commit/c5720bfb3fbe8b554ec6febd549a8d5e58acc1d7).
+**Reviewed main baseline:** [af94b14](https://github.com/MitMike/crm_signals/commit/af94b14038250b75ebc849e424779432d57dee98) (PR #124 merged after all four final-head workflows passed: Quality/Python, Security/Semgrep, Bench v15/v16 + Playwright, and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0); **latest application feature baseline:** [c5720bf](https://github.com/MitMike/crm_signals/commit/c5720bfb3fbe8b554ec6febd549a8d5e58acc1d7).
 
 This is the execution plan and source of truth for delivery order, scope, dependencies, acceptance gates and exit criteria. The operational state is maintained in [docs/PROGRESS.md](docs/PROGRESS.md); durable choices are in [docs/DECISIONS.md](docs/DECISIONS.md); feature contracts are in [specs/](specs/).
 
@@ -32,7 +32,7 @@ The following capabilities are present in the repository. "Implemented" means th
 | Capability | Code status | Remaining acceptance |
 |---|---|---|
 | Frappe app packaging and Pilot discovery metadata | Implemented | Run the actual Pilot import flow on the intended site |
-| Read-only target-site preflight inventory | Implemented and CI-verified in PR #70 (merged as 13341b7) | Run on the authorized v16.5 target and review the report; effective user permissions and site acceptance remain manual |
+| Read-only target-site preflight inventory | Implemented and CI-verified in PR #70 (merged as 13341b7); optional effective-user DocType/field checks and bounded synthetic-record list visibility are CI-verified in PRs #120, #122 and #124 | Run on authorized v16.5 staging and review the actual site inventory/permission matrix; direct form/API/report/export/print/dashboard checks and release acceptance remain manual |
 | CRM Signal DocType and validation | Implemented | Validate installed schema, roles and customizations |
 | Authenticated POST ingestion | Event-ID idempotency and concurrent duplicate recovery merged in PR #19/#23 | Verify with a dedicated target-site integration user and deployment rate limits |
 | Quotation and Opportunity event hooks | Implemented; transactional outbox merged in PR #26 | Confirm target-site status/threshold policy; audited Failed-row replay merged in PR #38; per-company thresholds are in PR #45 merged |
@@ -514,3 +514,10 @@ The optional preflight is code-complete and reference-stack CI-verified, not pil
 - **Scope:** integration-test-only; no runtime behavior, schema, dependency or site configuration change. The existing Bench v15/v16 + Playwright and pinned Frappe 16.5.0 workflows execute the integration test suite.
 - **Status at opening:** code-complete; final-head Quality, Python, Security/Semgrep, Bench v15/v16 and pinned Frappe 16.5.0 checks pending. Not pilot-verified.
 - **Revisit criteria:** if Frappe v15/v16 returns a different list result, inspect the real `crm_signal_query` and User Permission behavior; do not weaken the expected false/true boundary or replace permission-filtered `get_list` with `get_all`. Authorized target-site direct form/API/report/export/print/dashboard tests remain separate.
+
+
+## 30. Sales User record-filter preflight regression — PR #124 merged (2026-11-03)
+
+PR #124 merged as [af94b14](https://github.com/MitMike/crm_signals/commit/af94b14038250b75ebc849e424779432d57dee98) from final head [0c7a6bf](https://github.com/MitMike/crm_signals/commit/0c7a6bfc77c3ee9df7189007c0326491906aca76). All four final-head workflows passed: Quality Checks (run 41614477641, configured Python 3.10/3.11/3.12/3.14 jobs and lint/static checks), Security Scanning/Semgrep (41614477907), Bench Integration and E2E (41614477805; Frappe v15 and v16 integration passed, with v16 Playwright passed), and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 validation (41614477749). The real-Frappe Sales User fixture confirmed a linked CRM Signal excluded by the Lead User Permission is not visible while an unlinked signal owned by the same user remains visible. The report returned checked status, restored the original session user and disclosed neither user nor record names.
+
+The new regression reuses the real Frappe User Permission fixture: a Sales User owns both signals, but a linked CRM Signal whose Lead is excluded by that user's Lead User Permission is hidden; an unlinked signal owned by the same user remains visible. The test exercises the production get_site_preflight_report(test_users=..., test_records=...) path and asserts checked status, session restoration and name/identity non-disclosure. It does not replace target-site direct form/API/report/export/print/dashboard acceptance or the broader release gates.
