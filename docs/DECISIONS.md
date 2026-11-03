@@ -1065,4 +1065,5 @@ The first correction moved aliased API imports into the guarded Frappe import bl
 - Security/Semgrep `41639851870`: passed.
 - Bench Integration/E2E `41639851663`: path selectors passed; Bench runtime was correctly skipped for documentation-only changes. No pinned Frappe workflow was triggered.
 - The embedded Bash procedure passed `bash -n`. ShellCheck was not installed; no ShellCheck result is claimed.
-- This verifies documentation syntax and repository checks only. The HTTP procedure has not been executed against a target site; not pilot-verified.
+- A local fake-curl harness exercised the script's control flow and request arguments: authenticated identity 200, linked restricted get 403, unlinked owned get 200, and list containing only the unlinked record all passed. This is a transport mock only; it does not establish real HTTP/Frappe behavior.
+- This verifies documentation syntax, a local mocked execution and repository checks only. The HTTP procedure has not been executed against a target site; not pilot-verified.
