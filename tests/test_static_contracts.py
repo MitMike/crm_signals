@@ -668,3 +668,13 @@ def test_non_sales_dashboard_api_respects_effective_source_permissions():
     assert "expect(compass?.billing?.available).toBe(false)" in spec
     assert "expect(compass?.service?.available).toBe(false)" in spec
     assert "expect(signalsResponse.status).toBe(403)" in spec
+
+
+def test_target_site_acceptance_checks_non_sales_dashboard_api_permissions():
+    acceptance = (ROOT / "docs/TARGET_SITE_ACCEPTANCE.md").read_text()
+    assert "EXPECTED_NON_SALES_USER" in acceptance
+    assert "CRM_SIGNALS_NON_SALES_API_KEY" in acceptance
+    assert "CRM_SIGNALS_NON_SALES_API_SECRET" in acceptance
+    assert "non-sales CRM Signals dashboard expected HTTP 403" in acceptance
+    assert "crm_signals.api.get_sales_compass_data" in acceptance
+    assert "non-sales source without read permission was marked available" in acceptance
