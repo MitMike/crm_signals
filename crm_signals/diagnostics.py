@@ -385,6 +385,53 @@ def _empty_record_visibility(reason):
     }
 
 
+def _validate_test_record_name(label, name, seen_names):
+    """Validate one non-sensitive output label and normalize its supplied record name."""
+    if not isinstance(label, str) or not TEST_RECORD_LABEL_PATTERN.fullmatch(label):
+        raise ValueError("Invalid test record label")
+    if not isinstance(name, str) or not name.strip() or len(name.strip()) > 140:
+        raise ValueError(
+            "Test record names must be non-empty strings of at most 140 characters"
+        )
+    name = name.strip()
+    if name in seen_names:
+        raise ValueError("Duplicate test record name for DocType")
+    seen_names.add(name)
+    return name
+
+
+def _validate_test_record_doctypes(doctypes, total_records):
+    """Validate one profile's bounded DocType-to-record mapping."""
+    if not isinstance(doctypes, dict) or not doctypes:
+        raise ValueError("Each test record profile must contain DocType mappings")
+    if not all(isinstance(doctype, str) for doctype in doctypes):
+        raise ValueError("Test record DocType names must be strings")
+
+    normalized = {}
+    profile_records = 0
+    for doctype, records in sorted(doctypes.items()):
+        if doctype not in TEST_RECORD_DOCTYPES:
+            raise ValueError("Unsupported test record DocType")
+        if not isinstance(records, dict) or not records:
+            raise ValueError("Each test record DocType must contain labeled records")
+        if not all(isinstance(label, str) for label in records):
+            raise ValueError("Test record labels must be strings")
+        normalized_records = {}
+        seen_names = set()
+        for label, name in sorted(records.items()):
+            normalized_records[label] = _validate_test_record_name(
+                label, name, seen_names
+            )
+            profile_records += 1
+            total_records[0] += 1
+            if profile_records > MAX_TEST_RECORDS_PER_PROFILE:
+                raise ValueError("Too many test records for profile")
+            if total_records[0] > MAX_TEST_RECORDS_TOTAL:
+                raise ValueError("Too many test records")
+        normalized[doctype] = normalized_records
+    return normalized
+
+
 def _validate_test_records(test_records, test_users):
     """Validate bounded alias-to-synthetic-record input without retaining output identities."""
     if test_records is None or test_records == {}:
@@ -401,42 +448,9 @@ def _validate_test_records(test_records, test_users):
         raise ValueError("test_records require a supplied test user profile")
 
     normalized = {}
-    total_records = 0
+    total_records = [0]
     for profile, doctypes in sorted(test_records.items()):
-        if not isinstance(doctypes, dict) or not doctypes:
-            raise ValueError("Each test record profile must contain DocType mappings")
-        if not all(isinstance(doctype, str) for doctype in doctypes):
-            raise ValueError("Test record DocType names must be strings")
-        profile_records = 0
-        normalized[profile] = {}
-        for doctype, records in sorted(doctypes.items()):
-            if doctype not in TEST_RECORD_DOCTYPES:
-                raise ValueError("Unsupported test record DocType")
-            if not isinstance(records, dict) or not records:
-                raise ValueError("Each test record DocType must contain labeled records")
-            if not all(isinstance(label, str) for label in records):
-                raise ValueError("Test record labels must be strings")
-            normalized_records = {}
-            seen_names = set()
-            for label, name in sorted(records.items()):
-                if not TEST_RECORD_LABEL_PATTERN.fullmatch(label):
-                    raise ValueError("Invalid test record label")
-                if not isinstance(name, str) or not name.strip() or len(name.strip()) > 140:
-                    raise ValueError(
-                        "Test record names must be non-empty strings of at most 140 characters"
-                    )
-                name = name.strip()
-                if name in seen_names:
-                    raise ValueError("Duplicate test record name for DocType")
-                seen_names.add(name)
-                normalized_records[label] = name
-                profile_records += 1
-                total_records += 1
-                if profile_records > MAX_TEST_RECORDS_PER_PROFILE:
-                    raise ValueError("Too many test records for profile")
-                if total_records > MAX_TEST_RECORDS_TOTAL:
-                    raise ValueError("Too many test records")
-            normalized[profile][doctype] = normalized_records
+        normalized[profile] = _validate_test_record_doctypes(doctypes, total_records)
     return normalized
 
 
