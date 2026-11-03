@@ -679,3 +679,25 @@ def test_target_site_acceptance_checks_non_sales_dashboard_api_permissions():
     assert "non-sales CRM Signals dashboard expected HTTP 403" in acceptance
     assert "crm_signals.api.get_sales_compass_data" in acceptance
     assert "non-sales source without read permission was marked available" in acceptance
+
+
+def test_target_site_permission_matrix_tracks_each_access_path_independently():
+    acceptance = (ROOT / "docs/TARGET_SITE_ACCEPTANCE.md").read_text()
+    matrix = acceptance.split("## 4. Permission parity matrix", 1)[1].split(
+        "### Direct CRM Signal form loading", 1
+    )[0]
+    for access_path in (
+        "Signal list",
+        "Direct signal form",
+        "RPC API",
+        "REST resource API",
+        "Report View",
+        "CSV export",
+        "Print view",
+        "Dashboard UI",
+        "Dashboard API",
+        "Digest email",
+        "Realtime",
+    ):
+        assert f"| {access_path} |" in matrix
+    assert "Do not infer a result from another column" in matrix
