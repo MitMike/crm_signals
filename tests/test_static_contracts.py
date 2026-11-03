@@ -466,6 +466,12 @@ def test_pinned_v16_5_runs_sales_user_direct_form_permission_e2e():
     assert '"/api/method/frappe.desk.form.load.getdoc"' in spec
     assert '`/app/crm-signal/' in spec
     assert 'response.request().method() === "GET"' in spec
+    assert 'url.searchParams.get("doctype") === "CRM Signal"' in spec
+    assert 'url.searchParams.get("name") === name' in spec
+    assert "expect(restrictedFormResponse.status()).toBe(403)" in spec
+    assert "expect(restrictedBody).not.toContain(linkedMessage)" in spec
+    assert "expect(allowedFormResponse.status()).toBe(200)" in spec
+    assert "expect(loadedSignal?.message).toBe(unlinkedMessage)" in spec
     assert (
         '--grep "Sales User"'
         in workflow
