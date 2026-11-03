@@ -464,6 +464,8 @@ The direct Desk form test observed GET `frappe.desk.form.load.getdoc`: linked-re
 - [x] Verify the token identity before resource requests.
 - [x] Require linked-restricted resource GET 403 without the restricted message, unlinked-owned resource GET 200 with exact name/message, and collection GET containing only the unlinked record.
 - [x] Extend the Target-Site Acceptance Kit's authenticated Sales User smoke with the same REST resource single-document and collection checks.
-- [ ] Pass final-head Quality/Python, Security/Semgrep, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 workflows before merge.
-- [ ] Execute the resource API checks on authorized Frappe v16.5 staging; reference-stack CI does not verify site proxy/TLS/gateway behavior or live role configuration.
+- [x] Pass final-head Quality/Python, Security/Semgrep, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 workflows; merge PR #135 as 81d70410f0f81124ae468c1d929caefd1610fd9e from tested head ae6b7e408664a3b6f885c1c18ba9fc3d18c73890.
+- [ ] Execute the resource API checks on authorized Frappe v16.5 staging; reference-stack CI does not verify site proxy/TLS/gateway behavior or live role configuration. Record the deployed full SHA and exact app versions.
 - **Revisit criteria:** if a resource request redirects, inspect the exact versioned API URL map and preserve manual redirect rejection. If the response envelope differs, inspect the installed v1 resource handler and adjust only parsing, not the linked-denied/unlinked-allowed permission boundary.
+
+**PR #135 final-head evidence:** Quality/Python [41690041480](https://github.com/MitMike/crm_signals/actions/runs/41690041480), Security [41690041431](https://github.com/MitMike/crm_signals/actions/runs/41690041431), Bench v15/v16 + Playwright [41690041398](https://github.com/MitMike/crm_signals/actions/runs/41690041398), and pinned v16.5 [41690041432](https://github.com/MitMike/crm_signals/actions/runs/41690041432) all passed. PR #135 merged as 81d70410f0f81124ae468c1d929caefd1610fd9e. Remaining work is authorized target-site acceptance; no pilot verification is implied.
