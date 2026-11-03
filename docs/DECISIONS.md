@@ -916,3 +916,15 @@ Append a new ADR with the next available identifier. Include status, date record
 
 
 - **ADR-091 final status:** the two early static-test failures were corrected and all 35 checks on PR #117's final head passed. The D3 setup/discovery guides and static regressions are merged; no runtime or site configuration changed. Keep custom ticket sources unavailable until separately approved. Target-site D3 acceptance remains required.
+
+
+## ADR-092 — Add an optional effective-user permission probe to target-site preflight
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-03
+- **Context:** The read-only target-site preflight reports static DocPerm rows and field permlevels, but those rows do not prove that the actual Sales User, Sales Manager, System Manager or non-sales test accounts are active, carry the intended role boundary, or can read the fields required by CRM Signals. The operator acceptance matrix still required manual inspection before running record-level checks.
+- **Decision:** Add an optional `test_users` mapping to `get_site_preflight_report`, keyed only by the aliases `sales_user`, `sales_manager`, `system_manager` and `non_sales`. Require active, distinct, non-Administrator accounts and validate the expected role boundary. For each installed preflight DocType, use Frappe's `has_permission(..., user=..., throw=False)` and `Meta.get_permitted_fieldnames(user=...)` APIs to report DocType read access and the required fields' read access. Return aliases and boolean outcomes only; never return User names, email addresses, credentials or error text. If no mapping is supplied, report the matrix as unavailable rather than passing it.
+- **Rationale:** The probe turns the static inventory into a useful, repeatable DocType/field-level check using Frappe's own permission APIs while avoiding disclosure of test identities. The signatures and field-permission methods exist on both supported Frappe v15 and v16 lines.
+- **Consequences:** The report remains server-side, non-whitelisted and read-only. It does not inspect business-document rows and does not prove row-level User Permissions, ownership, document shares, list filters, API/report/export behavior or actual dashboard visibility; the controlled-record acceptance matrix remains mandatory. Dedicated synthetic accounts are supplied explicitly by the authorized operator, not discovered or selected automatically.
+- **Revisit criteria:** Revisit if Frappe v15/v16 changes the `has_permission` or `get_permitted_fieldnames` contract, if the required profile/role policy changes, or if a security review identifies identity leakage. Keep row-level and end-to-end permission acceptance separate even if the API evolves.
+- **Verification status:** implementation and regression tests are in PR #120; final-head Python, Quality, Security, Bench v15/v16 + Playwright and pinned Frappe v16.5.0 validation are pending. No pilot verification is claimed.
