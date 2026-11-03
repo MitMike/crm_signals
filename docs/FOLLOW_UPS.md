@@ -248,7 +248,7 @@ The PR's CI result does not establish that a customer site has the approved SHA,
 
 - [x] Initial unit coverage exercises mocked allow/deny, role validation, disabled/Administrator/duplicate account rejection and identity non-disclosure.
 - [x] Added a disposable-site Bench smoke that creates synthetic users only when `allow_tests` is enabled and calls the production preflight on real Frappe metadata.
-- [ ] Require final-head Frappe v15, v16 and pinned v16.5.0 workflow success before merging PR #120.
+- [x] PR #120 final-head verification: all 18 checks passed across Quality, Security/Semgrep, Python 3.10–3.14, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0; merged as `a778c47`.
 - [ ] On authorized staging, run the optional probe with approved synthetic accounts and separately verify controlled-record User Permissions, ownership, shares, list/API/report/export and dashboard behavior. CI does not satisfy this gate.
 
 
@@ -256,5 +256,14 @@ The PR's CI result does not establish that a customer site has the approved SHA,
 
 - [x] Require enabled Frappe System Users; reject Website Users even if they carry a sales role.
 - [x] Add unit regression coverage and assert System User type in the real-Frappe disposable CI fixture.
-- [ ] Require final-head Python, Quality, Security, Bench v15/v16 and pinned v16.5.0 success before merge.
+- [x] Final-head Python, Quality, Security, Bench v15/v16 and pinned v16.5.0 checks all passed; PR #120 merged as `a778c47`.
 - [ ] Keep controlled-record and actual Desk/API/report/export/dashboard acceptance as target-site gates.
+
+
+## PR #120 merged — effective-user preflight CI verification
+
+- [x] PR #120 merged as `a778c47b5078ac69dd89bdcd3ecab41de09b8072` from final head `e95efccec019df3fbadd1703f34c5682340b7f58` after all 18 final-head checks passed.
+- [x] Real-Frappe permission probe passed in Bench v15, Bench v16 and pinned Frappe v16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 workflows.
+- [x] Operator guide, deployment runbook and target-site acceptance kit document the alias-only probe and its DocType/field-only boundary.
+- [ ] Authorized target-site acceptance: controlled-record User Permissions, ownership, shares, list/API/report/export/dashboard behavior; exact deployed SHA and versions; D1/D2 native-report reconciliation; Helpdesk SLA; deployment/rollback; scheduler/mail/realtime/webhook/worker recovery; backup/restore; desktop/mobile visual UAT.
+- **Revisit criteria:** proceed only with an authorized Frappe v16.5 staging window, approved full SHA, named technical/business/security owners and dedicated synthetic System Users. Do not infer site acceptance from disposable Bench CI.
