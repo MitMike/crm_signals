@@ -618,3 +618,10 @@ Full-file review found that the new Sales User HTTP permission test still called
 ### PR #130 — corrected final-head CI run IDs
 
 Corrected head fd855ae056c81b16defa1eac6085ab481ef08ac9 is under fresh verification: Quality Checks 41663665399, Security/Semgrep 41663665370, Bench Integration/E2E 41663665401 and pinned Frappe 16.5.0 / Helpdesk 1.28.0 41663665390. At this review, Security's Semgrep job was in progress and the other three runs were pending. Do not merge until all four pass on this exact head.
+
+### PR #130 final-head CI triage — deterministic non-sales role fixture
+
+The final-head Quality and Security workflows passed on `7525c1521835e93245faf5840c0af1c47f9d590b`, but the pinned Frappe 16.5.0 and supported v16 Bench executions both failed before browser tests at the synthetic Employee role-boundary assertion in `crm_signals/ci.py:176`. Site setup, preflight, D1/D2, Helpdesk and schema-upgrade steps had completed. The CI log did not expose the effective role set, so the precise reason the built-in Employee role was absent is not asserted.
+
+ADR-101 replaces that assumption with a CI-only custom `CRM Signals E2E Non-Sales` Desk role (enabled, `desk_access=1`), assigned to the synthetic non-sales System User. The fixture still rejects Sales User, Sales Manager and System Manager, and the browser still verifies exact session identity. The Sales User linked-denied/unlinked-allowed/list-only-unlinked HTTP expectations are unchanged. Code commits: `eb55ca5` and static guard `1e7c911`. Require a fresh complete four-workflow final-head matrix before merge; no pilot verification is implied.
+
