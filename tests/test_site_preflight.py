@@ -195,6 +195,7 @@ def test_preflight_reports_effective_test_user_doctype_and_field_permissions(mon
 
     assert matrix["available"] is True
     assert matrix["reason"] is None
+    assert all(matrix["profiles"][profile]["system_user"] is True for profile in users)
     assert matrix["profiles"]["sales_user"]["status"] == "checked"
     assert matrix["profiles"]["sales_user"]["role_membership_valid"] is True
     assert matrix["profiles"]["sales_user"]["doctype_read"]["Lead"] is True
