@@ -483,3 +483,13 @@ PR #120 merged as [`a778c47`](https://github.com/MitMike/crm_signals/commit/a778
 The optional read-only preflight accepts explicit aliases for active, distinct System User accounts; validates the Sales User, Sales Manager, System Manager and non-sales role boundaries; and reports Frappe user-aware DocType and required-field read outcomes without returning account identities or business rows. The CI-only `allow_tests` fixture exercised the production preflight on real Frappe v15, v16 and pinned v16.5.0 disposable sites. It creates no business documents and does not establish row-level permission or pilot acceptance.
 
 **Status:** code-complete and reference-stack CI-verified; not pilot-verified. The target-site permission matrix still requires controlled-record tests for User Permissions, ownership, shares, list filters, API/report/export and dashboard behavior. The broader P0 gates remain exact deployed SHA/version inventory, D1/D2 native-report reconciliation by currency, Helpdesk SLA calendar and metrics, first-install/upgrade, scheduler/mail/realtime/webhook/worker recovery, backup/restore/rollback and desktop/mobile visual UAT. No authorized staging evidence is available; do not infer it from CI.
+
+
+
+## 29. Synthetic-record list-visibility preflight — PR #122 (2026-11-03)
+
+ADR-094 adds an optional, non-whitelisted `test_records` input to the existing Bench preflight. It accepts exact synthetic record names only for explicitly supplied test-user profiles, known preflight business DocTypes and lowercase non-sensitive labels; limits each profile to 50 records and the request to 100 total. The probe switches to each validated System User, uses permission-filtered `frappe.get_list` with `fields=["name"]`, and returns labels/booleans only. Missing and inaccessible records both return false. Direct form/API/report/export/print/dashboard behavior remains a separate target-site gate.
+
+A review found and corrected a session-safety edge case: if `frappe.set_user(test_user)` mutated the current session and then raised, the old error path returned before restoration. The corrected path records the exception type, marks requested results unavailable and always attempts to restore the original user in a shared `finally`. A regression injects the mutate-then-raise behavior and verifies restoration and non-disclosure.
+
+**Status:** code-complete on PR #122; the prior head passed all four required workflows, but this correction requires a fresh final-head Python 3.10–3.14, Quality, Security/Semgrep, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 matrix. Not merged and not pilot-verified. Authorized Frappe v16.5 staging remains required for actual role/record acceptance.
