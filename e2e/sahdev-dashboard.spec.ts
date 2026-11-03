@@ -949,49 +949,6 @@ test("Sales User report view and CSV export respect linked Lead User Permission"
 });
 
 
-test("Sales User CRM Signals dashboard API respects linked Lead User Permission", async ({
-    page
-}) => {
-    await loginAsAdministrator(page);
-
-    const { linkedSignal, unlinkedSignal, linkedMessage, unlinkedMessage } =
-        await getSalesUserSignalPair(page);
-    const apiKey = process.env.E2E_SALES_API_KEY;
-    const apiSecret = process.env.E2E_SALES_API_SECRET;
-    const email = process.env.E2E_SALES_USER || "e2e-sales-user@example.com";
-    expect(apiKey).toBeTruthy();
-    expect(apiSecret).toBeTruthy();
-
-    const identity = await frappeMethodGetWithToken(
-        "frappe.auth.get_logged_user",
-        {},
-        apiKey!,
-        apiSecret!
-    );
-    expect(identity.status).toBe(200);
-    expect((identity.body as { message?: string }).message).toBe(email);
-
-    const dashboard = await frappeMethodGetWithToken(
-        "crm_signals.api.get_dashboard_data",
-        {},
-        apiKey!,
-        apiSecret!
-    );
-    expect(dashboard.status).toBe(200);
-    const recent = (
-        dashboard.body as {
-            message?: {
-                recent?: Array<{ name: string; message: string }>;
-            };
-        }
-    ).message?.recent || [];
-    expect(recent.some((row) => row.name === unlinkedSignal!.name)).toBe(true);
-    expect(recent.some((row) => row.name === linkedSignal!.name)).toBe(false);
-    const recentText = JSON.stringify(recent);
-    expect(recentText).toContain(unlinkedMessage);
-    expect(recentText).not.toContain(linkedMessage);
-});
-
 test("Sales User CRM Signal form permission boundary", async ({ page }) => {
     await loginAsAdministrator(page);
 
@@ -1122,6 +1079,43 @@ test("Sales User print view respects linked Lead User Permission", async ({
 
 test("Sales User and non-sales dashboard API permission boundaries", async ({ page }) => {
     await loginAsAdministrator(page);
+
+    const { linkedSignal, unlinkedSignal, linkedMessage, unlinkedMessage } =
+        await getSalesUserSignalPair(page);
+    const apiKey = process.env.E2E_SALES_API_KEY;
+    const apiSecret = process.env.E2E_SALES_API_SECRET;
+    const salesEmail = process.env.E2E_SALES_USER || "e2e-sales-user@example.com";
+    expect(apiKey).toBeTruthy();
+    expect(apiSecret).toBeTruthy();
+
+    const salesIdentity = await frappeMethodGetWithToken(
+        "frappe.auth.get_logged_user",
+        {},
+        apiKey!,
+        apiSecret!
+    );
+    expect(salesIdentity.status).toBe(200);
+    expect((salesIdentity.body as { message?: string }).message).toBe(salesEmail);
+
+    const salesDashboard = await frappeMethodGetWithToken(
+        "crm_signals.api.get_dashboard_data",
+        {},
+        apiKey!,
+        apiSecret!
+    );
+    expect(salesDashboard.status).toBe(200);
+    const recent = (
+        salesDashboard.body as {
+            message?: {
+                recent?: Array<{ name: string; message: string }>;
+            };
+        }
+    ).message?.recent || [];
+    expect(recent.some((row) => row.name === unlinkedSignal!.name)).toBe(true);
+    expect(recent.some((row) => row.name === linkedSignal!.name)).toBe(false);
+    const recentText = JSON.stringify(recent);
+    expect(recentText).toContain(unlinkedMessage);
+    expect(recentText).not.toContain(linkedMessage);
     const email = process.env.E2E_EMPLOYEE_USER || "e2e-employee@example.com";
     const password = process.env.E2E_EMPLOYEE_PASSWORD;
     expect(password).toBeTruthy();
