@@ -92,7 +92,7 @@ curl -X POST 'https://<site>/api/method/crm_signals.api.ingest_signal'
 - Confirm the Lead not-modified window is an acceptable attention proxy.
 - Confirm site timezone, digest time and approved recipients.
 - Verify record-level permissions in Desk/list/report/export/API workflows on both supported versions.
-- Confirm installed support/SLA app and source DocTypes before D3 implementation.
+- Before enabling D3 on the target site, record the exact Helpdesk version and HD Ticket/SLA DocType and field permissions; verify the active SLA schedule, hours, holidays and timezone using the D3 discovery guide and target-site acceptance kit.
 - Confirm retention/source-visibility policy before enabling Vault snapshots.
 - Complete target-site financial reconciliation, integration credentials, TLS/rate limit and rollback validation.
 
