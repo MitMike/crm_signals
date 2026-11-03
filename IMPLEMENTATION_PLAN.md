@@ -428,7 +428,7 @@ PR #112 updates documentation and the static operator-installation contract test
 
 ADR-091 corrects the beginner-friendly Support & SLA setup guide. The standard Frappe Helpdesk `HD Ticket` / `HD Service Level Agreement` adapter is implemented; operators should validate the site's exact version, schema, field-level permissions, active SLA calendar, holidays, timezone and pause/resume behavior against that contract, then run staging scenarios. A different/custom ticket DocType is not automatically supported and requires a separate approved scope.
 
-PR #113 updates the guide and adds a static contract test for the implementation-status wording. No runtime code, schema, dependency or site configuration changes. Final-head Quality, Python 3.10–3.14, Security, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 validation are required. **Status at opening:** documentation and static regression code-complete, CI pending, not pilot-verified.
+PR #113 updates the Support & SLA setup guide and D3 discovery FAQ: the former confirms the existing standard adapter, while the latter makes clear that custom ticket sources require separate approval. A static contract test protects both statements. No runtime code, schema, dependency or site configuration changes. Final-head Quality, Python 3.10–3.14, Security, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 validation are required. **Status at opening:** documentation and static regression code-complete, CI pending, not pilot-verified.
 
 
 ## 24. README pin-before-install correction — PR #112 merged (2026-11-03)
