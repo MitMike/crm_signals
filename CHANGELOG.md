@@ -623,3 +623,8 @@ PR #125 merged as [7029747](https://github.com/MitMike/crm_signals/commit/702974
 
 - The first Quality/Python run failed one Python 3.11 static assertion because the guard expected the bare `frappe.desk.form.load.getdoc` string while the spec correctly matches the full `/api/method/frappe.desk.form.load.getdoc` pathname.
 - Corrected the static assertion only. The failure occurred before runtime or browser permission tests; fresh final-head CI is required. No permission expectations changed.
+
+### 2026-11-03 — PR #131 second static/formatting correction
+
+- The next Quality run exposed a second static guard mismatch because the direct form route is a TypeScript template literal, and Prettier reported two exact formatting differences in the new Playwright spec.
+- Updated the guard to match the actual route syntax and applied the Prettier output. No runtime or permission assertion failed; fresh final-head CI is required.
