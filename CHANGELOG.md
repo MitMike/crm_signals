@@ -600,3 +600,15 @@ PR #125 merged as [7029747](https://github.com/MitMike/crm_signals/commit/702974
 - Replaced the built-in Employee-role dependency with a dedicated CI-only `CRM Signals E2E Non-Sales` role, explicitly enabled for Desk access; added a static regression guard. Sales User permission assertions remain unchanged.
 - Commits: `eb55ca5` and `1e7c911`. Fresh final-head four-workflow verification required; PR remains unmerged and not pilot-verified.
 
+### 2026-11-03 — PR #130 merged — browser-session Sales User HTTP permission boundary
+
+- PR #130 merged as `2b697b4d37a12b2e339bcf680ff808f23b97850f` from final tested head `42f8a38e751977e21168869c4010fcce901309ac`.
+- All four final-head workflows passed: Quality/Python `41668745943`, Security/Semgrep `41668745937`, Bench v15/v16 + Playwright `41668746054`, and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 `41668745681`. The pinned job's focused Playwright E2E step completed successfully.
+- Added a deterministic CI-only non-sales Desk role and exact browser identity checks; preserved linked restricted 403, unlinked owned 200 and list-only-unlinked expectations. No production runtime, schema, dependency or site configuration changed. Reference-stack CI-verified, not pilot-verified.
+
+### 2026-11-03 — PR #131 opening — direct CRM Signal form-load permission regression
+
+- Add Playwright coverage for the actual Desk route `/app/crm-signal/<name>`, observing Frappe's `frappe.desk.form.load.getdoc` GET request under the synthetic Sales User.
+- Require 403/no restricted message for the linked signal and 200/expected message for the unlinked owned signal; include both HTTP API and direct-form tests in the pinned Frappe 16.5.0 Playwright selector.
+- Add a static regression guard and document the target-site form check. No production runtime, schema, dependency or site configuration changes.
+- Code-complete on the focused branch; final-head CI pending. Not pilot-verified.
