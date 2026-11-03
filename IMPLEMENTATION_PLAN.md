@@ -3,7 +3,7 @@
 **Last reviewed:** 2026-11-03  
 **Repository:** [MitMike/crm_signals](https://github.com/MitMike/crm_signals)  
 **Supported framework coverage:** Frappe / ERPNext v15 and v16. **Primary deployment target:** Frappe v16.5; record the exact patch/build and installed ERPNext/Helpdesk versions.  
-**Reviewed main baseline:** [af94b14](https://github.com/MitMike/crm_signals/commit/af94b14038250b75ebc849e424779432d57dee98) (PR #124 merged after all four final-head workflows passed: Quality/Python, Security/Semgrep, Bench v15/v16 + Playwright, and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0); **latest application feature baseline:** [c5720bf](https://github.com/MitMike/crm_signals/commit/c5720bfb3fbe8b554ec6febd549a8d5e58acc1d7).
+**Reviewed main baseline:** [7029747](https://github.com/MitMike/crm_signals/commit/70297474aadb2f4628da2268e10771cd74683e5c) (PR #125 merged after its documentation/Quality, Security and applicable path-selector checks passed); **latest application feature baseline:** [c5720bf](https://github.com/MitMike/crm_signals/commit/c5720bfb3fbe8b554ec6febd549a8d5e58acc1d7).
 
 This is the execution plan and source of truth for delivery order, scope, dependencies, acceptance gates and exit criteria. The operational state is maintained in [docs/PROGRESS.md](docs/PROGRESS.md); durable choices are in [docs/DECISIONS.md](docs/DECISIONS.md); feature contracts are in [specs/](specs/).
 
@@ -32,7 +32,7 @@ The following capabilities are present in the repository. "Implemented" means th
 | Capability | Code status | Remaining acceptance |
 |---|---|---|
 | Frappe app packaging and Pilot discovery metadata | Implemented | Run the actual Pilot import flow on the intended site |
-| Read-only target-site preflight inventory | Implemented and CI-verified in PR #70 (merged as 13341b7); optional effective-user DocType/field checks and bounded synthetic-record list visibility are CI-verified in PRs #120, #122 and #124 | Run on authorized v16.5 staging and review the actual site inventory/permission matrix; direct form/API/report/export/print/dashboard checks and release acceptance remain manual |
+| Read-only target-site preflight inventory | Implemented and CI-verified in PR #70; optional effective-user DocType/field and synthetic-record list probes are CI-verified in PRs #120, #122 and #124; PR #126 adds single-document/list API permission-wrapper coverage (prior head passed all four workflows; session-restoration review correction requires fresh final-head CI) | Run on authorized v16.5 staging and review the actual site inventory/permission matrix; authenticated HTTP, direct form, report/export/print/dashboard and release acceptance remain manual |
 | CRM Signal DocType and validation | Implemented | Validate installed schema, roles and customizations |
 | Authenticated POST ingestion | Event-ID idempotency and concurrent duplicate recovery merged in PR #19/#23 | Verify with a dedicated target-site integration user and deployment rate limits |
 | Quotation and Opportunity event hooks | Implemented; transactional outbox merged in PR #26 | Confirm target-site status/threshold policy; audited Failed-row replay merged in PR #38; per-company thresholds are in PR #45 merged |
@@ -521,3 +521,35 @@ The optional preflight is code-complete and reference-stack CI-verified, not pil
 PR #124 merged as [af94b14](https://github.com/MitMike/crm_signals/commit/af94b14038250b75ebc849e424779432d57dee98) from final head [0c7a6bf](https://github.com/MitMike/crm_signals/commit/0c7a6bfc77c3ee9df7189007c0326491906aca76). All four final-head workflows passed: Quality Checks (run 41614477641, configured Python 3.10/3.11/3.12/3.14 jobs and lint/static checks), Security Scanning/Semgrep (41614477907), Bench Integration and E2E (41614477805; Frappe v15 and v16 integration passed, with v16 Playwright passed), and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 validation (41614477749). The real-Frappe Sales User fixture confirmed a linked CRM Signal excluded by the Lead User Permission is not visible while an unlinked signal owned by the same user remains visible. The report returned checked status, restored the original session user and disclosed neither user nor record names.
 
 The new regression reuses the real Frappe User Permission fixture: a Sales User owns both signals, but a linked CRM Signal whose Lead is excluded by that user's Lead User Permission is hidden; an unlinked signal owned by the same user remains visible. The test exercises the production get_site_preflight_report(test_users=..., test_records=...) path and asserts checked status, session restoration and name/identity non-disclosure. It does not replace target-site direct form/API/report/export/print/dashboard acceptance or the broader release gates.
+
+
+## 31. Exercise Frappe document/list API permission wrappers — PR #126 opening snapshot (2026-11-03)
+
+- **Finding:** PR #124 proves the preflight's permission-filtered list probe against a real Sales User User Permission, but the target-site checklist separately requires the standard single-document and list API paths. The integration suite did not directly invoke Frappe's `frappe.client.get` and `frappe.client.get_list` wrappers for the linked-restricted/unlinked-owned pair.
+- **Decision (ADR-096):** reuse the same disposable Sales User/Lead/User Permission/CRM Signal fixture. As that user, assert `frappe.client.get` raises `PermissionError` for the linked restricted signal, returns the unlinked owned signal, and `frappe.client.get_list` returns only the unlinked signal. Always restore the original session user.
+- **Scope:** integration-test and operator-guide coverage only; no runtime, schema, dependency, metric or site configuration change. CI must run on Frappe v15/v16 and pinned v16.5.0. Direct authenticated HTTP, browser form, reports, exports, print and dashboard checks remain target-site acceptance.
+- **Status at opening:** code-complete; final-head CI pending. Not pilot-verified.
+
+
+### PR #126 first CI triage — Ruff import ordering
+
+- **Observed:** Quality Checks lint failed on head `a5998ec` with Ruff `I001` for the local `frappe.client` import in the integration test helper. The Python 3.11/3.12/3.14 unit jobs passed; Python 3.10 and the Frappe integration/pinned workflows were still running at triage.
+- **Decision:** keep the test import-safe when Frappe is not installed by moving the two API wrapper imports into the module's existing guarded `try` block beside `import frappe` and `FrappeTestCase`. Do not suppress or relax Ruff's import-order rule.
+- **Correction:** import `frappe.client.get` and `get_list` in the guarded Frappe block; remove the local import from the helper. A fresh final-head matrix is required.
+- **Revisit criteria:** if Ruff still reports `I001`, use its exact `--fix` ordering while retaining the `ModuleNotFoundError` fallback; if Bench reports an API wrapper mismatch, inspect the pinned v15/v16 implementation and keep the denied/allowed assertions intact.
+
+
+### PR #126 second CI triage — guarded import still fails Ruff I001
+
+- **Observed:** Quality Checks on head `97ac553` failed the same Ruff `I001` at the guarded import block (`crm_signals/tests/test_notification_permissions.py:7`); the first attempted correction moved aliased `frappe.client` imports into the existing `try` block but did not satisfy Ruff's ordering rule.
+- **Decision:** import the `frappe.client` module itself (`import frappe.client`) inside the existing guarded block and call `frappe.client.get` / `frappe.client.get_list`. This preserves the no-Frappe unit-test fallback and removes the aliased member import ordering ambiguity.
+- **Correction:** replace the aliased imports and rerun the full final-head matrix. Do not suppress I001 or relax lint.
+- **Revisit criteria:** if I001 persists, retrieve Ruff's exact `--fix` diff from the job or run the pinned Ruff 0.8.1 formatter against the file before another commit; if the integration test fails after lint passes, inspect the exact v15/v16 API result and keep the denied/allowed assertions intact.
+
+
+### PR #126 review correction — restore session when the initial user switch raises
+
+- **Finding:** final-head CI passed, but review found the API helper called `frappe.set_user(test_user)` immediately before its `try`. If that call changed session state and then raised, the `finally` restoration would not run.
+- **Decision:** move the initial user switch inside the existing `try`, so every attempted switch is covered by restoration. Keep the original user captured before the switch and retain the denied/allowed API assertions.
+- **Status:** the prior head `30a3890a994a3402b4efdf15732843f86a62b789` passed all four workflows (Quality/Python, Semgrep, Bench v15/v16 + Playwright, pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0). This correction creates a new head and requires a fresh complete matrix before merge.
+- **Revisit criteria:** if the new matrix fails, inspect the exact v15/v16 API wrapper and session behavior. Do not move the switch back outside the `try`, bypass permissions, or weaken the linked-denied/unlinked-allowed assertions.

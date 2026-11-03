@@ -4,7 +4,7 @@ import unittest
 from unittest.mock import patch
 
 try:
-    import frappe
+    import frappe.client
     from frappe.tests.utils import FrappeTestCase
 except ModuleNotFoundError as error:
     if error.name != "frappe":
@@ -223,3 +223,30 @@ class TestCRMSignalNotificationPermissions(FrappeTestCase):
         self.assertNotIn(user.name, serialized_report)
         self.assertNotIn(linked_signal.name, serialized_report)
         self.assertNotIn(unlinked_signal.name, serialized_report)
+        self._assert_sales_user_document_api_visibility(user, linked_signal, unlinked_signal)
+
+    def _assert_sales_user_document_api_visibility(self, user, linked_signal, unlinked_signal):
+        original_user = frappe.session.user
+        try:
+            frappe.set_user(user.name)
+            with self.assertRaises(frappe.PermissionError):
+                frappe.client.get("CRM Signal", linked_signal.name)
+
+            visible_document = frappe.client.get("CRM Signal", unlinked_signal.name)
+            self.assertEqual(visible_document["name"], unlinked_signal.name)
+
+            visible_rows = frappe.client.get_list(
+                "CRM Signal",
+                fields=["name"],
+                filters={"name": ["in", [linked_signal.name, unlinked_signal.name]]},
+                limit_page_length=10,
+            )
+            self.assertEqual(
+                {row["name"] for row in visible_rows},
+                {unlinked_signal.name},
+            )
+        finally:
+            frappe.set_user(original_user)
+
+        self.assertEqual(frappe.session.user, original_user)
+

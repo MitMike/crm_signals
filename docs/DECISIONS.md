@@ -1004,3 +1004,33 @@ A focused code review found that the first implementation returned immediately w
 - **Consequences:** Integration-test-only. No runtime, schema, dependency, metric or site configuration changes. Final-head Bench v15/v16 and pinned v16.5.0 workflows must execute the test before merge. The test remains reference-stack evidence, not pilot acceptance.
 - **Revisit criteria:** If Frappe v15/v16 changes User Permission or `frappe.get_list` behavior, inspect the actual query hook and permission API. Do not substitute `frappe.get_all`, remove the denied linked-record assertion or infer target-site role behavior from CI.
 - **Verification status:** PR #124 merged as [af94b14](https://github.com/MitMike/crm_signals/commit/af94b14038250b75ebc849e424779432d57dee98) from final head [0c7a6bf](https://github.com/MitMike/crm_signals/commit/0c7a6bfc77c3ee9df7189007c0326491906aca76). All four final-head workflows passed: Quality Checks (run 41614477641, configured Python 3.10/3.11/3.12/3.14 jobs and lint/static checks), Security Scanning/Semgrep (41614477907), Bench Integration and E2E (41614477805; Frappe v15 and v16 integration passed, with v16 Playwright passed), and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 validation (41614477749). The real-Frappe Sales User fixture confirmed a linked CRM Signal excluded by the Lead User Permission is not visible while an unlinked signal owned by the same user remains visible. The report returned checked status, restored the original session user and disclosed neither user nor record names. The test is reference-stack evidence only; it is not pilot verification.
+
+
+## ADR-096 — Verify Frappe single-document and list API permission wrappers
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-03
+- **Context:** PR #124 exercises the preflight's `frappe.get_list` path against a real Sales User User Permission, but target-site acceptance separately requires direct API reads. The supported Frappe v15/v16 `frappe.client.get` wrapper loads a document, calls `doc.check_permission()` and applies field-level read permissions; `frappe.client.get_list` delegates to permission-aware `frappe.get_list`.
+- **Decision:** Reuse the existing disposable Sales User fixture with a Lead User Permission that allows one synthetic Lead and excludes another. As that user, invoke `frappe.client.get` for the CRM Signal linked to the restricted Lead and require `frappe.PermissionError`; invoke it for the unlinked owned signal and require a document result; invoke `frappe.client.get_list` for both names and require only the unlinked signal. Restore the original session user in `finally`.
+- **Rationale:** Exercise Frappe's actual API method wrappers and the CRM Signal document/list permission hooks on the supported runtime matrix without introducing a separate fixture or using privileged `get_all` queries.
+- **Consequences:** Integration-test only. The CI test calls the whitelisted Python functions directly; it does not validate HTTP authentication, cookies, routing, reverse-proxy behavior or browser form loading. Those remain staging checks. No runtime, schema, dependency, metric or site configuration changes.
+- **Revisit criteria:** If Frappe v15/v16 changes the `frappe.client.get` or `get_list` wrapper contracts, inspect the exact versioned implementation and update the regression without weakening the denied/allowed record boundary. Do not replace the API wrappers with `get_all` or use Administrator credentials.
+- **Verification status:** prior head `30a3890a994a3402b4efdf15732843f86a62b789` passed final-head Quality/Python, Security/Semgrep, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 validation. A review correction moves the initial session switch inside the restoration `try`; the corrected head requires a fresh complete matrix. Not pilot-verified.
+
+
+### ADR-096 CI triage — Ruff import ordering
+
+The first Quality lint run on head `a5998ec` failed only on Ruff `I001` for a local `frappe.client` import. Move `get`/`get_list` imports into the module's existing guarded Frappe import block so non-Bench unit environments still skip the integration class cleanly. Keep Ruff enforcement unchanged and rerun the full final-head matrix. If the import issue recurs, apply Ruff's exact import ordering; if the real-Frappe API methods differ, inspect v15/v16 implementations without weakening the expected denied/allowed boundary.
+
+
+### ADR-096 CI triage — second Ruff import-order failure
+
+The first correction moved aliased API imports into the guarded Frappe import block but Quality Checks on head `97ac553` still failed Ruff `I001` at that block. Replace the aliases with `import frappe.client` and call the module functions directly. Preserve the `ModuleNotFoundError` fallback and Ruff enforcement. If the rule still fails, obtain the exact Ruff 0.8.1 `--fix` diff rather than guessing a third import arrangement.
+
+
+### PR #126 review correction — restore session when the initial user switch raises
+
+- **Finding:** final-head CI passed, but review found the API helper called `frappe.set_user(test_user)` immediately before its `try`. If that call changed session state and then raised, the `finally` restoration would not run.
+- **Decision:** move the initial user switch inside the existing `try`, so every attempted switch is covered by restoration. Keep the original user captured before the switch and retain the denied/allowed API assertions.
+- **Status:** the prior head `30a3890a994a3402b4efdf15732843f86a62b789` passed all four workflows (Quality/Python, Semgrep, Bench v15/v16 + Playwright, pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0). This correction creates a new head and requires a fresh complete matrix before merge.
+- **Revisit criteria:** if the new matrix fails, inspect the exact v15/v16 API wrapper and session behavior. Do not move the switch back outside the `try`, bypass permissions, or weaken the linked-denied/unlinked-allowed assertions.
