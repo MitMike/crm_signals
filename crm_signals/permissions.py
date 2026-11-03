@@ -86,7 +86,7 @@ def crm_signal_has_permission(
     if not links:
         related_and_readable = _field_value(doc, "owner") == user
 
-    if permission_type == "read":
+    if permission_type in {"read", "print"}:
         return bool(related_and_readable)
 
     if permission_type in {"write", "delete", "submit", "cancel"}:
@@ -103,8 +103,10 @@ def crm_signal_has_permission(
             )
         )
 
-    # Create, share, export, print and other actions are governed by the
-    # role-level DocType permission checked above.
+    # Create, share, export and other actions are governed by the
+    # role-level DocType permission checked above. Print additionally
+    # requires row-level read access because Frappe permits either read or
+    # print permission in its print-view gate.
     return True
 
 
