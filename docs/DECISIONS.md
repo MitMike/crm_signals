@@ -1161,3 +1161,36 @@ After the static regression exposed stale currentUserRoles references, a full-fi
 - **Revisit criteria:** if the custom role is not present in the effective role list, inspect the exact Role metadata and Has Role rows on each failing version, including disabled and Desk-access flags. Do not replace the non-sales account with Administrator, remove the role assertion, or weaken the linked-record denial / unlinked-record access / filtered-list checks.
 - **Verification status:** correction committed as `eb55ca526811673f46466ea55a90136fa1c97010` and static guard as `1e7c911dbf9f28efec87ed933630217336b5486c`. Fresh final-head Quality/Python, Security, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 checks are required. Not pilot-verified.
 
+### ADR-101 verification — PR #130 merged (2026-11-03)
+
+PR #130 merged as `2b697b4d37a12b2e339bcf680ff808f23b97850f` from final tested head `42f8a38e751977e21168869c4010fcce901309ac`. Quality/Python `41668745943`, Security/Semgrep `41668745937`, Bench v15/v16 + Playwright `41668746054`, and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 `41668745681` all passed. The deterministic non-sales role fixture and the Sales User linked-denied/unlinked-allowed/list-only-unlinked browser assertions passed in the final-head matrix. Reference-stack CI verification only; not pilot verification.
+
+## ADR-102 — Verify direct CRM Signal form loading under Sales User permissions
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-03
+- **Context:** PR #130 verifies `frappe.client.get` and `frappe.client.get_list` over an authenticated browser session. The Desk form uses a separate loader: on Frappe v16, `frappe.model.with_doc` issues GET `frappe.desk.form.load.getdoc`; the server loads the document, calls `doc.check_permission("read")` and applies field-level read permissions before adding the document to the response. This path was not covered by the previous browser test.
+- **Decision:** navigate as the synthetic Sales User to the direct CRM Signal route `/app/crm-signal/<name>`. For the CRM Signal linked to a Lead excluded by the user's Lead User Permission, require the form-loader GET to return 403 and the restricted message not to appear in the response. For the unlinked CRM Signal owned by the same user, require 200 and verify the expected message is present in the loaded document. Run the test in the supported v16 Playwright lane and the pinned Frappe 16.5.0 lane.
+- **Rationale:** exercise the actual browser route and Frappe form-loader permission boundary rather than inferring form behavior from the generic document API wrapper or the Desk shell response.
+- **Consequences:** disposable CI fixture and operator-guide coverage only. No production runtime, schema, dependency or site configuration changes. API-token authentication, report/export/print/dashboard and target-site acceptance remain separate.
+- **Revisit criteria:** if the route or loader method changes on supported v15/v16, inspect the exact Frappe router and loader implementation and retain the linked-denied/unlinked-allowed assertions. Never treat the Desk shell's HTTP response as proof that the document loaded, and never use Administrator for the Sales User assertions.
+- **Verification status:** code-complete on branch `test/sales-user-direct-form-permission-20261103`; final-head CI pending. Not pilot-verified.
+
+## ADR-103 — Enforce lockfile-based npm installation in every Bench E2E lane
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-03
+- **Context:** PR #130 corrected the pinned Frappe 16.5.0 workflow to use `npm ci`, but review of the supported Frappe v15/v16 `bench-e2e.yml` lane found it still used `npm install`. That allowed the two browser-test lanes to resolve different dependency trees despite sharing the same committed package lock.
+- **Decision:** use `npm ci --ignore-scripts --no-audit --no-fund` before Playwright browser installation in both supported v15/v16 and pinned Frappe 16.5.0 workflows. Extend static regression coverage to require the lockfile command, reject `npm install`, and verify generated Sales User/Employee passwords are masked before being written to GitHub step outputs in both workflows.
+- **Rationale:** the browser tests should execute against the exact committed dependency graph on every supported reference lane. This removes lane-specific npm resolution drift without changing package versions or the lockfile.
+- **Scope:** CI workflow and static-test only. No runtime dependency, package manifest, lockfile, schema or site configuration changes.
+- **Revisit criteria:** if `npm ci` reports a lockfile mismatch, update the lockfile deliberately in a separate dependency change and rerun dependency audits; do not fall back to `npm install` or suppress the static contract.
+- **Verification status:** code-complete on PR #131 branch; final-head Quality/Python, Security and Bench v15/v16 + pinned v16.5 workflows pending. Not pilot-verified.
+
+### ADR-102 CI triage — static contract matched the full endpoint path (2026-11-03)
+
+The first Quality/Python run on the PR #131 head failed one Python 3.11 static assertion (143 passed, 36 skipped, 1 failed). The spec correctly matches the full `/api/method/frappe.desk.form.load.getdoc` URL pathname; the new guard incorrectly searched for a quoted bare method name. Correct the guard to assert the full path. No browser test or permission assertion ran in the failed job; the direct-form test and 403/200 expectations are unchanged. Require a fresh complete final-head matrix.
+
+### ADR-102 second CI triage — match the actual template-literal route and Prettier output
+
+Quality run `41675975692` found a second static assertion mismatch: the route is authored as a template literal (`/app/crm-signal/`), not a double-quoted string. Its lint job `126056667745` reported exactly two Prettier changes: remove one extra blank line before `openCrmSignalForm` and keep the short test callback signature on one line. Apply those source-aligned corrections only. No browser or Frappe permission assertion ran in the failed jobs; fresh final-head CI is required.

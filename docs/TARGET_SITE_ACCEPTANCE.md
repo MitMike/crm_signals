@@ -47,7 +47,7 @@ Record, do not infer:
 - [ ] Confirm each supplied profile reports `status: checked`, active System User account and valid role membership; review every DocType and required-field result plus any supplied record-visibility result. `partial`, missing, invalid-role, false or unavailable results require investigation, not sign-off.
 - [ ] With the dedicated Sales User's own API credentials (never Administrator), run the authenticated HTTP smoke below. It verifies the authenticated identity first, then expects HTTP 403 for the linked restricted document, HTTP 200 for the unlinked owned document, and a list containing exactly the unlinked record. Do not follow redirects; a redirect is a failed check because the token must not be forwarded to another origin.
 - [ ] Keep response bodies in a mode-0600 temporary directory and remove them after checking. Record only the authenticated profile alias, HTTP status codes, pass/fail outcomes, site/Frappe version, deployed full SHA and timestamp. Never attach raw response bodies, API keys/secrets, record names or user identifiers.
-- [ ] The script below requires Bash, curl and Python 3.10+. It uses GET query parameters exactly as Frappe's method wrappers expect. PR #130 also adds Playwright coverage of the same methods over a browser session cookie on Frappe v16 and pinned v16.5; this does not verify API-token authentication on the target site or browser form loading. Report/export/print/dashboard behavior remains separate.
+- [ ] The script below requires Bash, curl and Python 3.10+. It uses GET query parameters exactly as Frappe's method wrappers expect. PR #130 is merged and CI-verified: Playwright exercises the same methods over a browser session cookie on Frappe v16 and pinned v16.5. PR #131 adds a direct Desk form-load permission regression on those reference stacks; final-head CI is pending. Neither test executes target-site API-token authentication or replaces the live browser-form acceptance below. Report/export/print/dashboard behavior remains separate.
 
 ```bash
 set -euo pipefail
@@ -217,6 +217,19 @@ Test with real representative users, not only Administrator. Check each path ind
 | System Manager | | | | | | | |
 | Non-sales user | | | | | | | |
 | Disabled user | | | | | | | |
+
+### Direct CRM Signal form loading
+
+Use the same two synthetic records as the linked-party permission test: a CRM Signal linked to a Lead excluded by the Sales User's Lead User Permission, and an unlinked CRM Signal owned by that user. Do not use Administrator for the permission assertions.
+
+- [ ] Sign in to Desk as the dedicated Sales User and open the linked-restricted record directly at `/app/crm-signal/<URL-encoded-name>`, not through a list view.
+- [ ] In the browser Network panel, inspect the GET `/api/method/frappe.desk.form.load.getdoc` request for DocType `CRM Signal` and the restricted name. Expect a permission-denied response (HTTP 403 on the tested Frappe v16/v16.5 reference stacks); confirm the restricted signal message and document fields are not returned or rendered. The Desk SPA shell itself may return 200; that is not document access.
+- [ ] Open the unlinked owned signal directly. Expect the form-loader GET to return 200, the loaded document to identify only that synthetic record, and its expected message to render.
+- [ ] Repeat for Sales Manager and non-sales personas using approved records and record each result independently; do not infer their form permissions from the Sales User case.
+- [ ] Record only persona alias, route outcome, loader status, exact Frappe build, deployed full SHA and timestamp. Redact record names, message content, credentials and response bodies from shared evidence.
+- [ ] If the restricted document loads, stop acceptance. Inspect DocPerm, User Permission, shares, owner/assignment and the CRM Signal permission query; do not add a share or weaken the expected denial.
+
+PR #131 adds a Playwright regression for this direct route on supported Frappe v16 and pinned v16.5.0. It is reference-stack evidence only; execute this procedure on the authorized target site.
 
 Acceptance criteria:
 - [ ] A user cannot read signal content when they cannot read the linked Lead/Customer.

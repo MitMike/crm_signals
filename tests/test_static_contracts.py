@@ -411,27 +411,26 @@ def test_crm_signals_dashboard_retains_horizontal_inset():
     assert "padding: 20px 24px 32px;" in stylesheet
 
 
-def test_pinned_playwright_workflow_uses_lockfile_install_and_masks_e2e_passwords():
-    workflow = (ROOT / ".github/workflows/bench-target-v16-5.yml").read_text()
+def test_bench_playwright_workflows_use_lockfile_install_and_mask_e2e_passwords():
+    workflow_paths = [
+        ROOT / ".github/workflows/bench-e2e.yml",
+        ROOT / ".github/workflows/bench-target-v16-5.yml",
+    ]
     install = "npm ci --ignore-scripts --no-audit --no-fund"
-    assert install in workflow
-    assert "npm install " not in workflow
-    assert workflow.index(install) < workflow.index(
-        "npx playwright install --with-deps chromium"
-    )
+    browser_install = "npx playwright install --with-deps chromium"
 
-    credentials = workflow.split(
-        "      - name: Generate ephemeral E2E user passwords", 1
-    )[1].split(
-        "      - name: Prepare ERPNext and Sales User permission E2E fixtures", 1
-    )[0]
-    for name in ["sales_password", "employee_password"]:
-        mask = f'echo "::add-mask::${name}"'
-        output = f'echo "{name}=${name}" >> "$GITHUB_OUTPUT"'
-        assert mask in credentials
-        assert output in credentials
-        assert credentials.index(mask) < credentials.index(output)
+    for path in workflow_paths:
+        workflow = path.read_text()
+        assert install in workflow
+        assert "npm install " not in workflow
+        assert workflow.index(install) < workflow.index(browser_install)
 
+        for name in ["sales_password", "employee_password"]:
+            mask = f'echo "::add-mask::${name}"'
+            output = f'echo "{name}=${name}" >> "$GITHUB_OUTPUT"'
+            assert mask in workflow
+            assert output in workflow
+            assert workflow.index(mask) < workflow.index(output)
 
 def test_playwright_login_wait_supports_frappe_16_5_login_route():
     spec = (ROOT / "e2e/sahdev-dashboard.spec.ts").read_text()
@@ -457,3 +456,23 @@ def test_e2e_non_sales_account_uses_explicit_desk_role():
     assert 'frappe.throw("E2E non-sales role boundary is invalid")' in source
     assert 'frappe.get_roles("e2e-employee@example.com")' in source
 
+def test_pinned_v16_5_runs_sales_user_direct_form_permission_e2e():
+    spec = (ROOT / "e2e/sahdev-dashboard.spec.ts").read_text()
+    workflow = (ROOT / ".github/workflows/bench-target-v16-5.yml").read_text()
+    assert (
+        'test("Sales User CRM Signal form permission boundary"'
+        in spec
+    )
+    assert '"/api/method/frappe.desk.form.load.getdoc"' in spec
+    assert '`/app/crm-signal/' in spec
+    assert 'response.request().method() === "GET"' in spec
+    assert 'url.searchParams.get("doctype") === "CRM Signal"' in spec
+    assert 'url.searchParams.get("name") === name' in spec
+    assert "expect(restrictedFormResponse.status()).toBe(403)" in spec
+    assert "expect(restrictedBody).not.toContain(linkedMessage)" in spec
+    assert "expect(allowedFormResponse.status()).toBe(200)" in spec
+    assert "expect(loadedSignal?.message).toBe(unlinkedMessage)" in spec
+    assert (
+        '--grep "Sales User"'
+        in workflow
+    )
