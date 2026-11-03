@@ -1056,3 +1056,13 @@ The first correction moved aliased API imports into the guarded Frappe import bl
 - **Safety:** read API credentials without echo; write the Authorization header only to a mode-0600 temporary curl config; do not follow redirects; keep response bodies in a mode-0600 temporary directory; remove secrets and response files on exit; print only identity-match and pass/fail outcomes, never names, raw response bodies or secrets.
 - **Consequences:** documentation-only. The procedure verifies HTTP authentication/routing and method response behavior only when actually run against the authorized target site. It does not prove browser form, REST resource, report/export/print/dashboard or broader pilot acceptance. No runtime, schema, dependency or site configuration changes.
 - **Revisit criteria:** if the pinned Frappe build returns a different documented status or response shape, capture sanitized status/error class and exact build, inspect the versioned wrapper/authentication behavior, and revise the procedure without Administrator credentials or weaker permission expectations.
+
+
+### ADR-097 documentation verification — PR #128 merged (2026-11-03)
+
+- PR #128 merged as `85c492ea2c84444d7cc45c0d61706736fa972a83`.
+- Quality Checks `41639851748`: Python 3.10/3.11/3.12/3.14 and lint/static checks passed.
+- Security/Semgrep `41639851870`: passed.
+- Bench Integration/E2E `41639851663`: path selectors passed; Bench runtime was correctly skipped for documentation-only changes. No pinned Frappe workflow was triggered.
+- The embedded Bash procedure passed `bash -n`. ShellCheck was not installed; no ShellCheck result is claimed.
+- This verifies documentation syntax and repository checks only. The HTTP procedure has not been executed against a target site; not pilot-verified.
