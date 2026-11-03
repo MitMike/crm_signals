@@ -1093,4 +1093,4 @@ The first correction moved aliased API imports into the guarded Frappe import bl
 
 ### ADR-098 implementation review note (2026-11-03)
 
-The first Quality run flagged `_prepare_e2e_sales_user_permission_fixture` at 102 non-blank lines against the repository's 100-line hard limit. The setup was split into `_ensure_e2e_lead`, `_ensure_e2e_signal` and the smaller fixture coordinator. No threshold was changed or suppressed; corrected final-head checks are required before merge.
+The first Quality run flagged `_prepare_e2e_sales_user_permission_fixture` at 102 non-blank lines against the repository's 100-line hard limit. The setup was split into `_ensure_e2e_lead`, `_ensure_e2e_signal` and the smaller fixture coordinator. The next Quality run passed Ruff/code standards and Python but failed Prettier formatting in `e2e/sahdev-dashboard.spec.ts`; the exact formatter diff was applied. No threshold or formatter check was changed or suppressed; corrected final-head checks are required before merge.
