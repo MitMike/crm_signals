@@ -360,3 +360,15 @@ Included in PR #19's merge commit [a495919](https://github.com/MitMike/crm_signa
 - Replace the unsafe moving-branch `bench get-app ... --branch main` example with the established direct-clone, approved-SHA detach/verify, then `bench setup requirements crm_signals` sequence.
 - Link existing-install upgrades to the Administrator Guide and Deployment Runbook so all operator entry points use the same verified procedure.
 - Documentation and static-test-only; no runtime or dependency change. The static contract test protects the README's pin-before-requirements ordering. Authorized Frappe v16.5 staging rehearsal remains required and is not implied by CI.
+
+
+### 2026-11-03 — README pin-before-install correction merged (PR #112 / ADR-090)
+- PR #112 merged as [`d2e1d87`](https://github.com/MitMike/crm_signals/commit/d2e1d873a8f257545596379e179aeb3e4de40dd4) from final head `f68939ba5e2977ed62698e2a78084277fa091479`.
+- All 18 final-head checks passed across Quality, Python 3.10–3.14, Security/Semgrep, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 validation.
+- README first-install instructions now pin and verify the approved full SHA before Bench dependency setup; the static test protects the sequence.
+- Documentation/static-test only. Authorized target-site first-install and upgrade rehearsal remains outstanding; not pilot verification.
+
+### 2026-11-03 — D3 guide implementation status and custom-source boundary (ADR-091)
+- Clarify in both HTML guides that the standard Helpdesk adapter is implemented and custom/different ticket sources require a separately approved scope.
+- Add static contract coverage for both guide statements.
+- No runtime or site configuration change. D3 target-site acceptance remains outstanding.
