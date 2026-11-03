@@ -535,3 +535,68 @@ PR #125 merged as [7029747](https://github.com/MitMike/crm_signals/commit/702974
 - Added copy/paste HTTPS-only curl checks for authenticated identity, linked restricted document denial (403), unlinked owned document read (200) and permission-filtered list visibility.
 - Added safe temporary credential/response handling and linked the procedure from the Administrator Guide.
 - PR #128 merged as `85c492ea2c84444d7cc45c0d61706736fa972a83`; Quality/Python, Security/Semgrep and documentation-only Bench path-selector checks passed. The embedded Bash passed `bash -n` (ShellCheck unavailable). Must still be executed on authorized Frappe v16.5 staging. Not pilot verification.
+
+
+### 2026-11-03 — PR #130: browser-session permission regression on Frappe v16 and pinned v16.5
+
+- Added disposable Sales User/User Permission fixtures for a linked restricted CRM Signal and an unlinked owned signal.
+- Added Playwright same-origin HTTP assertions for document denial, allowed read and filtered list visibility.
+- Extended the pinned Frappe 16.5.0 workflow to run the focused Playwright permission test. The first lint run found a 102-line fixture helper above the 100-line hard limit; split the helper into focused functions without changing the threshold. The next Quality run flagged Prettier formatting; applied the exact formatter diff. Corrected final-head CI pending.
+
+
+### 2026-11-03 — PR #130 workflow reproducibility correction
+
+- Changed the pinned Frappe 16.5 Playwright dependency step from `npm install` to lockfile-enforced `npm ci --ignore-scripts --no-audit --no-fund`, consistent with Stage 0 and Quality Checks; retained the explicit Chromium install.
+- Removed the duplicate ADR-098 decision block and recorded the correction/revisit criteria in the canonical ADR.
+- Added a static contract regression that requires the pinned workflow to use `npm ci` before Playwright browser installation and rejects `npm install`.
+- Prior head `7bd1837` had Quality and Security passed; Bench v15/v16 and pinned v16.5 were still running. All four workflows must run on the corrected head before merge. Not pilot-verified.
+
+- Masked the pinned Frappe 16.5 E2E Sales User and Employee passwords with GitHub Actions `add-mask` before writing step outputs; added static regression assertions for masking order and lockfile-based npm installation.
+
+- Wrapped the new pinned-workflow static contract test to stay within the configured Python line-length limit; lint enforcement remains unchanged.
+
+
+### 2026-11-03 — PR #130 pinned Frappe 16.5 Playwright login-route correction (ADR-099)
+
+- Final head 69383d989d7d0d3ee53e973c90a0934f00e81e90 passed Quality/Python, Security/Semgrep and Bench v15/v16 + Playwright. Pinned Frappe 16.5.0 setup, D1/D2/Helpdesk/schema checks, E2E fixture, Python tests and Frappe integration tests passed, but the focused browser test timed out waiting for POST /api/method/login.
+- Playwright trace evidence showed the Frappe v16.5 login form successfully submitted POST /login (HTTP 200). The shared helper's route predicate was too narrow.
+- Updated the helper to accept exact POST paths /login and /api/method/login, retaining response/session/navigation assertions; added a static regression test. Corrected final-head CI is required. PR #130 remains unmerged pending all four workflows; not pilot-verified.
+
+
+
+### 2026-11-03 — PR #130 pinned Frappe 16.5 Sales User identity assertion correction (ADR-100)
+
+- Pinned run 41647478405 completed site setup, preflight, D1/D2, Helpdesk, schema upgrade, E2E fixtures, asset build, Python tests and Frappe integration tests, then failed before permission assertions because the browser role-discovery helper returned an empty array.
+- Moved Sales User role validation into the server-side fixture using frappe.get_roles(sales_user) and changed the browser precondition to verify frappe.auth.get_logged_user equals the configured synthetic Sales User.
+- Added a static regression guard. All four corrected final-head workflows must pass before merge; no pilot verification is implied.
+
+
+
+### 2026-11-03 — PR #130 follow-up: remove stale non-sales role helper reference
+
+- Quality/Python run 41663119127 caught stale currentUserRoles references in the new HTTP permission test and the Employee dashboard test after the helper was removed. The earlier replacement had changed a separate Sales User dashboard test.
+- Replaced both remaining role lookups with exact authenticated identity verification; added server-side Employee-only role validation and rejected elevated roles on the Sales User fixture.
+- Fresh final-head Quality, Security, Bench v15/v16 + Playwright and pinned Frappe 16.5 workflows are required. No pilot verification is implied.
+
+
+
+### 2026-11-03 — PR #130 final HTTP-test identity correction
+
+- Full-file review found the new Sales User HTTP test still called currentUserRoles; replaced it with frappe.auth.get_logged_user and exact email equality.
+- The Employee dashboard test also verifies its exact synthetic identity. Server-side fixture preparation enforces Sales User and Employee role boundaries.
+- All four final-head workflows must pass before merge. No pilot verification is implied.
+
+
+
+### 2026-11-03 — PR #130 corrected head queued for final verification
+
+- Corrected head fd855ae056c81b16defa1eac6085ab481ef08ac9 removes the final currentUserRoles reference, verifies Sales User and Employee browser session identities with frappe.auth.get_logged_user, and validates role boundaries server-side.
+- Fresh Quality run 41663665399, Security run 41663665370, Bench v15/v16 run 41663665401 and pinned Frappe 16.5.0 run 41663665390 were queued; Security had started. Await all four final-head results before merge.
+
+### 2026-11-03 — PR #130 deterministic non-sales E2E role correction (ADR-101)
+
+- Final head `7525c1521835e93245faf5840c0af1c47f9d590b` passed Quality `41663853566` and Security `41663853347`, but pinned Frappe 16.5.0 `41663853279` and supported v16 Bench `41663853266` failed before Playwright at `E2E Employee role boundary is invalid` in `crm_signals/ci.py:176`.
+- Site setup, effective-user preflight, D1/D2, Helpdesk and schema-upgrade steps passed. The CI log did not print the effective role set; no specific built-in role filtering cause is claimed.
+- Replaced the built-in Employee-role dependency with a dedicated CI-only `CRM Signals E2E Non-Sales` role, explicitly enabled for Desk access; added a static regression guard. Sales User permission assertions remain unchanged.
+- Commits: `eb55ca5` and `1e7c911`. Fresh final-head four-workflow verification required; PR remains unmerged and not pilot-verified.
+

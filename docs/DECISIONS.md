@@ -1067,3 +1067,97 @@ The first correction moved aliased API imports into the guarded Frappe import bl
 - The embedded Bash procedure passed `bash -n`. ShellCheck was not installed; no ShellCheck result is claimed.
 - A local fake-curl harness exercised the script's control flow and request arguments: authenticated identity 200, linked restricted get 403, unlinked owned get 200, and list containing only the unlinked record all passed. This is a transport mock only; it does not establish real HTTP/Frappe behavior.
 - This verifies documentation syntax, a local mocked execution and repository checks only. The HTTP procedure has not been executed against a target site; not pilot-verified.
+
+
+## ADR-098 — Exercise Sales User record permissions through browser-session HTTP on the pinned target
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-03
+- **Context:** ADR-096's Bench test calls `frappe.client.get` / `get_list` Python wrappers directly; ADR-097 documents a separate API-token HTTP check for operators. The existing Playwright suite only checked dashboard access and did not prove these permission boundaries over a real browser session cookie. The pinned Frappe 16.5.0 workflow did not run Playwright.
+- **Decision:** extend the disposable E2E site bootstrap to create two Leads (one allowed by a Sales User Lead User Permission, one restricted), a linked CRM Signal owned by the Sales User and an unlinked CRM Signal owned by the same user. Verify the fixture's permission-filtered list result before browser tests. In Playwright, discover the synthetic records as Administrator, switch to the dedicated Sales User, then call `frappe.client.get` and `frappe.client.get_list` through same-origin `fetch` with browser session credentials. Require linked get HTTP 403, unlinked get HTTP 200 with the expected name, and list output containing exactly the unlinked signal. Run the same E2E suite on Frappe v16 and pinned Frappe 16.5.0.
+- **Rationale:** this tests actual HTTP routing, session-cookie authentication and method response mapping without placing API secrets in CI or weakening the linked-party permission boundary. The fixture is disposable and test-only.
+- **Consequences:** test/workflow-only. No runtime, schema, dependency or site configuration changes. It does not test API-token authentication, reverse-proxy behavior on a target site, browser form rendering, REST resource endpoints, reports/exports/print/dashboard or production acceptance.
+- **Revisit criteria:** if the restricted record returns anything other than 403 or appears in list results, inspect the exact Frappe build's User Permission and CRM Signal query conditions; do not use Administrator for Sales User assertions. If pinned E2E exceeds 60 minutes, profile setup, install and browser steps before extending the timeout.
+
+
+### ADR-098 implementation review note (2026-11-03)
+
+The first Quality run flagged `_prepare_e2e_sales_user_permission_fixture` at 102 non-blank lines against the repository's 100-line hard limit. The setup was split into `_ensure_e2e_lead`, `_ensure_e2e_signal` and the smaller fixture coordinator. The next Quality run passed Ruff/code standards and Python but failed Prettier formatting in `e2e/sahdev-dashboard.spec.ts`; the exact formatter diff was applied. No threshold or formatter check was changed or suppressed; corrected final-head checks are required before merge.
+
+
+### ADR-098 workflow reproducibility correction (2026-11-03)
+
+- **Finding:** the new pinned-target Playwright step installed the repository's locked Node dependencies with `npm install`, while Stage 0 and Quality Checks require lockfile-enforced `npm ci`. This made the new integration lane less reproducible than the existing validation policy.
+- **Decision:** use `npm ci --ignore-scripts --no-audit --no-fund` before the explicit `npx playwright install --with-deps chromium` step. Preserve script suppression and the committed package-lock; do not relax the repository's deterministic-install rule.
+- **Documentation cleanup:** remove the duplicated ADR-098 decision block, retaining one canonical decision and its implementation/verification notes.
+- **Regression guard:** add a static contract test requiring the pinned workflow to use `npm ci` before the explicit Playwright browser installation and rejecting `npm install` in that workflow.
+- **Verification:** the prior PR head `7bd1837e39b994daae04158eff5a1559fe48f4d8` had Quality and Security passed while Bench v15/v16 and pinned v16.5.0 were still running. This workflow correction creates a new head; all four final-head workflows must pass again before merge. Not pilot-verified.
+- **Revisit criteria:** if `npm ci` reports a package/lock mismatch, repair and commit the lockfile in a separate focused change; do not revert to an unlocked install. If the pinned browser job exceeds the documented 60-minute threshold, inspect job-step durations and logs before changing timeouts.
+
+
+### ADR-098 ephemeral E2E credential masking correction (2026-11-03)
+
+- **Finding:** the pinned workflow generated random Sales User and Employee passwords and passed them as step outputs, but did not register the values with the GitHub Actions log masker.
+- **Decision:** generate each value once, issue `::add-mask::` for both values before writing either to `GITHUB_OUTPUT`, then pass them only through the existing step/job environment. Keep the credentials ephemeral and do not print them.
+- **Regression guard:** the static workflow contract now checks that both generated credentials are masked before their step outputs are written, in addition to requiring lockfile-enforced `npm ci`.
+- **Verification:** this creates a new PR head and requires fresh Quality/Python, Security, Bench v15/v16 + Playwright and pinned v16.5 Playwright checks. Not pilot-verified.
+- **Revisit criteria:** if workflow structure changes, keep masking before output propagation; never log credentials or move them into repository variables/secrets.
+
+
+### ADR-098 static-test formatting triage (2026-11-03)
+
+The first final-head Quality run after adding the workflow regression guard is expected to enforce the repository's 88-character Python line limit. A newly added split expression was 92 characters; it has been wrapped without changing assertions. Keep Ruff enforcement unchanged and require a fresh final-head Quality run.
+
+
+## ADR-099 — Accept both Frappe login POST routes in Playwright
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-03
+- **Context:** PR #130's first final-head matrix passed Quality Checks, Security/Semgrep and the Frappe v15/v16 Bench + Playwright workflow, but the pinned Frappe 16.5.0 workflow failed its focused Playwright test before reaching the permission assertions. The trace shows the login form submitted POST /login and successfully established an Administrator session; the shared Playwright helper waited only for POST /api/method/login, so it timed out despite the successful login.
+- **Decision:** identify the login response by POST method and accept either /login or /api/method/login. Parse the response URL pathname rather than matching an arbitrary substring. Preserve the existing response-success, authenticated-session-cookie and post-login navigation assertions.
+- **Rationale:** Frappe v16.5's observed login route differs from the route used by the supported moving v16 lane. The test helper must model both supported routes without weakening authentication or permission assertions.
+- **Regression guard:** add a static contract test requiring both exact pathnames and the POST-method check.
+- **Scope:** Playwright test harness and static regression only; no production runtime, schema, dependency or site configuration change.
+- **Evidence:** workflow run 41643473834, job 125943109815, failed only at the focused Playwright login wait after site setup, migration, preflight, D1/D2, Helpdesk, Python and Frappe integration steps passed. The trace network log records POST http://test.local:8000/login with HTTP 200; no matching /api/method/login response occurred.
+- **Revisit criteria:** if the new test still times out, inspect the next final-head Playwright trace and verify the exact POST pathname and status. Do not remove the response wait, bypass login, reuse Administrator for Sales User assertions, or weaken the expected linked-denied/unlinked-allowed results. Require all four final-head workflows before merge.
+
+
+
+## ADR-100 — Verify the authenticated Sales User identity with the stable session endpoint
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-03
+- **Context:** The corrected PR #130 head b6128589c40d3b2c7bedf639cc62d1ab3bd16f77 passed Quality/Python, Security/Semgrep and the supported Frappe v15/v16 Bench + Playwright workflow. The pinned Frappe 16.5.0 job completed site setup, preflight, D1/D2, Helpdesk, schema upgrade, E2E fixture creation, asset build, Python tests, Frappe integration tests, browser installation and server startup, then failed before the permission assertions at expect(roles).toContain("Sales User"). The helper queried frappe.core.doctype.user.user.get_current_user_roles and received an empty array on the pinned build. This was not a login failure or a linked-record permission assertion.
+- **Decision:** remove the version-sensitive role lookup from the browser test. During server-side E2E fixture preparation, explicitly require Sales User in frappe.get_roles(sales_user). After browser login, call frappe.auth.get_logged_user through the same-origin session and require its exact result to equal the configured synthetic Sales User email before issuing the restricted/allowed document and list requests.
+- **Rationale:** the fixture owns role assignment and can validate it directly using Frappe's permission/user API. The browser assertion should validate the authenticated session identity using the same endpoint already used by the operator's HTTP acceptance procedure, avoiding a second role-discovery endpoint whose response differed on Frappe 16.5.
+- **Scope:** CI fixture and Playwright test only. No production runtime, schema, dependency or site configuration changes.
+- **Revisit criteria:** if the server-side role check fails, inspect the fixture's User role rows and frappe.get_roles result on the exact Frappe build. If the browser identity endpoint fails or returns another user, inspect login response, session cookie and request routing; do not remove the identity assertion, use Administrator for Sales User permission requests, or weaken the linked-denied/unlinked-allowed/list-only-unlinked expectations. Require all four final-head workflows before merge.
+- **Verification status:** correction committed on PR #130; fresh Quality/Python, Security/Semgrep, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 Playwright workflows are required. Not pilot-verified.
+
+
+
+### ADR-100 CI triage — stale non-sales role helper reference
+
+The first correction removed the version-sensitive currentUserRoles helper and changed the Sales User test to verify frappe.auth.get_logged_user. Quality's Python 3.12 run 41663119127 then failed the new static contract because the new HTTP permission test and the existing non-sales dashboard test still referenced the removed helper. The first broad replacement had updated the earlier Sales User dashboard test rather than the new HTTP test; follow-up converted the Employee test, and final review found one remaining reference in the new HTTP test. The failure occurred in tests/test_static_contracts.py:448; 141 tests passed and 36 were skipped. No browser permission assertion ran in this Python failure.
+
+- **Decision:** use the same authenticated identity endpoint in the non-sales browser test and assert the exact configured Employee email. Enforce the fixture's Employee-only role boundary server-side with frappe.get_roles; also reject Sales Manager/System Manager roles on the Sales User fixture.
+- **Revisit:** if fixture role validation fails, inspect the User role rows on the exact Frappe build. If identity validation fails, inspect the session cookie and frappe.auth.get_logged_user response. Keep the identity assertion and the 403/200/list-only-unlinked permission checks; do not use Administrator for Sales User requests.
+- **Status:** corrected code and regression tests committed; all four final-head workflows must rerun. Not pilot-verified.
+
+
+
+### ADR-100 final code review — remaining HTTP-test role lookup removed
+
+After the static regression exposed stale currentUserRoles references, a full-file inspection found one remaining call in the new Sales User HTTP permission test. The earlier replacement had changed the separate Sales User dashboard test; the Employee test was converted in the follow-up, but the new HTTP test still needed the same identity assertion. Replaced that final call with frappe.auth.get_logged_user and exact synthetic Sales User email equality. The server-side Sales User/Employee role guards remain authoritative for fixture role boundaries. Fresh final-head checks are required.
+
+## ADR-101 — Use a deterministic CI-only non-sales Desk role
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-03
+- **Context:** PR #130's final-head Quality and Security checks passed on head `7525c1521835e93245faf5840c0af1c47f9d590b`, but the pinned Frappe 16.5.0 job `41663853279` and supported Frappe v16 Bench job in run `41663853266` both failed during `prepare_e2e_site` at the assertion that the synthetic Employee account had an active Employee role. All earlier setup, permission preflight, D1/D2, Helpdesk and schema-upgrade steps passed. The logs did not emit the effective role set, so the exact role-removal mechanism is not claimed.
+- **Decision:** create or normalize a dedicated CI-only Role named `CRM Signals E2E Non-Sales` with `desk_access=1`, `is_custom=1` and `disabled=0`; assign it to the synthetic non-sales System User and require that role in `frappe.get_roles`, while rejecting Sales User, Sales Manager and System Manager. Keep the account's browser identity assertion and all Sales User permission outcomes unchanged.
+- **Rationale:** a custom role under test ownership is deterministic across the supported v15/v16 and pinned v16.5 reference stacks; a built-in ERPNext Employee role may be affected by installed-app/domain configuration and is not necessary to prove that a non-sales Desk user cannot access the Sales-only dashboard.
+- **Scope:** disposable CI fixture and static regression only. No production runtime, schema, dependency, permission, metric or site configuration changes. The operator's target-site non-sales account remains site-approved and is not required to use this CI-only role name.
+- **Revisit criteria:** if the custom role is not present in the effective role list, inspect the exact Role metadata and Has Role rows on each failing version, including disabled and Desk-access flags. Do not replace the non-sales account with Administrator, remove the role assertion, or weaken the linked-record denial / unlinked-record access / filtered-list checks.
+- **Verification status:** correction committed as `eb55ca526811673f46466ea55a90136fa1c97010` and static guard as `1e7c911dbf9f28efec87ed933630217336b5486c`. Fresh final-head Quality/Python, Security, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 checks are required. Not pilot-verified.
+

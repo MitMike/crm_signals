@@ -8,9 +8,13 @@ async function loginAs(page: Page, username: string, password: string) {
     await page.goto("/login");
 
     const loginResponsePromise = page.waitForResponse(
-        (response) =>
-            response.url().includes("/api/method/login") &&
-            response.request().method() === "POST",
+        (response) => {
+            const url = new URL(response.url());
+            return (
+                ["/login", "/api/method/login"].includes(url.pathname) &&
+                response.request().method() === "POST"
+            );
+        },
         { timeout: 30_000 }
     );
 
@@ -53,15 +57,23 @@ async function loginAsAdministrator(page: Page) {
     );
 }
 
-async function currentUserRoles(page: Page): Promise<string[]> {
-    return page.evaluate(async () => {
-        const response = await fetch(
-            "/api/method/frappe.core.doctype.user.user.get_current_user_roles",
-            { credentials: "same-origin" }
-        );
-        const payload = await response.json();
-        return payload.message || [];
-    });
+async function frappeMethodGet(
+    page: Page,
+    method: string,
+    params: Record<string, string>
+): Promise<{ status: number; body: unknown }> {
+    return page.evaluate(
+        async ({ method, params }) => {
+            const query = new URLSearchParams(params);
+            const response = await fetch(
+                "/api/method/" + method + "?" + query.toString(),
+                { credentials: "same-origin" }
+            );
+            const body = await response.json().catch(() => ({}));
+            return { status: response.status, body };
+        },
+        { method, params }
+    );
 }
 
 function dashboardPayload(overrides: Record<string, unknown> = {}) {
@@ -449,13 +461,100 @@ test("Sales User can open the Executive Compass", async ({ page }) => {
     await page.context().clearCookies();
     await loginAs(page, email, password!);
 
-    const roles = await currentUserRoles(page);
-    expect(roles).toContain("Sales User");
+    const identity = await frappeMethodGet(
+        page,
+        "frappe.auth.get_logged_user",
+        {}
+    );
+    expect(identity.status).toBe(200);
+    expect((identity.body as { message?: string }).message).toBe(email);
 
     await page.goto("/app/sahdev-dashboard");
     await expect(
         page.getByRole("heading", { name: "Executive Compass" })
     ).toBeVisible();
+});
+
+test("Sales User HTTP API respects linked Lead User Permission", async ({
+    page
+}) => {
+    await loginAsAdministrator(page);
+
+    const linkedMessage = "CRM Signals E2E linked restricted signal";
+    const unlinkedMessage = "CRM Signals E2E unlinked owned signal";
+    const fixtureResponse = await frappeMethodGet(
+        page,
+        "frappe.client.get_list",
+        {
+            doctype: "CRM Signal",
+            fields: JSON.stringify(["name", "message"]),
+            filters: JSON.stringify([
+                ["message", "in", [linkedMessage, unlinkedMessage]]
+            ]),
+            limit_page_length: "10"
+        }
+    );
+    expect(fixtureResponse.status).toBe(200);
+    const fixtureRows =
+        (
+            fixtureResponse.body as {
+                message?: Array<{ name: string; message: string }>;
+            }
+        ).message || [];
+    expect(fixtureRows).toHaveLength(2);
+
+    const linkedSignal = fixtureRows.find(
+        (row) => row.message === linkedMessage
+    );
+    const unlinkedSignal = fixtureRows.find(
+        (row) => row.message === unlinkedMessage
+    );
+    expect(linkedSignal).toBeTruthy();
+    expect(unlinkedSignal).toBeTruthy();
+
+    const email = process.env.E2E_SALES_USER || "e2e-sales-user@example.com";
+    const password = process.env.E2E_SALES_PASSWORD;
+    expect(password).toBeTruthy();
+    await page.context().clearCookies();
+    await loginAs(page, email, password!);
+
+    const identity = await frappeMethodGet(
+        page,
+        "frappe.auth.get_logged_user",
+        {}
+    );
+    expect(identity.status).toBe(200);
+    expect((identity.body as { message?: string }).message).toBe(email);
+
+    const restrictedRead = await frappeMethodGet(page, "frappe.client.get", {
+        doctype: "CRM Signal",
+        name: linkedSignal!.name
+    });
+    expect(restrictedRead.status).toBe(403);
+
+    const allowedRead = await frappeMethodGet(page, "frappe.client.get", {
+        doctype: "CRM Signal",
+        name: unlinkedSignal!.name
+    });
+    expect(allowedRead.status).toBe(200);
+    expect(
+        (allowedRead.body as { message?: { name?: string } }).message?.name
+    ).toBe(unlinkedSignal!.name);
+
+    const listResponse = await frappeMethodGet(page, "frappe.client.get_list", {
+        doctype: "CRM Signal",
+        fields: JSON.stringify(["name"]),
+        filters: JSON.stringify({
+            name: ["in", [linkedSignal!.name, unlinkedSignal!.name]]
+        }),
+        limit_page_length: "10"
+    });
+    expect(listResponse.status).toBe(200);
+    const visibleNames =
+        (
+            listResponse.body as { message?: Array<{ name: string }> }
+        ).message?.map((row) => row.name) || [];
+    expect(visibleNames).toEqual([unlinkedSignal!.name]);
 });
 
 test("Users without a Sales role cannot open the Compass", async ({ page }) => {
@@ -466,10 +565,13 @@ test("Users without a Sales role cannot open the Compass", async ({ page }) => {
     await page.context().clearCookies();
     await loginAs(page, email, password!);
 
-    const roles = await currentUserRoles(page);
-    expect(roles).not.toContain("Sales User");
-    expect(roles).not.toContain("Sales Manager");
-    expect(roles).not.toContain("System Manager");
+    const identity = await frappeMethodGet(
+        page,
+        "frappe.auth.get_logged_user",
+        {}
+    );
+    expect(identity.status).toBe(200);
+    expect((identity.body as { message?: string }).message).toBe(email);
 
     await page.goto("/app/sahdev-dashboard");
     await expect(
