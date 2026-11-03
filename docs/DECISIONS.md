@@ -1138,8 +1138,14 @@ The first final-head Quality run after adding the workflow regression guard is e
 
 ### ADR-100 CI triage — stale non-sales role helper reference
 
-The first correction removed the version-sensitive currentUserRoles helper and changed the Sales User test to verify frappe.auth.get_logged_user. Quality's Python 3.12 run 41663119127 then failed the new static contract because the existing non-sales dashboard test still called the removed helper. The failure occurred in tests/test_static_contracts.py:448; 141 tests passed and 36 were skipped. No browser permission assertion ran in this Python failure.
+The first correction removed the version-sensitive currentUserRoles helper and changed the Sales User test to verify frappe.auth.get_logged_user. Quality's Python 3.12 run 41663119127 then failed the new static contract because the new HTTP permission test and the existing non-sales dashboard test still referenced the removed helper. The first broad replacement had updated the earlier Sales User dashboard test rather than the new HTTP test; follow-up converted the Employee test, and final review found one remaining reference in the new HTTP test. The failure occurred in tests/test_static_contracts.py:448; 141 tests passed and 36 were skipped. No browser permission assertion ran in this Python failure.
 
 - **Decision:** use the same authenticated identity endpoint in the non-sales browser test and assert the exact configured Employee email. Enforce the fixture's Employee-only role boundary server-side with frappe.get_roles; also reject Sales Manager/System Manager roles on the Sales User fixture.
 - **Revisit:** if fixture role validation fails, inspect the User role rows on the exact Frappe build. If identity validation fails, inspect the session cookie and frappe.auth.get_logged_user response. Keep the identity assertion and the 403/200/list-only-unlinked permission checks; do not use Administrator for Sales User requests.
 - **Status:** corrected code and regression tests committed; all four final-head workflows must rerun. Not pilot-verified.
+
+
+
+### ADR-100 final code review — remaining HTTP-test role lookup removed
+
+After the static regression exposed stale currentUserRoles references, a full-file inspection found one remaining call in the new Sales User HTTP permission test. The earlier replacement had changed the separate Sales User dashboard test; the Employee test was converted in the follow-up, but the new HTTP test still needed the same identity assertion. Replaced that final call with frappe.auth.get_logged_user and exact synthetic Sales User email equality. The server-side Sales User/Employee role guards remain authoritative for fixture role boundaries. Fresh final-head checks are required.
