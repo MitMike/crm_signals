@@ -709,3 +709,4 @@ PR #125 merged as [7029747](https://github.com/MitMike/crm_signals/commit/702974
 - Added static regression guards and updated the Administrator Guide and Target-Site Acceptance Kit. ADR-108 records the effective-user API permission decision.
 - Test/documentation scope only; no production runtime, role grant, schema, dependency or site configuration change. Final-head CI pending; not pilot-verified.
 - CI triage on superseded head: Quality/Python `41717036495` passed all four Python versions but identified only Prettier formatting differences; applied exact formatter output in `2b40f63`. Security/Semgrep `41717036375` passed. Fresh final-head matrix required.
+- A second superseded-head Quality run `41717358086` found one remaining extra blank line; removed it in `85ed8d8`. Python 3.10–3.14 passed and Security/Semgrep `41717358293` passed. Bench/pinned results were not final-head evidence and must be repeated.
