@@ -213,9 +213,9 @@ from pathlib import Path
 import sys
 
 csv_text = Path(sys.argv[1]).read_text(encoding="utf-8")
-if sys.argv[1] in csv_text:
+if sys.argv[2] in csv_text:
     raise SystemExit("FAIL: CSV export disclosed the linked restricted record name")
-if sys.argv[2] not in csv_text:
+if sys.argv[3] not in csv_text:
     raise SystemExit("FAIL: CSV export omitted the unlinked owned record")
 print("PASS: CSV export includes only the permitted synthetic record (HTTP 200)")
 PY
