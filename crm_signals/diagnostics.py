@@ -507,35 +507,31 @@ def _test_user_record_visibility(username, record_specs, doctype_reports, doctyp
     if not isinstance(previous_user, str) or not previous_user:
         return _empty_record_visibility("session_user_unavailable")
 
+    results = {}
+    errors = {}
     try:
-        frappe.set_user(username)
-    except Exception as error:
-        return {
-            "available": True,
-            "reason": None,
-            "doctypes": {
+        try:
+            frappe.set_user(username)
+        except Exception as error:
+            errors["session_switch"] = type(error).__name__
+            results = {
                 doctype: {
                     "status": "session_switch_failed",
                     "records": {label: None for label in records},
                 }
                 for doctype, records in record_specs.items()
-            },
-            "error_types": {"session": type(error).__name__},
-        }
-
-    results = {}
-    errors = {}
-    try:
-        for doctype, records in sorted(record_specs.items()):
-            result, error_type = _record_visibility_for_doctype(
-                doctype,
-                records,
-                doctype_reports.get(doctype, {}),
-                doctype_read,
-            )
-            results[doctype] = result
-            if error_type:
-                errors[doctype] = error_type
+            }
+        else:
+            for doctype, records in sorted(record_specs.items()):
+                result, error_type = _record_visibility_for_doctype(
+                    doctype,
+                    records,
+                    doctype_reports.get(doctype, {}),
+                    doctype_read,
+                )
+                results[doctype] = result
+                if error_type:
+                    errors[doctype] = error_type
     finally:
         try:
             frappe.set_user(previous_user)
