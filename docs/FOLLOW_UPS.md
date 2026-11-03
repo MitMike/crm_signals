@@ -426,3 +426,15 @@ PR #128 merged as `85c492ea2c84444d7cc45c0d61706736fa972a83`. Quality/Python run
 - [x] Replace it with exact frappe.auth.get_logged_user identity verification.
 - [ ] Rerun all four final-head workflows; the previous Python failure remains a failed check on its own head and cannot be reused as verification.
 - **Revisit criteria:** if the identity endpoint fails, inspect the browser session and response; if the permission assertions fail, inspect the exact Frappe 16.5 permission behavior without weakening linked-denied/unlinked-allowed expectations.
+
+
+
+### PR #130 — fresh final-head CI tracking
+
+- [x] Record corrected final head fd855ae056c81b16defa1eac6085ab481ef08ac9 and its four fresh workflow run IDs.
+- [ ] Quality Checks 41663665399.
+- [ ] Security/Semgrep 41663665370.
+- [ ] Bench Integration/E2E 41663665401.
+- [ ] Pinned Frappe 16.5.0 / Helpdesk 1.28.0 41663665390.
+- [ ] Merge only after all four runs pass on this exact head.
+- **Revisit criteria:** inspect the first failing job log and Playwright artifact; fix the actual assertion or fixture contract, record evidence, and rerun the complete final-head matrix.
