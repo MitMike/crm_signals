@@ -39,6 +39,31 @@ def _ensure_system_user(email, first_name, role, password):
     update_password(email, password)
 
 
+E2E_NON_SALES_ROLE = "CRM Signals E2E Non-Sales"
+
+
+def _ensure_e2e_non_sales_role():
+    """Create an enabled Desk role for the synthetic non-sales browser account."""
+    if not frappe.db.exists("Role", E2E_NON_SALES_ROLE):
+        role = frappe.get_doc(
+            {
+                "doctype": "Role",
+                "role_name": E2E_NON_SALES_ROLE,
+                "desk_access": 1,
+                "is_custom": 1,
+                "disabled": 0,
+            }
+        )
+        role.insert(ignore_permissions=True)
+    else:
+        role = frappe.get_doc("Role", E2E_NON_SALES_ROLE)
+        role.desk_access = 1
+        role.is_custom = 1
+        role.disabled = 0
+        role.save(ignore_permissions=True)
+    return E2E_NON_SALES_ROLE
+
+
 def _ensure_e2e_lead(company_name, email_id):
     name = frappe.db.get_value("Lead", {"company_name": company_name}, "name")
     if name:
@@ -166,14 +191,18 @@ def prepare_e2e_site():
     _ensure_system_user(
         "e2e-sales-user@example.com", "E2E Sales User", "Sales User", sales_password
     )
+    non_sales_role = _ensure_e2e_non_sales_role()
     _ensure_system_user(
-        "e2e-employee@example.com", "E2E Employee", "Employee", employee_password
+        "e2e-employee@example.com",
+        "E2E Employee",
+        non_sales_role,
+        employee_password,
     )
     employee_roles = set(frappe.get_roles("e2e-employee@example.com"))
-    if "Employee" not in employee_roles or employee_roles.intersection(
+    if non_sales_role not in employee_roles or employee_roles.intersection(
         {"Sales User", "Sales Manager", "System Manager"}
     ):
-        frappe.throw("E2E Employee role boundary is invalid")
+        frappe.throw("E2E non-sales role boundary is invalid")
     permission_fixture_ready = _prepare_e2e_sales_user_permission_fixture(
         "e2e-sales-user@example.com"
     )
