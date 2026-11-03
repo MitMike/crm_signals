@@ -384,3 +384,10 @@ Included in PR #19's merge commit [a495919](https://github.com/MitMike/crm_signa
 - Python 3.11, 3.12 and 3.14 each exposed one stale assertion after the guide wording was corrected.
 - Align the static test with the approved sentence that custom sources require separate approval and scope.
 - Test-only correction; no runtime or site configuration change. Full final-head CI remains required.
+
+
+### 2026-11-03 — D3 operator-guide correction merged (PR #117 / ADR-091)
+- PR #117 merged as 93e7e16 (merge commit 93e7e16271d727476618b4981498ad901835bad4) from final head 2d7463f5e73bec3741ef9fb68d9b707b9bb1afc6.
+- All 35 final-head checks passed: Python 3.10–3.14, Quality, Semgrep, Bench v15/v16 including Playwright, pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 and bench-validation selectors.
+- Corrected both D3 operator guides and added static regression coverage for the existing adapter and custom-source approval boundary.
+- No runtime code, dependencies, schema or site configuration changed. D3 pilot acceptance remains outstanding.
