@@ -54,7 +54,7 @@ set -euo pipefail
 
 : "${SITE_URL:?Set the canonical HTTPS staging site URL}"
 : "${EXPECTED_SALES_USER:?Set the dedicated non-Administrator Sales User name}"
-: "${LINKED_RESTRICTED_SIGNAL:?Set the CRM Signal linked to a Lead excluded by this user's Lead User Permission}"
+: "${LINKED_RESTRICTED_SIGNAL:?Set the CRM Signal linked to a Lead excluded by the Sales User User Permission}"
 : "${UNLINKED_OWNED_SIGNAL:?Set the unlinked CRM Signal owned by the same Sales User}"
 [[ "$SITE_URL" == https://* ]] || { echo "SITE_URL must use HTTPS" >&2; exit 2; }
 [[ "$EXPECTED_SALES_USER" != "Administrator" ]] || { echo "Administrator is not an acceptable test identity" >&2; exit 2; }
