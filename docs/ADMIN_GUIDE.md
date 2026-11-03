@@ -26,6 +26,14 @@ The report inventories the Frappe and installed-app versions (where the app expo
 
 The report is server-side only and read-only; it is not HTTP-whitelisted. If `framework.crm_signals_source.available` is false, stop the release check and inspect the checkout with `git -C apps/crm_signals rev-parse --show-toplevel`, `git -C apps/crm_signals status --short --untracked-files=all` and `git -C apps/crm_signals rev-parse --verify HEAD`. Confirm that `--show-toplevel` resolves to the `apps/crm_signals` repository itself, not an enclosing Bench/monorepo checkout. Resolve every local change before comparing the full SHA. Do not infer a revision from a branch, tag, package version or CI run. Compare the reported SHA with the approved release SHA before proceeding. Static DocPerm rows are not effective user permissions; the report does not replace the real-user permission matrix, finance/native-report reconciliation, Helpdesk SLA calendar review, or staging operational rehearsal. A missing app version or source revision is reported as unavailable, not inferred.
 
+For an additional DocType/field-level permission preflight, supply dedicated active synthetic test accounts by profile alias. Use non-Administrator accounts and do not pass passwords or API secrets:
+
+```bash
+bench --site <site-name> execute crm_signals.diagnostics.get_site_preflight_report --kwargs "{'test_users': {'sales_user': 'crm-sales-user-test', 'sales_manager': 'crm-sales-manager-test', 'system_manager': 'crm-system-manager-test', 'non_sales': 'crm-non-sales-test'}}"
+```
+
+The accepted aliases are `sales_user`, `sales_manager`, `system_manager` and `non_sales`; profiles are optional, so supply only the accounts that exist. The report checks that each account is active and has the expected role boundary, then evaluates DocType read permission and every required field's permitted read access using Frappe's permission APIs. It returns profile aliases only—not User names or email addresses—and rejects Administrator, disabled, duplicate or incorrectly assigned accounts. Review `effective_user_permissions.profiles`; a missing/invalid profile or per-DocType error is not a pass. This is a DocType/field-level check only: it does not prove row-level User Permissions, ownership, shares, list filters, API/report/export behavior or actual dashboard visibility. Complete the controlled-record permission matrix in the acceptance kit separately.
+
 ## Installation and upgrade
 
 ### First installation
