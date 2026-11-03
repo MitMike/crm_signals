@@ -728,3 +728,11 @@ The direct Desk form test observed GET `frappe.desk.form.load.getdoc`: linked-re
 - **Scope:** disposable CI fixture, E2E workflow and operator guide only. No production runtime, schema, dependency, permission or site configuration change. Keep Frappe v15 Bench integration; run the token E2E in supported v16 and pinned Frappe 16.5.0.
 - **Status:** implementation code and static regression guards are committed on `test/sales-user-api-token-permission-20261103`; final-head Quality/Python, Security, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 validation pending. Not pilot-verified.
 - **Revisit criteria:** if `generate_keys` or token auth differs by version, inspect the exact v15/v16 implementation; do not fall back to Administrator credentials or session cookies. If any request redirects, fail rather than follow it. Keep API credentials out of Playwright traces/artifacts and logs; if a test failure reveals a credential, revoke it by discarding the ephemeral site and correct the handling before rerun.
+
+
+### PR #133 review hardening — denied response-content non-disclosure (2026-11-03)
+
+- Reviewed API-token E2E on initial head `687233baa1e3a4a747c01124b35ad13b188ee760`. Quality/Python and Security/Semgrep passed; Bench v15/v16 and pinned Frappe 16.5.0 workflows were still in progress.
+- Finding: the token test asserted HTTP 403 for the linked-restricted document but did not assert that the error body omitted its sensitive signal message; the allowed read asserted the record name but not the expected content.
+- Decision (ADR-104): require the denied token response body not to contain the restricted signal message and require the allowed token response to contain the expected unlinked signal name and message. Add a static contract test for both assertions. No permission expectation or runtime behavior changes.
+- The new commit supersedes the in-progress runs on the prior head. Require a fresh complete Quality/Python, Security, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 matrix on the exact new head before merge. Not pilot-verified.

@@ -645,3 +645,6 @@ PR #125 merged as [7029747](https://github.com/MitMike/crm_signals/commit/702974
 - Keep the API secret in a mode-0600 runner temp file, mask both credentials before GitHub step outputs, delete the file on step exit, and use Node fetch outside Playwright page tracing with redirects disabled.
 - Run the token E2E in supported Frappe v16 and pinned Frappe 16.5.0; retain Frappe v15 Bench integration coverage.
 - Code-complete on the focused branch; final-head CI pending. No production runtime or schema change. Not pilot-verified.
+
+- Review hardening: the API-token E2E now asserts a linked-restricted 403 body omits the synthetic signal message and the unlinked-owned 200 body includes its expected name and message; a static contract test protects both checks.
+- The initial head `687233baa1e3a4a747c01124b35ad13b188ee760` passed Quality/Python and Security while both integration workflows were in progress. The review commit supersedes those runs; require all four workflows to pass on the new final head.

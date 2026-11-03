@@ -650,13 +650,11 @@ The direct Desk form test observed GET `frappe.desk.form.load.getdoc`: linked-re
 **Classification:** code-complete and reference-stack CI-verified on Frappe v16 and pinned v16.5.0; not pilot-verified. Authorized target-site API-token authentication, live direct-form and other permission paths, D1/D2 finance reconciliation, D3 SLA, deployment/rollback, operational recovery and visual UAT remain open.
 
 
-## 39. PR #133 — API-token authentication permission regression (2026-11-03)
-
-## PR #133 — synthetic Sales User API-token permission regression
+## 39. PR #133 — synthetic Sales User API-token permission regression (2026-11-03)
 
 - **Reviewed main:** `aa2e2112be4956f270cd730375c8da1e3d396f1f` (PR #131 merged and CI-verified; PR #132 reconciled the final verification and operator records).
 - **Finding:** PR #130/131 verify the same Sales User record boundary through browser-session HTTP and direct Desk form loading. The operator kit has an API-token smoke, but CI did not exercise Frappe's token authentication or prove the requests could not fall back to the Administrator browser cookie.
 - **Decision (ADR-104):** generate API credentials for the disposable Sales User with Frappe's supported `generate_keys` function. Write them only to a runner temporary file with mode 0600; return only a boolean from Bench; mask both values before GitHub step-output propagation; remove the file with an EXIT trap. Use Node's native fetch (outside the Playwright page/trace) with an explicit `Authorization: token key:secret` header and manual redirect handling. Verify token identity, linked-restricted 403, unlinked-owned 200 and list-only-unlinked.
 - **Scope:** disposable CI fixture, E2E workflow and operator guide only. No production runtime, schema, dependency, permission or site configuration change. Keep Frappe v15 Bench integration; run the token E2E in supported v16 and pinned Frappe 16.5.0.
-- **Status:** implementation code and static regression guards are committed on `test/sales-user-api-token-permission-20261103`; final-head Quality/Python, Security, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 validation pending. Not pilot-verified.
+- **Status:** implementation and response-content static guards are committed on `test/sales-user-api-token-permission-20261103`. Initial head `687233b` passed Quality/Python and Security; Bench v15/v16 and pinned Frappe 16.5.0 were still running when review added denied-body non-disclosure and allowed-body content assertions. Those runs are superseded; a fresh complete final-head matrix is required. Not pilot-verified.
 - **Revisit criteria:** if `generate_keys` or token auth differs by version, inspect the exact v15/v16 implementation; do not fall back to Administrator credentials or session cookies. If any request redirects, fail rather than follow it. Keep API credentials out of Playwright traces/artifacts and logs; if a test failure reveals a credential, revoke it by discarding the ephemeral site and correct the handling before rerun.

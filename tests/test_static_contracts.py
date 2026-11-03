@@ -541,3 +541,9 @@ def test_sales_user_api_token_permission_e2e_uses_isolated_node_fetch():
     assert "expect(restrictedRead.status).toBe(403)" in spec
     assert "expect(allowedRead.status).toBe(200)" in spec
     assert "expect(visibleNames).toEqual([unlinkedSignal!.name])" in spec
+
+
+def test_sales_user_api_token_e2e_checks_response_content_boundary():
+    spec = (ROOT / "e2e/sahdev-dashboard.spec.ts").read_text()
+    assert "expect(restrictedBody).not.toContain(linkedMessage)" in spec
+    assert "expect(allowedBody.message?.message).toBe(unlinkedMessage)" in spec

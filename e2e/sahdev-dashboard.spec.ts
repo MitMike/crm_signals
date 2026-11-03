@@ -659,6 +659,8 @@ test("Sales User API token respects linked Lead User Permission", async ({
         apiSecret!
     );
     expect(restrictedRead.status).toBe(403);
+    const restrictedBody = JSON.stringify(restrictedRead.body) ?? "";
+    expect(restrictedBody).not.toContain(linkedMessage);
 
     const allowedRead = await frappeMethodGetWithToken(
         "frappe.client.get",
@@ -667,9 +669,11 @@ test("Sales User API token respects linked Lead User Permission", async ({
         apiSecret!
     );
     expect(allowedRead.status).toBe(200);
-    expect(
-        (allowedRead.body as { message?: { name?: string } }).message?.name
-    ).toBe(unlinkedSignal!.name);
+    const allowedBody = allowedRead.body as {
+        message?: { name?: string; message?: string };
+    };
+    expect(allowedBody.message?.name).toBe(unlinkedSignal!.name);
+    expect(allowedBody.message?.message).toBe(unlinkedMessage);
 
     const listResponse = await frappeMethodGetWithToken(
         "frappe.client.get_list",
