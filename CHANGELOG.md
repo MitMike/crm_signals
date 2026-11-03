@@ -548,4 +548,5 @@ PR #125 merged as [7029747](https://github.com/MitMike/crm_signals/commit/702974
 
 - Changed the pinned Frappe 16.5 Playwright dependency step from `npm install` to lockfile-enforced `npm ci --ignore-scripts --no-audit --no-fund`, consistent with Stage 0 and Quality Checks; retained the explicit Chromium install.
 - Removed the duplicate ADR-098 decision block and recorded the correction/revisit criteria in the canonical ADR.
+- Added a static contract regression that requires the pinned workflow to use `npm ci` before Playwright browser installation and rejects `npm install`.
 - Prior head `7bd1837` had Quality and Security passed; Bench v15/v16 and pinned v16.5 were still running. All four workflows must run on the corrected head before merge. Not pilot-verified.
