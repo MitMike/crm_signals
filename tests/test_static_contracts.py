@@ -446,3 +446,4 @@ def test_playwright_sales_user_permission_test_checks_authenticated_identity():
     assert '"frappe.auth.get_logged_user"' in spec
     assert ".toBe(email)" in spec
     assert "currentUserRoles" not in spec
+    assert "frappe.core.doctype.user.user.get_current_user_roles" not in spec
