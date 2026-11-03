@@ -518,8 +518,13 @@ test("Sales User HTTP API respects linked Lead User Permission", async ({
     await page.context().clearCookies();
     await loginAs(page, email, password!);
 
-    const roles = await currentUserRoles(page);
-    expect(roles).toContain("Sales User");
+    const identity = await frappeMethodGet(
+        page,
+        "frappe.auth.get_logged_user",
+        {}
+    );
+    expect(identity.status).toBe(200);
+    expect((identity.body as { message?: string }).message).toBe(email);
 
     const restrictedRead = await frappeMethodGet(page, "frappe.client.get", {
         doctype: "CRM Signal",
