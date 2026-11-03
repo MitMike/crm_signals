@@ -179,7 +179,7 @@ print("\\n=== END: metadata only; no ticket records were read ===")</pre>
 <section class="panel">
 <h2>Common questions</h2>
 <details><summary>Do I need to install a Support app?</summary><p>No. First tell us what is already installed. If no support/ticket source exists, record “No support app found”. Do not install one as part of discovery.</p></details>
-<details><summary>What if we use a custom ticket DocType?</summary><p>That is fine. Record its exact name, owning app, fields, status values, and links. The adapter can be designed around a verified custom source.</p></details>
+<details><summary>What if we use a custom ticket DocType?</summary><p>The standard adapter does not cover a custom or different ticket DocType. Record its exact name, owning app, fields, status values, links and stable identity. Keep that source unavailable in D3 until the support, security and business owners approve a separate adapter scope, mapping and KPI semantics.</p></details>
 <details><summary>Can I just send a screenshot?</summary><p>Screenshots can help explain a screen, but we need exact DocType and field names. Send the metadata output and completed worksheet as the primary evidence. Hide customer details in any screenshots.</p></details>
 <details><summary>What if I cannot run the console script?</summary><p>Ask your Frappe hosting provider or implementation partner to run it. They can return the metadata-only output. You can still complete the business questions with your Support owner.</p></details>
 <details><summary>Is this changing anything on the site?</summary><p>No. The supplied script reads installed app names and DocType metadata. It does not change settings, workflows, tickets, or SLA records.</p></details>

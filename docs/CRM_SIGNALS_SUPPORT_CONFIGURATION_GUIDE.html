@@ -16,7 +16,7 @@
 <p class="muted">Target baseline: Frappe v16.5. The pinned CI reference stack is Frappe v16.5.0 + ERPNext v16.5.0 + Helpdesk v1.28.0 (with the pinned Telephony dependency). Confirm the exact patch build and installed ERPNext/Helpdesk versions on your pilot site because its Helpdesk release may differ. This guide is read-only until its staging test steps explicitly ask you to create synthetic tickets.</p>
 <div class="actions"><button onclick="window.print()">Print / Save as PDF</button></div>
 </section>
-<section class="note warning"><strong>One important rule:</strong> do not guess the ticket system. Your site may use ERPNext Issue, Frappe Helpdesk, another app, or a custom DocType. We must inspect the real site before writing the integration.</section>
+<section class="note warning"><strong>Important:</strong> the standard Frappe Helpdesk adapter is already implemented for <code>HD Ticket</code> and <code>HD Service Level Agreement</code>. This guide verifies that the site's installed Helpdesk version, schema, field permissions and active SLA policy match that supported contract. If the site uses ERPNext Issue, another support app or a custom ticket DocType, do not assume it is covered; record the exact differences and obtain separate scope/approval before adding another adapter.</section>
 <section class="step"><h2>Before you start</h2>
 <ul class="check"><li><label><input type="checkbox"> I am a Frappe/ERPNext administrator or have one helping me.</label></li><li><label><input type="checkbox"> I know which site/environment I am inspecting (prefer staging first).</label></li><li><label><input type="checkbox"> I will share configuration names only, not customer or ticket data, passwords, API keys, or private comments.</label></li></ul>
 </section>
@@ -164,8 +164,8 @@ for user in ("sales.user@example.com", "sales.manager@example.com"):
 <p class="muted">If there are no eligible SLA outcomes, compliance is unavailable (—), not 0%. A user may see ticket counts while SLA or resolution measures remain unavailable because of field-level permissions.</p>
 </section>
 <section class="step"><h2>What happens after you return this?</h2>
-<ol><li>We map the real ticket and SLA fields.</li><li>We confirm the KPI definitions and permission rules.</li><li>We build a small adapter for the support app actually installed.</li><li>We test status changes, reopened tickets, SLA pauses, holidays, and access restrictions.</li><li>Only then do we enable the D3 Service Resolution/SLA metrics.</li></ol>
+<ol><li>We compare the installed ticket and SLA fields with the existing standard adapter contract.</li><li>We confirm KPI definitions and effective permission rules with the support, security and business owners.</li><li>If the standard schema matches, we configure and test the existing adapter; custom sources require separate approval and scope.</li><li>We test status changes, reopened tickets, SLA pauses, holidays, and access restrictions in staging.</li><li>Only after acceptance do we enable the D3 Service Resolution/SLA metrics.</li></ol>
 <p class="warning"><strong>Do not install a new support app just for this task.</strong> First discover what the site already uses. If no support/SLA system exists, we will record that as a business decision rather than silently inventing one.</p>
 </section>
-<footer class="muted"><p>CRM Signals · D3 Service Resolution & SLA · Read-only discovery guide</p></footer>
+<footer class="muted"><p>CRM Signals · D3 Service Resolution & SLA · Support and configuration guide</p></footer>
 </main></body></html>

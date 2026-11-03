@@ -355,3 +355,36 @@ PR #100 is code-complete and CI-verified, not pilot-verified. The automated comp
 - **Implementation:** PR #112 updates the README and release records and extends `test_operator_installation_pins_source_before_bench_setup` to assert that README's shell block verifies the approved SHA before Bench setup. No runtime code, dependency or site configuration changes.
 - **Verification at opening:** the shell sequence was compared with the existing operator guide and runbook; a static regression test now protects the README ordering. Final-head Quality, Security, Python and Bench v15/v16 plus pinned Frappe 16.5.0 checks remain required because a test path changed.
 - **Status:** documentation and static regression code-complete; CI pending; not pilot-verified. The authorized staging first-install/upgrade rehearsal remains a separate P0 acceptance gate.
+
+
+## PR #112 merged — README pin-before-install consistency (2026-11-03)
+
+- [x] PR #112 merged as [`d2e1d87`](https://github.com/MitMike/crm_signals/commit/d2e1d873a8f257545596379e179aeb3e4de40dd4) from final head `f68939ba5e2977ed62698e2a78084277fa091479`.
+- [x] All 18 final-head checks passed: Quality/lint, Python 3.10/3.11/3.12/3.14, Semgrep, Bench v15/v16 + Playwright, and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 validation.
+- [x] README first-install instructions now pin and verify the approved full SHA before `bench setup requirements crm_signals`; static contract coverage enforces the order.
+- **Scope:** README, docs and static test only; no runtime code, dependency or site configuration change.
+- **Status:** merged and reference-stack CI-verified; first-install/upgrade staging rehearsal remains open. Not pilot-verified.
+
+## D3 operator-guide correction — current implementation
+
+- **Finding:** the Support & SLA setup guide's promise to build the standard adapter was stale; the discovery FAQ also implied custom sources could be adapted without an explicit approval boundary.
+- **Decision (ADR-091):** state that the standard `HD Ticket` / `HD Service Level Agreement` adapter already exists. Custom/different ticket DocTypes remain unavailable until support, security and business owners approve a separate adapter scope, mapping and KPI semantics.
+- **Implementation:** both HTML guides are corrected; `test_support_guides_describe_existing_adapter_and_custom_scope_boundary` protects the implemented standard-adapter statement and custom-source approval boundary.
+- **Status:** documentation and static regression code-complete; final-head CI pending in the replacement PR; not pilot-verified. No runtime code or site configuration changed.
+- [ ] **Target-site D3 gate:** verify exact installed Helpdesk/Frappe versions, required schema and effective Sales field permissions, active SLA schedule/holidays/timezone, pause/resume and native outcomes on authorized Frappe v16.5 staging. Repository CI is not pilot evidence.
+
+
+## PR-opening CI triage — D3 setup guide (2026-11-03)
+
+- **Observed failure:** PR-opening Python 3.11 and 3.12 runs each reported 1 failed, 125 passed and 36 skipped. The failing static assertion found another stale promise in the Support & SLA setup guide's final workflow list: "We build a small adapter for the support app actually installed."
+- **Additional defect:** the setup guide footer incorrectly identified itself as the read-only discovery guide.
+- **Fix:** replaced the adapter promise with steps to validate/configure the existing standard adapter and keep custom sources behind separate approval; corrected the footer; extended the static contract test to reject both stale statements.
+- **Status:** fix committed to the focused D3 branch; final-head CI must rerun. No runtime code, dependency or site configuration changed. Do not merge until all required final-head checks pass.
+
+
+## Second D3 CI triage — assertion wording mismatch
+
+- **Observed failure:** on head `87a5f8f479d291ddaf119c8d4938a9a2d30d54bc`, Python 3.11, 3.12 and 3.14 each reported 1 failed, 125 passed and 36 skipped.
+- **Cause:** the setup guide correctly replaced the old promise with "custom sources require separate approval and scope", but the static test still asserted the previous wording "separately scoped adapter change".
+- **Fix:** updated the static expectation to match the approved operator wording. This is a test expectation mismatch, not a runtime defect.
+- **Status:** corrected on the D3 branch; a fresh final-head CI run is still required before merge.

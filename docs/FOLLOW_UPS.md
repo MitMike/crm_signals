@@ -190,9 +190,29 @@ The PR's CI result does not establish that a customer site has the approved SHA,
 - [x] PR #111 merged as [`166ca6b`](https://github.com/MitMike/crm_signals/commit/166ca6b2cc9838ffd68c551b327ee41d2a5316b4); all 11 applicable final-head checks passed and two docs-only runtime selectors were skipped. The main commit's 17 checks later completed with 16 success and one expected selector skip.
 - **Current main:** `166ca6b2cc9838ffd68c551b327ee41d2a5316b4`; no open PRs or issues were found in the live repository query.
 
-## README pinned first-install path — PR #112
+## README pinned first-install path — PR #112 merged
 
 - [x] **Documentation consistency fix (ADR-090):** remove the moving `bench get-app --branch main` example. The README now clones directly into `apps/crm_signals`, detaches and verifies the approved full SHA, then runs `bench setup requirements crm_signals` and site installation/migration/build/restart. Existing upgrades link to the Administrator Guide and Deployment Runbook.
 - **Scope:** documentation and static-test-only; no runtime or dependency changes. The root quick-start now agrees with the detailed operator procedure, and the Python contract test protects the pin-before-requirements ordering.
 - [ ] **Still open — staging rehearsal:** execute both first-install and upgrade sequences on an authorized Frappe v16.5 staging Bench; record the exact approved/deployed SHA, `bench version`, installed-app inventory, command output, migration, asset build, restart and rollback evidence.
 - **Revisit criteria:** staging rehearsal can begin only when an authorized Frappe v16.5 staging window, approved full SHA, named technical owner and site/Bench operator are available. Do not infer success from repository CI.
+
+
+- [x] PR #112 merged as [`d2e1d87`](https://github.com/MitMike/crm_signals/commit/d2e1d873a8f257545596379e179aeb3e4de40dd4); all 18 final-head checks passed, including Quality, Python, Security, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0.
+- [ ] **Still open — staging first-install/upgrade rehearsal:** record approved/deployed SHA, `bench version`, installed-app inventory, command output, migration, asset build, restart and rollback evidence on an authorized Frappe v16.5 Bench.
+ 
+## D3 operator-guide correction
+
+- [x] Both D3 HTML guides now describe the implemented standard Helpdesk adapter and require separate approval before any custom/different ticket source is scoped.
+- [x] Static regression coverage protects both the existing-adapter status and custom-source approval boundary.
+- [ ] **Final-head CI:** complete Quality, Python 3.10–3.14, Security, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 checks on the replacement PR; fix any failure before merge.
+- [ ] **Target-site D3 acceptance:** verify installed versions, exact required fields, effective Sales read permissions, active SLA calendar/holidays/timezone, pause/resume and native outcomes in authorized staging.
+- **Revisit criteria:** custom adapter work only after exact DocType/field/lifecycle/relationship/identity metadata and support, security and business approval are supplied.
+
+
+- [x] **CI defect corrected:** Python 3.11 and 3.12 each found one stale setup-guide promise (125 passed, 36 skipped, 1 failed). The page now describes configuring the existing adapter, separate custom-source approval and the correct footer; the static contract test protects both.
+- [ ] **Re-run final-head checks:** confirm Python 3.10–3.14, Quality, Security, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 all complete successfully on the corrected head. The earlier failing run must remain visible as historical evidence; do not merge until the corrected head passes.
+
+
+- [x] **Second CI defect corrected:** Python 3.11, 3.12 and 3.14 each found one stale test expectation (125 passed, 36 skipped, 1 failed). The guide's new wording was correct; the test expected an obsolete phrase. The assertion now checks "custom sources require separate approval and scope".
+- [ ] **Final verification:** require a fresh full matrix on the corrected head. Do not treat the prior failed run or successful lint/Semgrep as merge approval.
