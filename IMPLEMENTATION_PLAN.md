@@ -612,3 +612,9 @@ The first ADR-100 correction changed a separate Sales User dashboard test but le
 ### PR #130 — final HTTP permission test identity assertion correction
 
 Full-file review found that the new Sales User HTTP permission test still called currentUserRoles after the earlier broad replacement changed a separate Sales User dashboard test. The remaining call is now replaced with frappe.auth.get_logged_user and exact synthetic email equality. The Employee dashboard test uses the same identity check, and server-side fixture setup validates both role boundaries. The Python static-contract failure remains a failed result for its original head; all four workflows must rerun on the corrected head.
+
+
+
+### PR #130 — corrected final-head CI run IDs
+
+Corrected head fd855ae056c81b16defa1eac6085ab481ef08ac9 is under fresh verification: Quality Checks 41663665399, Security/Semgrep 41663665370, Bench Integration/E2E 41663665401 and pinned Frappe 16.5.0 / Helpdesk 1.28.0 41663665390. At this review, Security's Semgrep job was in progress and the other three runs were pending. Do not merge until all four pass on this exact head.
