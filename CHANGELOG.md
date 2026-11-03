@@ -378,3 +378,9 @@ Included in PR #19's merge commit [a495919](https://github.com/MitMike/crm_signa
 - Python 3.11 and 3.12 each exposed one static-contract failure (125 passed, 36 skipped, 1 failed): a second stale promise to build a custom adapter remained in the guide's final workflow list.
 - Replace that promise with existing-adapter validation/configuration steps, retain separate approval for custom sources, and correct the guide footer label.
 - Extend static contract coverage to reject the stale promise and wrong footer. No runtime behavior or site configuration change; rerun the full final-head matrix before merge.
+
+
+### 2026-11-03 — D3 guide static-test wording correction
+- Python 3.11, 3.12 and 3.14 each exposed one stale assertion after the guide wording was corrected.
+- Align the static test with the approved sentence that custom sources require separate approval and scope.
+- Test-only correction; no runtime or site configuration change. Full final-head CI remains required.
