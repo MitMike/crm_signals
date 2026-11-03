@@ -422,3 +422,20 @@ The README now uses the established safe order: direct clone with the `upstream`
 PR #112 updates documentation and the static operator-installation contract test; no runtime or dependency changes. The test change must trigger Python 3.10–3.14, Bench v15/v16 and pinned Frappe 16.5.0 validation in addition to Quality and Security. **Status at opening:** documentation and static regression code-complete, CI pending, not pilot-verified.
 
 **Next release gate remains unchanged:** execute the first-install and upgrade sequence, preflight, effective-role tests, D1/D2 finance reconciliation, Helpdesk SLA acceptance, dashboard visual UAT, operational recovery and backup/restore/rollback on an authorized Frappe v16.5 staging site. No such site evidence is available from repository CI.
+
+
+## 23. README pin-before-install correction — PR #112 merged (2026-11-03)
+
+PR #112 merged as [`d2e1d87`](https://github.com/MitMike/crm_signals/commit/d2e1d873a8f257545596379e179aeb3e4de40dd4) from final head `f68939ba5e2977ed62698e2a78084277fa091479`. All 18 final-head check runs passed: Quality/lint, Python 3.10/3.11/3.12/3.14, Security/Semgrep, Bench integration v15/v16 including Playwright, and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 validation.
+
+The README now uses the same safe sequence as the operator guide: clone directly into `apps/crm_signals`, fetch the approved release, detach at and verify the full SHA, then run Bench dependency setup and site installation/migration/build. The static contract test protects the command order. No runtime behavior, dependency or site configuration changed.
+
+**Status:** documentation/static-test work is merged and reference-stack CI-verified; the staging first-install/upgrade rehearsal remains open and this is not pilot verification.
+
+## 24. D3 operator-guide implementation status and custom-source boundary
+
+The Support & SLA setup guide now states that the standard Frappe Helpdesk `HD Ticket` / `HD Service Level Agreement` adapter is implemented and directs operators to validate the target site's exact versions, schema, field permissions and active SLA calendar. The D3 discovery guide's custom-DocType FAQ now explicitly says custom/different ticket sources are outside the standard adapter and remain unavailable until support, security and business owners approve a separate adapter scope, mapping and KPI semantics. Static contract coverage protects both statements.
+
+No runtime code, dependencies, schema or site configuration changed. **Status:** documentation and static regression code-complete; final-head CI pending in the replacement PR; not pilot-verified. Merge only after the full Quality, Python, Security, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 validation set passes.
+
+**Target-site gate:** D3 remains not pilot-verified until authorized Frappe v16.5 staging confirms exact Helpdesk version/schema, effective Sales field permissions, active SLA schedule/holidays/timezone, pause/resume behavior and native metric outcomes.
