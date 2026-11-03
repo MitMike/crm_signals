@@ -403,3 +403,16 @@ PR #128 merged as `85c492ea2c84444d7cc45c0d61706736fa972a83`. Quality/Python run
 - [ ] Merge PR #130 only after all required final-head checks pass and the branch remains current; then reconcile main progress records.
 - **Evidence:** pinned run 41647478405, job 125956516813; failure at e2e/sahdev-dashboard.spec.ts:528; the assertion received [] from currentUserRoles. No document/list permission assertion ran.
 - **Revisit criteria:** if the server-side role check fails, inspect User role rows and frappe.get_roles on Frappe 16.5. If the browser identity check fails, inspect session cookie and the frappe.auth.get_logged_user response. Do not use Administrator for Sales User assertions or weaken the 403/200/list-only-unlinked boundary. API-token staging, browser form, report/export/print/dashboard and pilot acceptance remain separate.
+
+
+
+### PR #130 — stale non-sales role helper reference correction (2026-11-03)
+
+- [x] Inspect the Python 3.12 failure and identify the static regression assertion that found the remaining currentUserRoles call in the Employee browser test.
+- [x] Replace the Employee browser role lookup with exact frappe.auth.get_logged_user identity verification.
+- [x] Enforce the Employee-only role boundary server-side and reject Sales Manager/System Manager on the synthetic Sales User fixture.
+- [x] Keep the static contract guarding against reintroduction of the version-sensitive role endpoint.
+- [ ] Require fresh Quality/Python, Security/Semgrep, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 Playwright workflows on the latest head.
+- [ ] Merge only after all required final-head checks pass and the branch remains current.
+- **Evidence:** Quality run 41663119127, Python 3.12 job 126011616454; 141 passed, 36 skipped, one failed static contract because currentUserRoles remained in the non-sales test. No permission assertion was run.
+- **Revisit criteria:** if role fixture guards fail, inspect exact User role rows; if browser identity fails, inspect session cookie and frappe.auth.get_logged_user. Do not weaken permission expectations or use Administrator for Sales User requests.
