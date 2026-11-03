@@ -344,6 +344,11 @@ def test_preflight_restores_session_when_user_switch_raises_after_mutation(monke
             raise RuntimeError("session switch failed after mutation")
 
     monkeypatch.setattr(diagnostics.frappe, "set_user", failed_switch)
+
+    def unexpected_query(*args, **kwargs):
+        raise AssertionError("list query must not run after a failed session switch")
+
+    monkeypatch.setattr(diagnostics.frappe, "get_list", unexpected_query)
     report = diagnostics.get_site_preflight_report(
         test_users={"sales_user": "sales.user@example.invalid"},
         test_records={"sales_user": {"Lead": {"sample": "LEAD-SYNTHETIC-SWITCH"}}},
