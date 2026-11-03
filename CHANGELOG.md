@@ -708,3 +708,4 @@ PR #125 merged as [7029747](https://github.com/MitMike/crm_signals/commit/702974
 - Extended the dedicated non-sales E2E to call the Executive Compass API directly and require unavailable source metrics without source read grants, and to require HTTP 403 from the CRM Signals dashboard API without CRM Signal read permission.
 - Added static regression guards and updated the Administrator Guide and Target-Site Acceptance Kit. ADR-108 records the effective-user API permission decision.
 - Test/documentation scope only; no production runtime, role grant, schema, dependency or site configuration change. Final-head CI pending; not pilot-verified.
+- CI triage on superseded head: Quality/Python `41717036495` passed all four Python versions but identified only Prettier formatting differences; applied exact formatter output in `2b40f63`. Security/Semgrep `41717036375` passed. Fresh final-head matrix required.
