@@ -232,3 +232,6 @@ Before enabling this app on a live site, record the installed Frappe/ERPNext ver
 
 
 PR #141 adds reference E2E coverage for the CRM Signals dashboard API under the Sales User token and direct Executive Compass/CRM Signals dashboard API calls under the dedicated non-sales account. The Sales User API must exclude the linked-restricted signal; a non-sales account without CRM Signal read permission must receive HTTP 403 from the CRM Signals dashboard API, while Executive Compass source sections without read grants must remain unavailable. All four final-head CI workflows passed on tested head `cbd69b80607473b65c4619b2495568be70fb1750`; PR #141 merged as `70aa4d8953cc8a69d1317aad1c72654f05a1b29e`. These are reference-stack CI results, not pilot results. Run the same checks on the authorized target site.
+
+
+The Target-Site Acceptance Kit's authenticated smoke now uses separate API tokens for the synthetic Sales User and non-sales account. It verifies identity before each persona's dashboard API assertions and keeps both secrets in temporary protected curl configuration only. Execute it on authorized staging; CI does not establish target-site token/proxy behavior or pilot acceptance.
