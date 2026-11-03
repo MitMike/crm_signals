@@ -817,4 +817,6 @@ Added a token-authenticated Playwright test on focused branch `test/sales-user-r
 
 ADR-107 records the decision. No production permission hook, DocType role grant, schema, dependency or site configuration changed. The test is selected by the existing pinned workflow's `--grep "Sales User"` and is included in the full supported v16 E2E suite; the Frappe v15 Bench integration lane remains unchanged.
 
-**Status:** code-complete; final-head Quality/Python, Security, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 CI pending. Not pilot-verified. If Report View/export returns the restricted record, inspect the exact Frappe 16.5 `reportview.get_list`, `export_query` and `DatabaseQuery.execute` permission path; do not weaken the denied/allowed assertions or use Administrator credentials.
+**CI triage:** Quality run `41708443112` failed only the Prettier formatting gate in the new E2E test; the exact formatter diff was applied in commit `c75dae2`. Python 3.12 passed on that run; the other workflows were still running against the superseded head. Fresh final-head verification is required.
+
+**Status:** code-complete; corrected-head Quality/Python, Security, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 CI pending. Not pilot-verified. If Report View/export returns the restricted record, inspect the exact Frappe 16.5 `reportview.get_list`, `export_query` and `DatabaseQuery.execute` permission path; do not weaken the denied/allowed assertions or use Administrator credentials.
