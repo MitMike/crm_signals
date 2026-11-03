@@ -267,3 +267,12 @@ The PR's CI result does not establish that a customer site has the approved SHA,
 - [x] Operator guide, deployment runbook and target-site acceptance kit document the alias-only probe and its DocType/field-only boundary.
 - [ ] Authorized target-site acceptance: controlled-record User Permissions, ownership, shares, list/API/report/export/dashboard behavior; exact deployed SHA and versions; D1/D2 native-report reconciliation; Helpdesk SLA; deployment/rollback; scheduler/mail/realtime/webhook/worker recovery; backup/restore; desktop/mobile visual UAT.
 - **Revisit criteria:** proceed only with an authorized Frappe v16.5 staging window, approved full SHA, named technical/business/security owners and dedicated synthetic System Users. Do not infer site acceptance from disposable Bench CI.
+
+
+
+## PR #122 session restoration review correction
+- [x] Keep the original Frappe session restoration attempt in a common `finally` even when `frappe.set_user(test_user)` mutates the session and then raises.
+- [x] Add regression coverage for mutate-then-raise, no record query, partial/fail-closed result and name/message non-disclosure.
+- [ ] Re-run final-head Python 3.10–3.14, Quality, Security/Semgrep, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 workflows before merging PR #122.
+- [ ] On authorized Frappe v16.5 staging, validate supplied synthetic record visibility against an approved role/record matrix; separately test direct form, API, report, export, print and dashboard behavior.
+- **Revisit criteria:** if restoration fails, treat the probe as partial and stop acceptance; investigate Frappe session semantics rather than directly mutating session internals. Do not infer target-site acceptance from CI.
