@@ -691,3 +691,9 @@ The browser test verifies the exact synthetic Sales User identity, linked restri
 The new focused branch `test/sales-user-direct-form-permission-20261103` adds a Playwright test that navigates to the direct CRM Signal Desk form route as the synthetic Sales User and observes the real `frappe.desk.form.load.getdoc` GET request. The linked-restricted signal must return 403 without exposing its message; the unlinked-owned signal must return 200 with its expected message in the loaded document. The pinned v16.5 workflow now selects both the existing browser-session HTTP API test and this direct-form test. The supported v15/v16 Bench E2E workflow is also corrected from `npm install` to lockfile-enforced `npm ci`; static coverage now enforces that both lanes use `npm ci` and mask ephemeral passwords before output propagation. Static coverage also guards the direct route, method and pinned workflow selector.
 
 This is code-complete on the branch; final-head CI and merge are pending. It is reference-stack test coverage, not pilot verification.
+
+### PR #131 first CI triage — direct form static guard (2026-11-03)
+
+- Quality Checks run `41675705153`, Python 3.11 job `126055881118`, failed one static contract (143 passed, 36 skipped, 1 failed). The guard expected the quoted method name `"frappe.desk.form.load.getdoc"`, while the Playwright helper correctly matches the full URL pathname `"/api/method/frappe.desk.form.load.getdoc"`.
+- No runtime, Frappe integration or browser permission assertion failed in this job. Correct the static assertion to match the actual full path; do not change the test route or permission expectations.
+- Fresh final-head Quality/Python, Security, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 workflows are required. Not pilot-verified.
