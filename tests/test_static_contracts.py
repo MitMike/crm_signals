@@ -649,7 +649,7 @@ def test_target_site_acceptance_checks_report_view_and_csv_export_permissions():
 def test_sales_user_crm_signals_dashboard_api_preserves_linked_party_permissions():
     spec = (ROOT / "e2e/sahdev-dashboard.spec.ts").read_text()
     assert (
-        'test("Sales User CRM Signals dashboard API respects linked Lead User Permission"'
+        'test("Sales User and non-sales dashboard API permission boundaries"'
         in spec
     )
     assert '"crm_signals.api.get_dashboard_data"' in spec
