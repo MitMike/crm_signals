@@ -536,6 +536,22 @@ def _test_user_record_visibility(username, record_specs, doctype_reports, doctyp
     }
 
 
+def _record_visibility_has_errors(record_visibility):
+    """Identify supplied record probes that did not reach a definitive outcome."""
+    if not record_visibility.get("available") or record_visibility.get("error_types"):
+        return True
+    incomplete_statuses = {
+        "doctype_unavailable",
+        "doctype_permission_unavailable",
+        "session_switch_failed",
+        "error",
+    }
+    return any(
+        result.get("status") in incomplete_statuses
+        for result in record_visibility.get("doctypes", {}).values()
+    )
+
+
 def _effective_user_permissions(test_users, doctype_reports, test_records=None):
     """Check explicit synthetic users and, optionally, exact synthetic record visibility."""
     scope = (
@@ -586,8 +602,8 @@ def _effective_user_permissions(test_users, doctype_reports, test_records=None):
             result["required_field_read"] = field_read
             result["record_visibility"] = record_visibility
             result["error_types"] = errors
-            has_record_error = bool(record_visibility["error_types"]) or (
-                bool(record_specs) and not record_visibility["available"]
+            has_record_error = bool(record_specs) and _record_visibility_has_errors(
+                record_visibility
             )
             result["status"] = "partial" if errors or has_record_error else "checked"
         else:
