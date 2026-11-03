@@ -659,3 +659,11 @@ PR #125 merged as [7029747](https://github.com/MitMike/crm_signals/commit/702974
 - PR #133 merged as `b2f1d07db7fdf8b6cafdaced7b0aaeefc74f9397` from final PR head `9a1a19c207e9bdff6cfb8df445bacb390d9478b6`; code head `b9f72471d7cd7102023454cfef3ca491e950d5af` contains the implementation and E2E test.
 - All four fresh final-head workflows passed: Quality/Python `41685961000`, Security/Semgrep `41685960990`, Bench v15/v16 + Playwright `41685961276` (19 tests on v16), and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 `41685961014` (4 focused Playwright tests).
 - The operator kit covers API credential generation, silent entry, HTTPS/no-redirect handling and post-test rotation/revocation. CI evidence is reference-stack only; authorized target-site transport and permission acceptance remain open.
+
+
+### 2026-11-03 — PR #135 opening — Sales User REST resource API permission regression
+
+- Add cookie-independent API-token E2E for Frappe's standard `/api/resource/CRM%20Signal/{name}` and collection endpoints using the disposable Sales User credentials from PR #133.
+- Require linked-restricted 403 without restricted message disclosure, unlinked-owned 200 with exact record name/message, and list-only-unlinked; preserve non-JSON response bodies and reject redirects.
+- Extend the target-site acceptance script with the same REST resource single-document and collection checks.
+- Code-complete on a focused branch; final-head CI pending. No production runtime, schema, dependency or site-configuration change. Not pilot-verified.

@@ -185,6 +185,39 @@ async function frappeMethodGetWithToken(
     return { status: response.status, body };
 }
 
+async function frappeResourceGetWithToken(
+    doctype: string,
+    name: string | null,
+    params: Record<string, string>,
+    apiKey: string,
+    apiSecret: string
+): Promise<{ status: number; body: unknown }> {
+    const baseUrl = process.env.BASE_URL;
+    if (!baseUrl) throw new Error("BASE_URL is required for API-token E2E");
+
+    const resourcePath =
+        `/api/resource/${encodeURIComponent(doctype)}` +
+        (name ? `/${encodeURIComponent(name)}` : "");
+    const query = new URLSearchParams(params).toString();
+    const url = new URL(resourcePath + (query ? `?${query}` : ""), baseUrl);
+    // Node fetch has no browser cookie jar and is excluded from Playwright traces.
+    const response = await fetch(url, {
+        headers: {
+            Accept: "application/json",
+            Authorization: `token ${apiKey}:${apiSecret}`
+        },
+        redirect: "manual"
+    });
+    const responseText = await response.text();
+    let body: unknown = responseText;
+    try {
+        body = JSON.parse(responseText);
+    } catch {
+        // Preserve non-JSON error bodies for the response-content assertion.
+    }
+    return { status: response.status, body };
+}
+
 async function mockDashboard(page: Page, message: Record<string, unknown>) {
     await page.route(dashboardMethod, (route) =>
         route.fulfill({
@@ -699,6 +732,113 @@ test("Sales User API token respects linked Lead User Permission", async ({
         (
             listResponse.body as { message?: Array<{ name: string }> }
         ).message?.map((row) => row.name) || [];
+    expect(visibleNames).toEqual([unlinkedSignal!.name]);
+});
+
+test("Sales User REST resource API token respects linked Lead User Permission", async ({
+    page
+}) => {
+    await loginAsAdministrator(page);
+
+    const linkedMessage = "CRM Signals E2E linked restricted signal";
+    const unlinkedMessage = "CRM Signals E2E unlinked owned signal";
+    const fixtureResponse = await frappeMethodGet(
+        page,
+        "frappe.client.get_list",
+        {
+            doctype: "CRM Signal",
+            fields: JSON.stringify(["name", "message"]),
+            filters: JSON.stringify([
+                ["message", "in", [linkedMessage, unlinkedMessage]]
+            ]),
+            limit_page_length: "10"
+        }
+    );
+    expect(fixtureResponse.status).toBe(200);
+    const fixtureRows =
+        (
+            fixtureResponse.body as {
+                message?: Array<{ name: string; message: string }>;
+            }
+        ).message || [];
+    expect(fixtureRows).toHaveLength(2);
+
+    const linkedSignal = fixtureRows.find(
+        (row) => row.message === linkedMessage
+    );
+    const unlinkedSignal = fixtureRows.find(
+        (row) => row.message === unlinkedMessage
+    );
+    expect(linkedSignal).toBeTruthy();
+    expect(unlinkedSignal).toBeTruthy();
+
+    const apiKey = process.env.E2E_SALES_API_KEY;
+    const apiSecret = process.env.E2E_SALES_API_SECRET;
+    const email = process.env.E2E_SALES_USER || "e2e-sales-user@example.com";
+    expect(apiKey).toBeTruthy();
+    expect(apiSecret).toBeTruthy();
+
+    const identity = await frappeMethodGetWithToken(
+        "frappe.auth.get_logged_user",
+        {},
+        apiKey!,
+        apiSecret!
+    );
+    expect(identity.status).toBe(200);
+    expect((identity.body as { message?: string }).message).toBe(email);
+
+    const restrictedRead = await frappeResourceGetWithToken(
+        "CRM Signal",
+        linkedSignal!.name,
+        {},
+        apiKey!,
+        apiSecret!
+    );
+    expect(restrictedRead.status).toBe(403);
+    const restrictedBody = JSON.stringify(restrictedRead.body) ?? "";
+    expect(restrictedBody).not.toContain(linkedMessage);
+
+    const allowedRead = await frappeResourceGetWithToken(
+        "CRM Signal",
+        unlinkedSignal!.name,
+        {},
+        apiKey!,
+        apiSecret!
+    );
+    expect(allowedRead.status).toBe(200);
+    const allowedData = (
+        allowedRead.body as {
+            data?: { name?: string; message?: string };
+        }
+    ).data;
+    expect(allowedData?.name).toBe(unlinkedSignal!.name);
+    expect(allowedData?.message).toBe(unlinkedMessage);
+
+    const listResponse = await frappeResourceGetWithToken(
+        "CRM Signal",
+        null,
+        {
+            fields: JSON.stringify(["name"]),
+            filters: JSON.stringify([
+                [
+                    "CRM Signal",
+                    "name",
+                    "in",
+                    [linkedSignal!.name, unlinkedSignal!.name]
+                ]
+            ]),
+            limit_page_length: "10"
+        },
+        apiKey!,
+        apiSecret!
+    );
+    expect(listResponse.status).toBe(200);
+    const visibleNames =
+        (
+            listResponse.body as {
+                data?: Array<{ name: string }>;
+            }
+        ).data?.map((row) => row.name) || [];
     expect(visibleNames).toEqual([unlinkedSignal!.name]);
 });
 
