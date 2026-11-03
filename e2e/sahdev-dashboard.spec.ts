@@ -218,6 +218,42 @@ async function frappeResourceGetWithToken(
     return { status: response.status, body };
 }
 
+async function getSalesUserSignalPair(page: Page) {
+    const linkedMessage = "CRM Signals E2E linked restricted signal";
+    const unlinkedMessage = "CRM Signals E2E unlinked owned signal";
+    const fixtureResponse = await frappeMethodGet(
+        page,
+        "frappe.client.get_list",
+        {
+            doctype: "CRM Signal",
+            fields: JSON.stringify(["name", "message"]),
+            filters: JSON.stringify([
+                ["message", "in", [linkedMessage, unlinkedMessage]]
+            ]),
+            limit_page_length: "10"
+        }
+    );
+    expect(fixtureResponse.status).toBe(200);
+    const fixtureRows =
+        (
+            fixtureResponse.body as {
+                message?: Array<{ name: string; message: string }>;
+            }
+        ).message || [];
+    expect(fixtureRows).toHaveLength(2);
+
+    const linkedSignal = fixtureRows.find(
+        (row) => row.message === linkedMessage
+    );
+    const unlinkedSignal = fixtureRows.find(
+        (row) => row.message === unlinkedMessage
+    );
+    if (!linkedSignal || !unlinkedSignal) {
+        throw new Error("Sales User permission fixtures are incomplete");
+    }
+    return { linkedSignal, unlinkedSignal, linkedMessage, unlinkedMessage };
+}
+
 async function mockDashboard(page: Page, message: Record<string, unknown>) {
     await page.route(dashboardMethod, (route) =>
         route.fulfill({
@@ -847,37 +883,12 @@ test("Sales User report view and CSV export respect linked Lead User Permission"
 }) => {
     await loginAsAdministrator(page);
 
-    const linkedMessage = "CRM Signals E2E linked restricted signal";
-    const unlinkedMessage = "CRM Signals E2E unlinked owned signal";
-    const fixtureResponse = await frappeMethodGet(
-        page,
-        "frappe.client.get_list",
-        {
-            doctype: "CRM Signal",
-            fields: JSON.stringify(["name", "message"]),
-            filters: JSON.stringify([
-                ["message", "in", [linkedMessage, unlinkedMessage]]
-            ]),
-            limit_page_length: "10"
-        }
-    );
-    expect(fixtureResponse.status).toBe(200);
-    const fixtureRows =
-        (
-            fixtureResponse.body as {
-                message?: Array<{ name: string; message: string }>;
-            }
-        ).message || [];
-    expect(fixtureRows).toHaveLength(2);
-
-    const linkedSignal = fixtureRows.find(
-        (row) => row.message === linkedMessage
-    );
-    const unlinkedSignal = fixtureRows.find(
-        (row) => row.message === unlinkedMessage
-    );
-    expect(linkedSignal).toBeTruthy();
-    expect(unlinkedSignal).toBeTruthy();
+    const {
+        linkedSignal,
+        unlinkedSignal,
+        linkedMessage,
+        unlinkedMessage
+    } = await getSalesUserSignalPair(page);
 
     const apiKey = process.env.E2E_SALES_API_KEY;
     const apiSecret = process.env.E2E_SALES_API_SECRET;
