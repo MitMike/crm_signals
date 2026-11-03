@@ -376,15 +376,17 @@ Do not paste secrets or full customer records into this document.
 
 ## 4. Permission parity matrix
 
-Test with real representative users, not only Administrator. Check each path independently because list visibility, direct document access and downstream report/export paths can differ.
+Test with real representative users, not only Administrator. Check each path independently because list visibility, direct document access, RPC methods, REST resources, Report View, CSV export, print rendering, dashboard page visibility and dashboard APIs can differ.
 
-| Role / persona | Signal list | Direct signal form | Dashboard/report | API read | Export/print | Digest email | Realtime |
-|---|---|---|---|---|---|---|---|
-| Sales User | | | | | | | |
-| Sales Manager | | | | | | | |
-| System Manager | | | | | | | |
-| Non-sales user | | | | | | | |
-| Disabled user | | | | | | | |
+| Role / persona | Signal list | Direct signal form | RPC API | REST resource API | Report View | CSV export | Print view | Dashboard UI | Dashboard API | Digest email | Realtime |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| Sales User | | | | | | | | | | | |
+| Sales Manager | | | | | | | | | | | |
+| System Manager | | | | | | | | | | | |
+| Non-sales user | | | | | | | | | | | |
+| Disabled user | | | | | | | | | | | |
+
+For every cell, record `Pass`, `Fail` or `Blocked` plus a sanitized evidence reference. Do not infer a result from another column: a hidden Desk page does not prove its API is denied, and a filtered list does not prove direct form, export or print behavior.
 
 ### Direct CRM Signal form loading
 
@@ -411,7 +413,9 @@ Acceptance criteria:
 - [ ] As the dedicated Sales User, call /api/method/crm_signals.api.get_dashboard_data with the same API token. Confirm the recent list contains the unlinked-owned signal and excludes the linked-restricted signal and message. Record only HTTP status and permitted row count; do not retain response bodies.
 - [ ] Run the non-sales portion of the script above with the separate non-sales API token. Require HTTP 403 with no synthetic signal content from crm_signals.api.get_dashboard_data; require HTTP 200 and available=false for Lead, Opportunity, Billing and Helpdesk sections from crm_signals.api.get_sales_compass_data when the account has no corresponding source read grants. Record only source availability booleans and HTTP status.
 - [x] PR #141 adds reference CI coverage for these direct dashboard API boundaries. All four final-head workflows passed on tested head `cbd69b80607473b65c4619b2495568be70fb1750`; merged as `70aa4d8953cc8a69d1317aad1c72654f05a1b29e`. CI does not replace execution on authorized staging.
-- [ ] Export and print do not expose rows unavailable in the corresponding report/list.
+- [ ] CSV export excludes every CRM Signal row/message unavailable in the corresponding permission-filtered Report View; record the export result independently.
+- [ ] Standard print view denies the linked-restricted synthetic CRM Signal without rendering its fields/message and permits the unlinked-owned record; record HTTP/render outcomes independently.
+- [ ] CRM Signals dashboard page visibility and the direct `get_dashboard_data` API response are recorded separately for each persona.
 - [ ] Helpdesk HD Ticket field-level read access is checked independently for `status_category`, `resolution_date`, `resolution_time`, `sla` and `agreement_status` using the installed version's actual permlevels (all are permlevel 0 in the v1.28.0 reference).
 - [ ] If Helpdesk v1.29.0, v1.30.2 or v1.31.1 is installed, verify the exact Frappe build contains the `frappe/ui` package required by `@framework/ui`; if v1.31.1, also verify the `Notification Type` DocType/controller. Stop if absent.
 - [ ] Compare installed Helpdesk permission metadata with the v1.28.0 reference: Sales User/Manager are not default HD Ticket or SLA readers. Do not assign Agent/Agent Manager solely for dashboard visibility; use an approved custom read-only role with base HD Ticket read, plus HD Service Level Agreement read only if SLA metrics are approved. For later versions, add only the exact approved higher field permlevels.
