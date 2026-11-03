@@ -589,7 +589,6 @@ def test_sales_user_rest_resource_api_token_e2e_preserves_non_json_bodies():
     assert "body = JSON.parse(responseText)" in helper
 
 
-
 def test_target_site_acceptance_script_checks_rest_resource_permission_boundary():
     acceptance = (ROOT / "docs/TARGET_SITE_ACCEPTANCE.md").read_text()
     assert '/api/resource/CRM%20Signal/$LINKED_RESTRICTED_SIGNAL' in acceptance
