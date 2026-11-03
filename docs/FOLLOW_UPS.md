@@ -205,14 +205,23 @@ The PR's CI result does not establish that a customer site has the approved SHA,
 
 - [x] Both D3 HTML guides now describe the implemented standard Helpdesk adapter and require separate approval before any custom/different ticket source is scoped.
 - [x] Static regression coverage protects both the existing-adapter status and custom-source approval boundary.
-- [ ] **Final-head CI:** complete Quality, Python 3.10–3.14, Security, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 checks on the replacement PR; fix any failure before merge.
+- [x] **Final-head CI:** PR #117 merged after all 35 final-head checks passed, including Quality, Python 3.10–3.14, Security, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0.
 - [ ] **Target-site D3 acceptance:** verify installed versions, exact required fields, effective Sales read permissions, active SLA calendar/holidays/timezone, pause/resume and native outcomes in authorized staging.
 - **Revisit criteria:** custom adapter work only after exact DocType/field/lifecycle/relationship/identity metadata and support, security and business approval are supplied.
 
 
 - [x] **CI defect corrected:** Python 3.11 and 3.12 each found one stale setup-guide promise (125 passed, 36 skipped, 1 failed). The page now describes configuring the existing adapter, separate custom-source approval and the correct footer; the static contract test protects both.
-- [ ] **Re-run final-head checks:** confirm Python 3.10–3.14, Quality, Security, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 all complete successfully on the corrected head. The earlier failing run must remain visible as historical evidence; do not merge until the corrected head passes.
+- [x] **Re-run final-head checks:** PR #117's corrected head passed the full 35-check matrix; earlier failing runs remain recorded as historical evidence.
 
 
 - [x] **Second CI defect corrected:** Python 3.11, 3.12 and 3.14 each found one stale test expectation (125 passed, 36 skipped, 1 failed). The guide's new wording was correct; the test expected an obsolete phrase. The assertion now checks "custom sources require separate approval and scope".
-- [ ] **Final verification:** require a fresh full matrix on the corrected head. Do not treat the prior failed run or successful lint/Semgrep as merge approval.
+- [x] **Final verification:** the corrected PR #117 head passed all 35 checks; PR #117 merged as 93e7e16.
+
+
+## PR #117 merged — D3 operator guide (2026-11-03)
+
+- [x] PR #117 merged as 93e7e16 (merge commit 93e7e16271d727476618b4981498ad901835bad4); all 35 final-head check runs passed.
+- [x] D3 setup and discovery guides now match the implemented standard adapter; custom/different ticket sources require separate support, security and business approval.
+- [ ] Target-site D3 acceptance: on authorized Frappe v16.5 staging, verify exact Helpdesk version/schema, effective Sales field permissions, active SLA calendar/holidays/timezone, pause/resume behavior and native metric outcomes.
+- [ ] Release acceptance: rehearse first install/upgrade and rollback; reconcile D1/D2 against native ERPNext reports by currency; complete dashboard desktop/mobile visual UAT; test scheduler, mail, realtime, webhook and worker recovery; record backup/restore evidence.
+- Revisit criteria: begin only with an authorized staging window, approved full SHA, named technical owner, site/Bench operator, support/security/business owners and representative test accounts. Do not infer pilot acceptance from CI.
