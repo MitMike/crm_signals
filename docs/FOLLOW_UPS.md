@@ -375,7 +375,7 @@ PR #128 merged as `85c492ea2c84444d7cc45c0d61706736fa972a83`. Quality/Python run
 - [x] Refactor the fixture helper after the initial 102-line hard-limit failure and apply Prettier's exact formatting after the subsequent Quality run flagged the E2E spec.
 - [x] Use lockfile-enforced `npm ci --ignore-scripts --no-audit --no-fund` for pinned-lane Playwright dependencies, consistent with Stage 0 and Quality Checks; keep browser installation explicit and protect it with a static contract test.
 - [x] Mask both generated pinned-lane E2E passwords before writing them to GitHub Actions step outputs; protect masking order with the same static contract test.
-- [ ] Require fresh final-head Quality/Security/Bench v15/v16 and pinned Frappe 16.5.0 Playwright workflows to pass after the npm-ci and credential-masking corrections; earlier heads do not count.
+- [x] Pass final-head Quality/Python, Security/Semgrep, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 Playwright on `42f8a38e751977e21168869c4010fcce901309ac` (runs `41668745943`, `41668745937`, `41668746054`, `41668745681`).
 - [ ] On authorized target-site staging, separately execute the API-token smoke and test browser form route, REST resource, reports, exports, print and dashboard.
 - **Revisit criteria:** if permission outcomes differ, inspect User Permission setup and CRM Signal query hooks on the exact Frappe build. If pinned E2E times out, profile the slow setup/install/browser steps before changing the timeout. Never use Administrator for Sales User assertions.
 
@@ -386,8 +386,8 @@ PR #128 merged as `85c492ea2c84444d7cc45c0d61706736fa972a83`. Quality/Python run
 - [x] Confirm the focused test reached the shared login helper; the actual Frappe v16.5.0 form submitted POST /login with HTTP 200, while the helper listened only for POST /api/method/login.
 - [x] Update the helper to accept the exact /login and /api/method/login POST paths while retaining response, session-cookie and redirect assertions.
 - [x] Add a static regression guard for both exact paths and POST method.
-- [ ] Require all four final-head workflows to pass on the corrected head; do not reuse the previous Bench or pinned results.
-- [ ] After CI passes, merge PR #130 only if the branch is current and all required checks are green; then reconcile main progress records.
+- [x] All four final-head workflows passed on `42f8a38e751977e21168869c4010fcce901309ac`; no earlier-head results were reused.
+- [x] PR #130 merged as `2b697b4d37a12b2e339bcf680ff808f23b97850f`; main progress, plan, decisions and changelog reconciled on PR #131.
 - **Evidence:** pinned workflow run 41643473834, job 125943109815; Playwright artifact 13233758446. The pinned job's setup, migration, permission fixtures, Python tests and Frappe integration tests passed before the login response waiter timed out.
 - **Revisit criteria:** if the corrected run fails, inspect its Playwright trace for the exact POST pathname/status and determine whether the login itself failed or only the waiter predicate. Do not skip login or weaken the 403/200/list-only-unlinked assertions. Target-site API-token, browser form, report/export/print/dashboard and pilot acceptance remain separate.
 
