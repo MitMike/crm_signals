@@ -72,7 +72,7 @@ async function frappeMethodGet(
     return page.evaluate(async ({ method, params }) => {
         const query = new URLSearchParams(params);
         const response = await fetch(
-            \`/api/method/\${method}?\${query.toString()}\`,
+            "/api/method/" + method + "?" + query.toString(),
             { credentials: "same-origin" }
         );
         const body = await response.json().catch(() => ({}));
