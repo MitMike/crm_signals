@@ -2,7 +2,7 @@
 
 **Started:** 2026-11-01  
 **Last reviewed:** 2026-11-03  
-**Latest main at this review:** `94d14f56a526670d2c0ecb150ab9f08b4f034389` (PR #109 real-Git clean/dirty preflight regression merged); **latest application feature baseline:** `c5720bfb3fbe8b554ec6febd549a8d5e58acc1d7`; **latest UI fix:** `9c4febf8180ef295b48ea18b1ac5fddc164ff34f` (PR #100 dashboard inset browser guard)
+**Latest main at this review:** `fe7dca402293faa1e7e60f147d53adaef63009d6` (PR #110 release-document reconciliation merged after PR #109); **latest application feature baseline:** `c5720bfb3fbe8b554ec6febd549a8d5e58acc1d7`; **latest UI fix:** `9c4febf8180ef295b48ea18b1ac5fddc164ff34f` (PR #100 dashboard inset browser guard)
 **Decision register:** [ADR-046](DECISIONS.md#adr-046--run-release-readiness-as-an-evidence-gated-sprint)  
 **Operating rule:** no item is complete without the evidence listed here. CI evidence and target-site evidence are separate.
 
@@ -130,7 +130,16 @@ The application and operator guides remain code-complete and reference-stack CI-
 ## 2026-11-03 current repository snapshot — after PR #109
 
 - [x] PR #109 merged as [`94d14f5`](https://github.com/MitMike/crm_signals/commit/94d14f56a526670d2c0ecb150ab9f08b4f034389) from final head `d8b65eedc45c05947409f9781a9caaee848aa4ba`. All 18 final-head checks passed: Quality/lint, Python 3.10–3.14, Security/Semgrep, Bench v15/v16 including Playwright, and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0. The real-Git regression proves the clean SHA and untracked-dirty rejection behavior.
-- [ ] PR #110 is the current documentation-only reconciliation. Its final-head Quality, Security and stable Bench checks must pass before merge; runtime selectors may skip only when the detector confirms this docs-only change.
+- [x] PR #110 release-document reconciliation merged as `fe7dca4`; all 13 final-head checks completed (11 success, two expected runtime-selector skips).
 - [x] No open repository issues were returned at this review.
 - [ ] **P0 target-site gate remains open:** authorized Frappe v16.5 staging, exact installed app inventory and approved SHA, effective-role permissions, D1/D2 native-report reconciliation by currency, Helpdesk SLA calendar, scheduler/mail/realtime/webhook recovery, backup/restore/rollback rehearsal and dashboard desktop/mobile visual UAT.
 - **Release decision:** not approved for production sign-off. The application and operator guide are code-complete and reference-stack CI-verified where recorded; no pilot verification is claimed. A green CI run does not close a target-site gate.
+
+
+## 2026-11-03 current repository snapshot — after PR #110
+
+- [x] PR #109 real-Git clean/dirty preflight regression merged as `94d14f5`; all 18 final-head checks passed.
+- [x] PR #110 release-document reconciliation merged as `fe7dca4`; all 13 final-head checks completed, with 11 successes and two expected docs-only runtime-selector skips.
+- [x] Live open-PR and open-issue queries returned zero immediately after PR #110 merged.
+- [ ] **P0 target-site acceptance remains open:** authorized Frappe v16.5 staging, exact installed app inventory and approved SHA, effective-role permissions, D1/D2 native-report reconciliation by currency, Helpdesk SLA calendar, scheduler/mail/realtime/webhook recovery, backup/restore/rollback rehearsal and dashboard desktop/mobile visual UAT.
+- **Release decision:** not approved for production sign-off. D1/D2/D3/Explorer and the operator procedures are code-complete and reference-stack CI-verified where recorded; no pilot verification is claimed. Green CI is not target-site evidence.
