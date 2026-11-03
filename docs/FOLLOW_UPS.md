@@ -273,6 +273,17 @@ The PR's CI result does not establish that a customer site has the approved SHA,
 ## PR #122 session restoration review correction
 - [x] Keep the original Frappe session restoration attempt in a common `finally` even when `frappe.set_user(test_user)` mutates the session and then raises.
 - [x] Add regression coverage for mutate-then-raise, no record query, partial/fail-closed result and name/message non-disclosure.
-- [ ] Re-run final-head Python 3.10–3.14, Quality, Security/Semgrep, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 workflows before merging PR #122.
+- [x] Final-head CI passed after the session-restoration correction: Quality/Python, Security/Semgrep, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 (runs 41603744414, 41603744435, 41603744404 and 41603744511); PR #122 merged as `de16ead`.
 - [ ] On authorized Frappe v16.5 staging, validate supplied synthetic record visibility against an approved role/record matrix; separately test direct form, API, report, export, print and dashboard behavior.
 - **Revisit criteria:** if restoration fails, treat the probe as partial and stop acceptance; investigate Frappe session semantics rather than directly mutating session internals. Do not infer target-site acceptance from CI.
+
+
+## PR #122 merged — synthetic-record list visibility (2026-11-03)
+
+PR [#122](https://github.com/MitMike/crm_signals/pull/122) merged as [de16ead](https://github.com/MitMike/crm_signals/commit/de16ead6ed2f155e83189196755048a264c2ec74) from final head [5339d71](https://github.com/MitMike/crm_signals/commit/5339d7135ff87902974dc2d038051e101434389e).
+
+All four final-head workflows completed successfully: Quality Checks (run 41603744414), Security Scanning/Semgrep (41603744435), Bench Integration and E2E (41603744404), and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 validation (41603744511). The Quality run passed the configured Python 3.10, 3.11, 3.12 and 3.14 test jobs plus lint/static checks. Bench v15/v16 integration passed, including the v16 Playwright job. The pinned lane passed the real-Frappe synthetic-record visibility probe, D1/D2 aggregate/permission checks, Helpdesk schema and D3 aggregate checks, schema upgrade, asset build, Python tests and Frappe integration tests.
+
+The first Python run had five failures from a stale helper signature; it was corrected and the final-head matrix passed. A separate review correction ensured a frappe.set_user call that mutates session state and then raises still flows through the restoration finally; the final-head regression verifies restoration is attempted, no list query runs and record names/exception messages are not disclosed. No failing head was merged.
+
+The optional preflight is code-complete and reference-stack CI-verified, not pilot-verified. It checks bounded permission-filtered list visibility for exact supplied synthetic records and returns labels/booleans only. Direct form, REST API, report, export, print and dashboard access remain separate acceptance paths. Authorized Frappe v16.5 staging, approved release SHA, named owners and controlled synthetic records are still required for pilot acceptance, alongside D1/D2 native-report reconciliation, Helpdesk SLA, deployment/rollback, operational recovery, backup/restore and desktop/mobile UAT.

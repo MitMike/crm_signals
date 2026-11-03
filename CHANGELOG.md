@@ -449,3 +449,14 @@ Included in PR #19's merge commit [a495919](https://github.com/MitMike/crm_signa
 - Keep original-session restoration in a common `finally` even when `frappe.set_user(test_user)` mutates session state and then raises.
 - Add regression coverage for the mutate-then-raise path, fail-closed output and record-name/exception-message non-disclosure.
 - Prior PR #122 head passed all four CI workflows; this correction requires a fresh final-head matrix. No schema, dependency, metric or site-configuration change.
+
+
+## PR #122 merged — synthetic-record list visibility (2026-11-03)
+
+PR [#122](https://github.com/MitMike/crm_signals/pull/122) merged as [de16ead](https://github.com/MitMike/crm_signals/commit/de16ead6ed2f155e83189196755048a264c2ec74) from final head [5339d71](https://github.com/MitMike/crm_signals/commit/5339d7135ff87902974dc2d038051e101434389e).
+
+All four final-head workflows completed successfully: Quality Checks (run 41603744414), Security Scanning/Semgrep (41603744435), Bench Integration and E2E (41603744404), and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 validation (41603744511). The Quality run passed the configured Python 3.10, 3.11, 3.12 and 3.14 test jobs plus lint/static checks. Bench v15/v16 integration passed, including the v16 Playwright job. The pinned lane passed the real-Frappe synthetic-record visibility probe, D1/D2 aggregate/permission checks, Helpdesk schema and D3 aggregate checks, schema upgrade, asset build, Python tests and Frappe integration tests.
+
+The first Python run had five failures from a stale helper signature; it was corrected and the final-head matrix passed. A separate review correction ensured a frappe.set_user call that mutates session state and then raises still flows through the restoration finally; the final-head regression verifies restoration is attempted, no list query runs and record names/exception messages are not disclosed. No failing head was merged.
+
+The optional preflight is code-complete and reference-stack CI-verified, not pilot-verified. It checks bounded permission-filtered list visibility for exact supplied synthetic records and returns labels/booleans only. Direct form, REST API, report, export, print and dashboard access remain separate acceptance paths. Authorized Frappe v16.5 staging, approved release SHA, named owners and controlled synthetic records are still required for pilot acceptance, alongside D1/D2 native-report reconciliation, Helpdesk SLA, deployment/rollback, operational recovery, backup/restore and desktop/mobile UAT.

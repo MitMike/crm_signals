@@ -968,7 +968,7 @@ The optional permission probe now requires each supplied test account to be an e
 - **Rationale:** this exercises Frappe's actual permission-filtered list API, including the DocType's configured User Permission/share/permission-query filters, without exposing business data or allowing arbitrary queries. It reduces manual setup work but does not replace direct form, REST API, report, export, print or dashboard acceptance.
 - **Consequences:** operators must create dedicated synthetic records with known expected visibility and pass their names explicitly. The command can report actual list visibility, but the operator still compares it to the approved role/record matrix. A false result can mean either missing or denied; verify synthetic fixture existence through the controlled setup record. The real-Frappe CI fixture validates one System Manager-visible CRM Signal and rolls it back; it is compatibility evidence only.
 - **Revisit criteria:** revisit if Frappe v15/v16 changes \`frappe.get_list\` permission behavior or \`frappe.set_user\` session semantics, if the preflight DocType allowlist changes, or if security review finds a data-exposure or session-restoration issue. Keep input bounds and identity/name non-disclosure tests.
-- **Verification status:** implementation and tests are in PR #122. Final-head Python 3.10–3.14, Quality, Security/Semgrep, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 checks are required before merge. No pilot verification is claimed.
+- **Verification status:** PR #122 merged as `de16ead6ed2f155e83189196755048a264c2ec74` from final head `5339d7135ff87902974dc2d038051e101434389e`. All four final-head workflows passed: Quality/Python (41603744414), Security/Semgrep (41603744435), Bench v15/v16 + Playwright (41603744404), and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 (41603744511). The optional probe is code-complete and reference-stack CI-verified, not pilot-verified.
 
 
 ### ADR-094 CI triage — initial validator signature failure
@@ -982,4 +982,13 @@ A focused code review found that the first implementation returned immediately w
 - **Decision:** route both successful and failed user switches through one restoration `finally`; never return from the switch-error handler. If switching fails, mark every requested record as `session_switch_failed`, disclose only the exception type, and still attempt to restore the original session user.
 - **Implementation:** add a regression where the fake `set_user` mutates `frappe.session.user` and then raises. Assert the original user is set again, no list query runs, the result is partial/fail-closed and neither record names nor exception messages are disclosed.
 - **Revisit:** if restoration itself fails, keep the report partial with `session_restore` exception type and stop operator acceptance; do not fall back to direct mutation of Frappe's session object.
-- **Verification:** this correction is on PR #122 after its first complete CI matrix passed; a fresh final-head Python, Quality, Security, Bench v15/v16 + Playwright and pinned v16.5.0 matrix is required before merge.
+- **Verification:** the corrected final head `5339d7135ff87902974dc2d038051e101434389e` passed all four final-head workflows; PR #122 merged as `de16ead6ed2f155e83189196755048a264c2ec74`. The mutate-then-raise regression passed in the Python and real-Frappe Bench/pinned lanes. This remains reference-stack evidence, not pilot verification.
+
+
+### ADR-094 final-head CI and merge record
+
+- Quality/Python run `41603744414`: configured Python 3.10, 3.11, 3.12 and 3.14 test jobs plus lint/static checks passed.
+- Security/Semgrep run `41603744435`: passed.
+- Bench Integration and E2E run `41603744404`: Frappe v15/v16 integration passed; v16 Playwright passed.
+- Pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 run `41603744511`: synthetic record visibility, D1/D2, D3, upgrade, assets and Bench tests passed.
+- PR #122 merged as `de16ead6ed2f155e83189196755048a264c2ec74`. No target-site or pilot acceptance is implied.
