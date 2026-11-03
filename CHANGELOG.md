@@ -692,3 +692,11 @@ PR #125 merged as [7029747](https://github.com/MitMike/crm_signals/commit/702974
 - PR #139 CI triage: initial Quality run `41708443112` identified only Prettier formatting differences in the new E2E test; applied the exact formatter output in `c75dae2`. Python 3.12 passed on the superseded head. Corrected-head full matrix required; not pilot-verified.
 
 - PR #139 corrected-head CI update: Quality/Python `41708655615` and Security/Semgrep `41708655564` passed on `4fa1c93075235a6b19fdec7228df70aa044f32d3`; Bench v15/v16 + Playwright `41708655538` is queued and pinned Frappe 16.5.0 `41708655821` is running. Do not merge until both integration lanes pass.
+
+
+### 2026-11-04 — PR #139 merged — Sales User Report View and CSV export permission regression
+
+- PR #139 squash-merged as `ac2d83d823bdcad46fe84ccd5d2b8954c0b0d959` from final tested head `2e30fd02a1074e26adbf1d0de1f4fb715e2d837a`.
+- All four final-head workflows passed: Quality/Python [41709078949](https://github.com/MitMike/crm_signals/actions/runs/41709078949), Security/Semgrep [41709078877](https://github.com/MitMike/crm_signals/actions/runs/41709078877), Bench v15/v16 + Playwright [41709078919](https://github.com/MitMike/crm_signals/actions/runs/41709078919), and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 [41709078884](https://github.com/MitMike/crm_signals/actions/runs/41709078884).
+- The token-authenticated Report View query returned only the unlinked-owned CRM Signal; CSV export included the permitted record and excluded the linked-restricted record name/message. Frappe v15 Bench integration coverage was retained.
+- Reference-stack CI-verified; authorized Frappe 16.5 staging role/transport acceptance remains open. Not pilot-verified.
