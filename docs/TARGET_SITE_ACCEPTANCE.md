@@ -45,7 +45,96 @@ Record, do not infer:
 - [ ] For list-level record visibility, create dedicated synthetic Lead/Customer/Opportunity/Quotation/CRM Signal/invoice/payment/ticket records and optionally pass their exact names under `test_records`, keyed by profile, DocType and non-sensitive label. The report uses permission-filtered `frappe.get_list` with `fields=["name"]`; it returns labels/booleans only. A false result may mean missing or inaccessible.
 - [ ] For the Sales User linked-party boundary, create an allowed synthetic Lead and a restricted synthetic Lead; set the Sales User's Lead User Permission to the allowed Lead; create a linked CRM Signal for the restricted Lead owned by that Sales User; and create an unlinked CRM Signal owned by the same user. Verify both signals exist with the authorized setup account, then run the `test_records` probe for those two exact CRM Signal names. Expect `linked_restricted: false` and `unlinked_owned: true` with checked status. The linked signal must remain hidden despite CRM Signal ownership; do not add a share or replace permission-filtered reads with `get_all`. This mirrors the real-Frappe regression in PR #124.
 - [ ] Confirm each supplied profile reports `status: checked`, active System User account and valid role membership; review every DocType and required-field result plus any supplied record-visibility result. `partial`, missing, invalid-role, false or unavailable results require investigation, not sign-off.
-- [ ] With the Sales User's own authenticated session/API credentials (never Administrator), call `GET /api/method/frappe.client.get` for the linked restricted CRM Signal and expect permission denial; call it for the unlinked owned signal and expect success. Call `GET /api/method/frappe.client.get_list` with both names and verify only the unlinked signal is returned. Record HTTP status and redacted response evidence; CI invokes the Python wrappers directly and does not verify HTTP authentication or routing.
+- [ ] With the dedicated Sales User's own API credentials (never Administrator), run the authenticated HTTP smoke below. It verifies the authenticated identity first, then expects HTTP 403 for the linked restricted document, HTTP 200 for the unlinked owned document, and a list containing exactly the unlinked record. Do not follow redirects; a redirect is a failed check because the token must not be forwarded to another origin.
+- [ ] Keep response bodies in a mode-0600 temporary directory and remove them after checking. Record only the authenticated profile alias, HTTP status codes, pass/fail outcomes, site/Frappe version, deployed full SHA and timestamp. Never attach raw response bodies, API keys/secrets, record names or user identifiers.
+- [ ] The script below requires Bash, curl and Python 3.10+. It uses GET query parameters exactly as Frappe's method wrappers expect; it does not test browser form loading or report/export/print/dashboard behavior.
+
+```bash
+set -euo pipefail
+
+: "${SITE_URL:?Set the canonical HTTPS staging site URL}"
+: "${EXPECTED_SALES_USER:?Set the dedicated non-Administrator Sales User name}"
+: "${LINKED_RESTRICTED_SIGNAL:?Set the CRM Signal linked to a Lead excluded by this user's Lead User Permission}"
+: "${UNLINKED_OWNED_SIGNAL:?Set the unlinked CRM Signal owned by the same Sales User}"
+[[ "$SITE_URL" == https://* ]] || { echo "SITE_URL must use HTTPS" >&2; exit 2; }
+[[ "$EXPECTED_SALES_USER" != "Administrator" ]] || { echo "Administrator is not an acceptable test identity" >&2; exit 2; }
+[[ "$LINKED_RESTRICTED_SIGNAL" != "$UNLINKED_OWNED_SIGNAL" ]] || { echo "Use two distinct synthetic records" >&2; exit 2; }
+
+read -r -s -p "Frappe API key: " CRM_SIGNALS_API_KEY; printf '\n'
+read -r -s -p "Frappe API secret: " CRM_SIGNALS_API_SECRET; printf '\n'
+
+umask 077
+tmp_dir="$(mktemp -d)"
+curl_config="$tmp_dir/curl.conf"
+trap 'rm -rf "$tmp_dir"; unset CRM_SIGNALS_API_KEY CRM_SIGNALS_API_SECRET' EXIT
+printf 'header = "Authorization: token %s:%s"\n' "$CRM_SIGNALS_API_KEY" "$CRM_SIGNALS_API_SECRET" > "$curl_config"
+
+request() {
+  curl --proto '=https' --config "$curl_config" --silent --show-error --output "$2" --write-out '%{http_code}' "${@:3}" "$1"
+}
+
+base_url="${SITE_URL%/}"
+
+# Prove the API key belongs to the intended synthetic Sales User.
+status="$(request "$base_url/api/method/frappe.auth.get_logged_user" "$tmp_dir/user.json")"
+[[ "$status" == "200" ]] || { echo "FAIL: identity endpoint returned HTTP $status" >&2; exit 1; }
+python3 - "$tmp_dir/user.json" "$EXPECTED_SALES_USER" <<'PY'
+import json
+import sys
+
+with open(sys.argv[1], encoding="utf-8") as response_file:
+    payload = json.load(response_file)
+if payload.get("message") != sys.argv[2]:
+    raise SystemExit("FAIL: API credentials do not belong to the expected Sales User")
+print("PASS: authenticated identity matches the dedicated Sales User")
+PY
+
+# A CRM Signal owner must not read a signal linked to a Lead they cannot read.
+status="$(request "$base_url/api/method/frappe.client.get" "$tmp_dir/restricted.json" \
+  --get --data-urlencode "doctype=CRM Signal" \
+  --data-urlencode "name=$LINKED_RESTRICTED_SIGNAL")"
+[[ "$status" == "403" ]] || { echo "FAIL: restricted linked document expected HTTP 403, got $status" >&2; exit 1; }
+echo "PASS: linked restricted document denied (HTTP 403)"
+
+# The same user must retain access to their unlinked owned signal.
+status="$(request "$base_url/api/method/frappe.client.get" "$tmp_dir/allowed.json" \
+  --get --data-urlencode "doctype=CRM Signal" \
+  --data-urlencode "name=$UNLINKED_OWNED_SIGNAL")"
+[[ "$status" == "200" ]] || { echo "FAIL: unlinked owned document expected HTTP 200, got $status" >&2; exit 1; }
+python3 - "$tmp_dir/allowed.json" "$UNLINKED_OWNED_SIGNAL" <<'PY'
+import json
+import sys
+
+with open(sys.argv[1], encoding="utf-8") as response_file:
+    payload = json.load(response_file)
+if payload.get("message", {}).get("name") != sys.argv[2]:
+    raise SystemExit("FAIL: allowed document response did not match the synthetic record")
+print("PASS: unlinked owned document readable (HTTP 200)")
+PY
+
+# A permission-filtered list must exclude the linked restricted signal.
+status="$(request "$base_url/api/method/frappe.client.get_list" "$tmp_dir/list.json" \
+  --get --data-urlencode "doctype=CRM Signal" \
+  --data-urlencode 'fields=["name"]' \
+  --data-urlencode "filters={\"name\":[\"in\",[\"$LINKED_RESTRICTED_SIGNAL\",\"$UNLINKED_OWNED_SIGNAL\"]]}" \
+  --data-urlencode "limit_page_length=10")"
+[[ "$status" == "200" ]] || { echo "FAIL: list endpoint expected HTTP 200, got $status" >&2; exit 1; }
+python3 - "$tmp_dir/list.json" "$UNLINKED_OWNED_SIGNAL" <<'PY'
+import json
+import sys
+
+with open(sys.argv[1], encoding="utf-8") as response_file:
+    payload = json.load(response_file)
+names = {row.get("name") for row in payload.get("message", [])}
+if names != {sys.argv[2]}:
+    raise SystemExit("FAIL: list response did not contain exactly the unlinked owned record")
+print("PASS: list contains only the unlinked owned record (HTTP 200)")
+PY
+
+echo "PASS: authenticated Sales User API permission boundary verified"
+```
+
+If any status or payload assertion fails, stop acceptance. Preserve the redacted status and sanitized error class only; inspect the target Frappe version, API authentication, User Permission and CRM Signal permission-query path. Do not retry with Administrator or weaken the linked-denied/unlinked-allowed expectation.
 - [ ] Separately test direct form, REST API, reports, exports, print and dashboard behavior with approved controlled records. The optional preflight does not prove those paths.
 - [ ] Email account, sender policy, mail queue and realtime deployment topology are recorded.
 - [ ] Current CRM Signals Settings values and enabled presets are captured.
