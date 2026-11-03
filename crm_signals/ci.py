@@ -100,6 +100,9 @@ def _prepare_e2e_sales_user_permission_fixture(sales_user):
     unlinked_name = _ensure_e2e_signal(unlinked_message, None, sales_user)
     frappe.clear_cache(user=sales_user)
 
+    if "Sales User" not in frappe.get_roles(sales_user):
+        frappe.throw("E2E Sales User role is missing")
+
     if frappe.has_permission(
         "Lead", ptype="read", doc=restricted_lead.name, user=sales_user
     ):
