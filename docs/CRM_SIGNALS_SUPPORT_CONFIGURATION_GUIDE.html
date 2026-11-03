@@ -16,7 +16,7 @@
 <p class="muted">Target baseline: Frappe v16.5. The pinned CI reference stack is Frappe v16.5.0 + ERPNext v16.5.0 + Helpdesk v1.28.0 (with the pinned Telephony dependency). Confirm the exact patch build and installed ERPNext/Helpdesk versions on your pilot site because its Helpdesk release may differ. This guide is read-only until its staging test steps explicitly ask you to create synthetic tickets.</p>
 <div class="actions"><button onclick="window.print()">Print / Save as PDF</button></div>
 </section>
-<section class="note warning"><strong>One important rule:</strong> do not guess the ticket system. Your site may use ERPNext Issue, Frappe Helpdesk, another app, or a custom DocType. We must inspect the real site before writing the integration.</section>
+<section class="note warning"><strong>Important:</strong> the standard Frappe Helpdesk adapter is already implemented for <code>HD Ticket</code> and <code>HD Service Level Agreement</code>. This guide verifies that the site's installed Helpdesk version, schema, field permissions and active SLA policy match that supported contract. If the site uses ERPNext Issue, another support app or a custom ticket DocType, do not assume it is covered; record the exact differences and obtain separate scope/approval before adding another adapter.</section>
 <section class="step"><h2>Before you start</h2>
 <ul class="check"><li><label><input type="checkbox"> I am a Frappe/ERPNext administrator or have one helping me.</label></li><li><label><input type="checkbox"> I know which site/environment I am inspecting (prefer staging first).</label></li><li><label><input type="checkbox"> I will share configuration names only, not customer or ticket data, passwords, API keys, or private comments.</label></li></ul>
 </section>
