@@ -710,3 +710,11 @@ PR #125 merged as [7029747](https://github.com/MitMike/crm_signals/commit/702974
 - Test/documentation scope only; no production runtime, role grant, schema, dependency or site configuration change. Final-head CI pending; not pilot-verified.
 - CI triage on superseded head: Quality/Python `41717036495` passed all four Python versions but identified only Prettier formatting differences; applied exact formatter output in `2b40f63`. Security/Semgrep `41717036375` passed. Fresh final-head matrix required.
 - A second superseded-head Quality run `41717358086` found one remaining extra blank line; removed it in `85ed8d8`. Python 3.10–3.14 passed and Security/Semgrep `41717358293` passed. Bench/pinned results were not final-head evidence and must be repeated.
+
+
+### 2026-11-04 — PR #141 merged — direct dashboard API permission boundaries
+
+- PR #141 squash-merged as `70aa4d8953cc8a69d1317aad1c72654f05a1b29e` from final tested head `cbd69b80607473b65c4619b2495568be70fb1750`.
+- All four final-head workflows passed: Quality/Python [41717651648](https://github.com/MitMike/crm_signals/actions/runs/41717651648), Security/Semgrep [41717651238](https://github.com/MitMike/crm_signals/actions/runs/41717651238), Bench v15/v16 + Playwright [41717651601](https://github.com/MitMike/crm_signals/actions/runs/41717651601), and pinned Frappe 16.5.0 / ERPNext / Helpdesk [41717651416](https://github.com/MitMike/crm_signals/actions/runs/41717651416).
+- The Sales User API-token test verifies dashboard row filtering for linked-restricted versus unlinked-owned signals. The non-sales test directly verifies Executive Compass source availability and CRM Signals dashboard HTTP 403 without read permission. Frappe v15/v16 coverage is retained.
+- Reference-stack CI-verified; authorized Frappe 16.5 staging API/role acceptance remains open. Not pilot-verified.
