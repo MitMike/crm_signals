@@ -191,7 +191,7 @@ jobs:
       - name: Install Playwright browser
         working-directory: ${{ github.workspace }}
         run: |
-          npm install --ignore-scripts --no-audit --no-fund
+          npm ci --ignore-scripts --no-audit --no-fund
           npx playwright install --with-deps chromium
 
       - name: Start Frappe for browser tests
