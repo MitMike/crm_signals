@@ -393,60 +393,23 @@ PR #128 merged as `85c492ea2c84444d7cc45c0d61706736fa972a83`. Quality/Python run
 
 
 
-### PR #130 — pinned Frappe 16.5 Sales User identity assertion mismatch (2026-11-03)
+### PR #130 — browser-session HTTP permission regression (closed 2026-11-03)
 
-- [x] Inspect the failed pinned job and isolate the first failing Playwright assertion; site setup, preflight, D1/D2, Helpdesk, schema upgrade, E2E fixture, Python tests and Frappe integration tests all completed before the browser test failed.
-- [x] Confirm the failure was the role-discovery helper returning an empty array, not login or the restricted/allowed HTTP permission assertions.
-- [x] Enforce the Sales User role during server-side fixture preparation with frappe.get_roles(sales_user).
-- [x] Replace the browser role-discovery call with an authenticated identity check using frappe.auth.get_logged_user and the exact synthetic Sales User email.
-- [ ] Require fresh final-head Quality/Python, Security/Semgrep, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 Playwright workflows to pass.
-- [ ] Merge PR #130 only after all required final-head checks pass and the branch remains current; then reconcile main progress records.
-- **Evidence:** pinned run 41647478405, job 125956516813; failure at e2e/sahdev-dashboard.spec.ts:528; the assertion received [] from currentUserRoles. No document/list permission assertion ran.
-- **Revisit criteria:** if the server-side role check fails, inspect User role rows and frappe.get_roles on Frappe 16.5. If the browser identity check fails, inspect session cookie and the frappe.auth.get_logged_user response. Do not use Administrator for Sales User assertions or weaken the 403/200/list-only-unlinked boundary. API-token staging, browser form, report/export/print/dashboard and pilot acceptance remain separate.
+- [x] Correct the Frappe v16.5 login waiter to accept the observed successful `POST /login` route while retaining the `POST /api/method/login` route, session-cookie and Desk-navigation checks.
+- [x] Replace version-sensitive browser role discovery with server-side `frappe.get_roles` fixture validation and exact `frappe.auth.get_logged_user` browser identity checks.
+- [x] Replace the built-in Employee-role assumption with the deterministic CI-only `CRM Signals E2E Non-Sales` Desk role; retain Sales User and non-sales role-boundary assertions.
+- [x] Pass all four final-head workflows on `42f8a38e751977e21168869c4010fcce901309ac`: Quality `41668745943`, Security `41668745937`, Bench v15/v16 + Playwright `41668746054`, and pinned Frappe 16.5.0 `41668745681`.
+- [x] Merge PR #130 as `2b697b4d37a12b2e339bcf680ff808f23b97850f`; reconcile the implementation plan, progress, decisions and changelog.
+- [ ] On authorized Frappe v16.5 staging, execute the API-token smoke with the dedicated Sales User; separately test the direct form route, REST resource, reports, exports, print and dashboard.
+- **Evidence:** pinned run `41668745681` completed the `Run Playwright E2E` step successfully after all site setup, permission preflight, D1/D2, Helpdesk, schema upgrade, Python and Frappe integration tests; Bench run `41668746054` passed v15/v16 integration and v16 Playwright.
+- **Revisit criteria:** if the live API-token or browser-form outcome differs from CI, capture sanitized status/error class, exact Frappe build and approved full SHA; inspect authentication, route, document permission and field-level behavior without using Administrator credentials or weakening the linked-denied/unlinked-allowed boundary.
 
+### PR #131 — direct CRM Signal form-load permission regression
 
-
-### PR #130 — stale non-sales role helper reference correction (2026-11-03)
-
-- [x] Inspect the Python 3.12 failure and identify the static regression assertion that found the remaining currentUserRoles call in the Employee browser test.
-- [x] Replace the Employee browser role lookup with exact frappe.auth.get_logged_user identity verification.
-- [x] Remove the final currentUserRoles reference from the new Sales User HTTP permission test after full-file review found the earlier replacement had targeted a different Sales User dashboard test.
-- [x] Enforce the Employee-only role boundary server-side and reject Sales Manager/System Manager on the synthetic Sales User fixture.
-- [x] Keep the static contract guarding against reintroduction of the version-sensitive role endpoint.
-- [ ] Require fresh Quality/Python, Security/Semgrep, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 Playwright workflows on the latest head.
-- [ ] Merge only after all required final-head checks pass and the branch remains current.
-- **Evidence:** Quality run 41663119127, Python 3.12 job 126011616454; 141 passed, 36 skipped, one failed static contract because currentUserRoles remained in the new HTTP permission test and Employee dashboard test. No permission assertion was run.
-- **Revisit criteria:** if role fixture guards fail, inspect exact User role rows; if browser identity fails, inspect session cookie and frappe.auth.get_logged_user. Do not weaken permission expectations or use Administrator for Sales User requests.
-
-
-
-### PR #130 — final HTTP-test role lookup removal (2026-11-03)
-
-- [x] Inspect the full E2E file after the static contract failure; identify the remaining role lookup in the new Sales User HTTP permission test.
-- [x] Replace it with exact frappe.auth.get_logged_user identity verification.
-- [ ] Rerun all four final-head workflows; the previous Python failure remains a failed check on its own head and cannot be reused as verification.
-- **Revisit criteria:** if the identity endpoint fails, inspect the browser session and response; if the permission assertions fail, inspect the exact Frappe 16.5 permission behavior without weakening linked-denied/unlinked-allowed expectations.
-
-
-
-### PR #130 — fresh final-head CI tracking
-
-- [x] Record corrected final head fd855ae056c81b16defa1eac6085ab481ef08ac9 and its four fresh workflow run IDs.
-- [ ] Quality Checks 41663665399.
-- [ ] Security/Semgrep 41663665370.
-- [ ] Bench Integration/E2E 41663665401.
-- [ ] Pinned Frappe 16.5.0 / Helpdesk 1.28.0 41663665390.
-- [ ] Merge only after all four runs pass on this exact head.
-- **Revisit criteria:** inspect the first failing job log and Playwright artifact; fix the actual assertion or fixture contract, record evidence, and rerun the complete final-head matrix.
-
-### PR #130 — deterministic non-sales role fixture correction
-
-- [x] Inspect failed pinned and supported-v16 Bench job logs and identify the common failure at `prepare_e2e_site`: `E2E Employee role boundary is invalid`.
-- [x] Confirm all preceding site setup, preflight, D1/D2, Helpdesk and schema-upgrade steps passed; browser permission assertions did not run.
-- [x] Replace the built-in Employee role assumption with a dedicated CI-only `CRM Signals E2E Non-Sales` role configured with Desk access and enabled status.
-- [x] Add a static regression requiring the explicit role, Desk access and server-side role-boundary assertion.
-- [ ] Require fresh final-head Quality/Python, Security/Semgrep, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 workflows to pass.
-- [ ] Merge PR #130 only after all required final-head checks pass; then reconcile main progress and follow-ups.
-- **Evidence:** pre-correction head `7525c1521835e93245faf5840c0af1c47f9d590b`; Quality `41663853566` passed; Security `41663853347` passed; pinned Frappe `41663853279` failed job `126013961022`; Bench v15/v16 `41663853266` failed v16 job `126014347249` and its runtime-required validation selectors. Both runtime failures point to `crm_signals/ci.py:176`; no Playwright permission assertion ran.
-- **Revisit criteria:** if the custom role is missing from `frappe.get_roles`, inspect the synthetic Role metadata and Has Role rows on the exact v15/v16/pinned build, including disabled and Desk-access flags. Do not use Administrator for non-sales browser checks, relax the role-boundary assertion, or weaken the Sales User 403/200/list-only-unlinked expectations.
-
+- [x] Confirm from the supported Frappe v16 form loader that the direct Desk form calls `frappe.desk.form.load.getdoc` with GET and that the loader invokes `doc.check_permission("read")` before returning the document.
+- [x] Add a browser test that opens `/app/crm-signal/<name>` as the synthetic Sales User, expects 403 and no restricted message for the linked signal, and expects 200 plus the expected message for the unlinked owned signal.
+- [x] Include the new test in the pinned Frappe 16.5.0 Playwright selector and add a static regression guard.
+- [ ] Pass final-head Quality/Python, Security/Semgrep, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 workflows.
+- [ ] Merge only after all required checks pass on the exact current head; then reconcile the main baseline and close this follow-up.
+- [ ] Execute the direct form check on authorized Frappe v16.5 staging and retain sanitized evidence with the deployed full SHA and exact app versions.
+- **Revisit criteria:** if the form route does not trigger the expected GET loader or the permission status differs, inspect the Playwright trace and versioned Frappe router/loader. Do not accept a successful Desk shell response as document access and do not weaken the restricted/allowed record boundary.
