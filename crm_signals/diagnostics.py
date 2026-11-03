@@ -266,6 +266,7 @@ def _check_test_user_identity(profile, username, seen_users):
     result = {
         "expected_role": expected_role,
         "account_active": None,
+        "system_user": None,
         "role_membership_valid": False,
         "status": None,
         "doctype_read": {},
@@ -295,6 +296,17 @@ def _check_test_user_identity(profile, username, seen_users):
     result["account_active"] = bool(_as_int(enabled))
     if not result["account_active"]:
         result["status"] = "user_disabled"
+        return result, None
+
+    try:
+        user_type = frappe.db.get_value("User", username, "user_type")
+    except Exception as error:
+        result["status"] = "user_lookup_failed"
+        result["error_types"]["User"] = type(error).__name__
+        return result, None
+    result["system_user"] = user_type == "System User"
+    if not result["system_user"]:
+        result["status"] = "user_type_not_system"
         return result, None
 
     try:

@@ -8,6 +8,28 @@ import types
 def load_diagnostics(monkeypatch):
     fake = types.ModuleType("frappe")
     fake.__version__ = "16.5.0"
+    enabled_users = {
+        "sales.user@example.invalid": 1,
+        "sales.manager@example.invalid": 1,
+        "system.manager@example.invalid": 1,
+        "non.sales@example.invalid": 1,
+        "disabled.user@example.invalid": 0,
+        "website.user@example.invalid": 1,
+    }
+    user_types = {
+        username: "System User"
+        for username in enabled_users
+        if username != "website.user@example.invalid"
+    }
+    user_types["website.user@example.invalid"] = "Website User"
+
+    def fake_get_value(doctype, name, field):
+        if field == "enabled":
+            return enabled_users.get(name)
+        if field == "user_type":
+            return user_types.get(name)
+        return None
+
     fake.db = types.SimpleNamespace(
         exists=lambda doctype, name: name in {
             "CRM Signal", "Lead", "Customer", "Opportunity", "Quotation",
@@ -15,13 +37,7 @@ def load_diagnostics(monkeypatch):
             "HD Service Level Agreement",
         },
         get_single_value=lambda *args: "Asia/Kolkata",
-        get_value=lambda doctype, name, field: {
-            "sales.user@example.invalid": 1,
-            "sales.manager@example.invalid": 1,
-            "system.manager@example.invalid": 1,
-            "non.sales@example.invalid": 1,
-            "disabled.user@example.invalid": 0,
-        }.get(name),
+        get_value=fake_get_value,
     )
     fake.utils = types.SimpleNamespace(now_datetime=lambda: "2026-11-02 12:00:00")
     fake.get_installed_apps = lambda: ["frappe", "erpnext", "crm_signals", "helpdesk"]
@@ -31,6 +47,7 @@ def load_diagnostics(monkeypatch):
         "system.manager@example.invalid": ["System Manager"],
         "non.sales@example.invalid": ["Employee"],
         "disabled.user@example.invalid": ["Sales User"],
+        "website.user@example.invalid": ["Sales User"],
     }.get(user, [])
     fake.has_permission = lambda doctype, ptype="read", user=None, throw=False: (
         user != "non.sales@example.invalid"
@@ -560,3 +577,17 @@ def test_preflight_rejects_falsey_non_mapping_test_users(monkeypatch):
             assert str(error) == "test_users must map approved profile aliases to User names"
         else:
             raise AssertionError("falsey non-mapping test_users must be rejected")
+
+
+
+def test_preflight_rejects_website_user_even_with_sales_role(monkeypatch):
+    diagnostics = load_diagnostics(monkeypatch)
+    report = diagnostics.get_site_preflight_report(
+        test_users={"sales_user": "website.user@example.invalid"}
+    )
+    result = report["effective_user_permissions"]["profiles"]["sales_user"]
+
+    assert result["account_active"] is True
+    assert result["system_user"] is False
+    assert result["status"] == "user_type_not_system"
+    assert result["doctype_read"] == {}

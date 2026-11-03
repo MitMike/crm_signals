@@ -588,6 +588,8 @@ def _validate_effective_user_preflight_profile(profile, result, doctypes):
         failures.append(f"{profile}: status is not checked")
     if result.get("account_active") is not True:
         failures.append(f"{profile}: account is not active")
+    if result.get("system_user") is not True:
+        failures.append(f"{profile}: account is not a System User")
     if result.get("role_membership_valid") is not True:
         failures.append(f"{profile}: expected role boundary is invalid")
     if result.get("error_types"):
