@@ -382,10 +382,19 @@ All 19 final-head check runs completed successfully across Quality/Python 3.10�
 **Status:** code-complete and reference-stack CI-verified; not pilot-verified. Main is `a472f1981f758ce7b6233d95fc0682fe69d7a304`. The next release gate remains authorized target-site staging evidence: exact deployed SHA, effective-role permissions, D1/D2 finance reconciliation, Helpdesk SLA, operational recovery, rollback rehearsal and desktop/mobile visual UAT. Do not infer any of these from CI.
 
 
-## 18. Real-Git clean and untracked-dirty source identity regression — PR in progress (2026-11-03)
+## 18. Real-Git clean and untracked-dirty source identity regression — PR-opening snapshot (merged; see Section 19)
 
 PR #108 merged as `c31fe7eb328f552cf49f670257370189f09da9e2`; its documentation-only reconciliation passed all 11 applicable checks, with two runtime selectors skipped as expected.
 
 ADR-089 adds a real temporary CRM Signals Git checkout test. It commits the package `__init__.py`, invokes the production `_source_revision()` helper and requires the exact real `HEAD` SHA for a clean tree. It then creates an untracked Python override and requires `working_tree_dirty`, verifying the helper does not proceed to `HEAD`. This complements ADR-087/088's root-identity tests and the mocked timeout/missing-Git/invalid-output cases.
 
-[PR #109](https://github.com/MitMike/crm_signals/pull/109) is test-only; no runtime code or target-site configuration changes. Require final-head Python 3.10–3.14, Quality, Security, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 validation before merge. **Status: code-complete; CI pending; not pilot-verified.**
+[PR #109](https://github.com/MitMike/crm_signals/pull/109) was test-only; no runtime code or target-site configuration changed. Its opening status was code-complete with CI pending; final merge evidence is recorded in Section 19. This is not pilot verification.
+
+
+## 19. Real-Git clean/dirty source identity regression — merged and CI-verified (2026-11-03)
+
+PR #109 merged as [`94d14f5`](https://github.com/MitMike/crm_signals/commit/94d14f56a526670d2c0ecb150ab9f08b4f034389) from final head `d8b65eedc45c05947409f9781a9caaee848aa4ba`. All 18 final-head check runs completed successfully: Quality/lint, Python 3.10/3.11/3.12/3.14, Security/Semgrep, Bench v15/v16 including v16 Playwright, and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 validation.
+
+The real-Git test commits a temporary CRM Signals package, verifies the production preflight returns the exact clean `HEAD` SHA, adds an untracked Python override, then verifies `working_tree_dirty` without a `HEAD` query. This complements ADR-087/088's repository-root tests and the mocked error-path tests. No runtime behavior or site configuration changed.
+
+**Status:** code-complete and reference-stack CI-verified; not pilot-verified. Main at merge is `94d14f56a526670d2c0ecb150ab9f08b4f034389`. The release gate remains authorized Frappe v16.5 staging evidence: deployed full SHA, effective-role permissions, D1/D2 finance reconciliation, Helpdesk SLA, operational recovery, backup/restore/rollback and dashboard visual UAT. Do not infer these from CI.
