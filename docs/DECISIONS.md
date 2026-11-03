@@ -1185,7 +1185,7 @@ PR #130 merged as `2b697b4d37a12b2e339bcf680ff808f23b97850f` from final tested h
 - **Rationale:** the browser tests should execute against the exact committed dependency graph on every supported reference lane. This removes lane-specific npm resolution drift without changing package versions or the lockfile.
 - **Scope:** CI workflow and static-test only. No runtime dependency, package manifest, lockfile, schema or site configuration changes.
 - **Revisit criteria:** if `npm ci` reports a lockfile mismatch, update the lockfile deliberately in a separate dependency change and rerun dependency audits; do not fall back to `npm install` or suppress the static contract.
-- **Verification status:** code-complete on PR #131 branch; final-head Quality/Python, Security and Bench v15/v16 + pinned v16.5 workflows pending. Not pilot-verified.
+- **Verification status:** PR #131 merged as `08f269cdfaedc58fd4ce396c823d589e7dd3481b`; final head `a72ebffbae116adf06830473bb15d764a169651b` passed Quality/Python, Security/Semgrep, Bench v15/v16 + Playwright and pinned Frappe 16.5.0. Both E2E lanes used lockfile-enforced `npm ci`; generated passwords were masked before step-output propagation. No package versions or lockfile changed. Reference-stack CI-verified, not pilot-verified.
 
 ### ADR-102 CI triage — static contract matched the full endpoint path (2026-11-03)
 
