@@ -308,3 +308,10 @@ Included in PR #19's merge commit [a495919](https://github.com/MitMike/crm_signa
 - Correct the deployment runbook to require Company-specific base-currency thresholds (or an exact-currency legacy fallback) and add Explorer role/context smoke tests.
 - Final head `902b38e4dd4713461acfb12dc837f5b2b84da7d8` passed all eight required contexts and the pinned Frappe v16.5.0 / ERPNext v16.5.0 / Helpdesk v1.28.0 lane.
 - Keep target-site role/field-permission acceptance and optional-provider discovery separate from CI verification.
+
+
+### 2026-11-03 — Preflight source identity hardening (PR #105)
+- Verify Git's top-level directory is the CRM Signals repository root derived from the imported package path before checking cleanliness or reading `HEAD`; reject enclosing Bench/monorepo roots with `repository_root_mismatch`.
+- Add regression coverage for matching and parent repository roots. Preserve bounded read-only Git commands, dirty-tree rejection, full-SHA validation and non-disclosing failure reasons.
+- Update the administrator guide, target-site acceptance kit and deployment runbook with the exact release-identity stop condition.
+- PR #105 merged as [`db95812`](https://github.com/MitMike/crm_signals/commit/db958124bca6a6704a75f606629c22444716f5b9); all 19 final-head checks passed, including Python 3.10–3.14, Security/Semgrep, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 validation. Target-site pilot acceptance remains outstanding.
