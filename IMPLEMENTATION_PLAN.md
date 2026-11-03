@@ -366,11 +366,11 @@ PR #105 merged as [`db95812`](https://github.com/MitMike/crm_signals/commit/db95
 The administrator guide, target-site acceptance kit and deployment runbook require the root check. **Status: code-complete and reference-stack CI-verified; not pilot-verified.** Revisit the root derivation only if the package layout changes, the app is installed without a Git checkout, or Bench's app layout changes; add a matching-layout regression test before changing the rule.
 
 
-## 16. Real-Git regression for nested parent repository discovery — PR in progress (2026-11-03)
+## 16. Real-Git regression for nested parent repository discovery — PR-opening plan (2026-11-03)
 
 ADR-088 adds a focused test using an actual temporary Git repository. It creates a committed parent repository and a nested Bench-style `apps/crm_signals/crm_signals` package directory without its own Git metadata, then invokes the real preflight Git commands and requires `repository_root_mismatch`. This complements the mocked tests, which continue to cover dirty state, missing Git, timeout, command failure and malformed SHA output.
 
-The test changes no runtime code and requires no Frappe site. It verifies Git's actual upward repository discovery behavior that ADR-087 is intended to reject. [PR #107](https://github.com/MitMike/crm_signals/pull/107) is code-complete; require final-head Python 3.10/3.11/3.12/3.14, Quality, Security, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 checks before merge. It is not pilot verification.
+The test changes no runtime code and requires no Frappe site. It verifies Git's actual upward repository discovery behavior that ADR-087 is intended to reject. At PR opening, #107 was code-complete with CI pending; the final merge and verification are recorded in Section 17. This is not pilot verification.
 
 
 ## 17. Real-Git parent-repository regression — merged and CI-verified (2026-11-03)
