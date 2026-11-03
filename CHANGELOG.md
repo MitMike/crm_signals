@@ -585,3 +585,10 @@ PR #125 merged as [7029747](https://github.com/MitMike/crm_signals/commit/702974
 - Full-file review found the new Sales User HTTP test still called currentUserRoles; replaced it with frappe.auth.get_logged_user and exact email equality.
 - The Employee dashboard test also verifies its exact synthetic identity. Server-side fixture preparation enforces Sales User and Employee role boundaries.
 - All four final-head workflows must pass before merge. No pilot verification is implied.
+
+
+
+### 2026-11-03 — PR #130 corrected head queued for final verification
+
+- Corrected head fd855ae056c81b16defa1eac6085ab481ef08ac9 removes the final currentUserRoles reference, verifies Sales User and Employee browser session identities with frappe.auth.get_logged_user, and validates role boundaries server-side.
+- Fresh Quality run 41663665399, Security run 41663665370, Bench v15/v16 run 41663665401 and pinned Frappe 16.5.0 run 41663665390 were queued; Security had started. Await all four final-head results before merge.
