@@ -286,6 +286,29 @@ def test_preflight_record_visibility_skips_queries_when_doctype_read_is_denied(m
     }
 
 
+def test_preflight_marks_unavailable_record_doctype_as_partial(monkeypatch):
+    diagnostics = load_diagnostics(monkeypatch)
+    original_exists = diagnostics.frappe.db.exists
+    monkeypatch.setattr(
+        diagnostics.frappe.db,
+        "exists",
+        lambda doctype, name: (
+            False if doctype == "DocType" and name == "HD Ticket"
+            else original_exists(doctype, name)
+        ),
+    )
+    report = diagnostics.get_site_preflight_report(
+        test_users={"sales_manager": "sales.manager@example.invalid"},
+        test_records={"sales_manager": {"HD Ticket": {"sample": "HD-SYNTHETIC-1"}}},
+    )
+    result = report["effective_user_permissions"]["profiles"]["sales_manager"]
+    assert result["status"] == "partial"
+    assert result["record_visibility"]["doctypes"]["HD Ticket"] == {
+        "status": "doctype_unavailable",
+        "records": {"sample": None},
+    }
+
+
 def test_preflight_record_visibility_query_errors_fail_closed_and_restore_user(monkeypatch):
     diagnostics = load_diagnostics(monkeypatch)
 
