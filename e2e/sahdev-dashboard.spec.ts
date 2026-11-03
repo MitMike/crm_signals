@@ -76,6 +76,25 @@ async function frappeMethodGet(
     );
 }
 
+
+async function openCrmSignalForm(page: Page, name: string) {
+    const responsePromise = page.waitForResponse(
+        (response) => {
+            const url = new URL(response.url());
+            return (
+                url.pathname === "/api/method/frappe.desk.form.load.getdoc" &&
+                url.searchParams.get("doctype") === "CRM Signal" &&
+                url.searchParams.get("name") === name &&
+                response.request().method() === "GET"
+            );
+        },
+        { timeout: 30_000 }
+    );
+
+    await page.goto(`/app/crm-signal/${encodeURIComponent(name)}`);
+    return responsePromise;
+}
+
 function dashboardPayload(overrides: Record<string, unknown> = {}) {
     return {
         leads: {
@@ -555,6 +574,80 @@ test("Sales User HTTP API respects linked Lead User Permission", async ({
             listResponse.body as { message?: Array<{ name: string }> }
         ).message?.map((row) => row.name) || [];
     expect(visibleNames).toEqual([unlinkedSignal!.name]);
+});
+
+test("Sales User direct CRM Signal form respects linked Lead User Permission", async ({
+    page
+}) => {
+    await loginAsAdministrator(page);
+
+    const linkedMessage = "CRM Signals E2E linked restricted signal";
+    const unlinkedMessage = "CRM Signals E2E unlinked owned signal";
+    const fixtureResponse = await frappeMethodGet(
+        page,
+        "frappe.client.get_list",
+        {
+            doctype: "CRM Signal",
+            fields: JSON.stringify(["name", "message"]),
+            filters: JSON.stringify([
+                ["message", "in", [linkedMessage, unlinkedMessage]]
+            ]),
+            limit_page_length: "10"
+        }
+    );
+    expect(fixtureResponse.status).toBe(200);
+    const fixtureRows =
+        (
+            fixtureResponse.body as {
+                message?: Array<{ name: string; message: string }>;
+            }
+        ).message || [];
+    expect(fixtureRows).toHaveLength(2);
+
+    const linkedSignal = fixtureRows.find(
+        (row) => row.message === linkedMessage
+    );
+    const unlinkedSignal = fixtureRows.find(
+        (row) => row.message === unlinkedMessage
+    );
+    expect(linkedSignal).toBeTruthy();
+    expect(unlinkedSignal).toBeTruthy();
+
+    const email = process.env.E2E_SALES_USER || "e2e-sales-user@example.com";
+    const password = process.env.E2E_SALES_PASSWORD;
+    expect(password).toBeTruthy();
+    await page.context().clearCookies();
+    await loginAs(page, email, password!);
+
+    const identity = await frappeMethodGet(
+        page,
+        "frappe.auth.get_logged_user",
+        {}
+    );
+    expect(identity.status).toBe(200);
+    expect((identity.body as { message?: string }).message).toBe(email);
+
+    const restrictedFormResponse = await openCrmSignalForm(
+        page,
+        linkedSignal!.name
+    );
+    expect(restrictedFormResponse.status()).toBe(403);
+    const restrictedBody = await restrictedFormResponse.text();
+    expect(restrictedBody).not.toContain(linkedMessage);
+
+    const allowedFormResponse = await openCrmSignalForm(
+        page,
+        unlinkedSignal!.name
+    );
+    expect(allowedFormResponse.status()).toBe(200);
+    const allowedBody = (await allowedFormResponse.json()) as {
+        docs?: Array<{ doctype?: string; name?: string; message?: string }>;
+    };
+    const loadedSignal = allowedBody.docs?.find(
+        (doc) =>
+            doc.doctype === "CRM Signal" && doc.name === unlinkedSignal!.name
+    );
+    expect(loadedSignal?.message).toBe(unlinkedMessage);
 });
 
 test("Users without a Sales role cannot open the Compass", async ({ page }) => {
