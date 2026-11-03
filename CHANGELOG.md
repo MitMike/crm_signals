@@ -359,4 +359,4 @@ Included in PR #19's merge commit [a495919](https://github.com/MitMike/crm_signa
 ### 2026-11-03 — Pin the README first-install sequence before Bench setup (ADR-090 / PR #112)
 - Replace the unsafe moving-branch `bench get-app ... --branch main` example with the established direct-clone, approved-SHA detach/verify, then `bench setup requirements crm_signals` sequence.
 - Link existing-install upgrades to the Administrator Guide and Deployment Runbook so all operator entry points use the same verified procedure.
-- Documentation-only; no runtime or dependency change. Authorized Frappe v16.5 staging rehearsal remains required and is not implied by CI.
+- Documentation and static-test-only; no runtime or dependency change. The static contract test protects the README's pin-before-requirements ordering. Authorized Frappe v16.5 staging rehearsal remains required and is not implied by CI.
