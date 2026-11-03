@@ -940,3 +940,8 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Consequences:** CI now validates that the optional preflight can execute against real Frappe metadata and synthetic Users. The CI helper refuses to run unless `allow_tests` is enabled. The helper's test Users remain in the disposable CI site; no test accounts are added to a real deployment. This does not prove target-site row-level permissions, shares, list/API/report/export/dashboard visibility, business-role expectations or pilot acceptance.
 - **Revisit criteria:** Revisit if Frappe changes either permission API, the CI site bootstrap changes, or `allow_tests` semantics change. Keep the helper isolated to disposable sites and retain the explicit guard. Do not use this smoke test as a substitute for authorized target-site acceptance.
 - **Verification:** Added to PR #120 after the initial final-head workflows passed. The new final-head Python, Quality, Security, Bench v15/v16 and pinned v16.5.0 checks must all pass before merge.
+
+
+### ADR-093 CI triage — complexity guard
+
+The first implementation head `51c8e6d` failed Quality lint with Ruff C901: `verify_effective_user_preflight` complexity 19 exceeded the configured maximum 15. The validation logic was split into profile-level and report-level helpers; the complexity rule was not weakened or suppressed. A fresh final-head matrix is required before merge.

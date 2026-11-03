@@ -431,3 +431,10 @@ PR #100 is code-complete and CI-verified, not pilot-verified. The automated comp
 - **Status:** code-complete; final-head CI for the additional real-Frappe smoke is pending. The original PR #120 head `ac444d5` had all four workflows successful, but that result does not cover this follow-up commit.
 - **Scope:** CI fixture and workflow wiring only; no production runtime behavior, schema, dependency, metric or site configuration changes.
 - **Remaining gate:** final-head Python 3.10–3.14, Quality, Security/Semgrep, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 checks must pass. The synthetic CI fixture is compatibility evidence only; authorized target-site permission and controlled-record acceptance remain open.
+
+
+### PR #120 CI triage — complexity guard
+
+- **Observed:** Quality Checks on head `51c8e6d` failed in lint with `C901 verify_effective_user_preflight is too complex (19 > 15)`. Other workflows were still running; this was a deterministic code-quality failure, not a Frappe runtime result.
+- **Decision:** keep the same integration coverage and split validation into profile-level and report-level helpers. Do not suppress the complexity rule.
+- **Correction:** refactored the fixture into `_validate_effective_user_preflight_profile`, `_validate_effective_user_preflight_report` and a short orchestration function. A fresh final-head Quality and full integration matrix is required.

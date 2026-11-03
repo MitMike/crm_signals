@@ -411,3 +411,8 @@ Included in PR #19's merge commit [a495919](https://github.com/MitMike/crm_signa
 - Add an `allow_tests`-guarded CI fixture that creates disposable synthetic Sales User, Sales Manager, System Manager and Employee accounts with random throwaway passwords.
 - Invoke the production effective-user preflight against real Frappe metadata and assert complete DocType/field result shapes, valid roles, no permission API errors and no account-identity disclosure.
 - Run the fixture in Frappe v15/v16 Bench and pinned Frappe v16.5.0 / ERPNext / Helpdesk CI. It is compatibility evidence only; target-site record-level permission acceptance remains separate.
+
+
+### 2026-11-03 — Refactor effective-user CI fixture after lint feedback
+- The first ADR-093 head failed Ruff C901 because the orchestration function exceeded the complexity limit (19 > 15).
+- Split profile and report validation into focused helpers without relaxing lint rules; final-head CI must rerun.

@@ -581,12 +581,99 @@ def verify_sales_compass_aggregate_fixture():
     return verify()
 
 
+
+def _validate_effective_user_preflight_profile(profile, result, doctypes):
+    failures = []
+    if result.get("status") != "checked":
+        failures.append(f"{profile}: status is not checked")
+    if result.get("account_active") is not True:
+        failures.append(f"{profile}: account is not active")
+    if result.get("role_membership_valid") is not True:
+        failures.append(f"{profile}: expected role boundary is invalid")
+    if result.get("error_types"):
+        failures.append(f"{profile}: permission API raised an exception")
+
+    doctype_results = result.get("doctype_read", {})
+    field_results = result.get("required_field_read", {})
+    doctype_checks = 0
+    required_field_checks = 0
+    for doctype, summary in doctypes.items():
+        required_fields = {field["fieldname"] for field in summary.get("required_fields", [])}
+        if summary.get("available"):
+            if not isinstance(doctype_results.get(doctype), bool):
+                failures.append(f"{profile}/{doctype}: DocType result is not boolean")
+            values = field_results.get(doctype)
+            if (
+                not isinstance(values, dict)
+                or set(values) != required_fields
+                or any(not isinstance(value, bool) for value in values.values())
+            ):
+                failures.append(f"{profile}/{doctype}: required-field results are incomplete")
+            doctype_checks += 1
+            required_field_checks += len(required_fields)
+        else:
+            if doctype_results.get(doctype) is not None:
+                failures.append(f"{profile}/{doctype}: unavailable DocType was treated as checked")
+            if any(value is not None for value in field_results.get(doctype, {}).values()):
+                failures.append(f"{profile}/{doctype}: unavailable fields were treated as checked")
+
+    return failures, doctype_checks, required_field_checks
+
+
+def _validate_effective_user_preflight_report(report, fixtures):
+    matrix = report.get("effective_user_permissions", {})
+    profiles = matrix.get("profiles", {})
+    failures = []
+    if matrix.get("available") is not True:
+        failures.append("effective-user matrix is unavailable")
+    if set(profiles) != set(fixtures):
+        failures.append("effective-user profile aliases do not match the fixture")
+
+    doctypes = report.get("doctypes", {})
+    available_doctypes = {
+        doctype: summary for doctype, summary in doctypes.items() if summary.get("available")
+    }
+    if not available_doctypes:
+        failures.append("preflight found no available DocTypes to exercise")
+
+    doctype_checks = 0
+    required_field_checks = 0
+    for profile in sorted(fixtures):
+        profile_failures, profile_doctype_checks, profile_field_checks = (
+            _validate_effective_user_preflight_profile(
+                profile, profiles.get(profile, {}), doctypes
+            )
+        )
+        failures.extend(profile_failures)
+        doctype_checks += profile_doctype_checks
+        required_field_checks += profile_field_checks
+
+    serialized_matrix = repr(matrix)
+    if any(email in serialized_matrix for email, _, _ in fixtures.values()):
+        failures.append("effective-user matrix disclosed a synthetic User identity")
+    if failures:
+        frappe.throw("Effective-user preflight CI fixture failed: " + "; ".join(failures))
+
+    return {
+        "status": "passed",
+        "framework_version": frappe.__version__,
+        "profiles": sorted(profiles),
+        "available_doctypes": len(available_doctypes),
+        "doctype_checks": doctype_checks,
+        "required_field_checks": required_field_checks,
+        "identity_disclosed": False,
+        "target_site_acceptance": False,
+    }
+
+
 def verify_effective_user_preflight():
     """Exercise the effective-user preflight against real Frappe APIs on a disposable CI site."""
     from crm_signals.diagnostics import get_site_preflight_report
 
     if not frappe.conf.get("allow_tests"):
-        frappe.throw("Effective-user preflight CI fixture requires allow_tests on a disposable site")
+        frappe.throw(
+            "Effective-user preflight CI fixture requires allow_tests on a disposable site"
+        )
 
     previous_user = frappe.session.user
     fixtures = {
@@ -616,80 +703,9 @@ def verify_effective_user_preflight():
         for email, first_name, role in fixtures.values():
             _ensure_system_user(email, first_name, role, secrets.token_urlsafe(32))
         frappe.db.commit()
-
         report = get_site_preflight_report(
             test_users={profile: fixture[0] for profile, fixture in fixtures.items()}
         )
-        matrix = report.get("effective_user_permissions", {})
-        profiles = matrix.get("profiles", {})
-        failures = []
-
-        if matrix.get("available") is not True:
-            failures.append("effective-user matrix is unavailable")
-        if set(profiles) != set(fixtures):
-            failures.append("effective-user profile aliases do not match the fixture")
-
-        available_doctypes = {
-            doctype: summary
-            for doctype, summary in report.get("doctypes", {}).items()
-            if summary.get("available")
-        }
-        if not available_doctypes:
-            failures.append("preflight found no available DocTypes to exercise")
-
-        doctype_checks = 0
-        required_field_checks = 0
-        for profile in sorted(fixtures):
-            result = profiles.get(profile, {})
-            if result.get("status") != "checked":
-                failures.append(f"{profile}: status is not checked")
-            if result.get("account_active") is not True:
-                failures.append(f"{profile}: account is not active")
-            if result.get("role_membership_valid") is not True:
-                failures.append(f"{profile}: expected role boundary is invalid")
-            if result.get("error_types"):
-                failures.append(f"{profile}: permission API raised an exception")
-
-            doctype_results = result.get("doctype_read", {})
-            field_results = result.get("required_field_read", {})
-            for doctype, summary in report.get("doctypes", {}).items():
-                required_fields = {
-                    field["fieldname"] for field in summary.get("required_fields", [])
-                }
-                if summary.get("available"):
-                    if not isinstance(doctype_results.get(doctype), bool):
-                        failures.append(f"{profile}/{doctype}: DocType result is not boolean")
-                    values = field_results.get(doctype)
-                    if (
-                        not isinstance(values, dict)
-                        or set(values) != required_fields
-                        or any(not isinstance(value, bool) for value in values.values())
-                    ):
-                        failures.append(f"{profile}/{doctype}: required-field results are incomplete")
-                    doctype_checks += 1
-                    required_field_checks += len(required_fields)
-                else:
-                    if doctype_results.get(doctype) is not None:
-                        failures.append(f"{profile}/{doctype}: unavailable DocType was treated as checked")
-                    if any(value is not None for value in field_results.get(doctype, {}).values()):
-                        failures.append(f"{profile}/{doctype}: unavailable fields were treated as checked")
-
-        serialized_matrix = repr(matrix)
-        if any(email in serialized_matrix for email, _, _ in fixtures.values()):
-            failures.append("effective-user matrix disclosed a synthetic User identity")
-
-        if failures:
-            frappe.throw("Effective-user preflight CI fixture failed: " + "; ".join(failures))
-
-        return {
-            "status": "passed",
-            "framework_version": frappe.__version__,
-            "profiles": sorted(profiles),
-            "available_doctypes": len(available_doctypes),
-            "doctype_checks": doctype_checks,
-            "required_field_checks": required_field_checks,
-            "identity_disclosed": False,
-            "target_site_acceptance": False,
-        }
+        return _validate_effective_user_preflight_report(report, fixtures)
     finally:
         frappe.set_user(previous_user)
