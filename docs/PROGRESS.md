@@ -309,11 +309,22 @@ PR #100 is code-complete and CI-verified, not pilot-verified. The automated comp
 - [ ] **Next gate:** authorized Frappe v16.5 staging for exact installed app/full-SHA inventory, dashboard desktop/mobile screenshots after approved asset rebuild/cache refresh, effective-role tests, D1/D2 native-report reconciliation by currency, Helpdesk SLA acceptance, scheduler/mail/realtime/webhook recovery and backup/restore/rollback rehearsal. No staging evidence is available in this repository review.
 
 
-## PR #108 documentation reconciliation and real-Git clean/dirty regression — 2026-11-03
+## PR #108 documentation reconciliation and PR #109 opening snapshot — 2026-11-03
 
 - [x] PR #108 merged as `c31fe7eb328f552cf49f670257370189f09da9e2`; 11 applicable checks passed, and the two runtime selectors were skipped as expected for documentation-only changes.
 - **Reviewed main:** `c31fe7eb328f552cf49f670257370189f09da9e2`; no open PRs were present after the merge.
 - **Decision:** ADR-089 supplements mocked clean/dirty tests with a real temporary CRM Signals Git checkout. Verify the real clean SHA, then create an untracked Python file and require `working_tree_dirty`; the dirty path must not query `HEAD`.
 - **Implementation:** [PR #109](https://github.com/MitMike/crm_signals/pull/109) adds the real clean/dirty integration test only. No runtime behavior or site configuration changes.
-- **Status:** code-complete; final-head CI pending; not pilot-verified. Merge only after all required Python, Quality, Security, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 checks pass.
+- **Status at PR opening:** code-complete; final-head CI pending; not pilot-verified. Final merge and CI evidence is recorded in the next section.
 - **Independent release blocker:** authorized Frappe v16.5 staging remains required for exact deployed SHA, dashboard visual screenshots, effective-role permissions, D1/D2 finance reconciliation, Helpdesk SLA, operational recovery and backup/restore/rollback evidence.
+
+
+## PR #109 merged — real-Git clean/dirty source identity regression (2026-11-03)
+
+- [x] PR #109 merged as [`94d14f5`](https://github.com/MitMike/crm_signals/commit/94d14f56a526670d2c0ecb150ab9f08b4f034389) from final head `d8b65eedc45c05947409f9781a9caaee848aa4ba`.
+- [x] All 18 final-head check runs passed: Quality/lint, Python 3.10–3.14, Security/Semgrep, Bench v15/v16 + Playwright, and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0.
+- [x] Real Git test proved a clean temporary checkout returns its exact `HEAD` SHA; after an untracked Python override is added, preflight returns `working_tree_dirty` and does not query `HEAD`.
+- **Decision:** ADR-089 adds real Git clean/dirty coverage alongside ADR-087/088 root identity tests; mocked tests retain deterministic error-path coverage.
+- **Scope/status:** test-only; no runtime or target-site configuration change. Code-complete and reference-stack CI-verified; not pilot-verified.
+- **Reviewed main:** `94d14f56a526670d2c0ecb150ab9f08b4f034389`. The PR final-head required checks were all successful; the separate main-push workflow is not used as a substitute for the PR's final-head evidence.
+- [ ] **Next gate:** authorized Frappe v16.5 staging remains required for deployed SHA, dashboard screenshots, effective-role permissions, D1/D2 native-report reconciliation, Helpdesk SLA, scheduler/mail/realtime/webhook recovery and backup/restore/rollback evidence.
