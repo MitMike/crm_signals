@@ -576,7 +576,7 @@ test("Sales User HTTP API respects linked Lead User Permission", async ({
     expect(visibleNames).toEqual([unlinkedSignal!.name]);
 });
 
-test("Sales User direct CRM Signal form respects linked Lead User Permission", async ({
+test("Sales User CRM Signal form permission boundary", async ({
     page
 }) => {
     await loginAsAdministrator(page);
