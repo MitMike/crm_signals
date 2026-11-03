@@ -372,3 +372,11 @@ PR #100 is code-complete and CI-verified, not pilot-verified. The automated comp
 - **Implementation:** both HTML guides are corrected; `test_support_guides_describe_existing_adapter_and_custom_scope_boundary` protects the implemented standard-adapter statement and custom-source approval boundary.
 - **Status:** documentation and static regression code-complete; final-head CI pending in the replacement PR; not pilot-verified. No runtime code or site configuration changed.
 - [ ] **Target-site D3 gate:** verify exact installed Helpdesk/Frappe versions, required schema and effective Sales field permissions, active SLA schedule/holidays/timezone, pause/resume and native outcomes on authorized Frappe v16.5 staging. Repository CI is not pilot evidence.
+
+
+## PR-opening CI triage — D3 setup guide (2026-11-03)
+
+- **Observed failure:** PR-opening Python 3.11 and 3.12 runs each reported 1 failed, 125 passed and 36 skipped. The failing static assertion found another stale promise in the Support & SLA setup guide's final workflow list: "We build a small adapter for the support app actually installed."
+- **Additional defect:** the setup guide footer incorrectly identified itself as the read-only discovery guide.
+- **Fix:** replaced the adapter promise with steps to validate/configure the existing standard adapter and keep custom sources behind separate approval; corrected the footer; extended the static contract test to reject both stale statements.
+- **Status:** fix committed to the focused D3 branch; final-head CI must rerun. No runtime code, dependency or site configuration changed. Do not merge until all required final-head checks pass.
