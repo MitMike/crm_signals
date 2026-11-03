@@ -398,3 +398,12 @@ PR #109 merged as [`94d14f5`](https://github.com/MitMike/crm_signals/commit/94d1
 The real-Git test commits a temporary CRM Signals package, verifies the production preflight returns the exact clean `HEAD` SHA, adds an untracked Python override, then verifies `working_tree_dirty` without a `HEAD` query. This complements ADR-087/088's repository-root tests and the mocked error-path tests. No runtime behavior or site configuration changed.
 
 **Status:** code-complete and reference-stack CI-verified; not pilot-verified. Main at merge is `94d14f56a526670d2c0ecb150ab9f08b4f034389`. The release gate remains authorized Frappe v16.5 staging evidence: deployed full SHA, effective-role permissions, D1/D2 finance reconciliation, Helpdesk SLA, operational recovery, backup/restore/rollback and dashboard visual UAT. Do not infer these from CI.
+
+
+## 20. PR #110 release-document reconciliation — merged (2026-11-03)
+
+PR #110 merged as [`fe7dca4`](https://github.com/MitMike/crm_signals/commit/fe7dca402293faa1e7e60f147d53adaef63009d6) from final head `f4904b7bd88725017f5f2254de9ceb3c123163cc`. All 13 final-head check runs completed: 11 succeeded and two runtime selectors were skipped as expected for the documentation-only diff. Quality/lint, Security/Semgrep, Python version gates and stable Bench v15/v16 validation passed.
+
+The PR refreshed the release-readiness sprint and historical production-audit notice, reconciled the implementation/progress/follow-up records and changelog, and corrected the README's obsolete D3 implementation prerequisite. D3 is implemented; target-site Helpdesk version/schema/field permissions and active SLA calendar acceptance remain open.
+
+**Status:** documentation complete and reference CI-verified. Main is `fe7dca402293faa1e7e60f147d53adaef63009d6`; the live repository query immediately after merge returned no open PRs or issues. Production sign-off remains blocked by authorized Frappe v16.5 target-site acceptance. No pilot verification is claimed.
