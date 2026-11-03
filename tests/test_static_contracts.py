@@ -476,3 +476,46 @@ def test_pinned_v16_5_runs_sales_user_direct_form_permission_e2e():
         '--grep "Sales User"'
         in workflow
     )
+
+
+def test_e2e_api_token_credentials_are_private_and_masked():
+    source = (APP_ROOT / "ci.py").read_text()
+    assert "def prepare_e2e_sales_api_credentials():" in source
+    assert "generate_keys(\"e2e-sales-user@example.com\")" in source
+    assert "os.fchmod(handle.fileno(), 0o600)" in source
+    assert 'return {"credentials_written": True}' in source
+
+    workflow_paths = [
+        ROOT / ".github/workflows/bench-e2e.yml",
+        ROOT / ".github/workflows/bench-target-v16-5.yml",
+    ]
+    for path in workflow_paths:
+        workflow = path.read_text()
+        assert "prepare_e2e_sales_api_credentials" in workflow
+        assert 'echo "::add-mask::$api_key"' in workflow
+        assert 'echo "::add-mask::$api_secret"' in workflow
+        assert 'echo "api_key=$api_key" >> "$GITHUB_OUTPUT"' in workflow
+        assert 'echo "api_secret=$api_secret" >> "$GITHUB_OUTPUT"' in workflow
+        assert workflow.index('echo "::add-mask::$api_key"') < workflow.index(
+            'echo "api_key=$api_key" >> "$GITHUB_OUTPUT"'
+        )
+        assert workflow.index('echo "::add-mask::$api_secret"') < workflow.index(
+            'echo "api_secret=$api_secret" >> "$GITHUB_OUTPUT"'
+        )
+        assert 'trap \'rm -f "$credential_file"\' EXIT' in workflow
+        assert "E2E_SALES_API_KEY:" in workflow
+        assert "E2E_SALES_API_SECRET:" in workflow
+
+
+def test_sales_user_api_token_permission_e2e_omits_session_cookies():
+    spec = (ROOT / "e2e/sahdev-dashboard.spec.ts").read_text()
+    assert (
+        'test("Sales User API token respects linked Lead User Permission"'
+        in spec
+    )
+    assert 'credentials: "omit"' in spec
+    assert "Authorization: `token ${apiKey}:${apiSecret}`" in spec
+    assert '"frappe.auth.get_logged_user"' in spec
+    assert "expect(restrictedRead.status).toBe(403)" in spec
+    assert "expect(allowedRead.status).toBe(200)" in spec
+    assert "expect(visibleNames).toEqual([unlinkedSignal!.name])" in spec
