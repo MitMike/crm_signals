@@ -370,7 +370,7 @@ PR #100 is code-complete and CI-verified, not pilot-verified. The automated comp
 - **Finding:** the Support & SLA setup guide's promise to build the standard adapter was stale; the discovery FAQ also implied custom sources could be adapted without an explicit approval boundary.
 - **Decision (ADR-091):** state that the standard `HD Ticket` / `HD Service Level Agreement` adapter already exists. Custom/different ticket DocTypes remain unavailable until support, security and business owners approve a separate adapter scope, mapping and KPI semantics.
 - **Implementation:** both HTML guides are corrected; `test_support_guides_describe_existing_adapter_and_custom_scope_boundary` protects the implemented standard-adapter statement and custom-source approval boundary.
-- **Status:** documentation and static regression code-complete; final-head CI pending in the replacement PR; not pilot-verified. No runtime code or site configuration changed.
+- **Status at PR opening:** documentation and static regression code-complete; final-head CI pending; not pilot-verified. Final result is recorded below. No runtime code or site configuration changed.
 - [ ] **Target-site D3 gate:** verify exact installed Helpdesk/Frappe versions, required schema and effective Sales field permissions, active SLA schedule/holidays/timezone, pause/resume and native outcomes on authorized Frappe v16.5 staging. Repository CI is not pilot evidence.
 
 
@@ -388,3 +388,15 @@ PR #100 is code-complete and CI-verified, not pilot-verified. The automated comp
 - **Cause:** the setup guide correctly replaced the old promise with "custom sources require separate approval and scope", but the static test still asserted the previous wording "separately scoped adapter change".
 - **Fix:** updated the static expectation to match the approved operator wording. This is a test expectation mismatch, not a runtime defect.
 - **Status:** corrected on the D3 branch; a fresh final-head CI run is still required before merge.
+
+
+## PR #117 merged — D3 operator-guide and static-contract correction (2026-11-03)
+
+- [x] PR #117 merged as 93e7e16 (merge commit 93e7e16271d727476618b4981498ad901835bad4) from final head 2d7463f5e73bec3741ef9fb68d9b707b9bb1afc6.
+- [x] All 35 final-head check runs passed: Python 3.10–3.14, Quality/lint/static, Security/Semgrep, Bench v15/v16 including Playwright, pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 validation, and both bench-validation selectors.
+- [x] Pinned target validation passed Helpdesk schema/read-role contract, D3 synthetic aggregates, schema upgrade, asset build, Python tests and Frappe integration tests.
+- [x] Static test failures on earlier heads were diagnosed and fixed: stale adapter promise in the guide, wrong footer, then obsolete test wording. No failing head was merged.
+- Scope: documentation and static-test-only; no runtime code, dependencies, schema or site configuration changed.
+- Current main: 93e7e16271d727476618b4981498ad901835bad4. PR #117 is closed/merged; the open-PR search was empty at merge.
+- Status: code-complete and reference-stack CI-verified; not pilot-verified.
+- [ ] Target-site D3 acceptance: verify installed versions, exact required fields, effective Sales read permissions, active SLA calendar/holidays/timezone, pause/resume and native outcomes on authorized Frappe v16.5 staging.
