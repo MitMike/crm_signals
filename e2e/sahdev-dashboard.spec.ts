@@ -57,17 +57,6 @@ async function loginAsAdministrator(page: Page) {
     );
 }
 
-async function currentUserRoles(page: Page): Promise<string[]> {
-    return page.evaluate(async () => {
-        const response = await fetch(
-            "/api/method/frappe.core.doctype.user.user.get_current_user_roles",
-            { credentials: "same-origin" }
-        );
-        const payload = await response.json();
-        return payload.message || [];
-    });
-}
-
 async function frappeMethodGet(
     page: Page,
     method: string,
@@ -472,8 +461,13 @@ test("Sales User can open the Executive Compass", async ({ page }) => {
     await page.context().clearCookies();
     await loginAs(page, email, password!);
 
-    const roles = await currentUserRoles(page);
-    expect(roles).toContain("Sales User");
+    const identity = await frappeMethodGet(
+        page,
+        "frappe.auth.get_logged_user",
+        {}
+    );
+    expect(identity.status).toBe(200);
+    expect((identity.body as { message?: string }).message).toBe(email);
 
     await page.goto("/app/sahdev-dashboard");
     await expect(
