@@ -883,12 +883,8 @@ test("Sales User report view and CSV export respect linked Lead User Permission"
 }) => {
     await loginAsAdministrator(page);
 
-    const {
-        linkedSignal,
-        unlinkedSignal,
-        linkedMessage,
-        unlinkedMessage
-    } = await getSalesUserSignalPair(page);
+    const { linkedSignal, unlinkedSignal, linkedMessage, unlinkedMessage } =
+        await getSalesUserSignalPair(page);
 
     const apiKey = process.env.E2E_SALES_API_KEY;
     const apiSecret = process.env.E2E_SALES_API_SECRET;
@@ -906,12 +902,7 @@ test("Sales User report view and CSV export respect linked Lead User Permission"
     expect((identity.body as { message?: string }).message).toBe(email);
 
     const filters = JSON.stringify([
-        [
-            "CRM Signal",
-            "name",
-            "in",
-            [linkedSignal!.name, unlinkedSignal!.name]
-        ]
+        ["CRM Signal", "name", "in", [linkedSignal!.name, unlinkedSignal!.name]]
     ]);
     const reportView = await frappeMethodGetWithToken(
         "frappe.desk.reportview.get_list",
@@ -926,12 +917,12 @@ test("Sales User report view and CSV export respect linked Lead User Permission"
     );
     expect(reportView.status).toBe(200);
     const reportRows =
-        (reportView.body as {
-            message?: Array<{ name: string; message: string }>;
-        }).message || [];
-    expect(reportRows.map((row) => row.name)).toEqual([
-        unlinkedSignal!.name
-    ]);
+        (
+            reportView.body as {
+                message?: Array<{ name: string; message: string }>;
+            }
+        ).message || [];
+    expect(reportRows.map((row) => row.name)).toEqual([unlinkedSignal!.name]);
     expect(reportRows[0]?.message).toBe(unlinkedMessage);
 
     const exportResponse = await frappeMethodGetWithToken(
