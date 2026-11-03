@@ -1186,3 +1186,7 @@ PR #130 merged as `2b697b4d37a12b2e339bcf680ff808f23b97850f` from final tested h
 - **Scope:** CI workflow and static-test only. No runtime dependency, package manifest, lockfile, schema or site configuration changes.
 - **Revisit criteria:** if `npm ci` reports a lockfile mismatch, update the lockfile deliberately in a separate dependency change and rerun dependency audits; do not fall back to `npm install` or suppress the static contract.
 - **Verification status:** code-complete on PR #131 branch; final-head Quality/Python, Security and Bench v15/v16 + pinned v16.5 workflows pending. Not pilot-verified.
+
+### ADR-102 CI triage — static contract matched the full endpoint path (2026-11-03)
+
+The first Quality/Python run on the PR #131 head failed one Python 3.11 static assertion (143 passed, 36 skipped, 1 failed). The spec correctly matches the full `/api/method/frappe.desk.form.load.getdoc` URL pathname; the new guard incorrectly searched for a quoted bare method name. Correct the guard to assert the full path. No browser test or permission assertion ran in the failed job; the direct-form test and 403/200 expectations are unchanged. Require a fresh complete final-head matrix.
