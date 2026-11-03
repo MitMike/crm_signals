@@ -364,3 +364,14 @@ PR #128 merged as `85c492ea2c84444d7cc45c0d61706736fa972a83`. Quality/Python run
 - [x] Keep the token header in a mode-0600 temporary curl config, require HTTPS, do not follow redirects, and remove private response files on exit.
 - [ ] Execute on authorized Frappe v16.5 staging and record sanitized HTTP status/pass-fail evidence with the approved full SHA and installed versions.
 - **Revisit criteria:** if status/response shape differs on the pinned site, capture sanitized status/error class and Frappe build, inspect the versioned method wrapper/auth mapping, and update the guide. Never use Administrator or accept a result that exposes the linked restricted record.
+
+
+## PR #130 — browser-session Sales User permission E2E (2026-11-03)
+
+- [x] Seed deterministic allowed/restricted Lead and linked-restricted/unlinked-owned CRM Signal fixtures for the dedicated E2E Sales User.
+- [x] Assert the fixture itself exposes only the unlinked owned CRM Signal through permission-filtered `frappe.get_list` before browser tests.
+- [x] Add Playwright same-origin session HTTP assertions for linked `frappe.client.get` 403, unlinked `get` 200 and list-only-unlinked.
+- [x] Extend the pinned Frappe 16.5.0 workflow to run the Playwright suite; retain Bench v15/v16 and v16 Playwright coverage.
+- [ ] Require all final-head Quality/Security/Bench v15/v16 and pinned Frappe 16.5.0 Playwright workflows to pass before merge.
+- [ ] On authorized target-site staging, separately execute the API-token smoke and test browser form route, REST resource, reports, exports, print and dashboard.
+- **Revisit criteria:** if permission outcomes differ, inspect User Permission setup and CRM Signal query hooks on the exact Frappe build. If pinned E2E times out, profile the slow setup/install/browser steps before changing the timeout. Never use Administrator for Sales User assertions.
