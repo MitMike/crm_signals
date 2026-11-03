@@ -569,3 +569,11 @@ PR #125 merged as [7029747](https://github.com/MitMike/crm_signals/commit/702974
 - Pinned run 41647478405 completed site setup, preflight, D1/D2, Helpdesk, schema upgrade, E2E fixtures, asset build, Python tests and Frappe integration tests, then failed before permission assertions because the browser role-discovery helper returned an empty array.
 - Moved Sales User role validation into the server-side fixture using frappe.get_roles(sales_user) and changed the browser precondition to verify frappe.auth.get_logged_user equals the configured synthetic Sales User.
 - Added a static regression guard. All four corrected final-head workflows must pass before merge; no pilot verification is implied.
+
+
+
+### 2026-11-03 — PR #130 follow-up: remove stale non-sales role helper reference
+
+- Quality/Python run 41663119127 caught the existing Employee browser test still calling currentUserRoles after the helper was removed for the Sales User test.
+- Replaced the Employee test's role lookup with exact authenticated identity verification and added server-side Employee-only role validation; also reject elevated roles on the Sales User fixture.
+- Fresh final-head Quality, Security, Bench v15/v16 + Playwright and pinned Frappe 16.5 workflows are required. No pilot verification is implied.
