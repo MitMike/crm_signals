@@ -5,6 +5,7 @@ from unittest.mock import patch
 
 try:
     import frappe
+    from frappe.client import get as api_get, get_list as api_get_list
     from frappe.tests.utils import FrappeTestCase
 except ModuleNotFoundError as error:
     if error.name != "frappe":
@@ -226,8 +227,6 @@ class TestCRMSignalNotificationPermissions(FrappeTestCase):
         self._assert_sales_user_document_api_visibility(user, linked_signal, unlinked_signal)
 
     def _assert_sales_user_document_api_visibility(self, user, linked_signal, unlinked_signal):
-        from frappe.client import get as api_get, get_list as api_get_list
-
         original_user = frappe.session.user
         frappe.set_user(user.name)
         try:
