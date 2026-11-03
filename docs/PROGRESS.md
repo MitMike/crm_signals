@@ -606,3 +606,11 @@ The guide now validates the API token identity, rejects Administrator, expects 4
 - **Decision (ADR-098):** create a disposable Sales User/User Permission fixture in `prepare_e2e_site`, verify its list boundary, and add a Playwright test that uses the browser's same-origin session cookie to assert 403/200/list-only-allowed behavior. Extend the pinned v16.5 workflow to prepare the same fixture and run Playwright, while preserving v15 Bench integration and v16 E2E coverage.
 - **Scope:** CI/test setup only; no production runtime behavior or schema changes. API-key auth, reverse-proxy routing, browser form route, reports/exports/print/dashboard and pilot acceptance remain separate.
 - **Status at opening:** focused implementation and workflow change committed. The first Quality run caught the fixture helper exceeding the repository's 100-nonblank-line hard limit (102 lines); split lead/signal setup into focused helpers. The next Quality run passed Ruff/code standards and Python but flagged Prettier formatting in the E2E spec; applied the formatter's exact layout. Corrected final-head Quality, Bench v15/v16, pinned v16.5 Playwright and Security checks are rerunning. Not pilot-verified.
+
+
+## PR #130 — final-head reproducibility review (2026-11-03)
+
+- Reviewed the focused browser-session permission regression and the pinned Frappe 16.5.0 workflow. On head `7bd1837e39b994daae04158eff5a1559fe48f4d8`, Quality Checks and Security/Semgrep passed; Bench v15/v16 + Playwright and pinned Frappe 16.5.0 remained in progress during review.
+- Found the new pinned Playwright step used `npm install` despite the repository's Stage 0 and Quality policy requiring lockfile-enforced `npm ci`. Changed it to `npm ci --ignore-scripts --no-audit --no-fund`; the explicit Playwright browser install remains separate. Removed a duplicate ADR-098 block.
+- The workflow/docs correction creates a new PR head. Require fresh Quality/Python, Security, Bench v15/v16 + Playwright, and pinned v16.5 Playwright runs before merge. Do not reuse pre-correction checks.
+- PR #130 remains open and unmerged. The HTTP test is code-complete but not CI-verified until the corrected final-head matrix passes; no target-site or pilot verification is claimed.
