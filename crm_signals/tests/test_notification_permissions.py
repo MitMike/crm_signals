@@ -195,3 +195,31 @@ class TestCRMSignalNotificationPermissions(FrappeTestCase):
 
         self.assertNotIn(linked_signal.name, linked_visible)
         self.assertIn(unlinked_signal.name, unlinked_visible)
+
+        from crm_signals.diagnostics import get_site_preflight_report
+
+        preflight_session_user = frappe.session.user
+        report = get_site_preflight_report(
+            test_users={"sales_user": user.name},
+            test_records={
+                "sales_user": {
+                    "CRM Signal": {
+                        "linked_restricted": linked_signal.name,
+                        "unlinked_owned": unlinked_signal.name,
+                    }
+                }
+            },
+        )
+        profile = report["effective_user_permissions"]["profiles"]["sales_user"]
+        visibility = profile["record_visibility"]["doctypes"]["CRM Signal"]
+        self.assertEqual(profile["status"], "checked")
+        self.assertEqual(visibility["status"], "checked")
+        self.assertEqual(
+            visibility["records"],
+            {"linked_restricted": False, "unlinked_owned": True},
+        )
+        self.assertEqual(frappe.session.user, preflight_session_user)
+        serialized_report = repr(report)
+        self.assertNotIn(user.name, serialized_report)
+        self.assertNotIn(linked_signal.name, serialized_report)
+        self.assertNotIn(unlinked_signal.name, serialized_report)
