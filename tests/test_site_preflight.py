@@ -363,6 +363,7 @@ def test_preflight_source_revision_rejects_real_enclosing_git_repository(monkeyp
 
     assert result == {"available": False, "reason": "repository_root_mismatch"}
 
+
 def test_preflight_source_revision_uses_real_clean_sha_and_rejects_untracked_file(
     monkeypatch, tmp_path
 ):
@@ -371,7 +372,7 @@ def test_preflight_source_revision_uses_real_clean_sha_and_rejects_untracked_fil
     package_dir = app_root / "crm_signals"
     package_dir.mkdir(parents=True)
     module_file = package_dir / "__init__.py"
-    module_file.write_text("# real Git preflight fixture\\n", encoding="utf-8")
+    module_file.write_text("# real Git preflight fixture\n", encoding="utf-8")
 
     diagnostics.subprocess.run(
         ["git", "init", "--quiet", str(app_root)],
@@ -426,7 +427,7 @@ def test_preflight_source_revision_uses_real_clean_sha_and_rejects_untracked_fil
     assert commands[2][-3:] == ["rev-parse", "--verify", "HEAD"]
 
     commands.clear()
-    (package_dir / "local_override.py").write_text("VALUE = 1\\n", encoding="utf-8")
+    (package_dir / "local_override.py").write_text("VALUE = 1\n", encoding="utf-8")
 
     dirty_result = diagnostics._source_revision()
 
