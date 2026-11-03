@@ -561,3 +561,11 @@ PR #125 merged as [7029747](https://github.com/MitMike/crm_signals/commit/702974
 - Final head 69383d989d7d0d3ee53e973c90a0934f00e81e90 passed Quality/Python, Security/Semgrep and Bench v15/v16 + Playwright. Pinned Frappe 16.5.0 setup, D1/D2/Helpdesk/schema checks, E2E fixture, Python tests and Frappe integration tests passed, but the focused browser test timed out waiting for POST /api/method/login.
 - Playwright trace evidence showed the Frappe v16.5 login form successfully submitted POST /login (HTTP 200). The shared helper's route predicate was too narrow.
 - Updated the helper to accept exact POST paths /login and /api/method/login, retaining response/session/navigation assertions; added a static regression test. Corrected final-head CI is required. PR #130 remains unmerged pending all four workflows; not pilot-verified.
+
+
+
+### 2026-11-03 — PR #130 pinned Frappe 16.5 Sales User identity assertion correction (ADR-100)
+
+- Pinned run 41647478405 completed site setup, preflight, D1/D2, Helpdesk, schema upgrade, E2E fixtures, asset build, Python tests and Frappe integration tests, then failed before permission assertions because the browser role-discovery helper returned an empty array.
+- Moved Sales User role validation into the server-side fixture using frappe.get_roles(sales_user) and changed the browser precondition to verify frappe.auth.get_logged_user equals the configured synthetic Sales User.
+- Added a static regression guard. All four corrected final-head workflows must pass before merge; no pilot verification is implied.
