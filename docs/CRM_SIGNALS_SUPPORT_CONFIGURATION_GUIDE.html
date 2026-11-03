@@ -164,8 +164,8 @@ for user in ("sales.user@example.com", "sales.manager@example.com"):
 <p class="muted">If there are no eligible SLA outcomes, compliance is unavailable (—), not 0%. A user may see ticket counts while SLA or resolution measures remain unavailable because of field-level permissions.</p>
 </section>
 <section class="step"><h2>What happens after you return this?</h2>
-<ol><li>We map the real ticket and SLA fields.</li><li>We confirm the KPI definitions and permission rules.</li><li>We build a small adapter for the support app actually installed.</li><li>We test status changes, reopened tickets, SLA pauses, holidays, and access restrictions.</li><li>Only then do we enable the D3 Service Resolution/SLA metrics.</li></ol>
+<ol><li>We compare the installed ticket and SLA fields with the existing standard adapter contract.</li><li>We confirm KPI definitions and effective permission rules with the support, security and business owners.</li><li>If the standard schema matches, we configure and test the existing adapter; custom sources require separate approval and scope.</li><li>We test status changes, reopened tickets, SLA pauses, holidays, and access restrictions in staging.</li><li>Only after acceptance do we enable the D3 Service Resolution/SLA metrics.</li></ol>
 <p class="warning"><strong>Do not install a new support app just for this task.</strong> First discover what the site already uses. If no support/SLA system exists, we will record that as a business decision rather than silently inventing one.</p>
 </section>
-<footer class="muted"><p>CRM Signals · D3 Service Resolution & SLA · Read-only discovery guide</p></footer>
+<footer class="muted"><p>CRM Signals · D3 Service Resolution & SLA · Support and configuration guide</p></footer>
 </main></body></html>
