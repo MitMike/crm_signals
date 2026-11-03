@@ -474,3 +474,9 @@ PR #100 is code-complete and CI-verified, not pilot-verified. The automated comp
 - **Scope:** optional diagnostic and CI-only fixture; no schema, dependency, metric, dashboard or site-configuration changes. The command remains non-whitelisted and read-only. It does not establish direct form/API/report/export/print/dashboard access or pilot acceptance.
 - **Status at PR opening:** code-complete; final-head CI pending. Require Python 3.10–3.14, Quality, Security/Semgrep, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 before merge.
 - **Release blocker / revisit criteria:** no authorized Frappe v16.5 staging session or approved synthetic site records are connected to this review. Run the optional probe only after the approved SHA and exact versions are confirmed on staging. Continue to require direct form/API/report/export/print/dashboard tests, D1/D2 native-report reconciliation by currency, Helpdesk SLA, operational recovery, backup/restore/rollback and visual UAT. No pilot verification is claimed.
+
+
+### PR #122 first CI triage — validator helper signature
+- The first Python matrix run exposed the same TypeError in five new record-probe tests: _validate_test_record_doctypes still required the removed total_records argument after the count-accounting refactor. Python 3.10/3.11/3.12 showed 5 failed, 133 passed and 36 skipped; lint/static checks passed.
+- Corrected the helper signature to accept only the profile's DocType mapping. The per-profile count remains local to that helper and the aggregate count is accumulated by _validate_test_records.
+- Do not merge the failing head. Require a fresh final-head Python 3.10–3.14, Quality, Security, Bench v15/v16 + Playwright and pinned v16.5.0 matrix.
