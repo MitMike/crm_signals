@@ -674,8 +674,9 @@ PR #125 merged as [7029747](https://github.com/MitMike/crm_signals/commit/702974
 - All four required final-head workflows passed: Quality/Python `41690041480`, Security/Semgrep `41690041431`, Bench v15/v16 + Playwright `41690041398`, and pinned Frappe 16.5.0 `41690041432`.
 - Standard REST resource single-document and collection permission checks are reference-stack CI-verified. Target-site API-token transport, role configuration and full report/export/print/dashboard acceptance remain open; not pilot-verified.
 
-### 2026-11-04 — PR #137 opening — CRM Signal print permission boundary
+### 2026-11-04 — PR #137 merged — CRM Signal print permission boundary
 
-- Fix a row-level authorization bypass: Frappe's print gate accepts read OR print, while the CRM Signal hook previously treated print as role-only.
-- Require the same row-level readable relationship for print as for read, while preserving the existing DocType print grant and manager behavior.
-- Add unit and Sales User browser-session print-view regressions plus target-site operator instructions. Final-head CI pending; not pilot-verified.
+- Merged as `9b2af7f90652927ca8497777e099cd3e742ce2f2` from final tested head `a7d1f48626ae0116a300a7b89404921bdda5552b`.
+- Fixes a record-level disclosure path in Frappe's read-or-print gate by requiring the existing row-level readable relationship for CRM Signal print in addition to the DocType print grant.
+- All final-head checks passed: Quality/Python `41698694186`, Security `41698694333` and `41698685514`, Bench v15/v16 + Playwright `41698694301`, and pinned Frappe 16.5.0 `41698694356`.
+- v15/v16 unit and integration coverage passed; v16 ran 21 Playwright tests; pinned v16.5.0 ran 6 Playwright tests. Reference-stack CI-verified, not pilot-verified.
