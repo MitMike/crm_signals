@@ -957,15 +957,13 @@ test("Sales User print view respects linked Lead User Permission", async ({
     await page.context().clearCookies();
     await loginAs(page, email, password!);
 
-    const restrictedUrl =
-        `/printview?doctype=CRM%20Signal&name=${encodeURIComponent(linkedSignal!.name)}&format=Standard&no_letterhead=1`;
+    const restrictedUrl = `/printview?doctype=CRM%20Signal&name=${encodeURIComponent(linkedSignal!.name)}&format=Standard&no_letterhead=1`;
     const restrictedResponse = await page.goto(restrictedUrl);
     expect(restrictedResponse?.status()).toBe(403);
     const restrictedBody = await restrictedResponse!.text();
     expect(restrictedBody).not.toContain(linkedMessage);
 
-    const allowedUrl =
-        `/printview?doctype=CRM%20Signal&name=${encodeURIComponent(unlinkedSignal!.name)}&format=Standard&no_letterhead=1`;
+    const allowedUrl = `/printview?doctype=CRM%20Signal&name=${encodeURIComponent(unlinkedSignal!.name)}&format=Standard&no_letterhead=1`;
     const allowedResponse = await page.goto(allowedUrl);
     expect(allowedResponse?.status()).toBe(200);
     const allowedBody = await allowedResponse!.text();
