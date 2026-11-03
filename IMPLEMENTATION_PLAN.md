@@ -590,3 +590,13 @@ All applicable final-head checks passed: Quality Checks run `41639851748` (Pytho
 ## PR #130 — Frappe v16.5 login-route compatibility correction (2026-11-03)
 
 The first complete PR #130 final-head matrix passed Quality/Python, Security/Semgrep and the supported Frappe v15/v16 Bench + Playwright workflow. The pinned Frappe 16.5.0 job completed setup, all preflight/D1/D2/Helpdesk/schema checks, E2E fixture setup, asset build, Python tests, Frappe integration tests, browser installation and server startup, then failed in the new Playwright test's shared login helper. Artifact trace evidence shows Frappe v16.5 submitted POST /login with HTTP 200, while the helper waited exclusively for POST /api/method/login. ADR-099 accepts both exact POST routes and adds a static regression guard. The corrected head must pass all four workflows before merge. This is a test-harness compatibility correction, not a runtime permission failure or pilot verification.
+
+
+
+## 36. PR #130 — pinned Frappe 16.5 Sales User identity assertion correction (2026-11-03)
+
+- **Evidence:** corrected head b6128589c40d3b2c7bedf639cc62d1ab3bd16f77 passed Quality, Security and supported Frappe v15/v16 Bench + Playwright. Pinned Frappe 16.5.0 run 41647478405 passed site/app setup, preflight, D1/D2, Helpdesk, schema upgrade, E2E fixture creation, asset build, Python and Frappe integration tests, browser installation and server startup. Playwright then failed at the precondition expect(roles).toContain("Sales User") because the helper returned an empty array from frappe.core.doctype.user.user.get_current_user_roles. It did not reach any document/list permission assertion.
+- **Decision (ADR-100):** validate the synthetic user's Sales User role in the server-side fixture via frappe.get_roles(sales_user), then validate the browser session with frappe.auth.get_logged_user and exact email equality before the HTTP permission requests.
+- **Implementation:** remove the version-sensitive currentUserRoles browser helper; add the server-side role guard, browser identity assertion and static regression test. Retain linked document 403, unlinked document 200 and list-only-unlinked assertions.
+- **Status:** correction code-complete on PR #130. Require all four final-head workflows on the corrected commit before merge. Not pilot-verified.
+- **Revisit criteria:** if role fixture validation fails, inspect the User role rows and Frappe role API; if session identity fails, inspect the exact login route, session cookie and identity endpoint response. Do not remove identity validation or weaken permission expectations.
