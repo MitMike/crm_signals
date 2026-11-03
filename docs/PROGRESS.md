@@ -295,3 +295,15 @@ PR #100 is code-complete and CI-verified, not pilot-verified. The automated comp
 - **Implementation:** [PR #107](https://github.com/MitMike/crm_signals/pull/107), branch `test/preflight-real-parent-git-regression-20261103`; creates a parent repo and empty commit, then invokes the real preflight helper and asserts it fails closed with `repository_root_mismatch`.
 - **Scope:** test-only; no runtime code or site configuration changes. Existing mocked tests retain coverage of timeout, missing Git, dirty checkout, command failure and invalid SHA.
 - **Status:** code-complete; CI pending. Not pilot-verified. Merge only after the final-head Python, Quality, Security, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 checks pass.
+
+
+## Real-Git parent-repository regression — PR #107 merged (2026-11-03)
+
+- [x] PR #107 merged as [`a472f19`](https://github.com/MitMike/crm_signals/commit/a472f1981f758ce7b6233d95fc0682fe69d7a304) from final head `a47c3975eebe52dccb918a1056cf30d818cdcae4`.
+- [x] All 19 final-head check runs completed successfully. Quality Checks, Security Scanning, Bench Integration and E2E, and pinned Frappe v16.5.0 + Helpdesk v1.28.0 workflows all completed successfully.
+- [x] Python 3.10/3.11/3.12/3.14, Semgrep, Bench v15/v16, v16 Playwright and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 validation passed.
+- [x] The real-Git regression creates a committed enclosing repository and nested Bench-style CRM Signals package path, then verifies the real preflight rejects the parent root with `repository_root_mismatch`.
+- [x] Live open-PR search returned zero immediately after merge; no open repository issues were found.
+- **Decision:** ADR-088 supplements mocked mismatch coverage because the defect depends on Git's real upward repository discovery. No runtime or site configuration changed.
+- **Status:** code-complete and reference-stack CI-verified; not pilot-verified.
+- [ ] **Next gate:** authorized Frappe v16.5 staging for exact installed app/full-SHA inventory, dashboard desktop/mobile screenshots after approved asset rebuild/cache refresh, effective-role tests, D1/D2 native-report reconciliation by currency, Helpdesk SLA acceptance, scheduler/mail/realtime/webhook recovery and backup/restore/rollback rehearsal. No staging evidence is available in this repository review.
