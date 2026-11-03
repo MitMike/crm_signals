@@ -779,6 +779,12 @@ The test verifies token identity before requests, linked-restricted 403 with no 
 - **Status:** code-complete on `test/sales-user-rest-resource-permission-20261103`; final-head CI pending. Not pilot-verified.
 - **Revisit criteria:** inspect the exact v16.5 resource URL map and response envelope if the route redirects or response shape differs; do not follow redirects or weaken permission expectations.
 
+### PR #135 merged — token-authenticated REST resource permission regression (2026-11-04)
+
+PR #135 merged as [81d70410f0f81124ae468c1d929caefd1610fd9e](https://github.com/MitMike/crm_signals/commit/81d70410f0f81124ae468c1d929caefd1610fd9e) from final head [ae6b7e408664a3b6f885c1c18ba9fc3d18c73890](https://github.com/MitMike/crm_signals/commit/ae6b7e408664a3b6f885c1c18ba9fc3d18c73890). All four final-head workflows passed: Quality/Python [41690041480](https://github.com/MitMike/crm_signals/actions/runs/41690041480), Security/Semgrep [41690041431](https://github.com/MitMike/crm_signals/actions/runs/41690041431), Bench v15/v16 + Playwright [41690041398](https://github.com/MitMike/crm_signals/actions/runs/41690041398), and pinned Frappe 16.5.0 [41690041432](https://github.com/MitMike/crm_signals/actions/runs/41690041432).
+
+The implementation covers token identity, linked-restricted resource GET 403 without restricted message disclosure, unlinked-owned GET 200 with exact record name/message, and collection GET returning only the unlinked record. This is reference-stack CI verification, not target-site or pilot verification.
+
 ### PR #137 opening — CRM Signal print-view row-permission bypass (2026-11-04)
 
 Review of Frappe v16 `frappe.www.printview.validate_print_permission` found that the standard print gate accepts either `read` or `print`. CRM Signals' `crm_signal_has_permission` hook returned the role-level DocType grant for `print` without checking the linked Lead/Customer visibility. A Sales User could therefore pass the print branch for a linked-restricted CRM Signal even though direct read was denied. This is a record-level authorization bypass, not merely missing test coverage.
@@ -786,3 +792,6 @@ Review of Frappe v16 `frappe.www.printview.validate_print_permission` found that
 Decision ADR-106: keep the DocType `print` permission requirement and additionally require the same row-level readable relationship as `read`. Managers retain explicit role behavior; an unlinked owned signal remains printable. Added unit regressions and a Sales User browser-session `/printview` test for linked 403/no-message and unlinked 200/message. Updated the target-site acceptance and Administrator Guide. No schema, role grant, dependency or site configuration change.
 
 Code-complete on focused branch `fix/crm-signal-print-permission-20261104`; final-head CI pending. Required checks: Quality/Python, Security/Semgrep, Bench v15/v16 + Playwright and pinned Frappe 16.5.0. Not pilot-verified. Revisit if the installed v15/v16 print route or permission gate differs; preserve role-level print plus row-level read visibility.
+### PR #137 CI triage — initial head corrections
+
+The first PR #137 Quality run exposed two test-only defects: Python 3.11/3.12 failed because the unlinked print test fixture retained the default Signal owner `integration@example.com` rather than the expected Sales User; the fixture now explicitly sets `signal.owner = "rep@example.com"`. The same Quality run found Prettier-only wrapping differences in the two print URL template lines; those lines were formatted to the committed Prettier output. The initial Semgrep run passed. No failing head was merged. Corrected head is `cda6287927664ba48b5bf8a7c3edaa8371d86941`; a fresh complete matrix is required before merge.
