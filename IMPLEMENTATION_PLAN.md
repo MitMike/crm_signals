@@ -371,3 +371,12 @@ The administrator guide, target-site acceptance kit and deployment runbook requi
 ADR-088 adds a focused test using an actual temporary Git repository. It creates a committed parent repository and a nested Bench-style `apps/crm_signals/crm_signals` package directory without its own Git metadata, then invokes the real preflight Git commands and requires `repository_root_mismatch`. This complements the mocked tests, which continue to cover dirty state, missing Git, timeout, command failure and malformed SHA output.
 
 The test changes no runtime code and requires no Frappe site. It verifies Git's actual upward repository discovery behavior that ADR-087 is intended to reject. [PR #107](https://github.com/MitMike/crm_signals/pull/107) is code-complete; require final-head Python 3.10/3.11/3.12/3.14, Quality, Security, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 checks before merge. It is not pilot verification.
+
+
+## 17. Real-Git parent-repository regression — merged and CI-verified (2026-11-03)
+
+ADR-088's regression test is merged in PR #107 as [`a472f19`](https://github.com/MitMike/crm_signals/commit/a472f1981f758ce7b6233d95fc0682fe69d7a304), from final head `a47c3975eebe52dccb918a1056cf30d818cdcae4`. The test creates a committed temporary parent repository, places a Bench-style `apps/crm_signals/crm_signals` package path beneath it without a child repository, invokes the real `_source_revision()` helper and requires `repository_root_mismatch`. This exercises Git's actual upward repository discovery rather than mocking the root output.
+
+All 19 final-head check runs completed successfully across Quality/Python 3.10–3.14, Security/Semgrep, Bench v15/v16 including v16 Playwright, and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 validation. All four required workflows completed successfully. No runtime behavior or target-site configuration changed.
+
+**Status:** code-complete and reference-stack CI-verified; not pilot-verified. Main is `a472f1981f758ce7b6233d95fc0682fe69d7a304`. The next release gate remains authorized target-site staging evidence: exact deployed SHA, effective-role permissions, D1/D2 finance reconciliation, Helpdesk SLA, operational recovery, rollback rehearsal and desktop/mobile visual UAT. Do not infer any of these from CI.
