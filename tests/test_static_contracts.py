@@ -507,14 +507,19 @@ def test_e2e_api_token_credentials_are_private_and_masked():
         assert "E2E_SALES_API_SECRET:" in workflow
 
 
-def test_sales_user_api_token_permission_e2e_omits_session_cookies():
+def test_sales_user_api_token_permission_e2e_uses_isolated_node_fetch():
     spec = (ROOT / "e2e/sahdev-dashboard.spec.ts").read_text()
     assert (
         'test("Sales User API token respects linked Lead User Permission"'
         in spec
     )
-    assert 'credentials: "omit"' in spec
-    assert "Authorization: `token ${apiKey}:${apiSecret}`" in spec
+    helper = spec.split("async function frappeMethodGetWithToken(", 1)[1]
+    helper = helper.split("\n}\n", 1)[0]
+    assert "process.env.BASE_URL" in helper
+    assert "await fetch(" in helper
+    assert 'redirect: "manual"' in helper
+    assert "page.evaluate" not in helper
+    assert "Authorization: `token ${apiKey}:${apiSecret}`" in helper
     assert '"frappe.auth.get_logged_user"' in spec
     assert "expect(restrictedRead.status).toBe(403)" in spec
     assert "expect(allowedRead.status).toBe(200)" in spec
