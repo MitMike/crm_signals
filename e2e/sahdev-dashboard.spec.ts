@@ -957,7 +957,8 @@ test("Sales User CRM Signals dashboard API respects linked Lead User Permission"
         await getSalesUserSignalPair(page);
     const apiKey = process.env.E2E_SALES_API_KEY;
     const apiSecret = process.env.E2E_SALES_API_SECRET;
-    const salesEmail = process.env.E2E_SALES_USER || "e2e-sales-user@example.com";
+    const salesEmail =
+        process.env.E2E_SALES_USER || "e2e-sales-user@example.com";
     expect(apiKey).toBeTruthy();
     expect(apiSecret).toBeTruthy();
 
@@ -968,7 +969,9 @@ test("Sales User CRM Signals dashboard API respects linked Lead User Permission"
         apiSecret!
     );
     expect(salesIdentity.status).toBe(200);
-    expect((salesIdentity.body as { message?: string }).message).toBe(salesEmail);
+    expect((salesIdentity.body as { message?: string }).message).toBe(
+        salesEmail
+    );
 
     const salesDashboard = await frappeMethodGetWithToken(
         "crm_signals.api.get_dashboard_data",
@@ -977,13 +980,14 @@ test("Sales User CRM Signals dashboard API respects linked Lead User Permission"
         apiSecret!
     );
     expect(salesDashboard.status).toBe(200);
-    const recent = (
-        salesDashboard.body as {
-            message?: {
-                recent?: Array<{ name: string; message: string }>;
-            };
-        }
-    ).message?.recent || [];
+    const recent =
+        (
+            salesDashboard.body as {
+                message?: {
+                    recent?: Array<{ name: string; message: string }>;
+                };
+            }
+        ).message?.recent || [];
     expect(recent.some((row) => row.name === unlinkedSignal!.name)).toBe(true);
     expect(recent.some((row) => row.name === linkedSignal!.name)).toBe(false);
     const recentText = JSON.stringify(recent);
@@ -1164,7 +1168,9 @@ test("Users without a Sales role cannot open the Compass", async ({ page }) => {
     );
     expect(signalsResponse.status).toBe(403);
     const signalsText = JSON.stringify(signalsResponse.body);
-    expect(signalsText).not.toContain("CRM Signals E2E linked restricted signal");
+    expect(signalsText).not.toContain(
+        "CRM Signals E2E linked restricted signal"
+    );
     expect(signalsText).not.toContain("CRM Signals E2E unlinked owned signal");
 
     await page.goto("/app/sahdev-dashboard");
