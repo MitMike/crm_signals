@@ -165,6 +165,7 @@ async function frappeMethodGetWithToken(
     if (!baseUrl) throw new Error("BASE_URL is required for API-token E2E");
 
     const query = new URLSearchParams(params);
+    // Node fetch has no browser cookie jar and is excluded from Playwright traces.
     const response = await fetch(
         new URL("/api/method/" + method + "?" + query.toString(), baseUrl),
         {
