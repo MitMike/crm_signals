@@ -32,7 +32,7 @@ The following capabilities are present in the repository. "Implemented" means th
 | Capability | Code status | Remaining acceptance |
 |---|---|---|
 | Frappe app packaging and Pilot discovery metadata | Implemented | Run the actual Pilot import flow on the intended site |
-- [x] Permission parity reference coverage: PR #122 list visibility, PR #126 direct Frappe methods, PR #130 browser-session HTTP methods, PR #131 Desk form loader, PR #133 token-authenticated RPC methods, and PR #135 token-authenticated REST resource single-document/collection checks are merged and CI-verified on supported Frappe v16 and pinned v16.5.0. PR #137 fixes the CRM Signal print-view row-permission bypass and adds a browser regression, pending final-head CI. Live role/report/export/print/dashboard acceptance remains staging work.
+- [x] Permission parity reference coverage: PR #122 list visibility, PR #126 direct Frappe methods, PR #130 browser-session HTTP methods, PR #131 Desk form loader, PR #133 token-authenticated RPC methods, and PR #135 token-authenticated REST resource single-document/collection checks are merged and CI-verified on supported Frappe v16 and pinned v16.5.0. PR #137 fixes the CRM Signal print-view row-permission bypass and adds a browser regression; merged and reference-stack CI-verified on Frappe v15/v16 and pinned v16.5.0. Live target-site print acceptance remains manual. Live role/report/export/print/dashboard acceptance remains staging work.
 | CRM Signal DocType and validation | Implemented | Validate installed schema, roles and customizations |
 | Authenticated POST ingestion | Event-ID idempotency and concurrent duplicate recovery merged in PR #19/#23 | Verify with a dedicated target-site integration user and deployment rate limits |
 | Quotation and Opportunity event hooks | Implemented; transactional outbox merged in PR #26 | Confirm target-site status/threshold policy; audited Failed-row replay merged in PR #38; per-company thresholds are in PR #45 merged |
@@ -686,7 +686,7 @@ The code head `b9f72471d7cd7102023454cfef3ca491e950d5af` also passed the same fo
 - **Decision (ADR-106):** retain the existing role-level `print` DocPerm requirement and additionally require the same row-level readable relationship used for `read`. Managers retain their existing explicit role behavior; unlinked owned signals remain printable. Do not broaden User Permissions or introduce shares.
 - **Implementation:** add unit regressions for restricted linked, readable linked and unlinked-owned print cases; add a Sales User browser-session `/printview` E2E requiring linked 403/no-message and unlinked 200/message; document the live staging check.
 - **Scope:** focused permission hook, tests and operator guide only. No DocType schema, role grants, dependency or site configuration change.
-- **Status:** code-complete on `fix/crm-signal-print-permission-20261104`; final-head Quality/Python, Security, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 checks pending. Not pilot-verified.
+- **Status:** merged as PR #137 (`9b2af7f90652927ca8497777e099cd3e742ce2f2`) from final tested head `a7d1f48626ae0116a300a7b89404921bdda5552b`; final-head Quality/Python, Security, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 all passed. Reference-stack CI-verified; not pilot-verified.
 - **Revisit criteria:** if Frappe's print-view route or permission gate differs in v15/v16, inspect the installed `validate_print_permission` implementation. Keep the invariant that print requires both role-level print permission and row-level read visibility; do not accept role-only access for linked-restricted signals.
 ## 41. PR #135 merged — Sales User token-authenticated REST resource permission boundary
 
@@ -695,3 +695,10 @@ PR #135 merged as [81d7041](https://github.com/MitMike/crm_signals/commit/81d704
 All four required final-head workflows passed: Quality/Python [41690041480](https://github.com/MitMike/crm_signals/actions/runs/41690041480), Security/Semgrep [41690041431](https://github.com/MitMike/crm_signals/actions/runs/41690041431), Bench v15/v16 + Playwright [41690041398](https://github.com/MitMike/crm_signals/actions/runs/41690041398), and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 [41690041432](https://github.com/MitMike/crm_signals/actions/runs/41690041432).
 
 The token-authenticated resource GET boundary is reference-stack CI-verified: linked-restricted 403 without restricted message disclosure, unlinked-owned 200 with exact name/message, and collection filtering returns only the unlinked record. The operator acceptance script includes the same checks. Target-site TLS/proxy/gateway behavior and live role configuration remain manual. Not pilot-verified.
+### PR #137 final-head evidence
+
+- Quality/Python [41698694186](https://github.com/MitMike/crm_signals/actions/runs/41698694186): lint/static plus Python 3.10, 3.11, 3.12 and 3.14 passed.
+- Security/Semgrep [41698694333](https://github.com/MitMike/crm_signals/actions/runs/41698694333) and duplicate push-triggered security run [41698685514](https://github.com/MitMike/crm_signals/actions/runs/41698685514): passed.
+- Bench v15/v16 + Playwright [41698694301](https://github.com/MitMike/crm_signals/actions/runs/41698694301): v15 integration passed (157 tests); v16 integration passed (157 tests and 21 Playwright tests).
+- Pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 [41698694356](https://github.com/MitMike/crm_signals/actions/runs/41698694356): integration passed (157 tests) and 6 Playwright tests passed.
+- Frappe v15 and exact Frappe v16.5.0 source both use the read-or-print permission gate; the hook now requires role-level print permission plus the existing row-level readable relationship.
