@@ -620,3 +620,12 @@ The guide now validates the API token identity, rejects Administrator, expects 4
 - Hardened the pinned E2E credential step: generated Sales User and Employee passwords are now registered with GitHub Actions log masking before being written to step outputs. The static contract test protects both masking order and the `npm ci` lockfile-install requirement; this creates another final-head CI run.
 
 - Wrapped the new workflow-contract test's split expression after a local line-length review found it exceeded the 88-character Ruff limit; no lint rule was weakened. Fresh final-head checks remain required.
+
+
+## PR #130 — pinned Frappe 16.5 Playwright login-route diagnosis (2026-11-03)
+
+- Reviewed final PR head 69383d989d7d0d3ee53e973c90a0934f00e81e90. Quality Checks run 41643473833, Security/Semgrep run 41643474071, and Bench v15/v16 + Playwright run 41643473860 all passed.
+- Pinned Frappe 16.5.0 run 41643473834 failed only in the new focused Playwright test. All prior steps in the job passed: site/app installation, effective-user preflight, D1/D2 query and aggregate fixtures, Helpdesk schema/aggregate checks, schema upgrade, E2E fixture setup, asset build, Python tests, Frappe integration tests, browser installation and server startup.
+- Downloaded the Playwright artifact and inspected the retry trace. The login form submitted POST /login and received HTTP 200, but the shared helper waited only for POST /api/method/login; the browser successfully reached the Administrator Desk, while the response waiter timed out. This is a version-specific test-harness mismatch, not a permission assertion failure.
+- Decision ADR-099: accept both exact POST pathnames /login and /api/method/login; keep response success, non-Guest session-cookie and Desk-navigation assertions. Add a static contract test for both routes and POST method.
+- Status: correction committed on PR #130; fresh final-head Quality, Security, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 workflows required. PR remains open/unmerged. No pilot verification.

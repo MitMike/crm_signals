@@ -554,3 +554,10 @@ PR #125 merged as [7029747](https://github.com/MitMike/crm_signals/commit/702974
 - Masked the pinned Frappe 16.5 E2E Sales User and Employee passwords with GitHub Actions `add-mask` before writing step outputs; added static regression assertions for masking order and lockfile-based npm installation.
 
 - Wrapped the new pinned-workflow static contract test to stay within the configured Python line-length limit; lint enforcement remains unchanged.
+
+
+### 2026-11-03 — PR #130 pinned Frappe 16.5 Playwright login-route correction (ADR-099)
+
+- Final head 69383d989d7d0d3ee53e973c90a0934f00e81e90 passed Quality/Python, Security/Semgrep and Bench v15/v16 + Playwright. Pinned Frappe 16.5.0 setup, D1/D2/Helpdesk/schema checks, E2E fixture, Python tests and Frappe integration tests passed, but the focused browser test timed out waiting for POST /api/method/login.
+- Playwright trace evidence showed the Frappe v16.5 login form successfully submitted POST /login (HTTP 200). The shared helper's route predicate was too narrow.
+- Updated the helper to accept exact POST paths /login and /api/method/login, retaining response/session/navigation assertions; added a static regression test. Corrected final-head CI is required. PR #130 remains unmerged pending all four workflows; not pilot-verified.

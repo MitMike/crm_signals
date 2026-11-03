@@ -8,9 +8,13 @@ async function loginAs(page: Page, username: string, password: string) {
     await page.goto("/login");
 
     const loginResponsePromise = page.waitForResponse(
-        (response) =>
-            response.url().includes("/api/method/login") &&
-            response.request().method() === "POST",
+        (response) => {
+            const url = new URL(response.url());
+            return (
+                ["/login", "/api/method/login"].includes(url.pathname) &&
+                response.request().method() === "POST"
+            );
+        },
         { timeout: 30_000 }
     );
 

@@ -1107,3 +1107,16 @@ The first Quality run flagged `_prepare_e2e_sales_user_permission_fixture` at 10
 ### ADR-098 static-test formatting triage (2026-11-03)
 
 The first final-head Quality run after adding the workflow regression guard is expected to enforce the repository's 88-character Python line limit. A newly added split expression was 92 characters; it has been wrapped without changing assertions. Keep Ruff enforcement unchanged and require a fresh final-head Quality run.
+
+
+## ADR-099 — Accept both Frappe login POST routes in Playwright
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-03
+- **Context:** PR #130's first final-head matrix passed Quality Checks, Security/Semgrep and the Frappe v15/v16 Bench + Playwright workflow, but the pinned Frappe 16.5.0 workflow failed its focused Playwright test before reaching the permission assertions. The trace shows the login form submitted POST /login and successfully established an Administrator session; the shared Playwright helper waited only for POST /api/method/login, so it timed out despite the successful login.
+- **Decision:** identify the login response by POST method and accept either /login or /api/method/login. Parse the response URL pathname rather than matching an arbitrary substring. Preserve the existing response-success, authenticated-session-cookie and post-login navigation assertions.
+- **Rationale:** Frappe v16.5's observed login route differs from the route used by the supported moving v16 lane. The test helper must model both supported routes without weakening authentication or permission assertions.
+- **Regression guard:** add a static contract test requiring both exact pathnames and the POST-method check.
+- **Scope:** Playwright test harness and static regression only; no production runtime, schema, dependency or site configuration change.
+- **Evidence:** workflow run 41643473834, job 125943109815, failed only at the focused Playwright login wait after site setup, migration, preflight, D1/D2, Helpdesk, Python and Frappe integration steps passed. The trace network log records POST http://test.local:8000/login with HTTP 200; no matching /api/method/login response occurred.
+- **Revisit criteria:** if the new test still times out, inspect the next final-head Playwright trace and verify the exact POST pathname and status. Do not remove the response wait, bypass login, reuse Administrator for Sales User assertions, or weaken the expected linked-denied/unlinked-allowed results. Require all four final-head workflows before merge.

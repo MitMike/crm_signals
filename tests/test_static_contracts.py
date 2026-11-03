@@ -431,3 +431,10 @@ def test_pinned_playwright_workflow_uses_lockfile_install_and_masks_e2e_password
         assert mask in credentials
         assert output in credentials
         assert credentials.index(mask) < credentials.index(output)
+
+
+def test_playwright_login_wait_supports_frappe_16_5_login_route():
+    spec = (ROOT / "e2e/sahdev-dashboard.spec.ts").read_text()
+    assert "const url = new URL(response.url());" in spec
+    assert '["/login", "/api/method/login"].includes(url.pathname)' in spec
+    assert 'response.request().method() === "POST"' in spec
