@@ -1,9 +1,9 @@
 # CRM Signals — Product and Engineering Delivery Plan
 
-**Last reviewed:** 2026-11-03  
+**Last reviewed:** 2026-11-04  
 **Repository:** [MitMike/crm_signals](https://github.com/MitMike/crm_signals)  
 **Supported framework coverage:** Frappe / ERPNext v15 and v16. **Primary deployment target:** Frappe v16.5; record the exact patch/build and installed ERPNext/Helpdesk versions.  
-**Reviewed main baseline:** [b2f1d07](https://github.com/MitMike/crm_signals/commit/b2f1d07db7fdf8b6cafdaced7b0aaeefc74f9397) (PR #133 merged after all four final-head workflows passed); **latest application feature baseline:** [c5720bf](https://github.com/MitMike/crm_signals/commit/c5720bfb3fbe8b554ec6febd549a8d5e58acc1d7).
+**Reviewed main baseline:** [926ac13](https://github.com/MitMike/crm_signals/commit/926ac1345355b29c227b4b3b65132b68fdce0cbb) (PR #137 and its documentation reconciliation are merged); **latest application permission baseline:** [9b2af7f](https://github.com/MitMike/crm_signals/commit/9b2af7f90652927ca8497777e099cd3e742ce2f2).
 
 This is the execution plan and source of truth for delivery order, scope, dependencies, acceptance gates and exit criteria. The operational state is maintained in [docs/PROGRESS.md](docs/PROGRESS.md); durable choices are in [docs/DECISIONS.md](docs/DECISIONS.md); feature contracts are in [specs/](specs/).
 
@@ -36,7 +36,7 @@ The following capabilities are present in the repository. "Implemented" means th
 | CRM Signal DocType and validation | Implemented | Validate installed schema, roles and customizations |
 | Authenticated POST ingestion | Event-ID idempotency and concurrent duplicate recovery merged in PR #19/#23 | Verify with a dedicated target-site integration user and deployment rate limits |
 | Quotation and Opportunity event hooks | Implemented; transactional outbox merged in PR #26 | Confirm target-site status/threshold policy; audited Failed-row replay merged in PR #38; per-company thresholds are in PR #45 merged |
-| Record-level Signal permissions | Implemented | Verify list, direct form, report, export and API on target roles |
+| Record-level Signal permissions | Implemented; PR #139 adds Sales User token-authenticated Report View query and CSV export regression on supported v16 and pinned v16.5.0; final-head CI pending | Execute the full live role matrix across list, direct form, RPC/REST API, Report View, CSV export, print and dashboard on target roles |
 | Recipient-scoped realtime notifications | Implemented and CI-verified; PR #54 merged as `37ce600` | Stable delivery IDs, bounded retry, current permission rechecks and active-session dedupe; target-site Redis/worker recovery remains unverified |
 | Daily CRM digest | Per-recipient queue tracking and cross-worker serialization merged in PR #19/#23 | Verify target-site semantics, timezone, recipient policy and live scheduler/mail behavior |
 | CRM Signals Settings | Implemented and merged in PR #19 | Confirm the default Company currency, preset behavior and selected site configuration |
@@ -101,7 +101,7 @@ Work:
 - [x] Add calibrated source file/function size standards, checker, pre-commit and CI integration. Implemented and merged in PR #18 as `f51fbce`.
 - [x] Merge the settings, presets, event identity and digest foundation (PR #19, merged as `a495919`).
 - [x] Merge the independent-connections API idempotency and overlapping-digest-worker hardening (PR #23); v15/v16 Bench, v16 Playwright, quality and security checks passed on the final head.
-- Verify that CRM Signal list, direct-document, API, report and export permissions are equivalent.
+- Verify that CRM Signal list, direct-document, API, report and export permissions are equivalent. PR #139 adds cookie-independent Sales User coverage for `frappe.desk.reportview.get_list` and `frappe.desk.reportview.export_query`; this verifies Report View rows and CSV export against the linked-restricted/unlinked-owned pair on v16 and pinned v16.5.0. Target-site role acceptance remains open.
 - Verify that the current shared is_read flag is acceptable as a team acknowledgement.
 - Confirm daily digest currency formatting, site timezone, recipients and duplicate-run behavior.
 - Reconcile D2 invoice/receipt/outstanding totals against native ERPNext reports.
@@ -702,3 +702,14 @@ The token-authenticated resource GET boundary is reference-stack CI-verified: li
 - Bench v15/v16 + Playwright [41698694301](https://github.com/MitMike/crm_signals/actions/runs/41698694301): v15 integration passed (157 tests); v16 integration passed (157 tests and 21 Playwright tests).
 - Pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 [41698694356](https://github.com/MitMike/crm_signals/actions/runs/41698694356): integration passed (157 tests) and 6 Playwright tests passed.
 - Frappe v15 and exact Frappe v16.5.0 source both use the read-or-print permission gate; the hook now requires role-level print permission plus the existing row-level readable relationship.
+
+
+## 43. PR #139 — Sales User Report View and CSV export permission regression (2026-11-04)
+
+- **Reviewed main:** `926ac1345355b29c227b4b3b65132b68fdce0cbb`; no open pull requests or issues were present at task start.
+- **Finding:** the CRM Signal DocType grants Sales User the role-level `report` and `export` permissions. Existing reference tests cover list APIs, direct form loading, token-authenticated RPC/REST resources and print, but did not execute Frappe's standard Report View list endpoint or its CSV export endpoint against the linked-restricted/unlinked-owned pair.
+- **Decision (ADR-107):** use the disposable Sales User API token with Node native fetch (no browser cookie jar) to call `frappe.desk.reportview.get_list` and `frappe.desk.reportview.export_query`. Require Report View results to contain only the unlinked owned signal. Require CSV export to contain the unlinked record name/message and omit both the linked-restricted name and message. Preserve the explicit token identity check and do not relax the record boundary.
+- **Rationale:** report/list and export are separate Frappe routes from `frappe.client.get_list` and REST resource APIs. The Report View/export implementation executes a `DatabaseQuery`; this regression verifies the CRM Signal permission query is honored by both user-facing paths.
+- **Scope:** Playwright E2E, static regression guard and operator acceptance documentation only. Run the test in supported Frappe v16 and pinned Frappe 16.5.0; retain Frappe v15 Bench integration coverage. No production runtime, DocType permission, schema, dependency or site-configuration change.
+- **Status:** code-complete on focused branch `test/sales-user-report-export-permission-20261104`; final-head Quality/Python, Security/Semgrep, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 checks pending. Not pilot-verified.
+- **Revisit criteria:** if Report View results or CSV contain the restricted signal, inspect the installed version's `frappe.desk.reportview.get_list`, `export_query` and `DatabaseQuery.execute` permission path before changing runtime code. If export returns an error or a different body format, inspect response status/content type and the pinned v16.5 route; do not switch to Administrator credentials, follow redirects, remove the linked-denied assertion or infer success from the ordinary list API.
