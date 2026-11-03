@@ -1133,3 +1133,13 @@ The first final-head Quality run after adding the workflow regression guard is e
 - **Scope:** CI fixture and Playwright test only. No production runtime, schema, dependency or site configuration changes.
 - **Revisit criteria:** if the server-side role check fails, inspect the fixture's User role rows and frappe.get_roles result on the exact Frappe build. If the browser identity endpoint fails or returns another user, inspect login response, session cookie and request routing; do not remove the identity assertion, use Administrator for Sales User permission requests, or weaken the linked-denied/unlinked-allowed/list-only-unlinked expectations. Require all four final-head workflows before merge.
 - **Verification status:** correction committed on PR #130; fresh Quality/Python, Security/Semgrep, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 Playwright workflows are required. Not pilot-verified.
+
+
+
+### ADR-100 CI triage — stale non-sales role helper reference
+
+The first correction removed the version-sensitive currentUserRoles helper and changed the Sales User test to verify frappe.auth.get_logged_user. Quality's Python 3.12 run 41663119127 then failed the new static contract because the existing non-sales dashboard test still called the removed helper. The failure occurred in tests/test_static_contracts.py:448; 141 tests passed and 36 were skipped. No browser permission assertion ran in this Python failure.
+
+- **Decision:** use the same authenticated identity endpoint in the non-sales browser test and assert the exact configured Employee email. Enforce the fixture's Employee-only role boundary server-side with frappe.get_roles; also reject Sales Manager/System Manager roles on the Sales User fixture.
+- **Revisit:** if fixture role validation fails, inspect the User role rows on the exact Frappe build. If identity validation fails, inspect the session cookie and frappe.auth.get_logged_user response. Keep the identity assertion and the 403/200/list-only-unlinked permission checks; do not use Administrator for Sales User requests.
+- **Status:** corrected code and regression tests committed; all four final-head workflows must rerun. Not pilot-verified.
