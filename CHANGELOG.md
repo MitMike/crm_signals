@@ -349,3 +349,14 @@ Included in PR #19's merge commit [a495919](https://github.com/MitMike/crm_signa
 - All 13 final-head check runs completed: 11 succeeded and two runtime selectors were skipped as expected for documentation-only changes.
 - Updated the implementation plan, progress, follow-ups, release-readiness sprint and historical production-audit notice; corrected README D3 acceptance wording.
 - No runtime code or site configuration changed. Target-site pilot acceptance remains outstanding.
+
+
+### 2026-11-03 — Release-document reconciliation merged (PR #111)
+- PR #111 merged as [`166ca6b`](https://github.com/MitMike/crm_signals/commit/166ca6b2cc9838ffd68c551b327ee41d2a5316b4) from final head `30d44ffd48a1f39ef39d658a6bdc12b07f8130da`.
+- All 13 final-head checks completed: 11 succeeded and two docs-only runtime selectors were skipped. The main commit subsequently completed all 17 check runs with 16 successes and one expected docs-only selector skip.
+- The live repository review found no open pull requests or issues.
+
+### 2026-11-03 — Pin the README first-install sequence before Bench setup (ADR-090 / PR #112)
+- Replace the unsafe moving-branch `bench get-app ... --branch main` example with the established direct-clone, approved-SHA detach/verify, then `bench setup requirements crm_signals` sequence.
+- Link existing-install upgrades to the Administrator Guide and Deployment Runbook so all operator entry points use the same verified procedure.
+- Documentation and static-test-only; no runtime or dependency change. The static contract test protects the README's pin-before-requirements ordering. Authorized Frappe v16.5 staging rehearsal remains required and is not implied by CI.

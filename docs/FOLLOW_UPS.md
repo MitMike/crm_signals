@@ -183,3 +183,16 @@ The PR's CI result does not establish that a customer site has the approved SHA,
 - [x] Reconciled the plan, progress, follow-ups, release sprint, production-audit snapshot, changelog and README's D3 prerequisite. D3 implementation is complete; Helpdesk target-site version/schema/field permissions and SLA calendar validation remain pilot gates.
 - **Status:** documentation complete; no runtime/site configuration change; reference CI-verified; not pilot-verified.
 - [ ] **Next action / revisit criteria:** no further repository feature work is justified by the current evidence. Resume target-site acceptance only when an authorized Frappe v16.5 staging window, approved full SHA, named technical/business owners and test accounts are available. Then collect exact installed app inventory, dashboard desktop/mobile screenshots after approved asset rebuild/cache refresh, effective-role permission results, D1/D2 finance reconciliation by currency, Helpdesk SLA evidence, scheduler/mail/realtime/webhook recovery and backup/restore/rollback rehearsal. If new code or documentation changes, add their specific evidence and retest criteria in a focused PR.
+
+
+## PR #111 merged — release-document reconciliation (2026-11-03)
+
+- [x] PR #111 merged as [`166ca6b`](https://github.com/MitMike/crm_signals/commit/166ca6b2cc9838ffd68c551b327ee41d2a5316b4); all 11 applicable final-head checks passed and two docs-only runtime selectors were skipped. The main commit's 17 checks later completed with 16 success and one expected selector skip.
+- **Current main:** `166ca6b2cc9838ffd68c551b327ee41d2a5316b4`; no open PRs or issues were found in the live repository query.
+
+## README pinned first-install path — PR #112
+
+- [x] **Documentation consistency fix (ADR-090):** remove the moving `bench get-app --branch main` example. The README now clones directly into `apps/crm_signals`, detaches and verifies the approved full SHA, then runs `bench setup requirements crm_signals` and site installation/migration/build/restart. Existing upgrades link to the Administrator Guide and Deployment Runbook.
+- **Scope:** documentation and static-test-only; no runtime or dependency changes. The root quick-start now agrees with the detailed operator procedure, and the Python contract test protects the pin-before-requirements ordering.
+- [ ] **Still open — staging rehearsal:** execute both first-install and upgrade sequences on an authorized Frappe v16.5 staging Bench; record the exact approved/deployed SHA, `bench version`, installed-app inventory, command output, migration, asset build, restart and rollback evidence.
+- **Revisit criteria:** staging rehearsal can begin only when an authorized Frappe v16.5 staging window, approved full SHA, named technical owner and site/Bench operator are available. Do not infer success from repository CI.
