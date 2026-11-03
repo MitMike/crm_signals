@@ -353,3 +353,12 @@ PR #126 merged as `812aa1eb76fbabc0e7f73a664caa72a1e208feb6` from final head `24
 - [x] Require all four corrected final-head workflows before merge; no failing head was merged.
 - [ ] On authorized Frappe v16.5 staging, verify API-key/token authentication, HTTP status/response behavior, browser form loading and the approved role/record matrix. Continue report/export/print/dashboard checks and remaining P0 acceptance.
 - **Revisit criteria:** if HTTP or browser tests differ from the Python method-wrapper outcomes, capture sanitized status/body and Frappe version, then inspect authentication, routing, document permission and form-loading paths without using Administrator credentials or weakening the record boundary.
+
+
+## PR #128 — authenticated Sales User HTTP acceptance procedure (2026-11-03)
+
+- [x] Add exact GET query parameters and expected outcomes for `frappe.client.get` and `frappe.client.get_list` using the linked-restricted/unlinked-owned synthetic CRM Signal pair.
+- [x] Verify the API token identity against the explicitly expected dedicated Sales User; reject Administrator.
+- [x] Keep the token header in a mode-0600 temporary curl config, require HTTPS, do not follow redirects, and remove private response files on exit.
+- [ ] Execute on authorized Frappe v16.5 staging and record sanitized HTTP status/pass-fail evidence with the approved full SHA and installed versions.
+- **Revisit criteria:** if status/response shape differs on the pinned site, capture sanitized status/error class and Frappe build, inspect the versioned method wrapper/auth mapping, and update the guide. Never use Administrator or accept a result that exposes the linked restricted record.
