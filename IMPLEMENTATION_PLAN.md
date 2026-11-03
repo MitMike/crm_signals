@@ -380,3 +380,12 @@ ADR-088's regression test is merged in PR #107 as [`a472f19`](https://github.com
 All 19 final-head check runs completed successfully across Quality/Python 3.10–3.14, Security/Semgrep, Bench v15/v16 including v16 Playwright, and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 validation. All four required workflows completed successfully. No runtime behavior or target-site configuration changed.
 
 **Status:** code-complete and reference-stack CI-verified; not pilot-verified. Main is `a472f1981f758ce7b6233d95fc0682fe69d7a304`. The next release gate remains authorized target-site staging evidence: exact deployed SHA, effective-role permissions, D1/D2 finance reconciliation, Helpdesk SLA, operational recovery, rollback rehearsal and desktop/mobile visual UAT. Do not infer any of these from CI.
+
+
+## 18. Real-Git clean and untracked-dirty source identity regression — PR in progress (2026-11-03)
+
+PR #108 merged as `c31fe7eb328f552cf49f670257370189f09da9e2`; its documentation-only reconciliation passed all 11 applicable checks, with two runtime selectors skipped as expected.
+
+ADR-089 adds a real temporary CRM Signals Git checkout test. It commits the package `__init__.py`, invokes the production `_source_revision()` helper and requires the exact real `HEAD` SHA for a clean tree. It then creates an untracked Python override and requires `working_tree_dirty`, verifying the helper does not proceed to `HEAD`. This complements ADR-087/088's root-identity tests and the mocked timeout/missing-Git/invalid-output cases.
+
+[PR #109](https://github.com/MitMike/crm_signals/pull/109) is test-only; no runtime code or target-site configuration changes. Require final-head Python 3.10–3.14, Quality, Security, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 validation before merge. **Status: code-complete; CI pending; not pilot-verified.**
