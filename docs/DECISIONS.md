@@ -1234,3 +1234,18 @@ The direct Desk form test observed GET `frappe.desk.form.load.getdoc`: linked-re
 - **Scope:** CI fixture/E2E and operator guide only. Supported Frappe v16 and pinned v16.5.0 run the token resource test; Frappe v15 Bench integration coverage remains. No production runtime, schema, package, permission or site configuration change.
 - **Verification target:** Quality/Python, Security/Semgrep, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 must all pass on the exact final PR head. Not pilot-verified.
 - **Revisit criteria:** if the resource route redirects, inspect the exact Frappe API URL map and trailing-slash behavior; never follow the redirect. If the response envelope differs, inspect the installed v1 resource handler and update only parsing/assertions. Do not weaken linked-denied/unlinked-allowed/list-only-unlinked expectations.
+
+### ADR-105 verification — PR #135 merged (2026-11-04)
+
+PR #135 merged as [81d70410f0f81124ae468c1d929caefd1610fd9e](https://github.com/MitMike/crm_signals/commit/81d70410f0f81124ae468c1d929caefd1610fd9e) from final tested head [ae6b7e408664a3b6f885c1c18ba9fc3d18c73890](https://github.com/MitMike/crm_signals/commit/ae6b7e408664a3b6f885c1c18ba9fc3d18c73890). All four final-head workflows passed: Quality/Python `41690041480`, Security/Semgrep `41690041431`, Bench v15/v16 + Playwright `41690041398`, and pinned Frappe 16.5.0 `41690041432`. REST resource single-document and collection E2E are reference-stack CI-verified. Authorized target-site token transport and role acceptance remain open; not pilot-verified.
+
+## ADR-106 — Require row-level read visibility for CRM Signal print
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-04
+- **Context:** Frappe v16 `frappe.www.printview.validate_print_permission` accepts a document when either `read` or `print` permission succeeds. The CRM Signal permission hook previously enforced linked Lead/Customer visibility for `read` but returned true for `print` whenever the role-level DocType grant existed. Since Sales User has a role-level CRM Signal print grant, this allowed printing a linked-restricted signal despite direct read denial.
+- **Decision:** keep the role-level DocType permission check for `print` and additionally require the same row-level readable relationship used by `read`. Manager role behavior remains unchanged. Unlinked signals remain printable only by their owner under the existing row policy.
+- **Rationale:** print output discloses the full CRM Signal document and must not be a side door around the linked-party read boundary. Frappe's read-or-print print gate means role-only print permission is insufficient for this DocType.
+- **Scope:** CRM Signal permission hook, unit/E2E regression tests and operator acceptance documentation. No schema, role, dependency or site-configuration changes.
+- **Verification target:** Quality/Python, Security/Semgrep, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 must all pass on the exact final PR head. Not pilot-verified.
+- **Revisit criteria:** if installed Frappe v15/v16 print permission behavior differs, inspect the exact `validate_print_permission` implementation. Preserve both role-level print permission and row-level read visibility; do not accept a role-only grant for linked-restricted records.

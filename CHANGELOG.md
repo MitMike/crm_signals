@@ -667,3 +667,15 @@ PR #125 merged as [7029747](https://github.com/MitMike/crm_signals/commit/702974
 - Require linked-restricted 403 without restricted message disclosure, unlinked-owned 200 with exact record name/message, and list-only-unlinked; preserve non-JSON response bodies and reject redirects.
 - Extend the target-site acceptance script with the same REST resource single-document and collection checks.
 - Code-complete on a focused branch; final-head CI pending. No production runtime, schema, dependency or site-configuration change. Not pilot-verified.
+
+### 2026-11-04 — PR #135 merged — Sales User REST resource permission regression
+
+- Merged as `81d70410f0f81124ae468c1d929caefd1610fd9e` from tested head `ae6b7e408664a3b6f885c1c18ba9fc3d18c73890`.
+- All four required final-head workflows passed: Quality/Python `41690041480`, Security/Semgrep `41690041431`, Bench v15/v16 + Playwright `41690041398`, and pinned Frappe 16.5.0 `41690041432`.
+- Standard REST resource single-document and collection permission checks are reference-stack CI-verified. Target-site API-token transport, role configuration and full report/export/print/dashboard acceptance remain open; not pilot-verified.
+
+### 2026-11-04 — PR #137 opening — CRM Signal print permission boundary
+
+- Fix a row-level authorization bypass: Frappe's print gate accepts read OR print, while the CRM Signal hook previously treated print as role-only.
+- Require the same row-level readable relationship for print as for read, while preserving the existing DocType print grant and manager behavior.
+- Add unit and Sales User browser-session print-view regressions plus target-site operator instructions. Final-head CI pending; not pilot-verified.

@@ -134,3 +134,44 @@ def test_list_query_owner_clause_is_limited_to_unlinked_signals(monkeypatch):
     assert "`tabCRM Signal`.customer IS NULL" in condition
     assert "`lead` IN" not in condition
     assert "`customer` IN" not in condition
+
+
+def test_sales_user_cannot_print_linked_signal_without_parent_read_permission(monkeypatch):
+    permissions = load_permissions(
+        monkeypatch,
+        parent_access=True,
+        owners={("Lead", "LEAD-0001"): "someone-else@example.com"},
+    )
+    assert (
+        permissions.crm_signal_has_permission(
+            Signal(), "rep@example.com", "print"
+        )
+        is False
+    )
+
+
+def test_sales_user_can_print_signal_for_readable_parent(monkeypatch):
+    permissions = load_permissions(
+        monkeypatch,
+        parent_access=True,
+        owners={("Lead", "LEAD-0001"): "rep@example.com"},
+    )
+    assert (
+        permissions.crm_signal_has_permission(
+            Signal(), "rep@example.com", "print"
+        )
+        is True
+    )
+
+
+def test_sales_user_can_print_unlinked_owned_signal(monkeypatch):
+    permissions = load_permissions(monkeypatch, parent_access=True)
+    signal = Signal()
+    signal.owner = "rep@example.com"
+    signal.lead = None
+    assert (
+        permissions.crm_signal_has_permission(
+            signal, "rep@example.com", "print"
+        )
+        is True
+    )

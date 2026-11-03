@@ -606,3 +606,22 @@ def test_target_site_acceptance_sales_api_smoke_is_valid_bash():
     fence_end = acceptance.index("\n```", marker)
     script = acceptance[fence_start + len("```bash") : fence_end]
     subprocess.run(["bash", "-n"], input=script, text=True, check=True)
+
+
+def test_sales_user_print_permission_requires_row_level_read_access():
+    source = (APP_ROOT / "permissions.py").read_text()
+    assert 'if permission_type in {"read", "print"}:' in source
+    assert "requires row-level read access" in source
+
+
+def test_sales_user_print_view_e2e_checks_linked_denial_and_owned_access():
+    spec = (ROOT / "e2e/sahdev-dashboard.spec.ts").read_text()
+    assert (
+        'test("Sales User print view respects linked Lead User Permission"'
+        in spec
+    )
+    assert "`/printview?doctype=CRM%20Signal&name=${encodeURIComponent(linkedSignal!.name)}&format=Standard&no_letterhead=1`" in spec
+    assert "expect(restrictedResponse?.status()).toBe(403)" in spec
+    assert "expect(restrictedBody).not.toContain(linkedMessage)" in spec
+    assert "expect(allowedResponse?.status()).toBe(200)" in spec
+    assert "expect(allowedBody).toContain(unlinkedMessage)" in spec
