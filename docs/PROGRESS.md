@@ -380,3 +380,11 @@ PR #100 is code-complete and CI-verified, not pilot-verified. The automated comp
 - **Additional defect:** the setup guide footer incorrectly identified itself as the read-only discovery guide.
 - **Fix:** replaced the adapter promise with steps to validate/configure the existing standard adapter and keep custom sources behind separate approval; corrected the footer; extended the static contract test to reject both stale statements.
 - **Status:** fix committed to the focused D3 branch; final-head CI must rerun. No runtime code, dependency or site configuration changed. Do not merge until all required final-head checks pass.
+
+
+## Second D3 CI triage — assertion wording mismatch
+
+- **Observed failure:** on head `87a5f8f479d291ddaf119c8d4938a9a2d30d54bc`, Python 3.11, 3.12 and 3.14 each reported 1 failed, 125 passed and 36 skipped.
+- **Cause:** the setup guide correctly replaced the old promise with "custom sources require separate approval and scope", but the static test still asserted the previous wording "separately scoped adapter change".
+- **Fix:** updated the static expectation to match the approved operator wording. This is a test expectation mismatch, not a runtime defect.
+- **Status:** corrected on the D3 branch; a fresh final-head CI run is still required before merge.
