@@ -456,3 +456,10 @@ The D3 Support & SLA setup guide now describes the implemented standard Helpdesk
 Status: D3 guide and static regression are merged and reference-stack CI-verified. They are not pilot-verified.
 
 Remaining target-site gate: authorized Frappe v16.5 staging must confirm exact Helpdesk version/schema, effective Sales field permissions, active SLA schedule/holidays/timezone, pause/resume behavior and native metric outcomes. The README first-install/upgrade rehearsal, D1/D2 native-report reconciliation, desktop/mobile visual UAT, scheduler/mail/realtime/webhook recovery and backup/restore/rollback remain separate site acceptance work.
+
+
+## 26. PR #118 documentation reconciliation merged (2026-11-03)
+
+PR #118 merged as 3cb9f017b1694727f0b1729d5e2af9a7913a7715. All 11 applicable final-head checks passed; the two runtime selectors were skipped as expected for the documentation-only change. It records PR #117's 35/35 final-head verification and the remaining target-site acceptance gates. No runtime code, dependency, schema or site configuration changed.
+
+Main at this reconciliation point: 3cb9f017b1694727f0b1729d5e2af9a7913a7715. The live repository query returned no open PRs or issues. Main-push Quality/Security checks for this documentation merge were still running at the time of review; PR final-head checks passed.

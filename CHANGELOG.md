@@ -391,3 +391,10 @@ Included in PR #19's merge commit [a495919](https://github.com/MitMike/crm_signa
 - All 35 final-head checks passed: Python 3.10–3.14, Quality, Semgrep, Bench v15/v16 including Playwright, pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 and bench-validation selectors.
 - Corrected both D3 operator guides and added static regression coverage for the existing adapter and custom-source approval boundary.
 - No runtime code, dependencies, schema or site configuration changed. D3 pilot acceptance remains outstanding.
+
+
+### 2026-11-03 — Post-PR117 documentation reconciliation merged (PR #118)
+- PR #118 merged as 3cb9f017b1694727f0b1729d5e2af9a7913a7715.
+- All 11 applicable final-head checks passed; two runtime selectors were skipped as expected for documentation-only changes.
+- Updated project plan, progress, follow-ups, ADR-091 verification and changelog to record PR #117's 35/35 CI result and remaining target-site gates.
+- No runtime code, dependencies, schema or site configuration changed.

@@ -400,3 +400,13 @@ PR #100 is code-complete and CI-verified, not pilot-verified. The automated comp
 - Current main: 93e7e16271d727476618b4981498ad901835bad4. PR #117 is closed/merged; the open-PR search was empty at merge.
 - Status: code-complete and reference-stack CI-verified; not pilot-verified.
 - [ ] Target-site D3 acceptance: verify installed versions, exact required fields, effective Sales read permissions, active SLA calendar/holidays/timezone, pause/resume and native outcomes on authorized Frappe v16.5 staging.
+
+
+## PR #118 merged — post-PR117 documentation reconciliation (2026-11-03)
+
+- [x] PR #118 merged as 3cb9f017b1694727f0b1729d5e2af9a7913a7715.
+- [x] All 11 applicable final-head checks passed; two runtime selectors were skipped as expected for the documentation-only diff.
+- [x] Implementation plan, progress, follow-ups, ADR-091 verification and changelog now record PR #117's 35/35 CI result and keep target-site acceptance separate.
+- **Current main:** 3cb9f017b1694727f0b1729d5e2af9a7913a7715. Live open-PR and open-issue searches returned zero at review.
+- **Scope:** documentation-only; no runtime code, dependency, schema or site configuration change.
+- **Main-push checks:** Quality/Security checks for the PR #118 merge were still running at this review; PR final-head checks passed.

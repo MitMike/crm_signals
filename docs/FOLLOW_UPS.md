@@ -225,3 +225,11 @@ The PR's CI result does not establish that a customer site has the approved SHA,
 - [ ] Target-site D3 acceptance: on authorized Frappe v16.5 staging, verify exact Helpdesk version/schema, effective Sales field permissions, active SLA calendar/holidays/timezone, pause/resume behavior and native metric outcomes.
 - [ ] Release acceptance: rehearse first install/upgrade and rollback; reconcile D1/D2 against native ERPNext reports by currency; complete dashboard desktop/mobile visual UAT; test scheduler, mail, realtime, webhook and worker recovery; record backup/restore evidence.
 - Revisit criteria: begin only with an authorized staging window, approved full SHA, named technical owner, site/Bench operator, support/security/business owners and representative test accounts. Do not infer pilot acceptance from CI.
+
+
+## PR #118 merged — documentation reconciliation
+
+- [x] PR #118 merged as 3cb9f017b1694727f0b1729d5e2af9a7913a7715; all 11 applicable final-head checks passed and two docs-only runtime selectors were skipped.
+- [x] PR #117's D3 guide change remains code-complete and reference-stack CI-verified, not pilot-verified.
+- [ ] Target-site D3 acceptance, first-install/upgrade/rollback, D1/D2 native-report reconciliation, dashboard visual UAT and operational recovery remain open.
+- Revisit only when authorized Frappe v16.5 staging, approved full SHA, named technical/business owners and representative test accounts are available.
