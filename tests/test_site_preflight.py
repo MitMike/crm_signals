@@ -333,6 +333,38 @@ def test_preflight_record_visibility_query_errors_fail_closed_and_restore_user(m
     assert "private record name" not in repr(report)
 
 
+def test_preflight_restores_session_when_user_switch_raises_after_mutation(monkeypatch):
+    diagnostics = load_diagnostics(monkeypatch)
+    calls = []
+
+    def failed_switch(user):
+        calls.append(user)
+        diagnostics.frappe.session.user = user
+        if user == "sales.user@example.invalid":
+            raise RuntimeError("session switch failed after mutation")
+
+    monkeypatch.setattr(diagnostics.frappe, "set_user", failed_switch)
+    report = diagnostics.get_site_preflight_report(
+        test_users={"sales_user": "sales.user@example.invalid"},
+        test_records={"sales_user": {"Lead": {"sample": "LEAD-SYNTHETIC-SWITCH"}}},
+    )
+    result = report["effective_user_permissions"]["profiles"]["sales_user"]
+
+    assert result["status"] == "partial"
+    assert result["record_visibility"]["doctypes"]["Lead"] == {
+        "status": "session_switch_failed",
+        "records": {"sample": None},
+    }
+    assert result["record_visibility"]["error_types"] == {
+        "session_switch": "RuntimeError"
+    }
+    assert calls == ["sales.user@example.invalid", "Administrator"]
+    assert diagnostics.frappe.session.user == "Administrator"
+    assert "LEAD-SYNTHETIC-SWITCH" not in repr(report)
+    assert "session switch failed after mutation" not in repr(report)
+
+
+
 def test_preflight_rejects_invalid_record_probe_input(monkeypatch):
     diagnostics = load_diagnostics(monkeypatch)
     users = {"sales_user": "sales.user@example.invalid"}
