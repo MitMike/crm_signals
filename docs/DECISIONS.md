@@ -857,3 +857,14 @@ Append a new ADR with the next available identifier. Include status, date record
 - **Consequences:** The preflight uses one additional bounded, read-only Git query. Tests cover a matching root and a parent-repository mismatch. The administrator guide explains the check and the new unavailable reason. This does not change supported Frappe versions or replace target-site acceptance.
 - **Revisit criteria:** Revisit if the package moves to a different repository layout (for example, a `src/` layout), is installed without a Git checkout, or Bench app layout changes. Update the expected repository-root derivation and tests together; never accept an ancestor repository's SHA.
 - **Verification:** PR #105 merged as `db958124bca6a6704a75f606629c22444716f5b9` from final head `fd2161dc933fbaf74fd5a50a5261e5f1501b283e`. All 19 final-head check runs passed, including Quality/Python 3.10–3.14, Security/Semgrep, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0. This is reference-stack CI evidence, not target-site or pilot verification.
+
+
+## ADR-088 — Exercise enclosing Git repository rejection with a real repository
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-03
+- **Context:** ADR-087's parent-repository regression test mocked the output of `git rev-parse --show-toplevel`. That proves the diagnostic rejects a mismatched root string, but it does not exercise Git's actual upward repository discovery from a nested app directory.
+- **Decision:** Add a focused Python test that creates a temporary parent Git repository, creates a nested Bench-style `apps/crm_signals/crm_signals` package path without its own `.git` directory, makes an empty parent commit, and calls the real `_source_revision()` Git commands. Require `repository_root_mismatch` and no parent SHA. Retain the existing mocked tests for deterministic timeout, missing-Git, dirty-tree and malformed-output branches.
+- **Rationale:** The risk is specifically Git's real parent-directory discovery behavior. A temporary repository test validates that behavior directly while remaining isolated, read-only with respect to the project checkout, and independent of any Frappe site.
+- **Consequences:** The test adds no runtime behavior or external dependencies; Git is already present in the CI checkout environment and is a runtime prerequisite of this preflight feature. Python and Bench CI execute the regression on the supported matrix. This strengthens reference CI only; it does not establish target-site deployment or pilot acceptance.
+- **Revisit criteria:** Revisit if the CI environment no longer includes Git, the Bench app/package layout changes, or the preflight stops invoking Git from the imported package directory. Preserve a real nested-parent test whenever root-discovery behavior changes.

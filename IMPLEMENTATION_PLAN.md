@@ -364,3 +364,10 @@ ADR-087 records a source-identity edge case: Git searches parent directories, so
 PR #105 merged as [`db95812`](https://github.com/MitMike/crm_signals/commit/db958124bca6a6704a75f606629c22444716f5b9) from final head `fd2161dc933fbaf74fd5a50a5261e5f1501b283e`. Its 19 final-head check runs all completed successfully: Quality/lint, Python 3.10/3.11/3.12/3.14, Security/Semgrep, Bench v15/v16 (including the v16 Playwright lane), and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 validation. The corrected dirty-checkout assertion verifies root validation precedes status and that `HEAD` is not read for a dirty tree.
 
 The administrator guide, target-site acceptance kit and deployment runbook require the root check. **Status: code-complete and reference-stack CI-verified; not pilot-verified.** Revisit the root derivation only if the package layout changes, the app is installed without a Git checkout, or Bench's app layout changes; add a matching-layout regression test before changing the rule.
+
+
+## 16. Real-Git regression for nested parent repository discovery — PR in progress (2026-11-03)
+
+ADR-088 adds a focused test using an actual temporary Git repository. It creates a committed parent repository and a nested Bench-style `apps/crm_signals/crm_signals` package directory without its own Git metadata, then invokes the real preflight Git commands and requires `repository_root_mismatch`. This complements the mocked tests, which continue to cover dirty state, missing Git, timeout, command failure and malformed SHA output.
+
+The test changes no runtime code and requires no Frappe site. It verifies Git's actual upward repository discovery behavior that ADR-087 is intended to reject. [PR #107](https://github.com/MitMike/crm_signals/pull/107) is code-complete; require final-head Python 3.10/3.11/3.12/3.14, Quality, Security, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 checks before merge. It is not pilot verification.

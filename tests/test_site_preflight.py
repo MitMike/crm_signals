@@ -316,3 +316,49 @@ def test_preflight_source_revision_reports_missing_git(monkeypatch):
         "available": False,
         "reason": "git_unavailable",
     }
+
+
+
+def test_preflight_source_revision_rejects_real_enclosing_git_repository(monkeypatch, tmp_path):
+    diagnostics = load_diagnostics(monkeypatch)
+    app_root = tmp_path / "bench" / "apps" / "crm_signals"
+    package_dir = app_root / "crm_signals"
+    package_dir.mkdir(parents=True)
+    module_file = package_dir / "__init__.py"
+    module_file.touch()
+
+    diagnostics.subprocess.run(
+        ["git", "init", "--quiet", str(tmp_path)],
+        check=True,
+        capture_output=True,
+        text=True,
+        timeout=5,
+    )
+    diagnostics.subprocess.run(
+        [
+            "git",
+            "-C",
+            str(tmp_path),
+            "-c",
+            "user.name=CRM Signals test",
+            "-c",
+            "user.email=crm-signals-test@example.invalid",
+            "commit",
+            "--allow-empty",
+            "-m",
+            "parent repository",
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+        timeout=5,
+    )
+    monkeypatch.setattr(
+        diagnostics.importlib,
+        "import_module",
+        lambda app: types.SimpleNamespace(__file__=str(module_file)),
+    )
+
+    result = diagnostics._source_revision()
+
+    assert result == {"available": False, "reason": "repository_root_mismatch"}

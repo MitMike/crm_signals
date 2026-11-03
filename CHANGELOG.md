@@ -315,3 +315,9 @@ Included in PR #19's merge commit [a495919](https://github.com/MitMike/crm_signa
 - Add regression coverage for matching and parent repository roots. Preserve bounded read-only Git commands, dirty-tree rejection, full-SHA validation and non-disclosing failure reasons.
 - Update the administrator guide, target-site acceptance kit and deployment runbook with the exact release-identity stop condition.
 - PR #105 merged as [`db95812`](https://github.com/MitMike/crm_signals/commit/db958124bca6a6704a75f606629c22444716f5b9); all 19 final-head checks passed, including Python 3.10–3.14, Security/Semgrep, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 validation. Target-site pilot acceptance remains outstanding.
+
+
+### 2026-11-03 — Real-Git preflight parent-repository regression (PR #107)
+- Add a temporary committed parent repository and nested Bench-style CRM Signals package path to exercise Git's real upward repository discovery.
+- Assert the read-only preflight rejects the enclosing root with `repository_root_mismatch` instead of reporting the parent's SHA. Existing mocked failure-path coverage remains unchanged.
+- No runtime code or site configuration changes; final-head CI is required before merge.
