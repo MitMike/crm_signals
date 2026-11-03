@@ -362,3 +362,76 @@ def test_preflight_source_revision_rejects_real_enclosing_git_repository(monkeyp
     result = diagnostics._source_revision()
 
     assert result == {"available": False, "reason": "repository_root_mismatch"}
+
+def test_preflight_source_revision_uses_real_clean_sha_and_rejects_untracked_file(
+    monkeypatch, tmp_path
+):
+    diagnostics = load_diagnostics(monkeypatch)
+    app_root = tmp_path / "bench" / "apps" / "crm_signals"
+    package_dir = app_root / "crm_signals"
+    package_dir.mkdir(parents=True)
+    module_file = package_dir / "__init__.py"
+    module_file.write_text("# real Git preflight fixture\\n", encoding="utf-8")
+
+    diagnostics.subprocess.run(
+        ["git", "init", "--quiet", str(app_root)],
+        check=True,
+        capture_output=True,
+        text=True,
+        timeout=5,
+    )
+
+    def run_git(*args):
+        return diagnostics.subprocess.run(
+            ["git", "-C", str(app_root), *args],
+            check=True,
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+
+    run_git("add", "crm_signals/__init__.py")
+    run_git(
+        "-c",
+        "user.name=CRM Signals test",
+        "-c",
+        "user.email=crm-signals-test@example.invalid",
+        "commit",
+        "-m",
+        "clean preflight fixture",
+    )
+    expected_sha = run_git("rev-parse", "--verify", "HEAD").stdout.strip().lower()
+
+    monkeypatch.setattr(
+        diagnostics.importlib,
+        "import_module",
+        lambda app: types.SimpleNamespace(__file__=str(module_file)),
+    )
+    real_run = diagnostics.subprocess.run
+    commands = []
+
+    def tracked_run(command, **kwargs):
+        commands.append(command)
+        return real_run(command, **kwargs)
+
+    monkeypatch.setattr(diagnostics.subprocess, "run", tracked_run)
+
+    assert diagnostics._source_revision() == {
+        "available": True,
+        "commit_sha": expected_sha,
+    }
+    assert len(commands) == 3
+    assert commands[0][-2:] == ["rev-parse", "--show-toplevel"]
+    assert commands[1][-3:] == ["status", "--porcelain", "--untracked-files=all"]
+    assert commands[2][-3:] == ["rev-parse", "--verify", "HEAD"]
+
+    commands.clear()
+    (package_dir / "local_override.py").write_text("VALUE = 1\\n", encoding="utf-8")
+
+    dirty_result = diagnostics._source_revision()
+
+    assert dirty_result == {"available": False, "reason": "working_tree_dirty"}
+    assert len(commands) == 2
+    assert commands[0][-2:] == ["rev-parse", "--show-toplevel"]
+    assert commands[1][-3:] == ["status", "--porcelain", "--untracked-files=all"]
+    assert "local_override.py" not in repr(dirty_result)
