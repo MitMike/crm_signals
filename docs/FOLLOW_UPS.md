@@ -242,3 +242,11 @@ The PR's CI result does not establish that a customer site has the approved SHA,
 - **Tests added:** permitted/denied DocType and field outcomes, disabled and Administrator rejection, no-user unavailable state, unknown profile rejection and identity non-disclosure.
 - **Status at PR opening:** code-complete; CI pending; not pilot-verified. Frappe v15/v16 final-head validation is required before merge.
 - **Revisit criteria:** if Python/Quality/Security/Bench/pinned v16.5 CI fails, inspect the exact final-head job and correct it before merge. If the permission API differs between v15 and v16, keep the helper version-compatible or fail closed; do not substitute static DocPerm for the user-aware check. Target-site acceptance still requires row-level controlled-record tests and the complete P0 release checklist.
+
+
+## Effective-user preflight real-stack validation — PR #120
+
+- [x] Initial unit coverage exercises mocked allow/deny, role validation, disabled/Administrator/duplicate account rejection and identity non-disclosure.
+- [x] Added a disposable-site Bench smoke that creates synthetic users only when `allow_tests` is enabled and calls the production preflight on real Frappe metadata.
+- [ ] Require final-head Frappe v15, v16 and pinned v16.5.0 workflow success before merging PR #120.
+- [ ] On authorized staging, run the optional probe with approved synthetic accounts and separately verify controlled-record User Permissions, ownership, shares, list/API/report/export and dashboard behavior. CI does not satisfy this gate.

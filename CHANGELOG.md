@@ -405,3 +405,9 @@ Included in PR #19's merge commit [a495919](https://github.com/MitMike/crm_signa
 - Validate account activity and expected role boundary, then use Frappe's user-aware DocType and permitted-field APIs to report required read access. Reject Administrator, disabled, duplicate and invalid-role accounts; return profile aliases only and omit User identities.
 - Update the Administrator Guide, Deployment Runbook and Target-Site Acceptance Kit. Add regression tests for allowed/denied DocType and field results, invalid accounts/profiles, default-unavailable behavior and identity non-disclosure.
 - No schema, dependency, metric or site configuration changes. Row-level permissions and end-to-end site acceptance remain separate. PR #120 final-head CI is pending; no pilot verification is claimed.
+
+
+### 2026-11-03 — Exercise effective-user preflight on real Frappe stacks (ADR-093 / PR #120)
+- Add an `allow_tests`-guarded CI fixture that creates disposable synthetic Sales User, Sales Manager, System Manager and Employee accounts with random throwaway passwords.
+- Invoke the production effective-user preflight against real Frappe metadata and assert complete DocType/field result shapes, valid roles, no permission API errors and no account-identity disclosure.
+- Run the fixture in Frappe v15/v16 Bench and pinned Frappe v16.5.0 / ERPNext / Helpdesk CI. It is compatibility evidence only; target-site record-level permission acceptance remains separate.

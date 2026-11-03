@@ -421,3 +421,13 @@ PR #100 is code-complete and CI-verified, not pilot-verified. The automated comp
 - **Scope:** read-only diagnostic and tests/docs only. No schema, dependency, dashboard metric or site setting changes. Supported Frappe v15/v16 APIs were checked against both upstream version branches; final repository CI remains the compatibility gate.
 - **Status at PR opening:** code-complete; final-head CI pending; not pilot-verified. The authorized target-site preflight and controlled-record permission matrix remain mandatory.
 - **Independent release blocker / revisit criteria:** no authorized target-site session or sanitized discovery record is available. Resume site acceptance only when an authorized Frappe v16.5 staging window, approved full SHA, named technical/business/security owners and dedicated active synthetic test accounts are available. Then attach the alias-only preflight output and separately verify record-level User Permissions, ownership, shares, list/API/report/export/dashboard behavior, D1/D2 native-report reconciliation, Helpdesk SLA and operational recovery/rollback. Do not infer any of these from CI.
+
+
+## PR #120 — real-Frappe effective-user permission smoke added (2026-11-03)
+
+- **Finding:** the first PR #120 final head passed all four workflows, including Bench v15/v16 and pinned Frappe 16.5.0, but the new effective-user probe was exercised only by mocked unit tests. The Bench workflows did not call the probe against real Frappe User and DocType metadata.
+- **Decision (ADR-093):** add a CI-only `allow_tests`-guarded fixture that provisions disposable Sales User, Sales Manager, System Manager and Employee accounts with random throwaway passwords, runs the production preflight, and checks complete result types/status and identity non-disclosure.
+- **Implementation:** `crm_signals.ci.verify_effective_user_preflight` is invoked in both the v15/v16 Bench matrix and the pinned v16.5.0 workflow. It creates no business documents, returns aliases/counts only and refuses to run unless `allow_tests` is enabled.
+- **Status:** code-complete; final-head CI for the additional real-Frappe smoke is pending. The original PR #120 head `ac444d5` had all four workflows successful, but that result does not cover this follow-up commit.
+- **Scope:** CI fixture and workflow wiring only; no production runtime behavior, schema, dependency, metric or site configuration changes.
+- **Remaining gate:** final-head Python 3.10–3.14, Quality, Security/Semgrep, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 checks must pass. The synthetic CI fixture is compatibility evidence only; authorized target-site permission and controlled-record acceptance remain open.
