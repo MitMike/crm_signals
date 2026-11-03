@@ -480,3 +480,12 @@ PR #100 is code-complete and CI-verified, not pilot-verified. The automated comp
 - The first Python matrix run exposed the same TypeError in five new record-probe tests: _validate_test_record_doctypes still required the removed total_records argument after the count-accounting refactor. Python 3.10/3.11/3.12 showed 5 failed, 133 passed and 36 skipped; lint/static checks passed.
 - Corrected the helper signature to accept only the profile's DocType mapping. The per-profile count remains local to that helper and the aggregate count is accumulated by _validate_test_records.
 - Do not merge the failing head. Require a fresh final-head Python 3.10–3.14, Quality, Security, Bench v15/v16 + Playwright and pinned v16.5.0 matrix.
+
+
+
+### PR #122 review hardening — partial session-switch failure
+- **Finding:** after the first complete PR #122 CI matrix passed, code review found an edge case in `_test_user_record_visibility`: an exception from `frappe.set_user(test_user)` returned before the common restoration `finally`. If the API changed the session and then raised, the Bench execute process could retain the synthetic user context.
+- **Decision (ADR-094):** do not return from the switch-error handler. Record only the exception type, mark requested labels `session_switch_failed`, and always attempt to restore the captured original session user in the shared `finally`.
+- **Regression:** inject a `set_user` implementation that mutates `frappe.session.user` and then raises; assert a restoration call occurs, no record query runs, the report is partial, and neither the record name nor exception message is exposed.
+- **Prior-head CI evidence:** before this review correction, PR #122 head `e02210f6076648d65a19b6c4df968e1132e0f1d8` passed Quality/Python, Security/Semgrep, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 workflows. These results do not cover this correction.
+- **Status:** code correction and regression test committed together with updated ADR/progress/follow-up/plan/changelog; final-head CI has to rerun. Not merged and not pilot-verified.
