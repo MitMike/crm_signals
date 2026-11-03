@@ -594,6 +594,6 @@ PR [#128](https://github.com/MitMike/crm_signals/pull/128) merged as [85c492e](h
 - Quality Checks run `41639851748`: lint/static and Python 3.10/3.11/3.12/3.14 passed.
 - Security/Semgrep run `41639851870`: passed.
 - Bench Integration/E2E run `41639851663`: path detection and documentation-only skip selectors passed; runtime execution was skipped because no integration-test files changed. No pinned Frappe workflow was triggered.
-- The embedded Bash procedure passed `bash -n`; ShellCheck was not installed.
+- The embedded Bash procedure passed `bash -n`; ShellCheck was not installed. A local mocked-curl execution also passed all four assertions (identity 200, restricted document 403, allowed document 200, list containing only the allowed record) and confirmed the encoded request parameters. This was a local transport mock, not a live Frappe/HTTP or pilot test.
 
 The guide now validates the API token identity, rejects Administrator, expects 403 for a linked restricted CRM Signal, 200 for an unlinked owned signal, and an exact one-record permission-filtered list. Credentials and response files are handled in private temporary files and removed on exit. This is code-free operator documentation; it is not a live HTTP execution or pilot verification.
