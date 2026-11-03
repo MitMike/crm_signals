@@ -260,6 +260,104 @@ def _workflow_summary():
 
 
 
+def _check_test_user_identity(profile, username, seen_users):
+    """Validate a supplied synthetic account without retaining its identity."""
+    expected_role, disallowed_roles = TEST_USER_PROFILES[profile]
+    result = {
+        "expected_role": expected_role,
+        "account_active": None,
+        "role_membership_valid": False,
+        "status": None,
+        "doctype_read": {},
+        "required_field_read": {},
+        "error_types": {},
+    }
+    if not isinstance(username, str) or not username.strip():
+        raise ValueError("Each test user profile must map to a non-empty User name")
+    username = username.strip()
+    if username == "Administrator":
+        result["status"] = "administrator_not_allowed"
+        return result, None
+    if username in seen_users:
+        result["status"] = "duplicate_test_user"
+        return result, None
+    seen_users.add(username)
+
+    try:
+        enabled = frappe.db.get_value("User", username, "enabled")
+    except Exception as error:
+        result["status"] = "user_lookup_failed"
+        result["error_types"]["User"] = type(error).__name__
+        return result, None
+    if enabled is None:
+        result["status"] = "user_not_found"
+        return result, None
+    result["account_active"] = bool(_as_int(enabled))
+    if not result["account_active"]:
+        result["status"] = "user_disabled"
+        return result, None
+
+    try:
+        roles = set(frappe.get_roles(username))
+    except Exception as error:
+        result["status"] = "role_lookup_failed"
+        result["error_types"]["roles"] = type(error).__name__
+        return result, None
+
+    expected_role_present = expected_role in roles if expected_role else not bool(
+        roles.intersection(TARGET_ROLES)
+    )
+    result["role_membership_valid"] = expected_role_present and not bool(
+        roles.intersection(disallowed_roles)
+    )
+    if not result["role_membership_valid"]:
+        result["status"] = "role_membership_invalid"
+        return result, None
+    return result, username
+
+
+def _test_user_doctype_permissions(username, doctype_reports):
+    """Return DocType and required-field read checks for one validated account."""
+    doctype_read = {}
+    required_field_read = {}
+    error_types = {}
+    for doctype, summary in doctype_reports.items():
+        required_fields = [field["fieldname"] for field in summary["required_fields"]]
+        if not summary["available"]:
+            doctype_read[doctype] = None
+            required_field_read[doctype] = {field: None for field in required_fields}
+            continue
+
+        try:
+            can_read = bool(
+                frappe.has_permission(doctype, ptype="read", user=username, throw=False)
+            )
+        except Exception as error:
+            doctype_read[doctype] = None
+            required_field_read[doctype] = {field: None for field in required_fields}
+            error_types[doctype] = type(error).__name__
+            continue
+
+        doctype_read[doctype] = can_read
+        if not can_read:
+            required_field_read[doctype] = {field: False for field in required_fields}
+            continue
+
+        try:
+            permitted_fields = set(
+                frappe.get_meta(doctype).get_permitted_fieldnames(user=username)
+            )
+        except Exception as error:
+            required_field_read[doctype] = {field: None for field in required_fields}
+            error_types[doctype] = type(error).__name__
+            continue
+
+        required_field_read[doctype] = {
+            field: field in permitted_fields for field in required_fields
+        }
+    return doctype_read, required_field_read, error_types
+
+
 def _effective_user_permissions(test_users, doctype_reports):
     """Check explicitly supplied synthetic users without returning their identities."""
     scope = (
@@ -275,120 +373,23 @@ def _effective_user_permissions(test_users, doctype_reports):
         }
     if not isinstance(test_users, dict):
         raise ValueError("test_users must map approved profile aliases to User names")
-    unknown_profiles = set(test_users) - set(TEST_USER_PROFILES)
-    if unknown_profiles:
+    if set(test_users) - set(TEST_USER_PROFILES):
         raise ValueError("Unsupported test user profile")
 
     profiles = {}
     seen_users = set()
     for profile, username in sorted(test_users.items()):
-        expected_role, disallowed_roles = TEST_USER_PROFILES[profile]
-        result = {
-            "expected_role": expected_role,
-            "account_active": None,
-            "role_membership_valid": False,
-            "status": None,
-            "doctype_read": {},
-            "required_field_read": {},
-            "error_types": {},
-        }
-        if not isinstance(username, str) or not username.strip():
-            raise ValueError("Each test user profile must map to a non-empty User name")
-        username = username.strip()
-        if username == "Administrator":
-            result["status"] = "administrator_not_allowed"
-            profiles[profile] = result
-            continue
-        if username in seen_users:
-            result["status"] = "duplicate_test_user"
-            profiles[profile] = result
-            continue
-        seen_users.add(username)
-
-        try:
-            enabled = frappe.db.get_value("User", username, "enabled")
-        except Exception as error:
-            result["status"] = "user_lookup_failed"
-            result["error_types"]["User"] = type(error).__name__
-            profiles[profile] = result
-            continue
-        if enabled is None:
-            result["status"] = "user_not_found"
-            profiles[profile] = result
-            continue
-        result["account_active"] = bool(_as_int(enabled))
-        if not result["account_active"]:
-            result["status"] = "user_disabled"
-            profiles[profile] = result
-            continue
-
-        try:
-            roles = set(frappe.get_roles(username))
-        except Exception as error:
-            result["status"] = "role_lookup_failed"
-            result["error_types"]["roles"] = type(error).__name__
-            profiles[profile] = result
-            continue
-
-        expected_role_present = expected_role in roles if expected_role else not bool(
-            roles.intersection(TARGET_ROLES)
+        result, validated_user = _check_test_user_identity(
+            profile, username, seen_users
         )
-        result["role_membership_valid"] = expected_role_present and not bool(
-            roles.intersection(disallowed_roles)
-        )
-        if not result["role_membership_valid"]:
-            result["status"] = "role_membership_invalid"
-            profiles[profile] = result
-            continue
-
-        for doctype, summary in doctype_reports.items():
-            required_fields = [
-                field["fieldname"] for field in summary["required_fields"]
-            ]
-            if not summary["available"]:
-                result["doctype_read"][doctype] = None
-                result["required_field_read"][doctype] = {
-                    field: None for field in required_fields
-                }
-                continue
-
-            try:
-                can_read = bool(
-                    frappe.has_permission(
-                        doctype, ptype="read", user=username, throw=False
-                    )
-                )
-            except Exception as error:
-                result["doctype_read"][doctype] = None
-                result["required_field_read"][doctype] = {
-                    field: None for field in required_fields
-                }
-                result["error_types"][doctype] = type(error).__name__
-                continue
-
-            result["doctype_read"][doctype] = can_read
-            if not can_read:
-                result["required_field_read"][doctype] = {
-                    field: False for field in required_fields
-                }
-                continue
-
-            try:
-                permitted_fields = set(
-                    frappe.get_meta(doctype).get_permitted_fieldnames(user=username)
-                )
-            except Exception as error:
-                result["required_field_read"][doctype] = {
-                    field: None for field in required_fields
-                }
-                result["error_types"][doctype] = type(error).__name__
-                continue
-
-            result["required_field_read"][doctype] = {
-                field: field in permitted_fields for field in required_fields
-            }
-
-        result["status"] = "partial" if result["error_types"] else "checked"
+        if validated_user:
+            doctype_read, field_read, errors = _test_user_doctype_permissions(
+                validated_user, doctype_reports
+            )
+            result["doctype_read"] = doctype_read
+            result["required_field_read"] = field_read
+            result["error_types"] = errors
+            result["status"] = "partial" if errors else "checked"
         profiles[profile] = result
 
     return {
@@ -397,7 +398,6 @@ def _effective_user_permissions(test_users, doctype_reports):
         "profiles": profiles,
         "scope": scope,
     }
-
 
 def get_site_preflight_report(test_users=None):
     """Return a bounded, read-only site inventory for bench execute.
