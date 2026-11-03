@@ -1120,3 +1120,16 @@ The first final-head Quality run after adding the workflow regression guard is e
 - **Scope:** Playwright test harness and static regression only; no production runtime, schema, dependency or site configuration change.
 - **Evidence:** workflow run 41643473834, job 125943109815, failed only at the focused Playwright login wait after site setup, migration, preflight, D1/D2, Helpdesk, Python and Frappe integration steps passed. The trace network log records POST http://test.local:8000/login with HTTP 200; no matching /api/method/login response occurred.
 - **Revisit criteria:** if the new test still times out, inspect the next final-head Playwright trace and verify the exact POST pathname and status. Do not remove the response wait, bypass login, reuse Administrator for Sales User assertions, or weaken the expected linked-denied/unlinked-allowed results. Require all four final-head workflows before merge.
+
+
+
+## ADR-100 — Verify the authenticated Sales User identity with the stable session endpoint
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-03
+- **Context:** The corrected PR #130 head b6128589c40d3b2c7bedf639cc62d1ab3bd16f77 passed Quality/Python, Security/Semgrep and the supported Frappe v15/v16 Bench + Playwright workflow. The pinned Frappe 16.5.0 job completed site setup, preflight, D1/D2, Helpdesk, schema upgrade, E2E fixture creation, asset build, Python tests, Frappe integration tests, browser installation and server startup, then failed before the permission assertions at expect(roles).toContain("Sales User"). The helper queried frappe.core.doctype.user.user.get_current_user_roles and received an empty array on the pinned build. This was not a login failure or a linked-record permission assertion.
+- **Decision:** remove the version-sensitive role lookup from the browser test. During server-side E2E fixture preparation, explicitly require Sales User in frappe.get_roles(sales_user). After browser login, call frappe.auth.get_logged_user through the same-origin session and require its exact result to equal the configured synthetic Sales User email before issuing the restricted/allowed document and list requests.
+- **Rationale:** the fixture owns role assignment and can validate it directly using Frappe's permission/user API. The browser assertion should validate the authenticated session identity using the same endpoint already used by the operator's HTTP acceptance procedure, avoiding a second role-discovery endpoint whose response differed on Frappe 16.5.
+- **Scope:** CI fixture and Playwright test only. No production runtime, schema, dependency or site configuration changes.
+- **Revisit criteria:** if the server-side role check fails, inspect the fixture's User role rows and frappe.get_roles result on the exact Frappe build. If the browser identity endpoint fails or returns another user, inspect login response, session cookie and request routing; do not remove the identity assertion, use Administrator for Sales User permission requests, or weaken the linked-denied/unlinked-allowed/list-only-unlinked expectations. Require all four final-head workflows before merge.
+- **Verification status:** correction committed on PR #130; fresh Quality/Python, Security/Semgrep, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 Playwright workflows are required. Not pilot-verified.
