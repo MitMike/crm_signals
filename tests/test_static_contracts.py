@@ -409,3 +409,13 @@ def test_crm_signals_dashboard_retains_horizontal_inset():
     ).read_text()
     assert ".crm-signals-dashboard {" in stylesheet
     assert "padding: 20px 24px 32px;" in stylesheet
+
+
+def test_pinned_playwright_workflow_uses_lockfile_install():
+    workflow = (ROOT / ".github/workflows/bench-target-v16-5.yml").read_text()
+    install = "npm ci --ignore-scripts --no-audit --no-fund"
+    assert install in workflow
+    assert "npm install " not in workflow
+    assert workflow.index(install) < workflow.index(
+        "npx playwright install --with-deps chromium"
+    )
