@@ -1,5 +1,8 @@
 # CRM Signals — Production-readiness audit
 
+> **Historical snapshot notice (reviewed 2026-11-03):** The detailed audit below was prepared on 2026-11-02 against an older repository baseline. It is retained as historical evidence, not as the current PR/commit inventory. Current main is `94d14f56a526670d2c0ecb150ab9f08b4f034389`; PR #109's real-Git clean/dirty preflight regression is merged and reference-stack CI-verified. PR #110 is the open documentation reconciliation at this review. For current implementation status, decisions and exact revisit criteria, use [IMPLEMENTATION_PLAN.md](../IMPLEMENTATION_PLAN.md), [PROGRESS.md](PROGRESS.md), and [FOLLOW_UPS.md](FOLLOW_UPS.md). The production decision remains **not approved** until authorized target-site acceptance evidence is recorded; no pilot verification is claimed.
+
+
 **Audit date:** 2026-11-02  
 **Repository:** MitMike/crm_signals  
 **Base:** `main` at `331492c5be1e5e32105e6d64b710d2e861c0111a` (PR #7 setup-uv v7 merged; PR #89 docs reconciliation merged; latest application feature baseline remains `c5720bf`)  
