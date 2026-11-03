@@ -206,17 +206,23 @@ def test_preflight_rejects_disabled_and_administrator_test_accounts(monkeypatch)
 
 def test_preflight_rejects_wrong_role_and_duplicate_test_accounts(monkeypatch):
     diagnostics = load_diagnostics(monkeypatch)
-    report = diagnostics.get_site_preflight_report(
+    wrong_role = diagnostics.get_site_preflight_report(
+        test_users={"sales_user": "sales.manager@example.invalid"}
+    )
+    assert (
+        wrong_role["effective_user_permissions"]["profiles"]["sales_user"]["status"]
+        == "role_membership_invalid"
+    )
+
+    duplicate = diagnostics.get_site_preflight_report(
         test_users={
-            "sales_user": "sales.manager@example.invalid",
-            "sales_manager": "sales.manager@example.invalid",
+            "sales_user": "sales.user@example.invalid",
+            "sales_manager": "sales.user@example.invalid",
         }
     )
-    profiles = report["effective_user_permissions"]["profiles"]
-
-    assert profiles["sales_manager"]["status"] == "checked"
+    profiles = duplicate["effective_user_permissions"]["profiles"]
     assert profiles["sales_user"]["status"] == "duplicate_test_user"
-    assert profiles["sales_manager"]["role_membership_valid"] is True
+    assert profiles["sales_manager"]["status"] == "role_membership_invalid"
 
 def test_preflight_without_test_users_marks_effective_matrix_unavailable(monkeypatch):
     diagnostics = load_diagnostics(monkeypatch)
