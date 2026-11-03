@@ -42,8 +42,9 @@ Record, do not infer:
   ```bash
   bench --site <site-name> execute crm_signals.diagnostics.get_site_preflight_report --kwargs "{'test_users': {'sales_user': 'crm-sales-user-test', 'sales_manager': 'crm-sales-manager-test', 'system_manager': 'crm-system-manager-test', 'non_sales': 'crm-non-sales-test'}}"
   ```
-- [ ] Confirm each supplied profile reports `status: checked`, active System User account and valid role membership; review every DocType and required-field result against the permission matrix. `partial`, missing, invalid-role or false results require investigation, not sign-off.
-- [ ] Separately test row-level User Permissions, ownership, document shares, list filters, API, reports, exports and dashboard behavior with approved controlled records. The optional preflight does not inspect business-document rows.
+- [ ] For list-level record visibility, create dedicated synthetic Lead/Customer/Opportunity/Quotation/CRM Signal/invoice/payment/ticket records and optionally pass their exact names under `test_records`, keyed by profile, DocType and non-sensitive label. The report uses permission-filtered `frappe.get_list` with `fields=["name"]`; it returns labels/booleans only. A false result may mean missing or inaccessible.
+- [ ] Confirm each supplied profile reports `status: checked`, active System User account and valid role membership; review every DocType and required-field result plus any supplied record-visibility result. `partial`, missing, invalid-role, false or unavailable results require investigation, not sign-off.
+- [ ] Separately test direct form, REST API, reports, exports, print and dashboard behavior with approved controlled records. The optional preflight does not prove those paths.
 - [ ] Email account, sender policy, mail queue and realtime deployment topology are recorded.
 - [ ] Current CRM Signals Settings values and enabled presets are captured.
 
