@@ -460,13 +460,13 @@ def test_pinned_v16_5_runs_sales_user_direct_form_permission_e2e():
     spec = (ROOT / "e2e/sahdev-dashboard.spec.ts").read_text()
     workflow = (ROOT / ".github/workflows/bench-target-v16-5.yml").read_text()
     assert (
-        'test("Sales User direct CRM Signal form respects linked Lead User Permission"'
+        'test("Sales User CRM Signal form permission boundary"'
         in spec
     )
     assert '"frappe.desk.form.load.getdoc"' in spec
     assert '"/app/crm-signal/' in spec
     assert 'response.request().method() === "GET"' in spec
     assert (
-        '--grep "Sales User (HTTP API|direct CRM Signal form) respects linked Lead User Permission"'
+        '--grep "Sales User"'
         in workflow
     )
