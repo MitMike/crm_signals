@@ -422,7 +422,9 @@ def test_pinned_playwright_workflow_uses_lockfile_install_and_masks_e2e_password
 
     credentials = workflow.split(
         "      - name: Generate ephemeral E2E user passwords", 1
-    )[1].split("      - name: Prepare ERPNext and Sales User permission E2E fixtures", 1)[0]
+    )[1].split(
+        "      - name: Prepare ERPNext and Sales User permission E2E fixtures", 1
+    )[0]
     for name in ["sales_password", "employee_password"]:
         mask = f'echo "::add-mask::${name}"'
         output = f'echo "{name}=${name}" >> "$GITHUB_OUTPUT"'
