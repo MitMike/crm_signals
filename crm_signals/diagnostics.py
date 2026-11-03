@@ -400,7 +400,7 @@ def _validate_test_record_name(label, name, seen_names):
     return name
 
 
-def _validate_test_record_doctypes(doctypes, total_records):
+def _validate_test_record_doctypes(doctypes):
     """Validate one profile's bounded DocType-to-record mapping."""
     if not isinstance(doctypes, dict) or not doctypes:
         raise ValueError("Each test record profile must contain DocType mappings")
