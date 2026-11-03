@@ -614,3 +614,5 @@ The guide now validates the API token identity, rejects Administrator, expects 4
 - Found the new pinned Playwright step used `npm install` despite the repository's Stage 0 and Quality policy requiring lockfile-enforced `npm ci`. Changed it to `npm ci --ignore-scripts --no-audit --no-fund`; the explicit Playwright browser install remains separate. Removed a duplicate ADR-098 block.
 - The workflow/docs correction creates a new PR head. Require fresh Quality/Python, Security, Bench v15/v16 + Playwright, and pinned v16.5 Playwright runs before merge. Do not reuse pre-correction checks.
 - PR #130 remains open and unmerged. The HTTP test is code-complete but not CI-verified until the corrected final-head matrix passes; no target-site or pilot verification is claimed.
+
+- Added a static contract regression requiring the pinned Frappe workflow to use lockfile-enforced `npm ci` before explicit Playwright browser installation; it rejects a return to `npm install`. This test change also requires a fresh final-head matrix.
