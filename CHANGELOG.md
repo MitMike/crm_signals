@@ -398,3 +398,10 @@ Included in PR #19's merge commit [a495919](https://github.com/MitMike/crm_signa
 - All 11 applicable final-head checks passed; two runtime selectors were skipped as expected for documentation-only changes.
 - Updated project plan, progress, follow-ups, ADR-091 verification and changelog to record PR #117's 35/35 CI result and remaining target-site gates.
 - No runtime code, dependencies, schema or site configuration changed.
+
+
+### 2026-11-03 — Optional effective-user permission preflight (ADR-092 / PR #120)
+- Extend the read-only Bench preflight with an optional alias-to-synthetic-User mapping for Sales User, Sales Manager, System Manager and non-sales profiles.
+- Validate account activity and expected role boundary, then use Frappe's user-aware DocType and permitted-field APIs to report required read access. Reject Administrator, disabled, duplicate and invalid-role accounts; return profile aliases only and omit User identities.
+- Update the Administrator Guide, Deployment Runbook and Target-Site Acceptance Kit. Add regression tests for allowed/denied DocType and field results, invalid accounts/profiles, default-unavailable behavior and identity non-disclosure.
+- No schema, dependency, metric or site configuration changes. Row-level permissions and end-to-end site acceptance remain separate. PR #120 final-head CI is pending; no pilot verification is claimed.
