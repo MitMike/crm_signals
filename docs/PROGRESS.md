@@ -778,3 +778,11 @@ The test verifies token identity before requests, linked-restricted 403 with no 
 - **Implementation:** added a cookie-independent resource helper and Playwright test. Extended the operator smoke to verify resource single-document and list responses with the same synthetic records. No runtime, schema, dependency or site-configuration changes.
 - **Status:** code-complete on `test/sales-user-rest-resource-permission-20261103`; final-head CI pending. Not pilot-verified.
 - **Revisit criteria:** inspect the exact v16.5 resource URL map and response envelope if the route redirects or response shape differs; do not follow redirects or weaken permission expectations.
+
+### PR #137 opening — CRM Signal print-view row-permission bypass (2026-11-04)
+
+Review of Frappe v16 `frappe.www.printview.validate_print_permission` found that the standard print gate accepts either `read` or `print`. CRM Signals' `crm_signal_has_permission` hook returned the role-level DocType grant for `print` without checking the linked Lead/Customer visibility. A Sales User could therefore pass the print branch for a linked-restricted CRM Signal even though direct read was denied. This is a record-level authorization bypass, not merely missing test coverage.
+
+Decision ADR-106: keep the DocType `print` permission requirement and additionally require the same row-level readable relationship as `read`. Managers retain explicit role behavior; an unlinked owned signal remains printable. Added unit regressions and a Sales User browser-session `/printview` test for linked 403/no-message and unlinked 200/message. Updated the target-site acceptance and Administrator Guide. No schema, role grant, dependency or site configuration change.
+
+Code-complete on focused branch `fix/crm-signal-print-permission-20261104`; final-head CI pending. Required checks: Quality/Python, Security/Semgrep, Bench v15/v16 + Playwright and pinned Frappe 16.5.0. Not pilot-verified. Revisit if the installed v15/v16 print route or permission gate differs; preserve role-level print plus row-level read visibility.
