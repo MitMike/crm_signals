@@ -214,3 +214,13 @@ The PR's CI result does not establish that a customer site has the approved SHA,
 - [ ] **Still open — staging rehearsal:** execute first-install and upgrade on an authorized Frappe v16.5 Bench; capture approved/deployed SHA, `bench version`, installed-app inventory, command output, migration, asset build, restart and rollback evidence.
 - **Revisit criteria:** begin only when an authorized Frappe v16.5 staging window, approved full SHA, named technical owner and site/Bench operator are available. CI does not establish this.
 - [ ] **PR #113:** after #112 merged, PR #113 was retargeted to `main`. Wait for the final-head checks on the retargeted PR to complete; fix any failure before considering merge. The earlier pre-retarget check run is supporting evidence only.
+
+
+## D3 operator-guide correction — replacement PR #114
+
+- [x] Both D3 HTML guides now describe the implemented standard Helpdesk adapter and require separate approval before any custom/different ticket source is scoped.
+- [x] Static regression coverage protects both the existing-adapter status and the custom-source approval boundary.
+- [x] PR #113's original head passed 18 checks, but its later retargeted/updated head had zero check runs and no workflow runs. A close/reopen did not trigger CI; it was closed as superseded rather than merged without current verification.
+- [ ] **PR #114 final-head CI:** wait for Quality, Python 3.10–3.14, Security, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0. Fix any failing check; merge only after all required checks pass.
+- [ ] **Target-site D3 acceptance:** verify installed versions, exact required fields, effective Sales read permissions, active SLA calendar/holidays/timezone, pause/resume and native outcomes in authorized staging.
+- **Revisit criteria:** custom adapter work only after exact DocType/field/lifecycle/relationship/identity metadata and support, security and business approval are supplied.
