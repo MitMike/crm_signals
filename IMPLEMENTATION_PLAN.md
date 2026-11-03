@@ -529,3 +529,11 @@ The new regression reuses the real Frappe User Permission fixture: a Sales User 
 - **Decision (ADR-096):** reuse the same disposable Sales User/Lead/User Permission/CRM Signal fixture. As that user, assert `frappe.client.get` raises `PermissionError` for the linked restricted signal, returns the unlinked owned signal, and `frappe.client.get_list` returns only the unlinked signal. Always restore the original session user.
 - **Scope:** integration-test and operator-guide coverage only; no runtime, schema, dependency, metric or site configuration change. CI must run on Frappe v15/v16 and pinned v16.5.0. Direct authenticated HTTP, browser form, reports, exports, print and dashboard checks remain target-site acceptance.
 - **Status at opening:** code-complete; final-head CI pending. Not pilot-verified.
+
+
+### PR #126 first CI triage — Ruff import ordering
+
+- **Observed:** Quality Checks lint failed on head `a5998ec` with Ruff `I001` for the local `frappe.client` import in the integration test helper. The Python 3.11/3.12/3.14 unit jobs passed; Python 3.10 and the Frappe integration/pinned workflows were still running at triage.
+- **Decision:** keep the test import-safe when Frappe is not installed by moving the two API wrapper imports into the module's existing guarded `try` block beside `import frappe` and `FrappeTestCase`. Do not suppress or relax Ruff's import-order rule.
+- **Correction:** import `frappe.client.get` and `get_list` in the guarded Frappe block; remove the local import from the helper. A fresh final-head matrix is required.
+- **Revisit criteria:** if Ruff still reports `I001`, use its exact `--fix` ordering while retaining the `ModuleNotFoundError` fallback; if Bench reports an API wrapper mismatch, inspect the pinned v15/v16 implementation and keep the denied/allowed assertions intact.
