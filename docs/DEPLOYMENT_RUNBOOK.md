@@ -120,6 +120,7 @@ Run these checks with named test accounts. Record the user, role, result and evi
 - Verify list view, direct form, API read, report, export and print paths. Test both linked and unlinked signals.
 - Verify that an owner/assignee without read permission on the linked Lead/Customer and CRM Signal receives no realtime payload.
 - Verify that an unreadable linked signal does not appear in a user's list merely because that user owns the CRM Signal record.
+- Run the Sales User linked/unlinked CRM Signal `test_records` preflight described in [Target-Site Acceptance Kit §2](TARGET_SITE_ACCEPTANCE.md#2-preflight-inventory): a Lead User Permission must hide the owned signal linked to the restricted Lead while leaving an unlinked signal owned by the same user visible.
 - Confirm that no notification is broadcast site-wide.
 
 ### Event and API behavior
