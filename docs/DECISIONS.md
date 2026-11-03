@@ -871,3 +871,15 @@ Append a new ADR with the next available identifier. Include status, date record
 
 
 - **Verification (PR #107):** merged as `a472f1981f758ce7b6233d95fc0682fe69d7a304` from final head `a47c3975eebe52dccb918a1056cf30d818cdcae4`. All 19 final-head check runs passed: Quality/Python 3.10–3.14, Security/Semgrep, Bench v15/v16 including v16 Playwright, and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0. The real temporary parent-repository regression executed in the supported Python/Bench CI. This is reference-stack CI evidence, not target-site or pilot verification.
+
+
+## ADR-089 — Exercise real clean and untracked-dirty Git checkout states
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-03
+- **Context:** ADR-086/087's source identity preflight is guarded by mocked clean and dirty status tests, while ADR-088 adds a real-Git parent-root mismatch test. The exact clean-SHA and untracked-file status behavior should also be exercised against Git itself, not only mocked subprocess output.
+- **Decision:** Add a temporary-repository integration test that commits the CRM Signals package file, invokes the real `_source_revision()` helper and verifies the returned SHA equals Git's actual `HEAD`. Then add an untracked Python override and require `working_tree_dirty`; assert the dirty path runs root and status checks only and does not query `HEAD`.
+- **Rationale:** The release identity is trustworthy only if real Git reports both the expected repository root and actual working-tree state. This closes the test gap around the production `--untracked-files=all` behavior without introducing runtime dependencies or site-specific assumptions.
+- **Consequences:** Test-only change using Git already required by the preflight and available in the supported CI checkout. No application behavior, supported Frappe versions or target-site configuration changes.
+- **Revisit criteria:** Revisit if the preflight command sequence, package layout or Git prerequisite changes. Preserve real clean, dirty-untracked and enclosing-parent repository tests whenever source identity logic changes.
+- **Verification:** Pending final-head CI in [PR #109](https://github.com/MitMike/crm_signals/pull/109). This is not pilot verification.

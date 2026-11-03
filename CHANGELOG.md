@@ -328,3 +328,10 @@ Included in PR #19's merge commit [a495919](https://github.com/MitMike/crm_signa
 - Invoke the real preflight source-revision helper and assert it rejects the enclosing repository with `repository_root_mismatch`, rather than reporting the parent's SHA.
 - PR #107 merged as [`a472f19`](https://github.com/MitMike/crm_signals/commit/a472f1981f758ce7b6233d95fc0682fe69d7a304); all 19 final-head check runs passed across Python, Quality, Security, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 validation.
 - No runtime behavior or site configuration changed. Target-site pilot acceptance remains outstanding.
+
+
+### 2026-11-03 — Real-Git clean/dirty preflight source identity regression (PR #109)
+- Add an integration test that commits a temporary CRM Signals package and verifies the preflight returns the exact clean Git SHA.
+- Add an untracked Python override and verify the preflight fails closed with `working_tree_dirty` without querying `HEAD`.
+- Complements ADR-087 root matching, ADR-088 enclosing-parent rejection and mocked error-path tests; no runtime behavior or target-site configuration changes.
+- PR #109 requires final-head Python, Quality, Security, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 validation before merge.
