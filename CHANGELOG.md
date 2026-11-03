@@ -637,3 +637,11 @@ PR #125 merged as [7029747](https://github.com/MitMike/crm_signals/commit/702974
 - Standardized both Bench E2E workflows on lockfile-enforced `npm ci` and masked generated E2E passwords before GitHub Actions step-output propagation.
 - Final head `a72ebffbae116adf06830473bb15d764a169651b` passed Quality/Python `41676858036`, Security/Semgrep `41676862616`, Bench v15/v16 + Playwright `41676858619` (18 Playwright tests passed on v16), and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 `41676858020` (3 focused Playwright tests passed).
 - Merged as `08f269cdfaedc58fd4ce396c823d589e7dd3481b`. Reference-stack CI verification only; live API-token, direct-form, report/export/print/dashboard and production acceptance remain outstanding.
+
+
+### 2026-11-03 — PR #133 opening — synthetic Sales User API-token permission regression
+
+- Add a disposable Frappe API key/secret for the synthetic Sales User and test identity plus linked-denied/unlinked-allowed/list-only-unlinked outcomes through an explicit token Authorization header.
+- Keep the API secret in a mode-0600 runner temp file, mask both credentials before GitHub step outputs, delete the file on step exit, and use Node fetch outside Playwright page tracing with redirects disabled.
+- Run the token E2E in supported Frappe v16 and pinned Frappe 16.5.0; retain Frappe v15 Bench integration coverage.
+- Code-complete on the focused branch; final-head CI pending. No production runtime or schema change. Not pilot-verified.
