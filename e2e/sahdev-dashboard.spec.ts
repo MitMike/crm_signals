@@ -948,7 +948,6 @@ test("Sales User report view and CSV export respect linked Lead User Permission"
     expect(csv).not.toContain(linkedMessage);
 });
 
-
 test("Sales User CRM Signals dashboard API respects linked Lead User Permission", async ({
     page
 }) => {
