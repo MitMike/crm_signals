@@ -3,7 +3,7 @@
 **Last reviewed:** 2026-11-03  
 **Repository:** [MitMike/crm_signals](https://github.com/MitMike/crm_signals)  
 **Supported framework coverage:** Frappe / ERPNext v15 and v16. **Primary deployment target:** Frappe v16.5; record the exact patch/build and installed ERPNext/Helpdesk versions.  
-**Reviewed main baseline:** [b5974af](https://github.com/MitMike/crm_signals/commit/b5974af1463092195a450508d47ec5f888e1c879) (PR #126 merged after all four final-head workflows passed: Quality/Python, Security/Semgrep, Bench v15/v16 + Playwright, and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0); **latest application feature baseline:** [c5720bf](https://github.com/MitMike/crm_signals/commit/c5720bfb3fbe8b554ec6febd549a8d5e58acc1d7).
+**Reviewed main baseline:** [85c492e](https://github.com/MitMike/crm_signals/commit/85c492ea2c84444d7cc45c0d61706736fa972a83) (PR #126 merged after all four final-head workflows passed: Quality/Python, Security/Semgrep, Bench v15/v16 + Playwright, and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0); **latest application feature baseline:** [c5720bf](https://github.com/MitMike/crm_signals/commit/c5720bfb3fbe8b554ec6febd549a8d5e58acc1d7).
 
 This is the execution plan and source of truth for delivery order, scope, dependencies, acceptance gates and exit criteria. The operational state is maintained in [docs/PROGRESS.md](docs/PROGRESS.md); durable choices are in [docs/DECISIONS.md](docs/DECISIONS.md); feature contracts are in [specs/](specs/).
 
@@ -569,3 +569,10 @@ The real-Frappe Sales User/User Permission fixture now invokes `frappe.client.ge
 - **Scope:** operator documentation only. No runtime, schema, dependency or site configuration changes. This verifies HTTP authentication/routing for these method endpoints only when run on authorized staging; browser form, REST resource, report/export/print/dashboard and all business/operational acceptance remain separate.
 - **Status at opening:** guide change complete; documentation PR checks pending. Not pilot-verified until executed on the approved target site with sanitized evidence.
 - **Revisit criteria:** if the target Frappe build returns a different documented status or response shape, capture only sanitized status/error class and version, inspect that version's API wrapper and exception mapping, then update the guide without using Administrator credentials or weakening the record boundary.
+
+
+## 34. Authenticated Sales User HTTP acceptance procedure — PR #128 merged (2026-11-03)
+
+PR #128 merged as [85c492e](https://github.com/MitMike/crm_signals/commit/85c492ea2c84444d7cc45c0d61706736fa972a83). The Target-Site Acceptance Kit now provides a copy/paste HTTPS-only procedure that verifies the API token identity against the dedicated synthetic Sales User, rejects Administrator, expects 403 for the linked restricted CRM Signal, expects 200 for the unlinked owned signal, and requires `frappe.client.get_list` to return only the unlinked record. The procedure stores the Authorization header in a mode-0600 temporary curl config, does not follow redirects, keeps response bodies in a private temporary directory and removes them on exit. The Administrator Guide links to the procedure.
+
+All applicable final-head checks passed: Quality Checks run `41639851748` (Python 3.10/3.11/3.12/3.14 and lint/static), Security/Semgrep run `41639851870`, and Bench Integration/E2E path selectors run `41639851663`. Bench runtime and Python workflow runtime selectors were skipped as expected for documentation-only changes; no pinned Frappe workflow was triggered. The extracted Bash procedure passed `bash -n`; ShellCheck was unavailable and is not claimed. This is an operator-guide improvement, not a site execution or pilot verification. Execute it only on authorized Frappe v16.5 staging with the approved SHA and synthetic records; browser form and remaining acceptance paths remain separate.
