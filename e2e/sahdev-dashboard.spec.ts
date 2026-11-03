@@ -652,7 +652,6 @@ test("Sales User API token respects linked Lead User Permission", async ({
     expect((identity.body as { message?: string }).message).toBe(email);
 
     const restrictedRead = await frappeMethodGetWithToken(
-        page,
         "frappe.client.get",
         { doctype: "CRM Signal", name: linkedSignal!.name },
         apiKey!,
@@ -661,7 +660,6 @@ test("Sales User API token respects linked Lead User Permission", async ({
     expect(restrictedRead.status).toBe(403);
 
     const allowedRead = await frappeMethodGetWithToken(
-        page,
         "frappe.client.get",
         { doctype: "CRM Signal", name: unlinkedSignal!.name },
         apiKey!,
@@ -673,7 +671,6 @@ test("Sales User API token respects linked Lead User Permission", async ({
     ).toBe(unlinkedSignal!.name);
 
     const listResponse = await frappeMethodGetWithToken(
-        page,
         "frappe.client.get_list",
         {
             doctype: "CRM Signal",
