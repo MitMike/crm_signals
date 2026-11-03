@@ -638,3 +638,12 @@ The guide now validates the API token identity, rejects Administrator, expects 4
 - Pinned Frappe 16.5.0 run 41647478405 completed site/app installation, effective-user preflight, D1/D2, Helpdesk schema/aggregate, schema upgrade, E2E fixture setup, asset build, Python tests, Frappe integration tests, browser installation and server startup. Its focused Playwright test failed at expect(roles).toContain("Sales User") because currentUserRoles received an empty array from frappe.core.doctype.user.user.get_current_user_roles. The test did not reach the 403/200/list assertions.
 - Decision ADR-100: assert the Sales User role server-side with frappe.get_roles(sales_user) during fixture preparation, then verify the browser's authenticated identity through frappe.auth.get_logged_user equals the configured synthetic Sales User email. Remove the version-sensitive browser role lookup; retain every permission assertion.
 - Correction is code-complete on the focused PR branch. All four final-head workflows must rerun; prior-head successes do not verify this correction. PR #130 remains open/unmerged. Not pilot-verified.
+
+
+
+### PR #130 — final-head static regression found a stale non-sales helper call (2026-11-03)
+
+- Final head 50f765b78f32dc3b9ac33cded20d6aa39e09a9e5 triggered Quality run 41663119127, Security run 41663119185, Bench v15/v16 run 41663118791 and pinned Frappe 16.5 run 41663118948.
+- Quality's Python 3.12 job failed tests/test_static_contracts.py because the new regression correctly found that the existing non-sales dashboard E2E test still referenced the removed currentUserRoles helper. The Sales User test's role lookup had been replaced, but the helper remained in use by the Employee test. 141 tests passed, 36 were skipped; no browser permission assertion was involved.
+- Decision ADR-100 triage: replace the non-sales role lookup with frappe.auth.get_logged_user identity verification; validate the Employee-only role boundary in server-side fixture setup and reject Sales Manager/System Manager roles on both synthetic profiles.
+- Correction is code-complete; the failed head is not mergeable. Fresh final-head CI is required. Not pilot-verified.
