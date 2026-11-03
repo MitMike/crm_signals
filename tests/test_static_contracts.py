@@ -556,3 +556,35 @@ def test_sales_user_api_token_e2e_preserves_non_json_response_bodies():
     assert "const responseText = await response.text()" in helper
     assert "let body: unknown = responseText" in helper
     assert "body = JSON.parse(responseText)" in helper
+
+
+
+def test_sales_user_rest_resource_api_token_permission_e2e_uses_isolated_node_fetch():
+    spec = (ROOT / "e2e/sahdev-dashboard.spec.ts").read_text()
+    assert (
+        'test("Sales User REST resource API token respects linked Lead User Permission"'
+        in spec
+    )
+    helper = spec.split("async function frappeResourceGetWithToken(", 1)[1]
+    helper = helper.split("\n}\n", 1)[0]
+    assert "process.env.BASE_URL" in helper
+    assert "/api/resource/" in helper
+    assert "await fetch(url" in helper
+    assert 'Accept: "application/json"' in helper
+    assert 'redirect: "manual"' in helper
+    assert "Authorization" in helper and "apiKey" in helper and "apiSecret" in helper
+    assert "page.evaluate" not in helper
+    assert "expect(restrictedRead.status).toBe(403)" in spec
+    assert "expect(allowedRead.status).toBe(200)" in spec
+    assert "expect(allowedData?.name).toBe(unlinkedSignal!.name)" in spec
+    assert "expect(visibleNames).toEqual([unlinkedSignal!.name])" in spec
+    assert "expect(restrictedBody).not.toContain(linkedMessage)" in spec
+
+
+def test_sales_user_rest_resource_api_token_e2e_preserves_non_json_bodies():
+    spec = (ROOT / "e2e/sahdev-dashboard.spec.ts").read_text()
+    helper = spec.split("async function frappeResourceGetWithToken(", 1)[1]
+    helper = helper.split("\n}\n", 1)[0]
+    assert "const responseText = await response.text()" in helper
+    assert "let body: unknown = responseText" in helper
+    assert "body = JSON.parse(responseText)" in helper
