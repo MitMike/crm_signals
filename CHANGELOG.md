@@ -373,3 +373,10 @@ Included in PR #19's merge commit [a495919](https://github.com/MitMike/crm_signa
 - All 18 final-head checks passed across Quality, Python 3.10–3.14, Security/Semgrep, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 validation.
 - README first-install instructions now pin and verify the approved full SHA before Bench dependency setup; the static test protects the sequence.
 - Documentation/static-test only. Authorized target-site first-install and upgrade rehearsal remains outstanding; not pilot verification.
+
+
+### 2026-11-03 — D3 guide approval-boundary regression (replacement PR #114 / ADR-091)
+- Clarify in both HTML guides that the standard Helpdesk adapter is implemented and custom/different ticket sources require a separately approved scope.
+- Add static contract coverage for both guide statements.
+- PR #113's original 18-check result did not cover the later FAQ/test extension; the updated head produced no check runs. It was closed as superseded, and replacement PR #114 was opened to obtain final-head CI.
+- No runtime or site configuration change. D3 target-site acceptance remains outstanding.
