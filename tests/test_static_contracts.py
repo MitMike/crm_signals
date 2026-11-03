@@ -457,3 +457,17 @@ def test_e2e_non_sales_account_uses_explicit_desk_role():
     assert 'frappe.throw("E2E non-sales role boundary is invalid")' in source
     assert 'frappe.get_roles("e2e-employee@example.com")' in source
 
+def test_pinned_v16_5_runs_sales_user_direct_form_permission_e2e():
+    spec = (ROOT / "e2e/sahdev-dashboard.spec.ts").read_text()
+    workflow = (ROOT / ".github/workflows/bench-target-v16-5.yml").read_text()
+    assert (
+        'test("Sales User direct CRM Signal form respects linked Lead User Permission"'
+        in spec
+    )
+    assert '"frappe.desk.form.load.getdoc"' in spec
+    assert '"/app/crm-signal/' in spec
+    assert 'response.request().method() === "GET"' in spec
+    assert (
+        '--grep "Sales User (HTTP API|direct CRM Signal form) respects linked Lead User Permission"'
+        in workflow
+    )
