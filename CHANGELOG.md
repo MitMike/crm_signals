@@ -366,3 +366,10 @@ Included in PR #19's merge commit [a495919](https://github.com/MitMike/crm_signa
 - Clarify that the standard Frappe Helpdesk `HD Ticket` / `HD Service Level Agreement` adapter is already implemented; the guide now focuses on verifying target-site schema, field permissions and SLA policy.
 - Treat custom/different ticket sources as a separate approved adapter scope rather than promising automatic implementation.
 - Add a static contract test to protect the operator guidance. No runtime behavior or site configuration change; target-site D3 acceptance remains open.
+
+
+### 2026-11-03 — README pin-before-install correction merged (PR #112 / ADR-090)
+- PR #112 merged as [`d2e1d87`](https://github.com/MitMike/crm_signals/commit/d2e1d873a8f257545596379e179aeb3e4de40dd4) from final head `f68939ba5e2977ed62698e2a78084277fa091479`.
+- All 18 final-head checks passed across Quality, Python 3.10–3.14, Security/Semgrep, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 validation.
+- README first-install instructions now pin and verify the approved full SHA before Bench dependency setup; the static test protects the sequence.
+- Documentation/static-test only. Authorized target-site first-install and upgrade rehearsal remains outstanding; not pilot verification.
