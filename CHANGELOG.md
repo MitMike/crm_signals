@@ -534,4 +534,4 @@ PR #125 merged as [7029747](https://github.com/MitMike/crm_signals/commit/702974
 
 - Added copy/paste HTTPS-only curl checks for authenticated identity, linked restricted document denial (403), unlinked owned document read (200) and permission-filtered list visibility.
 - Added safe temporary credential/response handling and linked the procedure from the Administrator Guide.
-- Documentation-only; must still be executed on authorized Frappe v16.5 staging. Not pilot verification.
+- PR #128 merged as `85c492ea2c84444d7cc45c0d61706736fa972a83`; Quality/Python, Security/Semgrep and documentation-only Bench path-selector checks passed. The embedded Bash passed `bash -n` (ShellCheck unavailable). Must still be executed on authorized Frappe v16.5 staging. Not pilot verification.

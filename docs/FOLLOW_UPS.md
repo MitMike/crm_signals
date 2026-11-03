@@ -355,7 +355,9 @@ PR #126 merged as `812aa1eb76fbabc0e7f73a664caa72a1e208feb6` from final head `24
 - **Revisit criteria:** if HTTP or browser tests differ from the Python method-wrapper outcomes, capture sanitized status/body and Frappe version, then inspect authentication, routing, document permission and form-loading paths without using Administrator credentials or weakening the record boundary.
 
 
-## PR #128 — authenticated Sales User HTTP acceptance procedure (2026-11-03)
+## PR #128 merged — authenticated Sales User HTTP acceptance procedure (2026-11-03)
+
+PR #128 merged as `85c492ea2c84444d7cc45c0d61706736fa972a83`. Quality/Python run `41639851748`, Security/Semgrep `41639851870` and Bench path-selector run `41639851663` all passed; runtime selectors were skipped as expected for documentation-only changes. The embedded Bash passed `bash -n`; ShellCheck was unavailable.
 
 - [x] Add exact GET query parameters and expected outcomes for `frappe.client.get` and `frappe.client.get_list` using the linked-restricted/unlinked-owned synthetic CRM Signal pair.
 - [x] Verify the API token identity against the explicitly expected dedicated Sales User; reject Administrator.
