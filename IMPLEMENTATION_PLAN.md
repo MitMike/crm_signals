@@ -3,7 +3,7 @@
 **Last reviewed:** 2026-11-03  
 **Repository:** [MitMike/crm_signals](https://github.com/MitMike/crm_signals)  
 **Supported framework coverage:** Frappe / ERPNext v15 and v16. **Primary deployment target:** Frappe v16.5; record the exact patch/build and installed ERPNext/Helpdesk versions.  
-**Reviewed main baseline:** [a778c47](https://github.com/MitMike/crm_signals/commit/a778c47b5078ac69dd89bdcd3ecab41de09b8072) (PR #120 merged; all 18 final-head check runs passed across Quality, Security/Semgrep, Python 3.10–3.14, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0); **latest application feature baseline:** [c5720bf](https://github.com/MitMike/crm_signals/commit/c5720bfb3fbe8b554ec6febd549a8d5e58acc1d7).
+**Reviewed main baseline:** [8543da5](https://github.com/MitMike/crm_signals/commit/8543da5c2270a816608ba23927a6ee35571e5bde) (PR #121 merged; post-merge Quality Checks, Security Scanning and Bench Integration/E2E workflows completed successfully; PR #120 final-head 18/18 checks passed); **latest application feature baseline:** [c5720bf](https://github.com/MitMike/crm_signals/commit/c5720bfb3fbe8b554ec6febd549a8d5e58acc1d7).
 
 This is the execution plan and source of truth for delivery order, scope, dependencies, acceptance gates and exit criteria. The operational state is maintained in [docs/PROGRESS.md](docs/PROGRESS.md); durable choices are in [docs/DECISIONS.md](docs/DECISIONS.md); feature contracts are in [specs/](specs/).
 
@@ -92,7 +92,7 @@ Exit criteria:
 
 Work:
 - [x] **Pin-before-install correction (ADR-077; PR #82 merged as `ac030b1`, CI-verified):** direct clone CRM Signals with remote `upstream`, detach and verify the approved full SHA before `bench setup requirements crm_signals`, site install, migration or asset build; upgrade guidance verifies the Bench remote. Final head `ef4dc09` passed Quality, Security, Frappe v15/v16 Bench + Playwright and pinned Frappe v16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0. Authorized staging rehearsal and target-site acceptance remain open.
-- Run a target-site preflight: framework versions, installed apps, Company default currency, timezone, roles, DocType metadata, workflows, custom fields and permissions. ADR-092 / PR #120 adds an optional explicit synthetic-user DocType/field permission probe; record-level and end-to-end checks remain separate.
+- Run a target-site preflight: framework versions, installed apps, Company default currency, timezone, roles, DocType metadata, workflows, custom fields and permissions. ADR-092 / PR #120 adds an optional explicit synthetic-user DocType/field probe; ADR-094 / PR #122 adds a bounded name-only `frappe.get_list` visibility probe for explicitly supplied synthetic records. Direct form/API/report/export/print/dashboard acceptance remains separate.
 - Configure a dedicated integration user, rotateable API credentials, HTTPS, gateway rate limiting and secret storage.
 - Add source DocType, source document name and source event ID to CRM Signals; enforce idempotent inserts for identifiable events.
 - Add a validated CRM Signals Settings singleton for the quotation threshold, Opportunity trigger statuses, Lead stale window, digest time and escalation recipients.
