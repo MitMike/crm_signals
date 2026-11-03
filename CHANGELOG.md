@@ -360,3 +360,9 @@ Included in PR #19's merge commit [a495919](https://github.com/MitMike/crm_signa
 - Replace the unsafe moving-branch `bench get-app ... --branch main` example with the established direct-clone, approved-SHA detach/verify, then `bench setup requirements crm_signals` sequence.
 - Link existing-install upgrades to the Administrator Guide and Deployment Runbook so all operator entry points use the same verified procedure.
 - Documentation and static-test-only; no runtime or dependency change. The static contract test protects the README's pin-before-requirements ordering. Authorized Frappe v16.5 staging rehearsal remains required and is not implied by CI.
+
+
+### 2026-11-03 — Correct D3 support setup guide implementation status (ADR-091 / PR #113)
+- Clarify that the standard Frappe Helpdesk `HD Ticket` / `HD Service Level Agreement` adapter is already implemented; the guide now focuses on verifying target-site schema, field permissions and SLA policy.
+- Treat custom/different ticket sources as a separate approved adapter scope rather than promising automatic implementation.
+- Add a static contract test to protect the operator guidance. No runtime behavior or site configuration change; target-site D3 acceptance remains open.
