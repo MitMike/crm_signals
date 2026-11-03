@@ -1021,3 +1021,8 @@ A focused code review found that the first implementation returned immediately w
 ### ADR-096 CI triage — Ruff import ordering
 
 The first Quality lint run on head `a5998ec` failed only on Ruff `I001` for a local `frappe.client` import. Move `get`/`get_list` imports into the module's existing guarded Frappe import block so non-Bench unit environments still skip the integration class cleanly. Keep Ruff enforcement unchanged and rerun the full final-head matrix. If the import issue recurs, apply Ruff's exact import ordering; if the real-Frappe API methods differ, inspect v15/v16 implementations without weakening the expected denied/allowed boundary.
+
+
+### ADR-096 CI triage — second Ruff import-order failure
+
+The first correction moved aliased API imports into the guarded Frappe import block but Quality Checks on head `97ac553` still failed Ruff `I001` at that block. Replace the aliases with `import frappe.client` and call the module functions directly. Preserve the `ModuleNotFoundError` fallback and Ruff enforcement. If the rule still fails, obtain the exact Ruff 0.8.1 `--fix` diff rather than guessing a third import arrangement.
