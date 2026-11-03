@@ -365,7 +365,7 @@ Included in PR #19's merge commit [a495919](https://github.com/MitMike/crm_signa
 ### 2026-11-03 — Correct D3 support setup guide implementation status (ADR-091 / PR #113)
 - Clarify that the standard Frappe Helpdesk `HD Ticket` / `HD Service Level Agreement` adapter is already implemented; the guide now focuses on verifying target-site schema, field permissions and SLA policy.
 - Treat custom/different ticket sources as a separate approved adapter scope rather than promising automatic implementation.
-- Add a static contract test to protect the operator guidance. No runtime behavior or site configuration change; target-site D3 acceptance remains open.
+- Add static contract coverage for both operator guides so custom/different ticket sources remain unsupported until separately approved. No runtime behavior or site configuration change; target-site D3 acceptance remains open.
 
 
 ### 2026-11-03 — README pin-before-install correction merged (PR #112 / ADR-090)
