@@ -200,7 +200,7 @@ The PR's CI result does not establish that a customer site has the approved SHA,
 
 ## D3 support setup guide correction — PR #113
 
-- [x] **Documentation/status correction (ADR-091):** the standard Frappe Helpdesk adapter is already implemented for `HD Ticket` and `HD Service Level Agreement`. The setup guide now directs operators to validate the installed version/schema, effective field permissions and active SLA policy against that contract.
+- [x] **Documentation/status correction (ADR-091):** the standard Frappe Helpdesk adapter is already implemented for `HD Ticket` and `HD Service Level Agreement`. The setup guide directs operators to validate the installed version/schema, effective field permissions and active SLA policy against that contract; the discovery FAQ now requires separate approval before any custom-source adapter is scoped.
 - [x] Custom/different ticket DocTypes are explicitly not treated as supported automatically; a separate adapter requires exact metadata plus technical and business approval.
 - **Scope:** documentation and static-test-only; no runtime behavior, dependencies or site settings change.
 - [ ] **Still open — target-site D3 acceptance:** confirm the installed Helpdesk version, required fields and permlevels, Sales read access, active SLA schedule/holidays/timezone, pause/resume and retention rules; run synthetic ticket/SLA tests in authorized staging and record results.
