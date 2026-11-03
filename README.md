@@ -59,15 +59,27 @@ CRM Signals Settings provides starter presets and administrator-editable busines
 
 The source declares intended Frappe/ERPNext v15 and v16 compatibility. GitHub Actions Bench validation has passed on both moving version lines (v15/Python 3.11 and v16/Python 3.14), with authenticated Playwright E2E in the v16 lane. A separate exact Frappe v16.5.0 + ERPNext v16.5.0 + Helpdesk v1.28.0 Bench lane merged in PR #50 and passed install, schema/role, D3 aggregate, upgrade, asset-build and Bench-test validation; The inspected Helpdesk v1.29.0, v1.30.2 and v1.31.1 desk manifests link @framework/ui to apps/frappe/ui, which is absent from the unmodified Frappe v16.5.0 tag; v1.31.1 additionally expects the absent Notification Type DocType. The exact reference lane therefore pins Helpdesk v1.28.0. CI is not a substitute for validation on the intended site's exact app versions, roles, customizations, currency, timezone and financial data.
 
-## Installation
+## Installation (pinned release)
+
+Use the full 40-character commit SHA from the approved release record. Do not install the moving `main` branch. `bench get-app` installs the cloned app and its dependencies before returning, so checking out the approved SHA afterwards is too late.
+
+For a first installation, run from the Bench root:
 
 ```bash
-bench get-app https://github.com/MitMike/crm_signals --branch main
+APP_SHA="<approved-commit-sha>"
+test "${#APP_SHA}" -eq 40
+git clone --origin upstream https://github.com/MitMike/crm_signals.git apps/crm_signals
+git -C apps/crm_signals fetch upstream --tags
+git -C apps/crm_signals checkout --detach "$APP_SHA"
+test "$(git -C apps/crm_signals rev-parse HEAD)" = "$APP_SHA"
+bench setup requirements crm_signals
 bench --site <site-name> install-app crm_signals
 bench --site <site-name> migrate
 bench build --app crm_signals
 bench restart
 ```
+
+The SHA check must pass before `bench setup requirements`; that command installs the editable Python package and Node dependencies from the pinned tree. For an existing installation, use the [Administrator Guide](docs/ADMIN_GUIDE.md#installation-and-upgrade) and [Deployment Runbook](docs/DEPLOYMENT_RUNBOOK.md#3-deploy), which verify the Bench-managed remote before fetching and checking out the approved SHA. Record the verified revision, `bench version` and installed app versions in the target-site acceptance record.
 
 ## Webhook authentication
 
