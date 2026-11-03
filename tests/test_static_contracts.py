@@ -2,6 +2,7 @@
 
 import ast
 import json
+import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -595,3 +596,13 @@ def test_target_site_acceptance_script_checks_rest_resource_permission_boundary(
     assert '/api/resource/CRM%20Signal/$UNLINKED_OWNED_SIGNAL' in acceptance
     assert "restricted REST resource expected HTTP 403" in acceptance
     assert "REST resource list did not contain exactly the unlinked owned record" in acceptance
+
+
+
+def test_target_site_acceptance_sales_api_smoke_is_valid_bash():
+    acceptance = (ROOT / "docs/TARGET_SITE_ACCEPTANCE.md").read_text()
+    marker = acceptance.index("set -euo pipefail")
+    fence_start = acceptance.rfind("```bash", 0, marker)
+    fence_end = acceptance.index("\n```", marker)
+    script = acceptance[fence_start + len("```bash") : fence_end]
+    subprocess.run(["bash", "-n"], input=script, text=True, check=True)
