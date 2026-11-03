@@ -1015,7 +1015,7 @@ A focused code review found that the first implementation returned immediately w
 - **Rationale:** Exercise Frappe's actual API method wrappers and the CRM Signal document/list permission hooks on the supported runtime matrix without introducing a separate fixture or using privileged `get_all` queries.
 - **Consequences:** Integration-test only. The CI test calls the whitelisted Python functions directly; it does not validate HTTP authentication, cookies, routing, reverse-proxy behavior or browser form loading. Those remain staging checks. No runtime, schema, dependency, metric or site configuration changes.
 - **Revisit criteria:** If Frappe v15/v16 changes the `frappe.client.get` or `get_list` wrapper contracts, inspect the exact versioned implementation and update the regression without weakening the denied/allowed record boundary. Do not replace the API wrappers with `get_all` or use Administrator credentials.
-- **Verification status:** prior head `30a3890a994a3402b4efdf15732843f86a62b789` passed final-head Quality/Python, Security/Semgrep, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 validation. A review correction moves the initial session switch inside the restoration `try`; the corrected head requires a fresh complete matrix. Not pilot-verified.
+- **Verification status:** corrected final head `24d12acb50613c25f71fc2d809b464e311ba7f3e` passed all four required workflows and PR #126 merged as `812aa1eb76fbabc0e7f73a664caa72a1e208feb6`. Quality/Python `41634012616`, Security/Semgrep `41634012907`, Bench v15/v16 + Playwright `41634012673`, pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 `41634012853`. The initial session switch is inside `try/finally`; all linked-denied/unlinked-allowed assertions passed. Reference-stack CI-verified, not pilot-verified.
 
 
 ### ADR-096 CI triage — Ruff import ordering
@@ -1034,3 +1034,14 @@ The first correction moved aliased API imports into the guarded Frappe import bl
 - **Decision:** move the initial user switch inside the existing `try`, so every attempted switch is covered by restoration. Keep the original user captured before the switch and retain the denied/allowed API assertions.
 - **Status:** the prior head `30a3890a994a3402b4efdf15732843f86a62b789` passed all four workflows (Quality/Python, Semgrep, Bench v15/v16 + Playwright, pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0). This correction creates a new head and requires a fresh complete matrix before merge.
 - **Revisit criteria:** if the new matrix fails, inspect the exact v15/v16 API wrapper and session behavior. Do not move the switch back outside the `try`, bypass permissions, or weaken the linked-denied/unlinked-allowed assertions.
+
+
+### ADR-096 final-head CI and merge record (2026-11-03)
+
+- Corrected final head: `24d12acb50613c25f71fc2d809b464e311ba7f3e`.
+- Quality Checks `41634012616`: lint/static and Python 3.10/3.11/3.12/3.14 passed.
+- Security/Semgrep `41634012907`: passed.
+- Bench Integration and E2E `41634012673`: Frappe v15/v16 integration passed and v16 Playwright E2E passed.
+- Pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 `41634012853`: installation, effective-user permission checks, D1/D2, Helpdesk schema/read-role, D3 aggregate, upgrade, assets, Python and Frappe integration steps passed.
+- PR #126 merged as `812aa1eb76fbabc0e7f73a664caa72a1e208feb6`. The merge commit has no separate combined-status entries; verification is the four completed PR final-head workflows.
+- Scope remains integration-test and operator-documentation coverage. Direct HTTP authentication/routing and browser form acceptance remain staging checks; no pilot verification is implied.
