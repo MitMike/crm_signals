@@ -328,3 +328,13 @@ PR #100 is code-complete and CI-verified, not pilot-verified. The automated comp
 - **Scope/status:** test-only; no runtime or target-site configuration change. Code-complete and reference-stack CI-verified; not pilot-verified.
 - **Reviewed main:** `94d14f56a526670d2c0ecb150ab9f08b4f034389`. The PR final-head required checks were all successful; the separate main-push workflow is not used as a substitute for the PR's final-head evidence.
 - [ ] **Next gate:** authorized Frappe v16.5 staging remains required for deployed SHA, dashboard screenshots, effective-role permissions, D1/D2 native-report reconciliation, Helpdesk SLA, scheduler/mail/realtime/webhook recovery and backup/restore/rollback evidence.
+
+
+## PR #110 merged — release-document reconciliation (2026-11-03)
+
+- [x] PR #110 merged as [`fe7dca4`](https://github.com/MitMike/crm_signals/commit/fe7dca402293faa1e7e60f147d53adaef63009d6) from final head `f4904b7bd88725017f5f2254de9ceb3c123163cc`.
+- [x] All 13 final-head check runs completed: 11 succeeded and two runtime selectors were skipped as expected for a documentation-only diff. Quality/lint, Security/Semgrep, Python version gates and stable Bench v15/v16 validation passed.
+- [x] Refreshed the release-readiness sprint, marked the older production-readiness audit as historical, and corrected the README's stale statement that D3 implementation was still pending.
+- **Reviewed main:** `fe7dca402293faa1e7e60f147d53adaef63009d6`. The open PR and issue queries both returned zero immediately after merge.
+- **Status:** documentation complete and reference CI-verified. No application runtime code or site configuration changed.
+- [ ] **Release gate:** authorized Frappe v16.5 staging remains necessary for exact installed app/full-SHA inventory, dashboard screenshots after asset/cache refresh, effective-role permissions, D1/D2 native-report reconciliation by currency, Helpdesk SLA calendar, scheduler/mail/realtime/webhook recovery and backup/restore/rollback rehearsal. No pilot verification is claimed.
