@@ -178,6 +178,48 @@ if names != {sys.argv[2]}:
 print("PASS: REST resource list contains only the unlinked owned record (HTTP 200)")
 PY
 
+report_filters="$(python3 -c 'import json,sys; print(json.dumps([["CRM Signal","name","in",sys.argv[1:]]]))' "$LINKED_RESTRICTED_SIGNAL" "$UNLINKED_OWNED_SIGNAL")"
+
+status="$(request "$base_url/api/method/frappe.desk.reportview.get_list" "$tmp_dir/reportview.json" \
+  --get --data-urlencode "doctype=CRM Signal" \
+  --data-urlencode 'fields=["name","message"]' \
+  --data-urlencode "filters=$report_filters" \
+  --data-urlencode "limit_page_length=10")"
+[[ "$status" == "200" ]] || { echo "FAIL: Report View expected HTTP 200, got $status" >&2; exit 1; }
+python3 - "$tmp_dir/reportview.json" "$UNLINKED_OWNED_SIGNAL" <<'PY'
+import json
+import sys
+
+with open(sys.argv[1], encoding="utf-8") as response_file:
+    payload = json.load(response_file)
+rows = payload.get("message", [])
+names = {row.get("name") for row in rows}
+if names != {sys.argv[2]}:
+    raise SystemExit("FAIL: Report View did not return only the unlinked owned record")
+print("PASS: Report View contains only the unlinked owned record (HTTP 200)")
+PY
+
+status="$(request "$base_url/api/method/frappe.desk.reportview.export_query" "$tmp_dir/reportview-export.csv" \
+  --get --data-urlencode "doctype=CRM Signal" \
+  --data-urlencode 'fields=["name","message"]' \
+  --data-urlencode "filters=$report_filters" \
+  --data-urlencode "file_format_type=CSV" \
+  --data-urlencode "title=CRM Signals permission export" \
+  --data-urlencode "csv_delimiter=," \
+  --data-urlencode "csv_quoting=2")"
+[[ "$status" == "200" ]] || { echo "FAIL: Report View CSV export expected HTTP 200, got $status" >&2; exit 1; }
+python3 - "$tmp_dir/reportview-export.csv" "$LINKED_RESTRICTED_SIGNAL" "$UNLINKED_OWNED_SIGNAL" <<'PY'
+from pathlib import Path
+import sys
+
+csv_text = Path(sys.argv[1]).read_text(encoding="utf-8")
+if sys.argv[2] in csv_text:
+    raise SystemExit("FAIL: CSV export disclosed the linked restricted record name")
+if sys.argv[3] not in csv_text:
+    raise SystemExit("FAIL: CSV export omitted the unlinked owned record")
+print("PASS: CSV export includes only the permitted synthetic record (HTTP 200)")
+PY
+
 echo "PASS: authenticated Sales User API permission boundary verified"
 ```
 
@@ -285,6 +327,9 @@ Acceptance criteria:
 - [ ] API access does not bypass document or linked-party permissions.
 - [ ] Digest content is generated under each recipient's user context.
 - [ ] Realtime delivery excludes users without read access to the CRM Signal, linked Lead/Customer and originating source DocType (e.g. Quotation/Opportunity); test that parent access without source access suppresses the notification.
+- [ ] As the dedicated Sales User, open the CRM Signal Report View with the linked-restricted and unlinked-owned synthetic pair. Confirm only the unlinked owned record appears. Export the filtered result as CSV and confirm it contains the unlinked record but not the linked-restricted record or message. Repeat with the Sales Manager and System Manager and record each persona separately; do not infer their results from the Sales User.
+- [ ] Record only persona alias, Report View/export status, permitted row count, exact Frappe build, deployed full SHA and timestamp. Do not attach the CSV, record names, messages, credentials or raw response bodies.
+- [ ] PR #139 adds cookie-independent API-token CI coverage for `frappe.desk.reportview.get_list` and `frappe.desk.reportview.export_query` on supported Frappe v16 and pinned v16.5.0. Corrected final-head Quality/Python and Security passed; Bench v15/v16 and pinned v16.5.0 integration are pending at this document revision. CI does not replace execution on the authorized target site.
 - [ ] Export and print do not expose rows unavailable in the corresponding report/list.
 - [ ] Helpdesk HD Ticket field-level read access is checked independently for `status_category`, `resolution_date`, `resolution_time`, `sla` and `agreement_status` using the installed version's actual permlevels (all are permlevel 0 in the v1.28.0 reference).
 - [ ] If Helpdesk v1.29.0, v1.30.2 or v1.31.1 is installed, verify the exact Frappe build contains the `frappe/ui` package required by `@framework/ui`; if v1.31.1, also verify the `Notification Type` DocType/controller. Stop if absent.

@@ -625,3 +625,22 @@ def test_sales_user_print_view_e2e_checks_linked_denial_and_owned_access():
     assert "expect(restrictedBody).not.toContain(linkedMessage)" in spec
     assert "expect(allowedResponse?.status()).toBe(200)" in spec
     assert "expect(allowedBody).toContain(unlinkedMessage)" in spec
+
+def test_sales_user_report_view_and_csv_export_e2e_preserve_row_permissions():
+    spec = (ROOT / "e2e/sahdev-dashboard.spec.ts").read_text()
+    assert (
+        'test("Sales User report view and CSV export respect linked Lead User Permission"'
+        in spec
+    )
+    assert '"frappe.desk.reportview.get_list"' in spec
+    assert '"frappe.desk.reportview.export_query"' in spec
+    assert "expect(reportRows.map((row) => row.name)).toEqual([" in spec
+    assert "expect(csv).not.toContain(linkedSignal!.name)" in spec
+    assert "expect(csv).not.toContain(linkedMessage)" in spec
+
+def test_target_site_acceptance_checks_report_view_and_csv_export_permissions():
+    acceptance = (ROOT / "docs/TARGET_SITE_ACCEPTANCE.md").read_text()
+    assert "frappe.desk.reportview.get_list" in acceptance
+    assert "frappe.desk.reportview.export_query" in acceptance
+    assert "Report View did not return only the unlinked owned record" in acceptance
+    assert "CSV export disclosed the linked restricted record name" in acceptance

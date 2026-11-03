@@ -680,3 +680,15 @@ PR #125 merged as [7029747](https://github.com/MitMike/crm_signals/commit/702974
 - Fixes a record-level disclosure path in Frappe's read-or-print gate by requiring the existing row-level readable relationship for CRM Signal print in addition to the DocType print grant.
 - All final-head checks passed: Quality/Python `41698694186`, Security `41698694333` and `41698685514`, Bench v15/v16 + Playwright `41698694301`, and pinned Frappe 16.5.0 `41698694356`.
 - v15/v16 unit and integration coverage passed; v16 ran 21 Playwright tests; pinned v16.5.0 ran 6 Playwright tests. Reference-stack CI-verified, not pilot-verified.
+
+
+### 2026-11-04 — PR #139 opening — Sales User Report View and CSV export permission regression
+
+- Added a cookie-independent API-token E2E for Frappe's standard `frappe.desk.reportview.get_list` and `frappe.desk.reportview.export_query` endpoints using the existing synthetic Sales User and linked-restricted/unlinked-owned CRM Signal pair.
+- Require Report View results to contain only the unlinked owned record; require CSV export to contain the unlinked record name/message and exclude the restricted record name/message.
+- Added a static regression guard and updated the Administrator Guide and Target-Site Acceptance Kit. ADR-107 records why Report View and export need endpoint-specific coverage.
+- Scope is CI E2E/static tests and operator documentation only; no production runtime, DocType role grant, schema, dependency or site configuration change. Final-head CI pending; not pilot-verified.
+
+- PR #139 CI triage: initial Quality run `41708443112` identified only Prettier formatting differences in the new E2E test; applied the exact formatter output in `c75dae2`. Python 3.12 passed on the superseded head. Corrected-head full matrix required; not pilot-verified.
+
+- PR #139 corrected-head CI update: Quality/Python `41708655615` and Security/Semgrep `41708655564` passed on `4fa1c93075235a6b19fdec7228df70aa044f32d3`; Bench v15/v16 + Playwright `41708655538` is queued and pinned Frappe 16.5.0 `41708655821` is running. Do not merge until both integration lanes pass.

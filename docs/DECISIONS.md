@@ -1249,3 +1249,15 @@ PR #135 merged as [81d70410f0f81124ae468c1d929caefd1610fd9e](https://github.com/
 - **Scope:** CRM Signal permission hook, unit/E2E regression tests and operator acceptance documentation. No schema, role, dependency or site-configuration changes.
 - **Verification target:** Quality/Python, Security/Semgrep, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 must all pass on the exact final PR head. Not pilot-verified.
 - **Revisit criteria:** if installed Frappe v15/v16 print permission behavior differs, inspect the exact `validate_print_permission` implementation. Preserve both role-level print permission and row-level read visibility; do not accept a role-only grant for linked-restricted records.
+
+
+## ADR-107 — Verify Sales User Report View and CSV export row filtering
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-04
+- **Context:** CRM Signal grants Sales User role-level Report and Export permissions. Earlier tests verify permission-filtered list calls, direct document/form loading, token-authenticated RPC and REST resource reads, and print-view denial. They did not exercise the standard Report View list route or the CSV export route with a Sales User whose User Permission excludes a linked Lead.
+- **Decision:** add one cookie-independent API-token Playwright regression using the existing disposable Sales User and synthetic linked-restricted/unlinked-owned CRM Signals. First verify token identity. Then call `frappe.desk.reportview.get_list` with both names and require only the unlinked owned record. Call `frappe.desk.reportview.export_query` as CSV with the same filter; require the allowed name/message and prohibit the restricted name/message from the complete response body. Run the test in supported Frappe v16 and pinned Frappe 16.5.0.
+- **Rationale:** Report View and export are distinct endpoints from `frappe.client.get_list` and `/api/resource`. Frappe's report-view query and export path use `DatabaseQuery`; the test proves the CRM Signal permission query remains in force through both user-facing paths. Role-level Export permission is retained; no new role grants or runtime permission changes are justified unless this regression fails.
+- **Scope:** E2E/static tests and operator acceptance documentation only. Keep Frappe v15 Bench integration coverage. No production runtime, DocType permission, schema, dependency or site-configuration change.
+- **Verification:** pending fresh final-head Quality/Python, Security/Semgrep, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 workflows. Code-complete is not CI-verified or pilot-verified.
+- **Revisit criteria:** if the Report View response or CSV contains the linked-restricted record, inspect exact installed Frappe `reportview.get_list`, `reportview.export_query` and `DatabaseQuery.execute` permission handling. If CSV response shape/status differs, adjust only request/response parsing after confirming the v16.5 route. Never use Administrator credentials, a browser-cookie fallback, `get_all`, a share or a weakened linked-denied/unlinked-allowed expectation.
