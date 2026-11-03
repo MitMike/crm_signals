@@ -4,8 +4,7 @@ import unittest
 from unittest.mock import patch
 
 try:
-    import frappe
-    from frappe.client import get as api_get, get_list as api_get_list
+    import frappe.client
     from frappe.tests.utils import FrappeTestCase
 except ModuleNotFoundError as error:
     if error.name != "frappe":
@@ -231,12 +230,12 @@ class TestCRMSignalNotificationPermissions(FrappeTestCase):
         frappe.set_user(user.name)
         try:
             with self.assertRaises(frappe.PermissionError):
-                api_get("CRM Signal", linked_signal.name)
+                frappe.client.get("CRM Signal", linked_signal.name)
 
-            visible_document = api_get("CRM Signal", unlinked_signal.name)
+            visible_document = frappe.client.get("CRM Signal", unlinked_signal.name)
             self.assertEqual(visible_document["name"], unlinked_signal.name)
 
-            visible_rows = api_get_list(
+            visible_rows = frappe.client.get_list(
                 "CRM Signal",
                 fields=["name"],
                 filters={"name": ["in", [linked_signal.name, unlinked_signal.name]]},
