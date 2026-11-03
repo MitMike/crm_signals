@@ -39,6 +39,119 @@ def _ensure_system_user(email, first_name, role, password):
     update_password(email, password)
 
 
+def _prepare_e2e_sales_user_permission_fixture(sales_user):
+    """Create linked-restricted and unlinked-owned signals for browser-session API tests."""
+    allowed_lead_company = "CRM Signals E2E Allowed Lead"
+    restricted_lead_company = "CRM Signals E2E Restricted Lead"
+
+    allowed_lead_name = frappe.db.get_value(
+        "Lead", {"company_name": allowed_lead_company}, "name"
+    )
+    if allowed_lead_name:
+        allowed_lead = frappe.get_doc("Lead", allowed_lead_name)
+    else:
+        allowed_lead = frappe.get_doc(
+            {
+                "doctype": "Lead",
+                "company_name": allowed_lead_company,
+                "email_id": "crm-signals-e2e-allowed@example.com",
+                "status": "Lead",
+            }
+        ).insert(ignore_permissions=True)
+
+    restricted_lead_name = frappe.db.get_value(
+        "Lead", {"company_name": restricted_lead_company}, "name"
+    )
+    if restricted_lead_name:
+        restricted_lead = frappe.get_doc("Lead", restricted_lead_name)
+    else:
+        restricted_lead = frappe.get_doc(
+            {
+                "doctype": "Lead",
+                "company_name": restricted_lead_company,
+                "email_id": "crm-signals-e2e-restricted@example.com",
+                "status": "Lead",
+            }
+        ).insert(ignore_permissions=True)
+
+    permission_filters = {
+        "user": sales_user,
+        "allow": "Lead",
+        "for_value": allowed_lead.name,
+    }
+    if not frappe.db.exists("User Permission", permission_filters):
+        frappe.get_doc(
+            {"doctype": "User Permission", **permission_filters}
+        ).insert(ignore_permissions=True)
+
+    linked_message = "CRM Signals E2E linked restricted signal"
+    unlinked_message = "CRM Signals E2E unlinked owned signal"
+    signal_fixtures = (
+        (linked_message, restricted_lead.name),
+        (unlinked_message, None),
+    )
+    signal_names = {}
+    for message, lead_name in signal_fixtures:
+        signal_name = frappe.db.get_value(
+            "CRM Signal", {"message": message}, "name"
+        )
+        if signal_name:
+            signal = frappe.get_doc("CRM Signal", signal_name)
+            signal.lead = lead_name
+            signal.save(ignore_permissions=True)
+        else:
+            signal = frappe.get_doc(
+                {
+                    "doctype": "CRM Signal",
+                    "signal_type": "Website Visit",
+                    "priority": "Medium",
+                    "message": message,
+                    "lead": lead_name,
+                }
+            ).insert(ignore_permissions=True)
+        frappe.db.set_value("CRM Signal", signal.name, "owner", sales_user)
+        signal_names[message] = signal.name
+
+    if not frappe.db.exists("User Permission", permission_filters):
+        frappe.throw("E2E Sales User Lead User Permission fixture was not created")
+    frappe.clear_cache(user=sales_user)
+
+    if frappe.has_permission(
+        "Lead", ptype="read", doc=restricted_lead.name, user=sales_user
+    ):
+        frappe.throw("E2E Sales User unexpectedly has restricted Lead read access")
+    if not frappe.has_permission(
+        "Lead", ptype="read", doc=allowed_lead.name, user=sales_user
+    ):
+        frappe.throw("E2E Sales User cannot read the allowed Lead")
+
+    original_user = frappe.session.user
+    try:
+        frappe.set_user(sales_user)
+        visible_rows = frappe.get_list(
+            "CRM Signal",
+            fields=["name"],
+            filters={
+                "name": [
+                    "in",
+                    [
+                        signal_names[linked_message],
+                        signal_names[unlinked_message],
+                    ],
+                ]
+            },
+            limit_page_length=10,
+        )
+    finally:
+        frappe.set_user(original_user)
+
+    visible_names = {row["name"] for row in visible_rows}
+    if visible_names != {signal_names[unlinked_message]}:
+        frappe.throw("E2E Sales User CRM Signal permission fixture is inconsistent")
+
+    return True
+
+
 def prepare_e2e_site():
     """Complete first-run ERPNext setup and create deterministic E2E users."""
     if not frappe.is_setup_complete():
@@ -76,12 +189,16 @@ def prepare_e2e_site():
     _ensure_system_user(
         "e2e-employee@example.com", "E2E Employee", "Employee", employee_password
     )
+    permission_fixture_ready = _prepare_e2e_sales_user_permission_fixture(
+        "e2e-sales-user@example.com"
+    )
 
     frappe.db.commit()
     return {
         "setup_complete": True,
         "company": "CRM Signals CI Company",
         "users": ["e2e-sales-user@example.com", "e2e-employee@example.com"],
+        "sales_user_permission_fixture_ready": permission_fixture_ready,
     }
 
 
