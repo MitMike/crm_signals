@@ -390,3 +390,16 @@ PR #128 merged as `85c492ea2c84444d7cc45c0d61706736fa972a83`. Quality/Python run
 - [ ] After CI passes, merge PR #130 only if the branch is current and all required checks are green; then reconcile main progress records.
 - **Evidence:** pinned workflow run 41643473834, job 125943109815; Playwright artifact 13233758446. The pinned job's setup, migration, permission fixtures, Python tests and Frappe integration tests passed before the login response waiter timed out.
 - **Revisit criteria:** if the corrected run fails, inspect its Playwright trace for the exact POST pathname/status and determine whether the login itself failed or only the waiter predicate. Do not skip login or weaken the 403/200/list-only-unlinked assertions. Target-site API-token, browser form, report/export/print/dashboard and pilot acceptance remain separate.
+
+
+
+### PR #130 — pinned Frappe 16.5 Sales User identity assertion mismatch (2026-11-03)
+
+- [x] Inspect the failed pinned job and isolate the first failing Playwright assertion; site setup, preflight, D1/D2, Helpdesk, schema upgrade, E2E fixture, Python tests and Frappe integration tests all completed before the browser test failed.
+- [x] Confirm the failure was the role-discovery helper returning an empty array, not login or the restricted/allowed HTTP permission assertions.
+- [x] Enforce the Sales User role during server-side fixture preparation with frappe.get_roles(sales_user).
+- [x] Replace the browser role-discovery call with an authenticated identity check using frappe.auth.get_logged_user and the exact synthetic Sales User email.
+- [ ] Require fresh final-head Quality/Python, Security/Semgrep, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 Playwright workflows to pass.
+- [ ] Merge PR #130 only after all required final-head checks pass and the branch remains current; then reconcile main progress records.
+- **Evidence:** pinned run 41647478405, job 125956516813; failure at e2e/sahdev-dashboard.spec.ts:528; the assertion received [] from currentUserRoles. No document/list permission assertion ran.
+- **Revisit criteria:** if the server-side role check fails, inspect User role rows and frappe.get_roles on Frappe 16.5. If the browser identity check fails, inspect session cookie and the frappe.auth.get_logged_user response. Do not use Administrator for Sales User assertions or weaken the 403/200/list-only-unlinked boundary. API-token staging, browser form, report/export/print/dashboard and pilot acceptance remain separate.
