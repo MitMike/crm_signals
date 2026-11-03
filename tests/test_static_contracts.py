@@ -411,7 +411,7 @@ def test_crm_signals_dashboard_retains_horizontal_inset():
     assert "padding: 20px 24px 32px;" in stylesheet
 
 
-def test_pinned_playwright_workflow_uses_lockfile_install():
+def test_pinned_playwright_workflow_uses_lockfile_install_and_masks_e2e_passwords():
     workflow = (ROOT / ".github/workflows/bench-target-v16-5.yml").read_text()
     install = "npm ci --ignore-scripts --no-audit --no-fund"
     assert install in workflow
@@ -419,3 +419,13 @@ def test_pinned_playwright_workflow_uses_lockfile_install():
     assert workflow.index(install) < workflow.index(
         "npx playwright install --with-deps chromium"
     )
+
+    credentials = workflow.split(
+        "      - name: Generate ephemeral E2E user passwords", 1
+    )[1].split("      - name: Prepare ERPNext and Sales User permission E2E fixtures", 1)[0]
+    for name in ["sales_password", "employee_password"]:
+        mask = f'echo "::add-mask::${name}"'
+        output = f'echo "{name}=${name}" >> "$GITHUB_OUTPUT"'
+        assert mask in credentials
+        assert output in credentials
+        assert credentials.index(mask) < credentials.index(output)
