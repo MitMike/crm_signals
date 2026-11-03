@@ -914,6 +914,64 @@ test("Sales User CRM Signal form permission boundary", async ({ page }) => {
     expect(loadedSignal?.message).toBe(unlinkedMessage);
 });
 
+test("Sales User print view respects linked Lead User Permission", async ({
+    page
+}) => {
+    await loginAsAdministrator(page);
+
+    const linkedMessage = "CRM Signals E2E linked restricted signal";
+    const unlinkedMessage = "CRM Signals E2E unlinked owned signal";
+    const fixtureResponse = await frappeMethodGet(
+        page,
+        "frappe.client.get_list",
+        {
+            doctype: "CRM Signal",
+            fields: JSON.stringify(["name", "message"]),
+            filters: JSON.stringify([
+                ["message", "in", [linkedMessage, unlinkedMessage]]
+            ]),
+            limit_page_length: "10"
+        }
+    );
+    expect(fixtureResponse.status).toBe(200);
+    const fixtureRows =
+        (
+            fixtureResponse.body as {
+                message?: Array<{ name: string; message: string }>;
+            }
+        ).message || [];
+    expect(fixtureRows).toHaveLength(2);
+
+    const linkedSignal = fixtureRows.find(
+        (row) => row.message === linkedMessage
+    );
+    const unlinkedSignal = fixtureRows.find(
+        (row) => row.message === unlinkedMessage
+    );
+    expect(linkedSignal).toBeTruthy();
+    expect(unlinkedSignal).toBeTruthy();
+
+    const email = process.env.E2E_SALES_USER || "e2e-sales-user@example.com";
+    const password = process.env.E2E_SALES_PASSWORD;
+    expect(password).toBeTruthy();
+    await page.context().clearCookies();
+    await loginAs(page, email, password!);
+
+    const restrictedUrl =
+        `/printview?doctype=CRM%20Signal&name=${encodeURIComponent(linkedSignal!.name)}&format=Standard&no_letterhead=1`;
+    const restrictedResponse = await page.goto(restrictedUrl);
+    expect(restrictedResponse?.status()).toBe(403);
+    const restrictedBody = await restrictedResponse!.text();
+    expect(restrictedBody).not.toContain(linkedMessage);
+
+    const allowedUrl =
+        `/printview?doctype=CRM%20Signal&name=${encodeURIComponent(unlinkedSignal!.name)}&format=Standard&no_letterhead=1`;
+    const allowedResponse = await page.goto(allowedUrl);
+    expect(allowedResponse?.status()).toBe(200);
+    const allowedBody = await allowedResponse!.text();
+    expect(allowedBody).toContain(unlinkedMessage);
+});
+
 test("Users without a Sales role cannot open the Compass", async ({ page }) => {
     await loginAsAdministrator(page);
     const email = process.env.E2E_EMPLOYEE_USER || "e2e-employee@example.com";
