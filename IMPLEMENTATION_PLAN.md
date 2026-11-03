@@ -32,7 +32,7 @@ The following capabilities are present in the repository. "Implemented" means th
 | Capability | Code status | Remaining acceptance |
 |---|---|---|
 | Frappe app packaging and Pilot discovery metadata | Implemented | Run the actual Pilot import flow on the intended site |
-| Read-only target-site preflight inventory | Implemented and CI-verified in PR #70; optional effective-user DocType/field and synthetic-record list probes are CI-verified in PRs #120, #122 and #124; PR #126 adds single-document/list API permission-wrapper coverage (CI pending) | Run on authorized v16.5 staging and review the actual site inventory/permission matrix; authenticated HTTP, direct form, report/export/print/dashboard and release acceptance remain manual |
+| Read-only target-site preflight inventory | Implemented and CI-verified in PR #70; optional effective-user DocType/field and synthetic-record list probes are CI-verified in PRs #120, #122 and #124; PR #126 adds single-document/list API permission-wrapper coverage (prior head passed all four workflows; session-restoration review correction requires fresh final-head CI) | Run on authorized v16.5 staging and review the actual site inventory/permission matrix; authenticated HTTP, direct form, report/export/print/dashboard and release acceptance remain manual |
 | CRM Signal DocType and validation | Implemented | Validate installed schema, roles and customizations |
 | Authenticated POST ingestion | Event-ID idempotency and concurrent duplicate recovery merged in PR #19/#23 | Verify with a dedicated target-site integration user and deployment rate limits |
 | Quotation and Opportunity event hooks | Implemented; transactional outbox merged in PR #26 | Confirm target-site status/threshold policy; audited Failed-row replay merged in PR #38; per-company thresholds are in PR #45 merged |
@@ -545,3 +545,11 @@ The new regression reuses the real Frappe User Permission fixture: a Sales User 
 - **Decision:** import the `frappe.client` module itself (`import frappe.client`) inside the existing guarded block and call `frappe.client.get` / `frappe.client.get_list`. This preserves the no-Frappe unit-test fallback and removes the aliased member import ordering ambiguity.
 - **Correction:** replace the aliased imports and rerun the full final-head matrix. Do not suppress I001 or relax lint.
 - **Revisit criteria:** if I001 persists, retrieve Ruff's exact `--fix` diff from the job or run the pinned Ruff 0.8.1 formatter against the file before another commit; if the integration test fails after lint passes, inspect the exact v15/v16 API result and keep the denied/allowed assertions intact.
+
+
+### PR #126 review correction — restore session when the initial user switch raises
+
+- **Finding:** final-head CI passed, but review found the API helper called `frappe.set_user(test_user)` immediately before its `try`. If that call changed session state and then raised, the `finally` restoration would not run.
+- **Decision:** move the initial user switch inside the existing `try`, so every attempted switch is covered by restoration. Keep the original user captured before the switch and retain the denied/allowed API assertions.
+- **Status:** the prior head `30a3890a994a3402b4efdf15732843f86a62b789` passed all four workflows (Quality/Python, Semgrep, Bench v15/v16 + Playwright, pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0). This correction creates a new head and requires a fresh complete matrix before merge.
+- **Revisit criteria:** if the new matrix fails, inspect the exact v15/v16 API wrapper and session behavior. Do not move the switch back outside the `try`, bypass permissions, or weaken the linked-denied/unlinked-allowed assertions.
