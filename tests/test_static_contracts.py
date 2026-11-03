@@ -481,9 +481,13 @@ def test_pinned_v16_5_runs_sales_user_direct_form_permission_e2e():
 def test_e2e_api_token_credentials_are_private_and_masked():
     source = (APP_ROOT / "ci.py").read_text()
     assert "def prepare_e2e_sales_api_credentials():" in source
-    assert "generate_keys(\"e2e-sales-user@example.com\")" in source
-    assert "os.fchmod(handle.fileno(), 0o600)" in source
-    assert 'return {"credentials_written": True}' in source
+    helper = source.split("def prepare_e2e_sales_api_credentials():", 1)[1]
+    helper = helper.split("\\n\\nLEGACY_SIGNAL_MESSAGES", 1)[0]
+    assert "generate_keys(\"e2e-sales-user@example.com\")" in helper
+    assert "previous_user = frappe.session.user" in helper
+    assert "frappe.set_user(previous_user)" in helper
+    assert "os.fchmod(handle.fileno(), 0o600)" in helper
+    assert 'return {"credentials_written": True}' in helper
 
     workflow_paths = [
         ROOT / ".github/workflows/bench-e2e.yml",
@@ -503,8 +507,17 @@ def test_e2e_api_token_credentials_are_private_and_masked():
             'echo "api_secret=$api_secret" >> "$GITHUB_OUTPUT"'
         )
         assert 'trap \'rm -f "$credential_file"\' EXIT' in workflow
-        assert "E2E_SALES_API_KEY:" in workflow
-        assert "E2E_SALES_API_SECRET:" in workflow
+        assert (
+            "E2E_SALES_API_KEY: ${{ steps.sales_api_credentials.outputs.api_key }}"
+            in workflow
+        )
+        assert (
+            "E2E_SALES_API_SECRET: ${{ steps.sales_api_credentials.outputs.api_secret }}"
+            in workflow
+        )
+        assert workflow.index("prepare_e2e_site") < workflow.index(
+            "prepare_e2e_sales_api_credentials"
+        ) < workflow.index("Run Playwright E2E")
 
 
 def test_sales_user_api_token_permission_e2e_uses_isolated_node_fetch():
@@ -518,6 +531,7 @@ def test_sales_user_api_token_permission_e2e_uses_isolated_node_fetch():
     assert "process.env.BASE_URL" in helper
     assert "await fetch(" in helper
     assert 'redirect: "manual"' in helper
+    assert "page: Page" not in helper
     assert "page.evaluate" not in helper
     assert "Authorization: `token ${apiKey}:${apiSecret}`" in helper
     assert '"frappe.auth.get_logged_user"' in spec
