@@ -1149,3 +1149,15 @@ The first correction removed the version-sensitive currentUserRoles helper and c
 ### ADR-100 final code review — remaining HTTP-test role lookup removed
 
 After the static regression exposed stale currentUserRoles references, a full-file inspection found one remaining call in the new Sales User HTTP permission test. The earlier replacement had changed the separate Sales User dashboard test; the Employee test was converted in the follow-up, but the new HTTP test still needed the same identity assertion. Replaced that final call with frappe.auth.get_logged_user and exact synthetic Sales User email equality. The server-side Sales User/Employee role guards remain authoritative for fixture role boundaries. Fresh final-head checks are required.
+
+## ADR-101 — Use a deterministic CI-only non-sales Desk role
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-03
+- **Context:** PR #130's final-head Quality and Security checks passed on head `7525c1521835e93245faf5840c0af1c47f9d590b`, but the pinned Frappe 16.5.0 job `41663853279` and supported Frappe v16 Bench job in run `41663853266` both failed during `prepare_e2e_site` at the assertion that the synthetic Employee account had an active Employee role. All earlier setup, permission preflight, D1/D2, Helpdesk and schema-upgrade steps passed. The logs did not emit the effective role set, so the exact role-removal mechanism is not claimed.
+- **Decision:** create or normalize a dedicated CI-only Role named `CRM Signals E2E Non-Sales` with `desk_access=1`, `is_custom=1` and `disabled=0`; assign it to the synthetic non-sales System User and require that role in `frappe.get_roles`, while rejecting Sales User, Sales Manager and System Manager. Keep the account's browser identity assertion and all Sales User permission outcomes unchanged.
+- **Rationale:** a custom role under test ownership is deterministic across the supported v15/v16 and pinned v16.5 reference stacks; a built-in ERPNext Employee role may be affected by installed-app/domain configuration and is not necessary to prove that a non-sales Desk user cannot access the Sales-only dashboard.
+- **Scope:** disposable CI fixture and static regression only. No production runtime, schema, dependency, permission, metric or site configuration changes. The operator's target-site non-sales account remains site-approved and is not required to use this CI-only role name.
+- **Revisit criteria:** if the custom role is not present in the effective role list, inspect the exact Role metadata and Has Role rows on each failing version, including disabled and Desk-access flags. Do not replace the non-sales account with Administrator, remove the role assertion, or weaken the linked-record denial / unlinked-record access / filtered-list checks.
+- **Verification status:** correction committed as `eb55ca526811673f46466ea55a90136fa1c97010` and static guard as `1e7c911dbf9f28efec87ed933630217336b5486c`. Fresh final-head Quality/Python, Security, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 checks are required. Not pilot-verified.
+
