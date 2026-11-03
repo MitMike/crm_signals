@@ -178,6 +178,48 @@ if names != {sys.argv[2]}:
 print("PASS: REST resource list contains only the unlinked owned record (HTTP 200)")
 PY
 
+report_filters="$(python3 -c 'import json,sys; print(json.dumps([["CRM Signal","name","in",sys.argv[1:]]]))' "$LINKED_RESTRICTED_SIGNAL" "$UNLINKED_OWNED_SIGNAL")"
+
+status="$(request "$base_url/api/method/frappe.desk.reportview.get_list" "$tmp_dir/reportview.json" \
+  --get --data-urlencode "doctype=CRM Signal" \
+  --data-urlencode 'fields=["name","message"]' \
+  --data-urlencode "filters=$report_filters" \
+  --data-urlencode "limit_page_length=10")"
+[[ "$status" == "200" ]] || { echo "FAIL: Report View expected HTTP 200, got $status" >&2; exit 1; }
+python3 - "$tmp_dir/reportview.json" "$UNLINKED_OWNED_SIGNAL" <<'PY'
+import json
+import sys
+
+with open(sys.argv[1], encoding="utf-8") as response_file:
+    payload = json.load(response_file)
+rows = payload.get("message", [])
+names = {row.get("name") for row in rows}
+if names != {sys.argv[2]}:
+    raise SystemExit("FAIL: Report View did not return only the unlinked owned record")
+print("PASS: Report View contains only the unlinked owned record (HTTP 200)")
+PY
+
+status="$(request "$base_url/api/method/frappe.desk.reportview.export_query" "$tmp_dir/reportview-export.csv" \
+  --get --data-urlencode "doctype=CRM Signal" \
+  --data-urlencode 'fields=["name","message"]' \
+  --data-urlencode "filters=$report_filters" \
+  --data-urlencode "file_format_type=CSV" \
+  --data-urlencode "title=CRM Signals permission export" \
+  --data-urlencode "csv_delimiter=," \
+  --data-urlencode "csv_quoting=2")"
+[[ "$status" == "200" ]] || { echo "FAIL: Report View CSV export expected HTTP 200, got $status" >&2; exit 1; }
+python3 - "$tmp_dir/reportview-export.csv" "$LINKED_RESTRICTED_SIGNAL" "$UNLINKED_OWNED_SIGNAL" <<'PY'
+from pathlib import Path
+import sys
+
+csv_text = Path(sys.argv[1]).read_text(encoding="utf-8")
+if sys.argv[1] in csv_text:
+    raise SystemExit("FAIL: CSV export disclosed the linked restricted record name")
+if sys.argv[2] not in csv_text:
+    raise SystemExit("FAIL: CSV export omitted the unlinked owned record")
+print("PASS: CSV export includes only the permitted synthetic record (HTTP 200)")
+PY
+
 echo "PASS: authenticated Sales User API permission boundary verified"
 ```
 
