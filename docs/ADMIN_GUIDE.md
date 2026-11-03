@@ -32,7 +32,15 @@ For an additional DocType/field-level permission preflight, supply dedicated act
 bench --site <site-name> execute crm_signals.diagnostics.get_site_preflight_report --kwargs "{'test_users': {'sales_user': 'crm-sales-user-test', 'sales_manager': 'crm-sales-manager-test', 'system_manager': 'crm-system-manager-test', 'non_sales': 'crm-non-sales-test'}}"
 ```
 
-The accepted aliases are `sales_user`, `sales_manager`, `system_manager` and `non_sales`; profiles are optional, so supply only the accounts that exist. The report checks that each account is active, is a System User and has the expected role boundary, then evaluates DocType read permission and every required field's permitted read access using Frappe's permission APIs. It returns profile aliases only—not User names or email addresses—and rejects Administrator, disabled, duplicate or incorrectly assigned accounts. Review `effective_user_permissions.profiles`; a missing/invalid profile or per-DocType error is not a pass. This is a DocType/field-level check only: it does not prove row-level User Permissions, ownership, shares, list filters, API/report/export behavior or actual dashboard visibility. Complete the controlled-record permission matrix in the acceptance kit separately.
+The accepted aliases are `sales_user`, `sales_manager`, `system_manager` and `non_sales`; profiles are optional, so supply only the accounts that exist. The report checks that each account is active, is a System User and has the expected role boundary, then evaluates DocType read permission and every required field's permitted read access using Frappe's permission APIs. It returns profile aliases only—not User names or email addresses—and rejects Administrator, disabled, duplicate or incorrectly assigned accounts. Review `effective_user_permissions.profiles`; a missing/invalid profile or per-DocType error is not a pass.
+
+For a bounded list-visibility check, create synthetic records and supply only their exact names under `test_records`, with a non-sensitive lowercase label for each record. The probe temporarily switches to each supplied user and calls permission-filtered `frappe.get_list` with `fields=["name"]` and an exact name filter. It returns only the labels and visible booleans; it never returns record names or business fields. A false result intentionally does not distinguish a missing record from a permission-denied record. Example:
+
+```bash
+bench --site <site-name> execute crm_signals.diagnostics.get_site_preflight_report --kwargs "{'test_users': {'sales_user': 'crm-sales-user-test', 'sales_manager': 'crm-sales-manager-test'}, 'test_records': {'sales_user': {'Lead': {'owned': 'LEAD-SYNTHETIC-OWNED', 'restricted': 'LEAD-SYNTHETIC-RESTRICTED'}}, 'sales_manager': {'Lead': {'owned': 'LEAD-SYNTHETIC-OWNED', 'restricted': 'LEAD-SYNTHETIC-RESTRICTED'}}}}"
+```
+
+Use only dedicated synthetic test records; do not probe customer or production records. The check exercises list-query visibility, including the Frappe permission filters used by that DocType. It does not prove direct form, REST API, report, export, print or dashboard access. Complete those paths in the controlled-record acceptance matrix separately.
 
 ## Installation and upgrade
 
