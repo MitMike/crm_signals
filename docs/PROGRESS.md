@@ -364,3 +364,14 @@ PR #100 is code-complete and CI-verified, not pilot-verified. The automated comp
 - **Implementation:** PR #113 updates the HTML guide and adds a static contract test that rejects the stale implementation promise. No runtime code or site configuration changes.
 - **Verification at opening:** documentation/test diff; final-head Quality, Python 3.10–3.14, Security, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 checks pending.
 - **Status:** documentation and static regression code-complete; CI pending; not pilot-verified. The target-site Helpdesk schema, effective permissions and active SLA calendar still require staging evidence.
+
+
+## PR #112 merged — README pin-before-install consistency (2026-11-03)
+
+- [x] PR #112 merged as [`d2e1d87`](https://github.com/MitMike/crm_signals/commit/d2e1d873a8f257545596379e179aeb3e4de40dd4) from final head `f68939ba5e2977ed62698e2a78084277fa091479`.
+- [x] All 18 final-head checks passed: Quality/lint, Python 3.10/3.11/3.12/3.14, Semgrep, Bench v15/v16 + Playwright, and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 validation.
+- [x] README first-install instructions now pin and verify the approved full SHA before `bench setup requirements crm_signals`; static contract coverage enforces the order.
+- **Scope:** README, docs and static test only; no runtime code, dependency or site configuration change.
+- **Reviewed main at merge:** `d2e1d873a8f257545596379e179aeb3e4de40dd4`. The main-push workflow had started separately; its in-progress checks are not substituted for PR final-head evidence.
+- **Open PR:** [PR #113](https://github.com/MitMike/crm_signals/pull/113) is now based on `main` after #112 merged. Its D3 guide/static-contract change is code-complete; check the post-retarget final-head run before merge.
+- **Status:** PR #112 is merged and reference-stack CI-verified; first-install/upgrade staging rehearsal and all other target-site acceptance remain open. Not pilot-verified.
