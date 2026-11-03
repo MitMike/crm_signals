@@ -637,3 +637,10 @@ def test_sales_user_report_view_and_csv_export_e2e_preserve_row_permissions():
     assert "expect(reportRows.map((row) => row.name)).toEqual([" in spec
     assert "expect(csv).not.toContain(linkedSignal!.name)" in spec
     assert "expect(csv).not.toContain(linkedMessage)" in spec
+
+def test_target_site_acceptance_checks_report_view_and_csv_export_permissions():
+    acceptance = (ROOT / "docs/TARGET_SITE_ACCEPTANCE.md").read_text()
+    assert "frappe.desk.reportview.get_list" in acceptance
+    assert "frappe.desk.reportview.export_query" in acceptance
+    assert "Report View did not return only the unlinked owned record" in acceptance
+    assert "CSV export disclosed the linked restricted record name" in acceptance
