@@ -456,10 +456,11 @@ def test_support_guide_python_examples_parse():
             document,
             flags=re.DOTALL | re.IGNORECASE,
         )
+        decoded_blocks = [html.unescape(block).strip() for block in code_blocks]
         python_examples = [
-            html.unescape(block).strip()
-            for block in code_blocks
-            if re.match(r"\s*(?:import|from)\s+", html.unescape(block))
+            block
+            for block in decoded_blocks
+            if re.search(r"(?m)^\s*(?:import|from)\s+", block)
         ]
         assert python_examples, f"No Python examples found in {relative_path}"
         for index, example in enumerate(python_examples, start=1):
