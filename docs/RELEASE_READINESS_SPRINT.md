@@ -1,7 +1,7 @@
 # CRM Signals — Release-readiness completion sprint
 
 **Started:** 2026-11-01  
-**Last reviewed:** 2026-11-03  
+**Last reviewed:** 2026-11-04  **Latest main:** [73be9eb](https://github.com/MitMike/crm_signals/commit/73be9eba4e9ff84be072c35f14587133d7b3193d); latest application feature baseline: c5720bf; latest permission-test baseline: 70aa4d8; latest application-code/digest privacy fix: a63866f. All three post-merge main workflows passed on 2026-11-04 (Quality 41859906665, Security 41859906759, Bench 41859906816).
 **Latest main at this review:** `fe7dca402293faa1e7e60f147d53adaef63009d6` (PR #110 release-document reconciliation merged after PR #109); **latest application feature baseline:** `c5720bfb3fbe8b554ec6febd549a8d5e58acc1d7`; **latest UI fix:** `9c4febf8180ef295b48ea18b1ac5fddc164ff34f` (PR #100 dashboard inset browser guard)
 **Decision register:** [ADR-046](DECISIONS.md#adr-046--run-release-readiness-as-an-evidence-gated-sprint)  
 **Operating rule:** no item is complete without the evidence listed here. CI evidence and target-site evidence are separate.
@@ -143,3 +143,12 @@ The application and operator guides remain code-complete and reference-stack CI-
 - [x] Live open-PR and open-issue queries returned zero immediately after PR #110 merged.
 - [ ] **P0 target-site acceptance remains open:** authorized Frappe v16.5 staging, exact installed app inventory and approved SHA, effective-role permissions, D1/D2 native-report reconciliation by currency, Helpdesk SLA calendar, scheduler/mail/realtime/webhook recovery, backup/restore/rollback rehearsal and dashboard desktop/mobile visual UAT.
 - **Release decision:** not approved for production sign-off. D1/D2/D3/Explorer and the operator procedures are code-complete and reference-stack CI-verified where recorded; no pilot verification is claimed. Green CI is not target-site evidence.
+
+
+## 2026-11-04 repository snapshot — after PR #160
+
+- Main 73be9eba4e9ff84be072c35f14587133d7b3193d; open PRs 0; open issues 0.
+- Main Quality, Security and Bench Integration/E2E all passed. Bench v15/v16 integration and validation passed; v16 Playwright passed; docs-only integration selection skipped as expected.
+- The latest code-bearing change remains PR #148 digest failure isolation/log redaction (a63866f); PR #159 and PR #160 changed operator acceptance/documentation records only.
+- No independent runtime task is unblocked: P0 items require authorized Frappe v16.5 staging and named owners; H/V/A and optional Explorer adapters remain approval/inventory-gated. No new ADR or speculative feature is warranted.
+- Revisit the P0 sequence when the approved full SHA, exact installed-app inventory, staging access, synthetic persona accounts and technical/security/finance/business owners are recorded. Pilot verification and production sign-off remain open.
