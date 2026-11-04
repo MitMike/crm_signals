@@ -4,9 +4,7 @@ This file records known work that is intentionally not represented as complete. 
 
 **Ownership convention:** P0 target-site items belong to the site administrator/implementation lead with the relevant security or finance owner; P1 engineering items belong to CRM Signals maintainers; site-specific configuration items belong to the Sales Manager/business owner; P2 roadmap items belong to the product owner. Close an item only with the evidence described below.
 
-**Last reviewed:** 2026-11-04. **Reviewed main baseline:** [79b5298](https://github.com/MitMike/crm_signals/commit/79b529846f3173bb1fa1fb5682e135073d184fa9). PR #149 reconciled the PR #148 digest privacy merge evidence; its documentation-only checks do not close any target-site acceptance item.
-
-
+**Last reviewed:** 2026-11-04. **Reviewed main baseline:** [d951581](https://github.com/MitMike/crm_signals/commit/d951581a33ad0a9ca7bb1ffaac5388f95de48f4c) (PR #150 documentation-only reconciliation).
 
 **Latest repository review (2026-11-04):** PR [#150](https://github.com/MitMike/crm_signals/pull/150) merged as [d951581](https://github.com/MitMike/crm_signals/commit/d951581a33ad0a9ca7bb1ffaac5388f95de48f4c) from final head [9e22415](https://github.com/MitMike/crm_signals/commit/9e224154f7e00c107e47c30a80413586c8017187). All three PR final-head workflows passed (Quality 41767525732, Security 41767525735, Bench 41767525733). On merged main, Quality 41773351233 and Security 41773351169 passed; Bench 41773351165 remained in progress at review. The live repository queries returned zero open PRs and zero open issues. This documentation-only merge closes no target-site acceptance item.
 
