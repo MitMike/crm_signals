@@ -690,6 +690,13 @@ def test_target_site_acceptance_checks_report_view_and_csv_export_permissions():
     assert "CSV export omitted the unlinked owned record/message" in acceptance
     assert "restricted RPC response disclosed the linked message" in acceptance
     assert "restricted REST resource response disclosed the record name/message" in acceptance
+    assert acceptance.count('document.get("message") != sys.argv[3]') == 2
+    assert "if sys.argv[2] in rows_text:" in acceptance
+    assert "if names != {sys.argv[3]} or sys.argv[4] not in rows_text:" in acceptance
+    assert "if sys.argv[2] in csv_text or sys.argv[3] in csv_text:" in acceptance
+    assert "if sys.argv[4] not in csv_text or sys.argv[5] not in csv_text:" in acceptance
+    assert "if sys.argv[2] in names or sys.argv[4] in recent_text:" in acceptance
+    assert "if sys.argv[3] not in names or sys.argv[5] not in recent_text:" in acceptance
 
 
 def test_sales_user_crm_signals_dashboard_api_preserves_linked_party_permissions():
