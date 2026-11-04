@@ -782,3 +782,10 @@ PR #125 merged as [7029747](https://github.com/MitMike/crm_signals/commit/702974
 - Fixed the webhook `curl` example so its URL, authorization header, content type and form fields are passed as one shell command.
 - Added a static regression test to prevent the multiline example from splitting into separate commands.
 - The endpoint, authentication requirements and payload are unchanged. Target-site webhook/TLS acceptance remains open.
+
+
+### README webhook operator example — PR #154 (merged and CI-verified as `00715e0`)
+
+- Correct the README multiline `curl` example so the URL, authorization header, content type and form fields execute as one command; the endpoint, token authentication and payload are unchanged.
+- Final head `fcbca00` passed Quality/Python 3.10–3.14, Security/Semgrep, Frappe v15/v16 Bench + Playwright, and pinned Frappe 16.5.0 / Helpdesk 1.28.0. Squash-merged as `00715e06529aebc62770d8c5b283c142bf4c9f08`.
+- Post-merge main Quality and Security passed; Bench v15/v16 integration was still running at the latest review. No live webhook, TLS, credential or pilot acceptance is implied.

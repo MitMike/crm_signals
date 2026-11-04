@@ -284,18 +284,42 @@ def test_change_aware_bench_filters_cover_frappe_metadata_and_workflows():
 
 
 
-def test_readme_webhook_curl_example_uses_line_continuations():
-    readme = (ROOT / "README.md").read_text()
-    webhook = readme.split("## Webhook authentication", 1)[1].split(
-        "## Configuration still required", 1
-    )[0]
-    command = webhook.split("```bash", 1)[1].split("```", 1)[0]
-    lines = [line.rstrip() for line in command.splitlines() if line.strip()]
+def test_operator_webhook_curl_examples_use_line_continuations():
+    for relative_path in ("README.md", "docs/ADMIN_GUIDE.md"):
+        document = (ROOT / relative_path).read_text()
+        code_blocks = document.split("```bash")[1:]
+        commands = [
+            block.split("```", 1)[0]
+            for block in code_blocks
+            if "curl -X POST " in block
+        ]
+        assert len(commands) == 1, relative_path
+        lines = [line.rstrip() for line in commands[0].splitlines() if line.strip()]
 
-    assert lines[0].startswith("curl -X POST ")
-    assert lines[0].endswith("\\")
-    assert all(line.endswith("\\") for line in lines[1:-1])
-    assert not lines[-1].endswith("\\")
+        assert lines[0].startswith("curl -X POST "), relative_path
+        assert lines[0].endswith("\\")
+        assert all(line.endswith("\\") for line in lines[1:-1])
+        assert not lines[-1].endswith("\\")
+
+
+def test_target_site_permission_smoke_script_parses_as_bash():
+    acceptance = (ROOT / "docs/TARGET_SITE_ACCEPTANCE.md").read_text()
+    code_blocks = acceptance.split("```bash")[1:]
+    scripts = [
+        block.split("```", 1)[0]
+        for block in code_blocks
+        if "curl --disable --proto" in block
+    ]
+    assert len(scripts) == 1
+
+    result = subprocess.run(
+        ["bash", "-n"],
+        input=scripts[0],
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr
 
 
 def test_operator_installation_pins_source_before_bench_setup():
