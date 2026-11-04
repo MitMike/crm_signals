@@ -612,3 +612,13 @@ The direct Desk form test observed GET `frappe.desk.form.load.getdoc`: linked-re
 - **Decision:** shell examples are syntax-checked only; CI does not execute commands, expand secrets or send requests. No ADR required. Target-site acceptance remains open.
 
 **Next action:** no independent runtime/product task is unblocked. Resume P0 staging work only with authorized Frappe v16.5 access, approved full release SHA, exact installed versions, synthetic personas and named owners; preserve product/privacy/metric/provider approval gates.
+
+
+## PR #159 — strengthen target-site message non-disclosure checks
+
+- [x] Use fixed synthetic linked-restricted and unlinked-owned message values already asserted by the dashboard smoke.
+- [x] Require the restricted message to be absent from denied RPC/REST responses, Report View rows and CSV export; require the allowed message to be present on readable RPC/REST, Report View, CSV and dashboard responses.
+- [x] Keep the credentialed script parse-only in CI and preserve all existing HTTP status, identity and row-name assertions.
+- [ ] Run the expanded script only on authorized Frappe 16.5 staging with the approved deployed SHA, synthetic records/users and named technical/security owners; record sanitized outcomes only.
+- **Decision:** no new ADR; this applies existing ADR-104/105/107 endpoint-specific privacy contracts to the operator acceptance script. No runtime or role changes.
+- **Revisit criteria:** if a restricted message appears in any denied or filtered response, stop acceptance and inspect the exact Frappe route, permission query and response serialization. Do not weaken the assertion or use Administrator. If the allowed message is absent, verify the synthetic fixture and endpoint field selection before changing application code.
