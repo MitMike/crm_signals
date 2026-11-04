@@ -768,3 +768,10 @@ PR #125 merged as [7029747](https://github.com/MitMike/crm_signals/commit/702974
 - The digest queue failure path now records a generic Error Log title and exception class only; recipient email addresses, raw exception messages and tracebacks are not persisted. A real-Frappe Bench regression verifies one-recipient failure does not block later recipients, only the failed recipient is retried on the next same-date run, and captured logs contain neither the destination address nor raw exception text.
 - All four final-head workflows passed: Quality/Python [41760017843](https://github.com/MitMike/crm_signals/actions/runs/41760017843), Security/Semgrep [41760017858](https://github.com/MitMike/crm_signals/actions/runs/41760017858), Bench v15/v16 + Playwright [41760017850](https://github.com/MitMike/crm_signals/actions/runs/41760017850), and pinned Frappe 16.5.0 / ERPNext / Helpdesk 1.28.0 [41760017879](https://github.com/MitMike/crm_signals/actions/runs/41760017879). Python 3.10/3.11/3.12/3.14, lint/static, Semgrep, both Bench integration/validation lanes and pinned target validation passed.
 - Reference-stack CI-verified only. Authorized Frappe 16.5 staging scheduler, recipient and mail-provider acceptance remains open; not pilot-verified.
+
+
+### 2026-11-04 — PR #152 merged — release-state baseline reconciliation
+
+- PR #152 squash-merged as [508c432](https://github.com/MitMike/crm_signals/commit/508c432d8bf39108367a42664112db55c7f87435); reviewed-main references in the implementation plan, progress register and follow-up register now point to the merged main baseline.
+- Post-merge main Quality [41785092281](https://github.com/MitMike/crm_signals/actions/runs/41785092281), Security [41785092277](https://github.com/MitMike/crm_signals/actions/runs/41785092277) and Bench [41785092279](https://github.com/MitMike/crm_signals/actions/runs/41785092279) passed. Documentation-only change detection skipped full integration execution; supported-version integration/validation jobs passed.
+- No application runtime, schema, permission, dependency or generated asset changed. No pilot verification is implied.
