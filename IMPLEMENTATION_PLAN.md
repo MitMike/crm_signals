@@ -3,7 +3,7 @@
 **Last reviewed:** 2026-11-04  
 **Repository:** [MitMike/crm_signals](https://github.com/MitMike/crm_signals)  
 **Supported framework coverage:** Frappe / ERPNext v15 and v16. **Primary deployment target:** Frappe v16.5; record the exact patch/build and installed ERPNext/Helpdesk versions.  
-**Reviewed main baseline:** [5f3cb6a](https://github.com/MitMike/crm_signals/commit/5f3cb6a5535448ee91da8428460b268e9f60c1db); **latest application permission baseline:** [70aa4d8](https://github.com/MitMike/crm_signals/commit/70aa4d8953cc8a69d1317aad1c72654f05a1b29e).
+**Reviewed main baseline:** [a63866f](https://github.com/MitMike/crm_signals/commit/a63866f99fd9f67c5c680e57987abf47c1247377); **latest application permission baseline:** [70aa4d8](https://github.com/MitMike/crm_signals/commit/70aa4d8953cc8a69d1317aad1c72654f05a1b29e).
 
 This is the execution plan and source of truth for delivery order, scope, dependencies, acceptance gates and exit criteria. The operational state is maintained in [docs/PROGRESS.md](docs/PROGRESS.md); durable choices are in [docs/DECISIONS.md](docs/DECISIONS.md); feature contracts are in [specs/](specs/).
 
@@ -38,7 +38,7 @@ The following capabilities are present in the repository. "Implemented" means th
 | Quotation and Opportunity event hooks | Implemented; transactional outbox merged in PR #26 | Confirm target-site status/threshold policy; audited Failed-row replay merged in PR #38; per-company thresholds are in PR #45 merged |
 | Record-level Signal permissions | Implemented; PRs #122/#126/#130/#131/#133/#135/#137/#139/#141 provide reference-stack list, direct form, browser/API-token RPC, REST resource, print, Report View, CSV export and direct dashboard API coverage. PR #141 merged as `70aa4d8` after all four final-head workflows passed on supported Frappe v15/v16 and pinned Frappe 16.5.0. | Execute the full live role matrix across list, direct form, RPC/REST API, Report View, CSV export, print and dashboard on target roles |
 | Recipient-scoped realtime notifications | Implemented and CI-verified; PR #54 merged as `37ce600` | Stable delivery IDs, bounded retry, current permission rechecks and active-session dedupe; target-site Redis/worker recovery remains unverified |
-| Daily CRM digest | Per-recipient queue tracking and cross-worker serialization merged in PR #19/#23; PR #147 adds reference-stack recipient eligibility coverage for explicit recipients, disabled users and non-System Users | Verify target-site semantics, timezone, approved recipient policy, scheduler/mail behavior and provider delivery |
+| Daily CRM digest | Per-recipient queue tracking and cross-worker serialization merged in PR #19/#23; PR #147 adds reference-stack recipient eligibility coverage; PR #148 redacts recipient identity/raw exceptions from queue-failure logs and verifies per-recipient failure isolation/retry | Verify target-site semantics, timezone, approved recipient policy, scheduler/mail behavior and provider delivery |
 | CRM Signals Settings | Implemented and merged in PR #19 | Confirm the default Company currency, preset behavior and selected site configuration |
 | CRM Signals Desk Console | Implemented | Target-site permission and usability smoke test |
 | D1 Sales Compass | Implemented; PR #63 query-contract smoke and PR #67 synthetic Lead/Opportunity aggregate fixture are merged/CI-verified on Frappe v15/v16 and pinned v16.5.0 (PR #67 merge `84ab2ce`) | Verify target-site workflow/status semantics and role visibility |
@@ -768,4 +768,10 @@ All four final-head workflows passed: Quality/Python [41752787424](https://githu
 
 Review found that `send_daily_signals_digest` included the destination email address in the Error Log title and persisted raw exception text/traceback. Queue exceptions can themselves contain recipient addresses. The focused fix uses a generic title and stores only the exception class. A Bench regression forces one recipient queue failure while a second succeeds, verifies partial status and the queued marker, then reruns the digest and proves only the failed recipient is retried. No recipient address or exception message may appear in the captured Error Log. The production recipient eligibility filter and per-recipient transaction behavior are unchanged.
 
-**Status:** code-complete on `fix/digest-failure-isolation-redaction-20261104`; final-head Quality/Python, Security, Bench v15/v16 and pinned Frappe 16.5.0 workflows pending. Not pilot-verified.
+**Status:** merged as [a63866f](https://github.com/MitMike/crm_signals/commit/a63866f99fd9f67c5c680e57987abf47c1247377) from exact tested head [c4c237b](https://github.com/MitMike/crm_signals/commit/c4c237b69ed45657c62e6702b185904a00c92a16). All four final-head workflows passed:
+- Quality/Python [41760017843](https://github.com/MitMike/crm_signals/actions/runs/41760017843): lint/static plus Python 3.10, 3.11, 3.12 and 3.14 jobs passed.
+- Security/Semgrep [41760017858](https://github.com/MitMike/crm_signals/actions/runs/41760017858): passed.
+- Bench v15/v16 + Playwright [41760017850](https://github.com/MitMike/crm_signals/actions/runs/41760017850): Frappe v15 and v16 integration and validation jobs passed.
+- Pinned Frappe 16.5.0 / ERPNext / Helpdesk 1.28.0 [41760017879](https://github.com/MitMike/crm_signals/actions/runs/41760017879): target integration/validation job passed.
+
+The real-Frappe Bench regression proves that a failed recipient does not block a later recipient, only the failed recipient is retried on the next same-date run, and neither the address nor raw exception message appears in the captured Error Log. The runtime logs a generic title and exception class only. Reference-stack CI-verified; authorized Frappe 16.5 staging scheduler/mail-provider acceptance remains open. Not pilot-verified.
