@@ -267,13 +267,15 @@ def send_daily_signals_digest():
             )
             frappe.db.commit()
             queued_recipients = next_queued
-        except Exception:
+        except Exception as error:
             frappe.db.rollback()
             failed_recipients.append(recipient)
             try:
+                # Queue errors can include the destination address in their text.
+                # Keep operational logs useful without persisting recipient PII.
                 frappe.log_error(
-                    message=frappe.get_traceback(),
-                    title=f"CRM Signals digest queue failed for {recipient}",
+                    message=f"Queue error type: {type(error).__name__}",
+                    title="CRM Signals digest queue failed (recipient redacted)",
                 )
             except Exception:
                 pass
