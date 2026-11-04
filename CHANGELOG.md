@@ -747,4 +747,4 @@ PR #125 merged as [7029747](https://github.com/MitMike/crm_signals/commit/702974
 
 - Added unit and real-Frappe Bench regressions for digest-specific recipient resolution: role and explicit recipients are deduplicated; only enabled System Users are returned; disabled role members, disabled explicit recipients, Website Users, Guest and unknown addresses are excluded.
 - Updated the daily digest validation mapping and target-site acceptance kit. ADR-111 records that digest eligibility must be tested independently from realtime recipient routing.
-- Test/documentation scope only; no runtime behavior changed. Final-head CI pending; not pilot-verified.
+- Test/documentation scope only; no runtime behavior changed. The initial Bench matrix exposed a role-less explicit-recipient fixture that was not proven to persist as a Desk System User; the fixture now uses a non-Sales-Manager Sales User role and asserts saved user type/email mapping. Final-head CI rerun pending; not pilot-verified.
