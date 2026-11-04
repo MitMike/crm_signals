@@ -163,8 +163,8 @@ The application and operator guides remain code-complete and reference-stack CI-
 
 ## 2026-11-05 active operator-guide validation PR #165 — operator HTML code-block language and syntax validation
 
-- [ ] Explicitly label every `<pre>` example in the Frappe v16.5 support-configuration and D3 SLA-discovery HTML guides as Bash or Python.
-- [ ] Require the static contract test to discover every block, enforce expected per-guide language counts, AST-parse Python examples and run `bash -n` for Bash examples.
+- [x] Add explicit language labels to every `<pre>` example in the Frappe v16.5 support-configuration and D3 SLA-discovery HTML guides.
+- [x] Static contract test discovers every block, enforces expected per-guide language counts, AST-parses Python examples and runs `bash -n` for Bash examples.
 - [x] Focused local validation passed: all three embedded Python examples parse and all six embedded Bash examples pass `bash -n`.
 - [ ] Final-head Quality, Security, Frappe v15/v16 Bench and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 checks must pass before merge.
 - **Decision:** language metadata is explicit; syntax-check only and never execute site commands/snippets in CI. No runtime/schema/permission/dependency change and no new ADR.
