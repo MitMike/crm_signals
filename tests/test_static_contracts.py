@@ -452,7 +452,7 @@ def test_support_guide_python_examples_parse():
     ):
         document = (ROOT / relative_path).read_text()
         code_blocks = re.findall(
-            r"<pre\\b[^>]*>(.*?)</pre>",
+            r"<pre\b[^>]*>(.*?)</pre>",
             document,
             flags=re.DOTALL | re.IGNORECASE,
         )
