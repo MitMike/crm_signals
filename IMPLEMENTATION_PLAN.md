@@ -3,7 +3,7 @@
 **Last reviewed:** 2026-11-04  
 **Repository:** [MitMike/crm_signals](https://github.com/MitMike/crm_signals)  
 **Supported framework coverage:** Frappe / ERPNext v15 and v16. **Primary deployment target:** Frappe v16.5; record the exact patch/build and installed ERPNext/Helpdesk versions.  
-**Reviewed main baseline:** [508c432](https://github.com/MitMike/crm_signals/commit/508c432d8bf39108367a42664112db55c7f87435) (PR #152 documentation-only reconciliation); **latest application permission baseline:** [70aa4d8](https://github.com/MitMike/crm_signals/commit/70aa4d8953cc8a69d1317aad1c72654f05a1b29e); **latest application-code / digest privacy fix:** [a63866f](https://github.com/MitMike/crm_signals/commit/a63866f99fd9f67c5c680e57987abf47c1247377).
+**Reviewed main baseline:** [710be944](https://github.com/MitMike/crm_signals/commit/710be94479801f66ad69767e317b6ff987480564) (PR #153 documentation-only reconciliation; parent of PR #154); **latest application permission baseline:** [70aa4d8](https://github.com/MitMike/crm_signals/commit/70aa4d8953cc8a69d1317aad1c72654f05a1b29e); **latest application-code / digest privacy fix:** [a63866f](https://github.com/MitMike/crm_signals/commit/a63866f99fd9f67c5c680e57987abf47c1247377).
 
 This is the execution plan and source of truth for delivery order, scope, dependencies, acceptance gates and exit criteria. The operational state is maintained in [docs/PROGRESS.md](docs/PROGRESS.md); durable choices are in [docs/DECISIONS.md](docs/DECISIONS.md); feature contracts are in [specs/](specs/).
 
@@ -782,3 +782,10 @@ The real-Frappe Bench regression proves that a failed recipient does not block a
 PR [#151](https://github.com/MitMike/crm_signals/pull/151) was squash-merged as [bf5777e](https://github.com/MitMike/crm_signals/commit/bf5777e55a99df0f282286958e88673624e805b5) from final head [d9ec274](https://github.com/MitMike/crm_signals/commit/d9ec274f4d215519f2f52dfd54471a61e10d0de1). It changed only the implementation plan, progress register and follow-up register. Quality Checks [41773600233](https://github.com/MitMike/crm_signals/actions/runs/41773600233), Security Scanning [41773600208](https://github.com/MitMike/crm_signals/actions/runs/41773600208), and Bench Integration/E2E [41773600293](https://github.com/MitMike/crm_signals/actions/runs/41773600293) all passed on the final PR head. This is documentation verification, not a new application test or pilot result.
 
 The current repository query after merge found no open pull requests or issues. No target-site session or sanitized Frappe v16.5 discovery record is available. Keep target-site permission, D1/D2 finance, D3 SLA, deployment/rollback, mail/realtime/webhook/worker recovery, backup/restore and desktop/mobile UAT gates open. Do not start H VIP/proposal tracking, Vault, Analysis or optional Explorer adapters without the recorded product/privacy/metric/provider approvals.
+
+
+## PR #154 — README webhook command correction (2026-11-04)
+
+A review of the operator-facing README found that the first line of the webhook `curl` example lacked a shell line-continuation character. Copying the example therefore executed the URL-only curl command separately from the following header/data lines. The example now continues the first line, and a static contract test checks the whole fenced command for correct continuation structure.
+
+This is a documentation usability correction only: the endpoint, authentication scheme, permissions and payload are unchanged. No new ADR is required. The static regression is added to the fast test suite; final PR CI is pending. No target-site or pilot verification is implied.
