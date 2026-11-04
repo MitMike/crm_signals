@@ -67,13 +67,13 @@ details{border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin
 <h2>Follow these steps in order</h2>
 <ol class="steps">
 <li><strong>Confirm which site you are checking.</strong><p>Write down the site/environment name (for example, “staging” or “production”), the date, and who is the technical and business contact. Do not include private hostnames in a report sent outside your company.</p></li>
-<li><strong>Record the installed app versions.</strong><p>On the server, run this command from your Bench folder:</p><pre>bench version</pre><p>Copy the app names and version numbers into the worksheet below. We especially need Frappe, ERPNext, CRM Signals, and any app with a name like Support, Helpdesk, Service Desk, Issue, or SLA.</p></li>
-<li><strong>Run the read-only discovery script.</strong><p>Open the site console:</p><pre>bench --site YOUR-SITE-NAME console</pre><p>Replace <code>YOUR-SITE-NAME</code> with the site's Bench site name. Paste the full script below into the console. It reads installed-app names and DocType/field metadata only. It does not create, update, or delete records.</p>
+<li><strong>Record the installed app versions.</strong><p>On the server, run this command from your Bench folder:</p><pre data-language="bash">bench version</pre><p>Copy the app names and version numbers into the worksheet below. We especially need Frappe, ERPNext, CRM Signals, and any app with a name like Support, Helpdesk, Service Desk, Issue, or SLA.</p></li>
+<li><strong>Run the read-only discovery script.</strong><p>Open the site console:</p><pre data-language="bash">bench --site YOUR-SITE-NAME console</pre><p>Replace <code>YOUR-SITE-NAME</code> with the site's Bench site name. Paste the full script below into the console. It reads installed-app names and DocType/field metadata only. It does not create, update, or delete records.</p>
 <div class="notice warn"><strong>Safety:</strong> Run this only on the intended site. Review the output before sharing it. The script deliberately does not read ticket rows or customer data.</div>
-<pre id="script">import os
+<pre id="script" data-language="python">import os
 import frappe
 
-print("\\n=== INSTALLED APPS ===")
+print("\n=== INSTALLED APPS ===")
 frappe_source_path = frappe.get_app_source_path("frappe")
 print("frappe/ui package present:", os.path.isdir(os.path.join(frappe_source_path, "ui")))
 print("Notification Type DocType present:", bool(frappe.db.exists("DocType", "Notification Type")))
@@ -81,7 +81,7 @@ for app in sorted(frappe.get_installed_apps()):
     print(app)
 
 keywords = ("support", "helpdesk", "help desk", "ticket", "issue", "service", "sla")
-print("\\n=== POSSIBLE SUPPORT / SLA DOCTYPES ===")
+print("\n=== POSSIBLE SUPPORT / SLA DOCTYPES ===")
 doctypes = frappe.get_all(
     "DocType",
     filters={"istable": 0},
@@ -94,7 +94,7 @@ candidates = [
            for k in keywords)
 ]
 for d in sorted(candidates, key=lambda x: (x.module or "", x.name or "")):
-    print("\\n---", d.name, "| module:", d.module, "| custom:", d.custom, "---")
+    print("\n---", d.name, "| module:", d.module, "| custom:", d.custom, "---")
     try:
         meta = frappe.get_meta(d.name)
         for field in meta.fields:
@@ -107,9 +107,9 @@ for d in sorted(candidates, key=lambda x: (x.module or "", x.name or "")):
     except Exception as exc:
         print("Could not read metadata:", type(exc).__name__)
 
-print("\\n=== END: metadata only; no ticket records were read ===")</pre>
+print("\n=== END: metadata only; no ticket records were read ===")</pre>
 <button type="button" onclick="copyScript()">Copy discovery script</button><span id="copyStatus" class="muted" aria-live="polite"></span>
-<p><strong>Optional full CRM Signals preflight:</strong> after deploying a revision that includes the command, run this from the Bench server to inventory app versions, Company currencies/thresholds, workflows and relevant CRM Signals DocType permissions:</p><pre>bench --site YOUR-SITE-NAME execute crm_signals.diagnostics.get_site_preflight_report</pre><p>This is metadata/configuration only and does not read ticket or customer rows. It includes Company names and configured threshold amounts; review it and share only through your approved secure channel. Static DocPerm rows do not replace the real-user permission checks in the worksheet.</p>
+<p><strong>Optional full CRM Signals preflight:</strong> after deploying a revision that includes the command, run this from the Bench server to inventory app versions, Company currencies/thresholds, workflows and relevant CRM Signals DocType permissions:</p><pre data-language="bash">bench --site YOUR-SITE-NAME execute crm_signals.diagnostics.get_site_preflight_report</pre><p>This is metadata/configuration only and does not read ticket or customer rows. It includes Company names and configured threshold amounts; review it and share only through your approved secure channel. Static DocPerm rows do not replace the real-user permission checks in the worksheet.</p>
 <p>Copy the output into your internal worksheet. If the list is very long, share only the likely ticket and SLA DocTypes plus their field lists.</p></li>
 <li><strong>Check the Support / Helpdesk screen in Desk.</strong><p>Open the support app your team actually uses. Find one example ticket manually. Note the DocType name (often visible in the URL or from the DocType list), the status choices, and which status values mean “finished”. Do not copy the customer's details.</p></li>
 <li><strong>Find the real resolution timestamp.</strong><p>Ask the Support owner: “When a ticket is solved, which field records the actual solved date and time? What happens if it is reopened?” Write the exact field name. Do not assume <code>modified</code> is the resolution time.</p></li>

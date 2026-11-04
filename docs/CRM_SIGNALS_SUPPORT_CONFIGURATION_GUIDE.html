@@ -21,8 +21,8 @@
 <ul class="check"><li><label><input type="checkbox"> I am a Frappe/ERPNext administrator or have one helping me.</label></li><li><label><input type="checkbox"> I know which site/environment I am inspecting (prefer staging first).</label></li><li><label><input type="checkbox"> I will share configuration names only, not customer or ticket data, passwords, API keys, or private comments.</label></li></ul>
 </section>
 <section class="step"><h2>Step 1 — Find the support app</h2>
-<p>Think of an app as the toolbox that contains your support desk. In the server terminal, run:</p><pre>bench --site your-site-name list-apps</pre>
-<p>Write down every support/helpdesk-related app and its version. Also record the Frappe and ERPNext versions:</p><pre>bench version</pre>
+<p>Think of an app as the toolbox that contains your support desk. In the server terminal, run:</p><pre data-language="bash">bench --site your-site-name list-apps</pre>
+<p>Write down every support/helpdesk-related app and its version. Also record the Frappe and ERPNext versions:</p><pre data-language="bash">bench version</pre>
 <p><strong>Record:</strong> site/environment, Frappe version, ERPNext version, support app name(s), support app version(s).</p>
 </section>
 <section class="step"><h2>Step 1A — Confirm the v16.5 target</h2>
@@ -37,9 +37,9 @@
 </section>
 <section class="step"><h2>Step 2 — Find the ticket record type</h2>
 <p>A DocType is like a spreadsheet template: it defines what a ticket record looks like. We need its exact name, not a guess.</p>
-<p>Open the Frappe bench console:</p><pre>bench --site your-site-name console</pre>
+<p>Open the Frappe bench console:</p><pre data-language="bash">bench --site your-site-name console</pre>
 <p>Paste this read-only discovery snippet. It lists likely support DocTypes and their field definitions, not ticket contents.</p>
-<pre>import os
+<pre data-language="python">import os
 import frappe
 
 print("Installed apps:")
@@ -62,7 +62,7 @@ rows = frappe.get_all(
 for row in rows:
     text = (row.name + " " + (row.module or "")).lower()
     if any(word in text for word in keywords):
-        print("\\nDOCTYPE:", row.name, "| module:", row.module, "| custom:", row.custom)
+        print("\nDOCTYPE:", row.name, "| module:", row.module, "| custom:", row.custom)
         try:
             meta = frappe.get_meta(row.name)
             for field in meta.fields:
@@ -84,7 +84,7 @@ for row in rows:
 <tr><td><code>agreement_status</code></td><td>Fulfilled / Failed SLA outcome</td><td> 0</td></tr>
 </tbody></table>
 <p>Run this read-only check in <code>bench --site your-site-name console</code>. Replace the two example user IDs with the actual Sales User and Sales Manager accounts. It reports permission names only; it does not read ticket rows.</p>
-<pre>import frappe
+<pre data-language="python">import frappe
 
 required = (
     "status_category",
