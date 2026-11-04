@@ -760,3 +760,11 @@ PR #125 merged as [7029747](https://github.com/MitMike/crm_signals/commit/702974
 - Review found digest queue failure logs exposed recipient email addresses in the title and raw exception text/traceback in the message. The runtime now records a generic title and exception class only.
 - Added a real-Frappe Bench regression for one-recipient failure isolation, successful queueing of later recipients, retry of only the failed recipient on the next run, and log redaction.
 - Updated the digest contract, Administrator Guide, target-site acceptance, ADR-112, plan, progress, follow-up register and changelog. Code-complete; final-head CI pending; not pilot-verified.
+
+
+### 2026-11-04 — PR #148 merged — daily digest failure isolation and Error Log privacy
+
+- PR #148 squash-merged as [a63866f](https://github.com/MitMike/crm_signals/commit/a63866f99fd9f67c5c680e57987abf47c1247377) from exact tested head [c4c237b](https://github.com/MitMike/crm_signals/commit/c4c237b69ed45657c62e6702b185904a00c92a16).
+- The digest queue failure path now records a generic Error Log title and exception class only; recipient email addresses, raw exception messages and tracebacks are not persisted. A real-Frappe Bench regression verifies one-recipient failure does not block later recipients, only the failed recipient is retried on the next same-date run, and captured logs contain neither the destination address nor raw exception text.
+- All four final-head workflows passed: Quality/Python [41760017843](https://github.com/MitMike/crm_signals/actions/runs/41760017843), Security/Semgrep [41760017858](https://github.com/MitMike/crm_signals/actions/runs/41760017858), Bench v15/v16 + Playwright [41760017850](https://github.com/MitMike/crm_signals/actions/runs/41760017850), and pinned Frappe 16.5.0 / ERPNext / Helpdesk 1.28.0 [41760017879](https://github.com/MitMike/crm_signals/actions/runs/41760017879). Python 3.10/3.11/3.12/3.14, lint/static, Semgrep, both Bench integration/validation lanes and pinned target validation passed.
+- Reference-stack CI-verified only. Authorized Frappe 16.5 staging scheduler, recipient and mail-provider acceptance remains open; not pilot-verified.
