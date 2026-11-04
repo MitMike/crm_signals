@@ -733,3 +733,10 @@ PR #125 merged as [7029747](https://github.com/MitMike/crm_signals/commit/702974
 - All four final-head workflows passed: Quality/Python [41728280197](https://github.com/MitMike/crm_signals/actions/runs/41728280197), Security/Semgrep [41728280109](https://github.com/MitMike/crm_signals/actions/runs/41728280109), Bench v15/v16 + Playwright [41728279918](https://github.com/MitMike/crm_signals/actions/runs/41728279918), and pinned Frappe 16.5.0 / ERPNext / Helpdesk [41728280316](https://github.com/MitMike/crm_signals/actions/runs/41728280316).
 - The target-site operator script now tests distinct Sales User and non-sales API-token identities, the non-sales CRM Signals HTTP 403/no-disclosure boundary, and Executive Compass source unavailability without read grants. Secret handling uses silent prompts, separate restrictive curl config files, no redirects, cleanup and rotation/revocation instructions.
 - Documentation/static-test scope only. Reference-stack CI-verified; authorized Frappe 16.5 staging execution remains outstanding. Not pilot-verified.
+
+
+### 2026-11-04 — PR #145 opening — split permission acceptance matrix
+
+- Split the operator role matrix into independent columns for list, form, RPC, REST, Report View, CSV export, print view, dashboard UI, dashboard API, digest email and realtime.
+- Added separate CSV, print and dashboard UI/API acceptance items and a static contract test for the matrix.
+- ADR-110 records the no-inference decision. Documentation/static-test scope only; no runtime behavior changed. Final-head CI pending; not pilot-verified.

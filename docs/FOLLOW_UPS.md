@@ -515,3 +515,15 @@ The direct Desk form test observed GET `frappe.desk.form.load.getdoc`: linked-re
 - [ ] Execute both Sales User and non-sales token flows on authorized Frappe 16.5 staging; retain only sanitized statuses/availability booleans and exact deployed SHA/app versions.
 - Evidence: focused branch docs/non-sales-dashboard-api-smoke-20261104; ADR-109; final-head Quality/Python [41728280197](https://github.com/MitMike/crm_signals/actions/runs/41728280197), Security [41728280109](https://github.com/MitMike/crm_signals/actions/runs/41728280109), Bench v15/v16 + Playwright [41728279918](https://github.com/MitMike/crm_signals/actions/runs/41728279918), and pinned Frappe 16.5.0 [41728280316](https://github.com/MitMike/crm_signals/actions/runs/41728280316) all passed on exact head `6dd697c8a124244299599ec972b19d153a0cc1c2`; merged as `f75dd241a2ca30505517bb2fd259e2ec62648c50`. Documentation and static-test scope only; no runtime, schema or role changes.
 - Revisit criteria: stop on identity mismatch, unexpected redirect, non-sales CRM Signals response other than 403, or any source marked available without the corresponding approved read grant. Inspect the exact credential, gateway and effective permission path; do not switch identities or weaken the assertion.
+
+
+## PR #145 — split permission acceptance paths
+
+- [x] Separate Signal list and direct form from RPC and REST resource API checks.
+- [x] Give Report View, CSV export, print view, dashboard UI and dashboard API independent matrix columns.
+- [x] Add separate CSV, print and dashboard UI/API acceptance items and require a sanitized evidence reference for each cell.
+- [x] Add a static contract test that protects all matrix columns and the no-inference rule.
+- [ ] Pass final-head Quality/Python, Security/Semgrep, Bench v15/v16 and pinned Frappe 16.5.0 workflows.
+- [ ] Complete the matrix with actual Sales User, Sales Manager, System Manager, non-sales and disabled-user staging evidence; CI does not satisfy this gate.
+- Evidence: branch `docs/split-permission-acceptance-matrix-20261104`; ADR-110; main baseline `9225a1e858be3c289067034b76f7ec4eabc057f4`. Documentation and static-contract coverage only; no runtime behavior changed.
+- Revisit criteria: if a column cannot be tested with the approved persona/record fixture, mark it Blocked and name the missing site permission, credential or owner approval. Do not infer a pass from a neighboring access path or use Administrator as a substitute.
