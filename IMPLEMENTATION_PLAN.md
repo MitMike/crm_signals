@@ -3,7 +3,7 @@
 **Last reviewed:** 2026-11-04  
 **Repository:** [MitMike/crm_signals](https://github.com/MitMike/crm_signals)  
 **Supported framework coverage:** Frappe / ERPNext v15 and v16. **Primary deployment target:** Frappe v16.5; record the exact patch/build and installed ERPNext/Helpdesk versions.  
-**Reviewed main baseline:** [d951581](https://github.com/MitMike/crm_signals/commit/d951581a33ad0a9ca7bb1ffaac5388f95de48f4c) (PR #150 documentation-only reconciliation); **latest application permission baseline:** [70aa4d8](https://github.com/MitMike/crm_signals/commit/70aa4d8953cc8a69d1317aad1c72654f05a1b29e); **latest application-code / digest privacy fix:** [a63866f](https://github.com/MitMike/crm_signals/commit/a63866f99fd9f67c5c680e57987abf47c1247377).
+**Reviewed main baseline:** [bf5777e](https://github.com/MitMike/crm_signals/commit/bf5777e55a99df0f282286958e88673624e805b5) (PR #151 documentation-only reconciliation); **latest application permission baseline:** [70aa4d8](https://github.com/MitMike/crm_signals/commit/70aa4d8953cc8a69d1317aad1c72654f05a1b29e); **latest application-code / digest privacy fix:** [a63866f](https://github.com/MitMike/crm_signals/commit/a63866f99fd9f67c5c680e57987abf47c1247377).
 
 This is the execution plan and source of truth for delivery order, scope, dependencies, acceptance gates and exit criteria. The operational state is maintained in [docs/PROGRESS.md](docs/PROGRESS.md); durable choices are in [docs/DECISIONS.md](docs/DECISIONS.md); feature contracts are in [specs/](specs/).
 
@@ -775,3 +775,10 @@ Review found that `send_daily_signals_digest` included the destination email add
 - Pinned Frappe 16.5.0 / ERPNext / Helpdesk 1.28.0 [41760017879](https://github.com/MitMike/crm_signals/actions/runs/41760017879): target integration/validation job passed.
 
 The real-Frappe Bench regression proves that a failed recipient does not block a later recipient, only the failed recipient is retried on the next same-date run, and neither the address nor raw exception message appears in the captured Error Log. The runtime logs a generic title and exception class only. Reference-stack CI-verified; authorized Frappe 16.5 staging scheduler/mail-provider acceptance remains open. Not pilot-verified.
+
+
+## PR #151 merged — post-PR #150 repository and release-state reconciliation (2026-11-04)
+
+PR [#151](https://github.com/MitMike/crm_signals/pull/151) was squash-merged as [bf5777e](https://github.com/MitMike/crm_signals/commit/bf5777e55a99df0f282286958e88673624e805b5) from final head [d9ec274](https://github.com/MitMike/crm_signals/commit/d9ec274f4d215519f2f52dfd54471a61e10d0de1). It changed only the implementation plan, progress register and follow-up register. Quality Checks [41773600233](https://github.com/MitMike/crm_signals/actions/runs/41773600233), Security Scanning [41773600208](https://github.com/MitMike/crm_signals/actions/runs/41773600208), and Bench Integration/E2E [41773600293](https://github.com/MitMike/crm_signals/actions/runs/41773600293) all passed on the final PR head. This is documentation verification, not a new application test or pilot result.
+
+The current repository query after merge found no open pull requests or issues. No target-site session or sanitized Frappe v16.5 discovery record is available. Keep target-site permission, D1/D2 finance, D3 SLA, deployment/rollback, mail/realtime/webhook/worker recovery, backup/restore and desktop/mobile UAT gates open. Do not start H VIP/proposal tracking, Vault, Analysis or optional Explorer adapters without the recorded product/privacy/metric/provider approvals.
