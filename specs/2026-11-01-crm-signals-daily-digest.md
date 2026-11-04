@@ -62,7 +62,9 @@ Escape every party name, document name and other user-controlled HTML value. Pre
 
 ## Validation mapping
 
-Add or extend tests/test_tasks.py for date boundaries, recipient selection, currency rendering, escaping and duplicate-run behavior. Exercise the installed scheduler in the Frappe Bench matrix, including the two-worker same-recipient race. Include an email-rendering snapshot and a target-site smoke test with actual Sales Manager accounts.
+`tests/test_digest_rendering.py` covers enabled-System-User recipient filtering, Sales Manager role membership, explicit-recipient resolution and deduplication. `crm_signals/tests/test_digest_delivery.py` repeats the eligibility check against real Frappe User/Has Role records, including disabled role members, disabled explicit recipients and an enabled Website User. The existing two-worker Bench test covers same-recipient/date queue serialization.
+
+Continue to test date boundaries, currency rendering, escaping and duplicate-run behavior. The target-site smoke still needs actual Sales Manager accounts and the site's configured scheduler/mail provider.
 
 ## Open operational inputs
 
