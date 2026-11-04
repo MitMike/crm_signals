@@ -133,3 +133,38 @@ class TestDigestDeliveryConcurrency(FrappeTestCase):
             for field, value in previous.items():
                 frappe.db.set_value("CRM Signals Settings", None, field, value)
             frappe.db.commit()
+
+
+    def test_digest_recipients_exclude_disabled_and_non_system_users(self):
+        suffix = frappe.generate_hash(length=8)
+
+        def make_user(label, *, enabled=1, user_type="System User", role=None):
+            data = {
+                "doctype": "User",
+                "email": f"crm-signal-digest-{label}-{suffix}@example.com",
+                "first_name": f"CRM Signal Digest {label}",
+                "user_type": user_type,
+                "enabled": enabled,
+                "send_welcome_email": 0,
+            }
+            if role:
+                data["roles"] = [{"role": role}]
+            return frappe.get_doc(data).insert(ignore_permissions=True)
+
+        manager = make_user("manager", role="Sales Manager")
+        make_user("disabled-manager", enabled=0, role="Sales Manager")
+        extra = make_user("extra")
+        disabled_extra = make_user("disabled-extra", enabled=0)
+        website_extra = make_user("website-extra", user_type="Website User")
+
+        recipients = tasks._resolve_digest_recipients(
+            [
+                extra.name,
+                disabled_extra.name,
+                website_extra.name,
+                extra.name,
+                "missing-crm-signal-digest-user@example.com",
+            ]
+        )
+
+        self.assertEqual(recipients, sorted([manager.name, extra.name]))
