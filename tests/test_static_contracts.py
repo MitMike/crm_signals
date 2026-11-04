@@ -297,6 +297,7 @@ def test_readme_webhook_curl_example_uses_line_continuations():
     assert all(line.endswith("\\") for line in lines[1:-1])
     assert not lines[-1].endswith("\\")
 
+
 def test_operator_installation_pins_source_before_bench_setup():
     guide = (ROOT / "docs/ADMIN_GUIDE.md").read_text()
     runbook = (ROOT / "docs/DEPLOYMENT_RUNBOOK.md").read_text()
