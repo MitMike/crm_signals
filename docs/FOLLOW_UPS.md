@@ -541,12 +541,16 @@ The direct Desk form test observed GET `frappe.desk.form.load.getdoc`: linked-re
 - **Evidence:** branch `test/digest-recipient-eligibility-20261104`; main baseline `0c6122113c08198a99789d897ce04980fe639d80`; unit test `tests/test_digest_rendering.py`; Bench test `crm_signals/tests/test_digest_delivery.py`; ADR-111.
 - **Revisit criteria:** if the persisted user-type or email-to-User assertion fails, inspect Frappe User creation and email mapping. If the corrected explicit account is still omitted, inspect `_resolve_digest_recipients` candidate construction and the final enabled/System-User filter. Do not relax the enabled-System-User filter or send to arbitrary external addresses. CI is not pilot verification.
 
-## PR #148 — daily digest queue failure isolation and Error Log privacy
+## PR #148 merged — daily digest queue failure isolation and Error Log privacy
 
 - [x] Replace recipient-bearing Error Log titles and raw exception text/tracebacks with a generic title and exception class only.
 - [x] Add a Bench regression that fails one synthetic recipient, queues a second, and verifies the next run retries only the failed recipient.
 - [x] Assert captured Error Log content contains neither the destination address nor the raw exception message.
-- [ ] Pass final-head Quality/Python, Security/Semgrep, Bench v15/v16 and pinned Frappe 16.5.0 workflows before merge.
-- [ ] Keep authorized staging scheduler/mail-provider acceptance open; no forced failure injection on production.
-- **Evidence:** branch `fix/digest-failure-isolation-redaction-20261104`; source `crm_signals/tasks.py`; Bench test `crm_signals/tests/test_digest_delivery.py`; digest contract `specs/2026-11-01-crm-signals-daily-digest.md`; ADR-112.
-- **Revisit criteria:** if the test shows an address or exception message in the Error Log, inspect every logging path in `send_daily_signals_digest` and keep the error type only. If a later recipient is not queued after an earlier failure, inspect transaction rollback/lock reacquisition and preserve the same-date per-recipient marker semantics. Do not relax recipient eligibility or log raw SMTP/provider errors.
+- [x] Pass all four final-head workflows and squash-merge PR #148 as [a63866f](https://github.com/MitMike/crm_signals/commit/a63866f99fd9f67c5c680e57987abf47c1247377) from exact tested head [c4c237b](https://github.com/MitMike/crm_signals/commit/c4c237b69ed45657c62e6702b185904a00c92a16).
+- [ ] Execute authorized Frappe 16.5 staging scheduler/mail-provider acceptance; do not inject forced failures on production.
+- **Evidence:** branch `fix/digest-failure-isolation-redaction-20261104`; source `crm_signals/tasks.py`; Bench test `crm_signals/tests/test_digest_delivery.py`; digest contract `specs/2026-11-01-crm-signals-daily-digest.md`; ADR-112; merge a63866f99fd9f67c5c680e57987abf47c1247377.
+- Quality/Python [41760017843](https://github.com/MitMike/crm_signals/actions/runs/41760017843): lint/static plus Python 3.10, 3.11, 3.12 and 3.14 jobs passed.
+- Security/Semgrep [41760017858](https://github.com/MitMike/crm_signals/actions/runs/41760017858): passed.
+- Bench v15/v16 + Playwright [41760017850](https://github.com/MitMike/crm_signals/actions/runs/41760017850): Frappe v15 and v16 integration and validation jobs passed.
+- Pinned Frappe 16.5.0 / ERPNext / Helpdesk 1.28.0 [41760017879](https://github.com/MitMike/crm_signals/actions/runs/41760017879): target integration/validation job passed.
+- **Revisit criteria:** if a target-site Error Log contains an address or raw exception message, inspect every digest queue-failure logging path and preserve generic categories only. If a later recipient is not queued after an earlier failure, inspect transaction rollback/lock reacquisition and preserve same-date per-recipient marker semantics. For actual provider diagnostics, use the provider's separately access-controlled logs and retention policy. Do not relax recipient eligibility or log raw SMTP/provider errors.
