@@ -735,8 +735,9 @@ PR #125 merged as [7029747](https://github.com/MitMike/crm_signals/commit/702974
 - Documentation/static-test scope only. Reference-stack CI-verified; authorized Frappe 16.5 staging execution remains outstanding. Not pilot-verified.
 
 
-### 2026-11-04 — PR #145 opening — split permission acceptance matrix
+### 2026-11-04 — PR #145 merged — split permission acceptance matrix
 
-- Split the operator role matrix into independent columns for list, form, RPC, REST, Report View, CSV export, print view, dashboard UI, dashboard API, digest email and realtime.
-- Added separate CSV, print and dashboard UI/API acceptance items and a static contract test for the matrix.
-- ADR-110 records the no-inference decision. Documentation/static-test scope only; no runtime behavior changed. Final-head CI pending; not pilot-verified.
+- PR #145 squash-merged as `ed9c22c25d0a885bd351f396c11eadf1cdbac3c6` from final tested head `c480eedb0ef6c2a67bc9ce23ac326ab92c4d7a89`.
+- All four final-head workflows passed: Quality/Python [41730709519](https://github.com/MitMike/crm_signals/actions/runs/41730709519), Security/Semgrep [41730709486](https://github.com/MitMike/crm_signals/actions/runs/41730709486), Bench v15/v16 + Playwright [41730709475](https://github.com/MitMike/crm_signals/actions/runs/41730709475), Pinned Frappe 16.5.0 / ERPNext / Helpdesk [41730709472](https://github.com/MitMike/crm_signals/actions/runs/41730709472).
+- Quality passed lint/static and Python 3.10, 3.11, 3.12 and 3.14. Bench v15/v16 integration passed, v16 Playwright passed, and pinned Frappe 16.5.0 / ERPNext / Helpdesk integration plus Playwright passed.
+- The independent persona/path matrix is reference-stack CI-verified. Actual Sales User, Sales Manager, System Manager, non-sales and disabled-user results remain blank until authorized Frappe 16.5 staging execution. Not pilot-verified.
