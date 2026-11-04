@@ -3,7 +3,7 @@
 **Last reviewed:** 2026-11-04  
 **Repository:** [MitMike/crm_signals](https://github.com/MitMike/crm_signals)  
 **Supported framework coverage:** Frappe / ERPNext v15 and v16. **Primary deployment target:** Frappe v16.5; record the exact patch/build and installed ERPNext/Helpdesk versions.  
-**Reviewed main baseline:** [79b5298](https://github.com/MitMike/crm_signals/commit/79b529846f3173bb1fa1fb5682e135073d184fa9); **latest application permission baseline:** [70aa4d8](https://github.com/MitMike/crm_signals/commit/70aa4d8953cc8a69d1317aad1c72654f05a1b29e); **latest digest privacy fix:** [a63866f](https://github.com/MitMike/crm_signals/commit/a63866f99fd9f67c5c680e57987abf47c1247377).
+**Reviewed main baseline:** [d951581](https://github.com/MitMike/crm_signals/commit/d951581a33ad0a9ca7bb1ffaac5388f95de48f4c) (PR #150 documentation-only reconciliation); **latest application permission baseline:** [70aa4d8](https://github.com/MitMike/crm_signals/commit/70aa4d8953cc8a69d1317aad1c72654f05a1b29e); **latest application-code / digest privacy fix:** [a63866f](https://github.com/MitMike/crm_signals/commit/a63866f99fd9f67c5c680e57987abf47c1247377).
 
 This is the execution plan and source of truth for delivery order, scope, dependencies, acceptance gates and exit criteria. The operational state is maintained in [docs/PROGRESS.md](docs/PROGRESS.md); durable choices are in [docs/DECISIONS.md](docs/DECISIONS.md); feature contracts are in [specs/](specs/).
 
