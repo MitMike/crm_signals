@@ -1,3 +1,10 @@
+### Operator HTML code-block language and syntax validation — PR #165 (open)
+
+- Add explicit `data-language="bash"` / `data-language="python"` metadata to every `<pre>` example in the Frappe v16.5 support-configuration and D3 SLA-discovery HTML guides.
+- Extend the fast static contract test to require every block to be classified, enforce per-guide language counts, AST-parse all Python examples and run `bash -n` on all Bash examples. Local focused validation passed for all three Python and six Bash snippets.
+- No operator command or site-discovery code is executed in CI. No runtime, schema, permission, dependency or site configuration changes. Final-head Quality, Security, supported Frappe v15/v16 Bench and pinned v16.5.0 checks are required before merge.
+
+
 # Changelog
 
 ### Operator support-guide Python syntax validation — PR #163 (merged and CI-verified as `ba348e6`)
