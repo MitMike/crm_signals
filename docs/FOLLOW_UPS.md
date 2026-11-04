@@ -614,11 +614,12 @@ The direct Desk form test observed GET `frappe.desk.form.load.getdoc`: linked-re
 **Next action:** no independent runtime/product task is unblocked. Resume P0 staging work only with authorized Frappe v16.5 access, approved full release SHA, exact installed versions, synthetic personas and named owners; preserve product/privacy/metric/provider approval gates.
 
 
-## PR #159 — strengthen target-site message non-disclosure checks
+## PR #159 merged — strengthen target-site message non-disclosure checks
 
 - [x] Use fixed synthetic linked-restricted and unlinked-owned message values already asserted by the dashboard smoke.
-- [x] Require the restricted message to be absent from denied RPC/REST responses, Report View rows and CSV export; require the allowed message to be present on readable RPC/REST, Report View, CSV and dashboard responses.
-- [x] Keep the credentialed script parse-only in CI and preserve all existing HTTP status, identity and row-name assertions.
+- [x] Require the restricted message to be absent from denied RPC/REST responses, Report View rows, CSV export and filtered dashboard results; require the allowed message on readable RPC/REST, Report View, CSV and dashboard responses.
+- [x] Keep the credentialed script parse-only in CI and preserve existing HTTP status, identity and row-name assertions.
+- [x] Final-head Quality [41851046486](https://github.com/MitMike/crm_signals/actions/runs/41851046486), Security [41851046368](https://github.com/MitMike/crm_signals/actions/runs/41851046368), Frappe v15/v16 Bench + Playwright [41851046485](https://github.com/MitMike/crm_signals/actions/runs/41851046485), and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 [41851046388](https://github.com/MitMike/crm_signals/actions/runs/41851046388) passed on exact tested head [fb5b00c](https://github.com/MitMike/crm_signals/commit/fb5b00c6a180296c2b502e2d5c478f903203fcfb); merged as [bfc4886](https://github.com/MitMike/crm_signals/commit/bfc4886382877ce4014ac2ef0d2cb0c64000b4c1).
 - [ ] Run the expanded script only on authorized Frappe 16.5 staging with the approved deployed SHA, synthetic records/users and named technical/security owners; record sanitized outcomes only.
 - **Decision:** no new ADR; this applies existing ADR-104/105/107 endpoint-specific privacy contracts to the operator acceptance script. No runtime or role changes.
 - **Revisit criteria:** if a restricted message appears in any denied or filtered response, stop acceptance and inspect the exact Frappe route, permission query and response serialization. Do not weaken the assertion or use Administrator. If the allowed message is absent, verify the synthetic fixture and endpoint field selection before changing application code.
