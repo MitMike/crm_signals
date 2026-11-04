@@ -62,7 +62,7 @@ rows = frappe.get_all(
 for row in rows:
     text = (row.name + " " + (row.module or "")).lower()
     if any(word in text for word in keywords):
-        print("\\nDOCTYPE:", row.name, "| module:", row.module, "| custom:", row.custom)
+        print("\nDOCTYPE:", row.name, "| module:", row.module, "| custom:", row.custom)
         try:
             meta = frappe.get_meta(row.name)
             for field in meta.fields:
