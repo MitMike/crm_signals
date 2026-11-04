@@ -147,7 +147,7 @@ The application and operator guides remain code-complete and reference-stack CI-
 ## 2026-11-04 repository snapshot — after PR #160
 
 - Main 73be9eba4e9ff84be072c35f14587133d7b3193d; open PRs 0; open issues 0.
-- Main Quality, Security and Bench Integration/E2E all passed. Bench v15/v16 integration and validation passed; v16 Playwright passed; docs-only integration selection skipped as expected.
+- Main Quality, Security and Bench Integration/E2E all passed. Bench v15/v16 integration execution and validation passed; the v16 Playwright E2E step passed and v15 E2E was skipped by its matrix setting. The integration-change detector job was skipped on the main push event, so this run does not validate the docs-only PR skip path; PR #161's final-head docs-only CI is pending and will provide that evidence if its detector and stable required checks complete successfully.
 - The latest code-bearing change remains PR #148 digest failure isolation/log redaction (a63866f); PR #159 and PR #160 changed operator acceptance/documentation records only.
 - No independent runtime task is unblocked: P0 items require authorized Frappe v16.5 staging and named owners; H/V/A and optional Explorer adapters remain approval/inventory-gated. No new ADR or speculative feature is warranted.
 - Revisit the P0 sequence when the approved full SHA, exact installed-app inventory, staging access, synthetic persona accounts and technical/security/finance/business owners are recorded. Pilot verification and production sign-off remain open.
