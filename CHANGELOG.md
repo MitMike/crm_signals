@@ -1,5 +1,12 @@
 # Changelog
 
+### Operator support-guide Python syntax validation — PR #163 (open)
+
+- Add a fast static regression that extracts embedded Python examples from the standalone Frappe v16.5 support-configuration and D3 SLA-discovery HTML guides and parses each with Python AST. Examples are not executed; no Bench/site connection or configuration mutation occurs.
+- Reconcile implementation, progress, follow-up and release-sprint baselines to main `25b3d76` after PR #162 and record the successful post-merge Quality [41893249731](https://github.com/MitMike/crm_signals/actions/runs/41893249731), Security [41893249689](https://github.com/MitMike/crm_signals/actions/runs/41893249689) and Bench [41893249676](https://github.com/MitMike/crm_signals/actions/runs/41893249676) runs.
+- PR #163 is open; final-head CI is required before merge. This is operator-guide CI coverage, not target-site or pilot acceptance.
+
+
 ### Read-only preflight source identity — PR #103 (merged and CI-verified as `5dbda02`)
 
 - Extend the server-side target-site preflight to report the exact CRM Signals Git commit SHA only for a clean checkout, using bounded, fixed read-only Git queries; dirty, unavailable or malformed revisions fail closed.
