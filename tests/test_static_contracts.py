@@ -445,30 +445,64 @@ def test_support_guides_describe_existing_adapter_and_custom_scope_boundary():
     assert "approve a separate adapter scope" in discovery
 
 
-def test_support_guide_python_examples_parse():
-    expected_python_example_counts = {
-        "docs/CRM_SIGNALS_SUPPORT_CONFIGURATION_GUIDE.html": 2,
-        "docs/D3_SUPPORT_SLA_DISCOVERY_GUIDE.html": 1,
+def test_operator_html_code_examples_are_language_tagged_and_parse():
+    expected_language_counts = {
+        "docs/CRM_SIGNALS_SUPPORT_CONFIGURATION_GUIDE.html": {
+            "bash": 3,
+            "python": 2,
+        },
+        "docs/D3_SUPPORT_SLA_DISCOVERY_GUIDE.html": {
+            "bash": 3,
+            "python": 1,
+        },
     }
-    for relative_path, expected_count in expected_python_example_counts.items():
+    for relative_path, expected_counts in expected_language_counts.items():
         document = (ROOT / relative_path).read_text()
         code_blocks = re.findall(
-            r"<pre\b[^>]*>(.*?)</pre>",
+            r"<pre\\b([^>]*)>(.*?)</pre>",
             document,
             flags=re.DOTALL | re.IGNORECASE,
         )
-        decoded_blocks = [html.unescape(block).strip() for block in code_blocks]
-        python_examples = [
-            block
-            for block in decoded_blocks
-            if re.search(r"(?m)^\s*(?:import|from)\s+", block)
-        ]
-        assert len(python_examples) == expected_count, (
-            f"Expected {expected_count} Python examples in {relative_path}, "
-            f"found {len(python_examples)}"
+        actual_counts = {"bash": 0, "python": 0}
+        assert len(code_blocks) == sum(expected_counts.values()), relative_path
+
+        for index, (attributes, source) in enumerate(code_blocks, start=1):
+            language_match = re.search(
+                r"""\\bdata-language=["'](bash|python)["']""",
+                attributes,
+                flags=re.IGNORECASE,
+            )
+            assert language_match, (
+                f"{relative_path} code block {index} has no supported "
+                "data-language attribute"
+            )
+            language = language_match.group(1).lower()
+            actual_counts[language] += 1
+            example = html.unescape(source).strip()
+            assert example, f"{relative_path} code block {index} is empty"
+
+            if language == "python":
+                ast.parse(example, filename=f"{relative_path}:<pre #{index}>")
+                continue
+
+            result = subprocess.run(
+                ["bash", "-n"],
+                input=example,
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+            assert result.returncode == 0, (
+                f"{relative_path} Bash block {index} is invalid:\\n"
+                f"{result.stderr}"
+            )
+
+
+        assert actual_counts == expected_counts, (
+            f"Unexpected language counts in {relative_path}: {actual_counts}"
         )
-        for index, example in enumerate(python_examples, start=1):
-            ast.parse(example, filename=f"{relative_path}:<pre #{index}>")
+
+
 def test_crm_signals_dashboard_retains_horizontal_inset():
     stylesheet = (
         APP_ROOT / "crm_signals/page/crm_signals_dashboard/crm_signals_dashboard.css"
