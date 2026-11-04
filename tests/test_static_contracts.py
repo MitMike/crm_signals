@@ -1,6 +1,7 @@
 """Fast tests that do not require a running Frappe bench."""
 
 import ast
+import html
 import json
 import re
 import subprocess
@@ -442,6 +443,27 @@ def test_support_guides_describe_existing_adapter_and_custom_scope_boundary():
         in discovery
     )
     assert "approve a separate adapter scope" in discovery
+
+
+def test_support_guide_python_examples_parse():
+    for relative_path in (
+        "docs/CRM_SIGNALS_SUPPORT_CONFIGURATION_GUIDE.html",
+        "docs/D3_SUPPORT_SLA_DISCOVERY_GUIDE.html",
+    ):
+        document = (ROOT / relative_path).read_text()
+        code_blocks = re.findall(
+            r"<pre\\b[^>]*>(.*?)</pre>",
+            document,
+            flags=re.DOTALL | re.IGNORECASE,
+        )
+        python_examples = [
+            html.unescape(block).strip()
+            for block in code_blocks
+            if re.match(r"\\s*(?:import|from)\\s+", html.unescape(block))
+        ]
+        assert python_examples, f"No Python examples found in {relative_path}"
+        for index, example in enumerate(python_examples, start=1):
+            ast.parse(example, filename=f"{relative_path}:<pre #{index}>")
 
 
 def test_crm_signals_dashboard_retains_horizontal_inset():
