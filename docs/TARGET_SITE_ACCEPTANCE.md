@@ -473,7 +473,8 @@ Use a fixed, approved date range and the site's native ERPNext reports as the co
 - [ ] Disable a synthetic Sales Manager who is present in Has Role and a separate explicitly configured digest recipient before the controlled digest run; confirm neither receives a new Email Queue entry and neither appears in the queued-recipient marker. Re-enable only after recording the sanitized result.
 - [ ] Add an enabled Website User to the explicit-recipient test input and confirm it is not queued; the digest accepts only enabled System Users, not every enabled Frappe account.
 - [ ] Trigger a controlled digest and inspect the queued email as each recipient.
-- [ ] Confirm per-recipient failures do not block other recipients.
+- [ ] Confirm per-recipient failures do not block other recipients. Reference-stack Bench coverage injects one queue failure, verifies another recipient is queued, and retries only the failed recipient on the next run.
+- [ ] Confirm Error Log titles/messages for digest queue failures omit recipient addresses and raw exception text; retain only a sanitized log reference and exception class. Do not force failures on production.
 - [ ] Confirm duplicate scheduler execution does not queue duplicate recipient/date digests.
 - [ ] In staging, use a controlled Failed outbox fixture to verify only a System Manager with outbox read access can replay; GET is rejected, only Failed rows are accepted, and attempt history/audit comment are preserved.
 - [ ] Verify a second replay is rejected while the row is Pending/Completed and that an enqueue failure leaves Pending for scheduled recovery.

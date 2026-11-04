@@ -149,6 +149,8 @@ Inspect the Email Queue and the CRM Signals Settings queued-recipient marker usi
 
 Record only sanitized aliases, queue/status counts, the full deployed CRM Signals SHA, exact Frappe/ERPNext/Helpdesk versions and timestamp. Do not copy recipient email addresses, message bodies or business-document content into the acceptance record. A queued Email Queue row proves queueing only, not mail-provider delivery or inbox receipt.
 
+Queue failures are isolated per recipient: successful recipients remain marked for that digest date, while failed recipients are eligible for a later scheduler retry. Error Log entries intentionally use a generic title and store only the exception class; they must not contain the destination address or raw exception text. The Bench regression covers a failed first recipient, a successful second recipient and retry of only the failed recipient. Do not force mail or database failures on a live site.
+
 ## Using the Signals Console
 
 Open **GME CRM Signals** workspace, then select **CRM Signals Dashboard** (route `/app/crm-signals-dashboard`). The console displays visible signal totals, shared unread state, high-priority signals, recent signal types and the latest records. A linked Lead or Customer opens through the normal Desk permission checks.

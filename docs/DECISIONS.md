@@ -1315,3 +1315,14 @@ PR #135 merged as [81d70410f0f81124ae468c1d929caefd1610fd9e](https://github.com/
 ### ADR-111 implementation note — real-Frappe fixture correction (2026-11-04)
 
 The initial Bench run showed that the explicit-recipient test account was omitted while the role-based Sales Manager was returned. The fixture had no non-manager Desk role and did not verify the persisted User type or email lookup. It now uses a non-Sales-Manager Sales User role, asserts the persisted System User/Website User types and verifies the explicit email maps to the expected User. This is a test-fixture correction only; the enabled-System-User runtime filter remains unchanged. Revisit runtime resolution only if the corrected real-Frappe test still fails.
+
+## ADR-112 — redact recipient identity and exception text from digest queue logs
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-04
+- **Context:** `send_daily_signals_digest` logged the destination email address in the Error Log title and stored a traceback/raw exception message. Queue/provider exceptions can echo the destination address, so both the explicit title and exception text can disclose recipient identity to users with Error Log access.
+- **Decision:** use a generic digest queue failure title and store only `type(error).__name__` in the Error Log message. Do not persist the recipient address, exception message or traceback in this path. Preserve the per-recipient failure counter, rollback and continuation behavior.
+- **Rationale:** the Error Log needs a stable failure category, not personal recipient identity or provider payload text. Detailed diagnosis should use approved mail-provider logs with their own access controls and retention policy.
+- **Scope:** one runtime logging change, a real-Frappe Bench failure-isolation/retry/redaction regression, digest spec and operator documentation. No recipient eligibility, role, schema, dependency or site configuration change. Retain Frappe v15/v16 and pinned v16.5.0 coverage.
+- **Verification:** require final-head Quality/Python, Security/Semgrep, Bench v15/v16 and pinned Frappe 16.5.0 workflows before merge. The Bench test must prove a failed recipient does not block a later recipient, only the failed recipient is retried on the next same-date run, and neither the address nor raw exception message is logged.
+- **Revisit criteria:** if a custom exception class itself embeds user data in its class name (not expected), replace it with a fixed generic category. If more diagnostic detail is needed, add a separately approved, access-controlled correlation mechanism; do not restore raw exception text or recipient addresses.

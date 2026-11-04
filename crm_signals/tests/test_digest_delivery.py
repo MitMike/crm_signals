@@ -186,3 +186,115 @@ class TestDigestDeliveryConcurrency(FrappeTestCase):
         self.assertNotIn(disabled_manager.name, recipients)
         self.assertNotIn(disabled_extra.name, recipients)
         self.assertNotIn(website_extra.name, recipients)
+
+    def test_digest_queue_failure_isolated_retried_and_redacted(self):
+        suffix = frappe.generate_hash(length=8)
+        failed_recipient = f"crm-signal-digest-failed-{suffix}@example.com"
+        successful_recipient = f"crm-signal-digest-success-{suffix}@example.com"
+        settings = frappe.get_single("CRM Signals Settings")
+        fields = (
+            "enabled",
+            "enable_daily_digest",
+            "digest_time",
+            "lead_stale_days",
+            "last_digest_queued_date",
+            "last_digest_queued_recipients",
+            "last_digest_status",
+        )
+        previous = {field: settings.get(field) for field in fields}
+        new_values = {
+            "enabled": 1,
+            "enable_daily_digest": 1,
+            "digest_time": "00:00:00",
+            "lead_stale_days": 3,
+            "last_digest_queued_date": "2026-10-31",
+            "last_digest_queued_recipients": "[]",
+            "last_digest_status": "",
+        }
+        for field, value in new_values.items():
+            frappe.db.set_value("CRM Signals Settings", None, field, value)
+        frappe.db.commit()
+
+        logged_errors = []
+
+        def capture_log_error(*, message, title):
+            logged_errors.append((title, message))
+
+        def queue_email(**kwargs):
+            if kwargs["recipients"] == [failed_recipient]:
+                raise RuntimeError(f"SMTP queue rejected {failed_recipient}")
+
+        try:
+            with (
+                patch.object(
+                    tasks,
+                    "_site_now",
+                    return_value=datetime(2026, 11, 1, 12, 0, tzinfo=ZoneInfo("UTC")),
+                ),
+                patch.object(
+                    tasks,
+                    "_resolve_digest_recipients",
+                    return_value=[failed_recipient, successful_recipient],
+                ),
+                patch.object(tasks, "_build_recipient_digest", return_value="<p>test</p>"),
+                patch("frappe.sendmail", side_effect=queue_email) as first_sendmail,
+                patch("frappe.log_error", side_effect=capture_log_error),
+            ):
+                first_result = tasks.send_daily_signals_digest()
+                frappe.db.commit()
+
+            self.assertEqual(first_result["status"], "partial")
+            self.assertEqual(first_result["recipient_count"], 1)
+            self.assertEqual(first_result["failed_recipient_count"], 1)
+            self.assertEqual(first_sendmail.call_count, 2)
+            self.assertEqual(
+                logged_errors,
+                [(
+                    "CRM Signals digest queue failed (recipient redacted)",
+                    "Queue error type: RuntimeError",
+                )],
+            )
+            self.assertNotIn(failed_recipient, repr(logged_errors))
+            self.assertNotIn("SMTP queue rejected", repr(logged_errors))
+
+            saved = frappe.get_doc("CRM Signals Settings", "CRM Signals Settings")
+            self.assertEqual(
+                json.loads(saved.last_digest_queued_recipients or "[]"),
+                [successful_recipient],
+            )
+
+            with (
+                patch.object(
+                    tasks,
+                    "_site_now",
+                    return_value=datetime(2026, 11, 1, 12, 0, tzinfo=ZoneInfo("UTC")),
+                ),
+                patch.object(
+                    tasks,
+                    "_resolve_digest_recipients",
+                    return_value=[failed_recipient, successful_recipient],
+                ),
+                patch.object(tasks, "_build_recipient_digest", return_value="<p>test</p>"),
+                patch("frappe.sendmail") as retry_sendmail,
+                patch("frappe.log_error", side_effect=capture_log_error),
+            ):
+                retry_result = tasks.send_daily_signals_digest()
+                frappe.db.commit()
+
+            self.assertEqual(retry_result["status"], "queued")
+            self.assertEqual(retry_result["recipient_count"], 2)
+            self.assertEqual(retry_result["failed_recipient_count"], 0)
+            retry_sendmail.assert_called_once()
+            self.assertEqual(
+                retry_sendmail.call_args.kwargs["recipients"],
+                [failed_recipient],
+            )
+            saved.reload()
+            self.assertEqual(
+                json.loads(saved.last_digest_queued_recipients or "[]"),
+                sorted([failed_recipient, successful_recipient]),
+            )
+        finally:
+            for field, value in previous.items():
+                frappe.db.set_value("CRM Signals Settings", None, field, value)
+            frappe.db.commit()

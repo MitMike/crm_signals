@@ -748,3 +748,15 @@ PR #125 merged as [7029747](https://github.com/MitMike/crm_signals/commit/702974
 - Added unit and real-Frappe Bench regressions for digest-specific recipient resolution: role and explicit recipients are deduplicated; only enabled System Users are returned; disabled role members, disabled explicit recipients, Website Users, Guest and unknown addresses are excluded.
 - Updated the daily digest validation mapping and target-site acceptance kit. ADR-111 records that digest eligibility must be tested independently from realtime recipient routing.
 - Test/documentation scope only; no runtime behavior changed. The initial Bench matrix exposed a role-less explicit-recipient fixture that was not proven to persist as a Desk System User; the fixture now uses a non-Sales-Manager Sales User role and asserts saved user type/email mapping. Final-head CI rerun pending; not pilot-verified.
+
+### 2026-11-04 — PR #147 merged — daily digest recipient eligibility
+
+- PR #147 squash-merged as `5f3cb6a5535448ee91da8428460b268e9f60c1db` from final tested head `193a7e727b316b5c0187ec812d3ccc144b2209c2`.
+- All four final-head workflows passed: Quality/Python [41752787424](https://github.com/MitMike/crm_signals/actions/runs/41752787424), Security/Semgrep [41752787359](https://github.com/MitMike/crm_signals/actions/runs/41752787359), Bench v15/v16 + Playwright [41752787379](https://github.com/MitMike/crm_signals/actions/runs/41752787379), and pinned Frappe 16.5.0 / ERPNext / Helpdesk 1.28.0 [41752787499](https://github.com/MitMike/crm_signals/actions/runs/41752787499).
+- Recipient eligibility tests prove deduplication, explicit non-manager System User inclusion, and exclusion of disabled, Website, Guest and unknown recipients. No production recipient filter changed. Reference-stack CI-verified; target-site digest/mail acceptance remains open. Not pilot-verified.
+
+### 2026-11-04 — PR #148 opening — digest queue failure isolation and Error Log privacy
+
+- Review found digest queue failure logs exposed recipient email addresses in the title and raw exception text/traceback in the message. The runtime now records a generic title and exception class only.
+- Added a real-Frappe Bench regression for one-recipient failure isolation, successful queueing of later recipients, retry of only the failed recipient on the next run, and log redaction.
+- Updated the digest contract, Administrator Guide, target-site acceptance, ADR-112, plan, progress, follow-up register and changelog. Code-complete; final-head CI pending; not pilot-verified.
