@@ -1298,3 +1298,20 @@ PR #135 merged as [81d70410f0f81124ae468c1d929caefd1610fd9e](https://github.com/
 - **Verification:** final-head Quality/Python, Security/Semgrep, Bench v15/v16 + Playwright and pinned Frappe 16.5.0 workflows required before merge. Not pilot-verified until the matrix is completed on authorized Frappe 16.5 staging.
 - **Post-merge verification:** PR #145 was squash-merged as `ed9c22c25d0a885bd351f396c11eadf1cdbac3c6` from tested head `c480eedb0ef6c2a67bc9ce23ac326ab92c4d7a89`. All four final-head workflows passed: Quality/Python [41730709519](https://github.com/MitMike/crm_signals/actions/runs/41730709519), Security/Semgrep [41730709486](https://github.com/MitMike/crm_signals/actions/runs/41730709486), Bench v15/v16 + Playwright [41730709475](https://github.com/MitMike/crm_signals/actions/runs/41730709475), Pinned Frappe 16.5.0 / ERPNext / Helpdesk [41730709472](https://github.com/MitMike/crm_signals/actions/runs/41730709472). Quality passed lint/static and Python 3.10/3.11/3.12/3.14; Bench v15/v16 integration and v16 Playwright passed; the pinned Frappe 16.5.0 / ERPNext / Helpdesk integration and Playwright passed. This verifies the static matrix contract on reference stacks only; no target-site persona cell is marked passed.
 - **Revisit criteria:** if a path cannot be exercised, mark only that cell Blocked with the exact missing input. Never infer authorization from another path or substitute Administrator credentials.
+
+
+## ADR-111 — Verify daily digest recipient eligibility independently
+
+- **Status:** Accepted
+- **Recorded:** 2026-11-04
+- **Context:** Realtime notification recipient tests do not prove the daily email digest's separate resolver. The digest combines Sales Manager role membership with explicitly configured recipients and must exclude disabled, Guest and non-System User accounts before any email is queued.
+- **Decision:** add unit and real-Frappe Bench regressions for `_resolve_digest_recipients`. Assert that role and explicit recipients are deduplicated, and that only enabled System Users are returned. Exercise disabled role members, disabled explicit recipients, an enabled Website User, Guest and an unknown address. Keep the production resolver's existing filter; do not broaden recipient eligibility.
+- **Rationale:** a valid realtime recipient is not automatically a valid digest recipient. Digest email contains source-derived data and its eligibility boundary must be tested on its own path.
+- **Scope:** tests, digest spec and operator acceptance instructions only. No production runtime, role, schema, dependency or site configuration change. Retain Frappe v15/v16 and pinned v16.5.0 coverage.
+- **Verification:** final-head Quality/Python, Security/Semgrep, Bench v15/v16 and pinned Frappe 16.5.0 workflows required before merge. CI verification does not prove the target site's scheduler, recipient list or mail-provider behavior.
+- **Revisit criteria:** if a disabled, Guest or non-System User is returned, inspect the Has Role candidate set, User.enabled, User.user_type and explicit-address resolution. Do not relax the enabled/System User filter or send to arbitrary external addresses.
+
+
+### ADR-111 implementation note — real-Frappe fixture correction (2026-11-04)
+
+The initial Bench run showed that the explicit-recipient test account was omitted while the role-based Sales Manager was returned. The fixture had no non-manager Desk role and did not verify the persisted User type or email lookup. It now uses a non-Sales-Manager Sales User role, asserts the persisted System User/Website User types and verifies the explicit email maps to the expected User. This is a test-fixture correction only; the enabled-System-User runtime filter remains unchanged. Revisit runtime resolution only if the corrected real-Frappe test still fails.

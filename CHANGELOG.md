@@ -741,3 +741,10 @@ PR #125 merged as [7029747](https://github.com/MitMike/crm_signals/commit/702974
 - All four final-head workflows passed: Quality/Python [41730709519](https://github.com/MitMike/crm_signals/actions/runs/41730709519), Security/Semgrep [41730709486](https://github.com/MitMike/crm_signals/actions/runs/41730709486), Bench v15/v16 + Playwright [41730709475](https://github.com/MitMike/crm_signals/actions/runs/41730709475), Pinned Frappe 16.5.0 / ERPNext / Helpdesk [41730709472](https://github.com/MitMike/crm_signals/actions/runs/41730709472).
 - Quality passed lint/static and Python 3.10, 3.11, 3.12 and 3.14. Bench v15/v16 integration passed, v16 Playwright passed, and pinned Frappe 16.5.0 / ERPNext / Helpdesk integration plus Playwright passed.
 - The independent persona/path matrix is reference-stack CI-verified. Actual Sales User, Sales Manager, System Manager, non-sales and disabled-user results remain blank until authorized Frappe 16.5 staging execution. Not pilot-verified.
+
+
+### 2026-11-04 — PR #147 opening — daily digest recipient eligibility
+
+- Added unit and real-Frappe Bench regressions for digest-specific recipient resolution: role and explicit recipients are deduplicated; only enabled System Users are returned; disabled role members, disabled explicit recipients, Website Users, Guest and unknown addresses are excluded.
+- Updated the daily digest validation mapping and target-site acceptance kit. ADR-111 records that digest eligibility must be tested independently from realtime recipient routing.
+- Test/documentation scope only; no runtime behavior changed. The initial Bench matrix exposed a role-less explicit-recipient fixture that was not proven to persist as a Desk System User; the fixture now uses a non-Sales-Manager Sales User role and asserts saved user type/email mapping. Final-head CI rerun pending; not pilot-verified.

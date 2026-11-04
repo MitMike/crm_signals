@@ -3,7 +3,7 @@
 **Last reviewed:** 2026-11-04  
 **Repository:** [MitMike/crm_signals](https://github.com/MitMike/crm_signals)  
 **Supported framework coverage:** Frappe / ERPNext v15 and v16. **Primary deployment target:** Frappe v16.5; record the exact patch/build and installed ERPNext/Helpdesk versions.  
-**Reviewed main baseline:** [ed9c22c](https://github.com/MitMike/crm_signals/commit/ed9c22c25d0a885bd351f396c11eadf1cdbac3c6); **latest application permission baseline:** [70aa4d8](https://github.com/MitMike/crm_signals/commit/70aa4d8953cc8a69d1317aad1c72654f05a1b29e).
+**Reviewed main baseline:** [0c61221](https://github.com/MitMike/crm_signals/commit/0c6122113c08198a99789d897ce04980fe639d80); **latest application permission baseline:** [70aa4d8](https://github.com/MitMike/crm_signals/commit/70aa4d8953cc8a69d1317aad1c72654f05a1b29e).
 
 This is the execution plan and source of truth for delivery order, scope, dependencies, acceptance gates and exit criteria. The operational state is maintained in [docs/PROGRESS.md](docs/PROGRESS.md); durable choices are in [docs/DECISIONS.md](docs/DECISIONS.md); feature contracts are in [specs/](specs/).
 
@@ -743,3 +743,17 @@ All four final-head workflows passed: Quality/Python [41728280197](https://githu
 PR [#145](https://github.com/MitMike/crm_signals/pull/145) was squash-merged as [ed9c22c](https://github.com/MitMike/crm_signals/commit/ed9c22c25d0a885bd351f396c11eadf1cdbac3c6) from exact tested head [c480eed](https://github.com/MitMike/crm_signals/commit/c480eedb0ef6c2a67bc9ce23ac326ab92c4d7a89). It separates Signal list, direct form, RPC, REST resource, Report View, CSV export, print view, dashboard UI, dashboard API, digest email and realtime in the target-site persona matrix. Each cell requires Pass/Fail/Blocked plus sanitized evidence; adjacent paths cannot be used to infer one another. The static contract test protects the matrix and no-inference rule. Documentation/static-test scope only; no runtime permissions, role grants, schema, dependencies or site configuration changed.
 
 All four final-head workflows passed: Quality/Python [41730709519](https://github.com/MitMike/crm_signals/actions/runs/41730709519), Security/Semgrep [41730709486](https://github.com/MitMike/crm_signals/actions/runs/41730709486), Bench v15/v16 + Playwright [41730709475](https://github.com/MitMike/crm_signals/actions/runs/41730709475), Pinned Frappe 16.5.0 / ERPNext / Helpdesk [41730709472](https://github.com/MitMike/crm_signals/actions/runs/41730709472). Quality completed lint/static and Python 3.10, 3.11, 3.12 and 3.14. Bench v15 and v16 integration passed; v16 Playwright passed; the pinned Frappe 16.5.0 / ERPNext / Helpdesk lane passed its integration and focused Playwright selection. Reference-stack CI-verified; the matrix remains blank until executed on authorized staging. Not pilot-verified.
+
+
+## PR #147 — daily digest recipient eligibility regressions (2026-11-04)
+
+The digest resolver has a separate privacy boundary from realtime notification routing: it combines Sales Manager role members with explicitly configured recipients, then filters to enabled System Users. Added a mocked unit regression and a real-Frappe Bench regression for deduplication, disabled role members, disabled explicit recipients, an enabled Website User, Guest and unknown addresses. ADR-111 records the decision to keep the existing runtime filter and test the email path independently. Updated the daily digest spec and target-site acceptance kit with explicit disabled/non-System User checks. Test/documentation scope only; no runtime behavior changed. Final-head CI pending; not pilot-verified.
+
+
+### 2026-11-04 — PR #147 initial integration failure and fixture correction
+
+The first final-head run passed Quality/Python and Security but failed the new recipient test in both moving Bench lanes and the pinned Frappe 16.5.0 lane. Evidence: [Bench v15/v16 run 41745913782](https://github.com/MitMike/crm_signals/actions/runs/41745913782), [pinned v16.5.0 run 41745913747](https://github.com/MitMike/crm_signals/actions/runs/41745913747). The Frappe test returned the newly created Sales Manager and pre-existing baseline recipients but omitted the explicit-recipient fixture; all preceding site setup, preflight, D1/D2/D3 and Python tests passed.
+
+Diagnosis: the explicit-recipient fixture created a role-less account while assuming it persisted as a Desk System User. The test had not asserted the saved User.user_type or the email-to-User lookup. Corrected the fixture to assign the non-Sales-Manager Sales User role to enabled and disabled explicit-recipient accounts, assert persisted user types and email mapping, and pass the configured email values to the resolver. This isolates explicit inclusion from Sales Manager role discovery. No production resolver or permission behavior changed. Re-run all four final-head workflows before merge.
+
+Revisit if either persisted user-type assertion fails or the email lookup still does not resolve the explicit recipient; inspect the User insert lifecycle and exact User.email mapping before considering any runtime change. Never relax the enabled-System-User filter.

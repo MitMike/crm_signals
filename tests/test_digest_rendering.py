@@ -167,3 +167,60 @@ def test_digest_truncates_large_quotation_lists_with_an_explicit_notice(monkeypa
     assert "QTN-100" not in content
     assert "Additional quotations are not shown" in content
 
+
+def test_digest_recipients_are_deduplicated_and_limited_to_enabled_system_users(monkeypatch):
+    tasks = load_tasks(monkeypatch)
+    fake = sys.modules["frappe"]
+
+    role_users = [
+        "manager@example.com",
+        "disabled-manager@example.com",
+        "Guest",
+        "website-role@example.com",
+    ]
+    email_to_name = {
+        "extra@example.com": "extra-user@example.com",
+        "disabled-extra@example.com": "disabled-extra@example.com",
+        "website-extra@example.com": "website-extra@example.com",
+    }
+    known_names = set(role_users) | set(email_to_name.values())
+    eligible = {"manager@example.com", "extra-user@example.com"}
+
+    def get_value(doctype, key, field):
+        assert doctype == "User"
+        assert field == "name"
+        if isinstance(key, dict):
+            return email_to_name.get(key.get("email"))
+        return key if key in known_names else None
+
+    def get_all(doctype, filters=None, pluck=None):
+        if doctype == "Has Role":
+            assert filters == {"role": "Sales Manager", "parenttype": "User"}
+            return role_users
+        if doctype == "User":
+            assert filters["enabled"] == 1
+            assert filters["user_type"] == "System User"
+            requested = filters["name"][1]
+            assert set(requested) == known_names - {"Guest"}
+            return [user for user in requested if user in eligible]
+        raise AssertionError(f"Unexpected DocType: {doctype}")
+
+    fake.db.get_value = get_value
+    fake.get_all = get_all
+    tasks.parse_recipients = lambda value: [
+        item.strip() for item in value.splitlines() if item.strip()
+    ]
+
+    recipients = tasks._resolve_digest_recipients(
+        [
+            "extra@example.com",
+            "disabled-extra@example.com",
+            "website-extra@example.com",
+            "disabled-manager@example.com",
+            "Guest",
+            "extra@example.com",
+            "unknown@example.com",
+        ]
+    )
+
+    assert recipients == ["extra-user@example.com", "manager@example.com"]
