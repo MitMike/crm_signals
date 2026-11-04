@@ -813,3 +813,6 @@ PR #125 merged as [7029747](https://github.com/MitMike/crm_signals/commit/702974
 
 
 - **PR #159:** strengthen the Frappe 16.5 target-site permission smoke to verify restricted CRM Signal messages are not disclosed through denied RPC/REST, Report View or CSV export, and that the permitted synthetic message remains visible on allowed paths. Parse-only CI coverage; no runtime or permission change.
+
+
+- **PR #159 merged:** [bfc4886](https://github.com/MitMike/crm_signals/commit/bfc4886382877ce4014ac2ef0d2cb0c64000b4c1) strengthens target-site message-level privacy assertions. Exact final-head Quality [41851046486](https://github.com/MitMike/crm_signals/actions/runs/41851046486), Security [41851046368](https://github.com/MitMike/crm_signals/actions/runs/41851046368), Bench v15/v16 + Playwright [41851046485](https://github.com/MitMike/crm_signals/actions/runs/41851046485), and pinned Frappe 16.5.0 [41851046388](https://github.com/MitMike/crm_signals/actions/runs/41851046388) passed. The credentialed target-site script remains parse-only in CI; no pilot verification is implied.
