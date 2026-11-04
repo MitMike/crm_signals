@@ -1,11 +1,18 @@
 # Changelog
 
-### Operator HTML code-block language and syntax validation — PR #165 (open)
+### Operator HTML code-block language and syntax validation — PR #165 (merged as `d0cb54f`)
 
 - Add explicit `data-language="bash"` / `data-language="python"` metadata to every `<pre>` example in the Frappe v16.5 support-configuration and D3 SLA-discovery HTML guides.
 - Extend the fast static contract test to require every block to be classified, enforce per-guide language counts, AST-parse all Python examples and run `bash -n` on all Bash examples. Local focused validation passed for all three Python and six Bash snippets.
 - Correct the Python console-output separators in both support guides to use actual newline escapes rather than printing literal `\\n` characters; add a regression assertion for that operator-facing output contract.
-- No operator command or site-discovery code is executed in CI. No runtime, schema, permission, dependency or site configuration changes. Final-head Quality, Security, supported Frappe v15/v16 Bench and pinned v16.5.0 checks are required before merge.
+- No operator command or site-discovery code is executed in CI. No runtime, schema, permission, dependency or site configuration changes.
+
+- PR #165 merged as [d0cb54f](https://github.com/MitMike/crm_signals/commit/d0cb54fe4d5f7f2cb3bbf9cbcc14fee9a8662d98) from exact tested head [3162597](https://github.com/MitMike/crm_signals/commit/3162597dec7e25d9790ced05d3c6792951fddd63).
+- All four required final-head workflows passed: Quality [41908983613](https://github.com/MitMike/crm_signals/actions/runs/41908983613), Security/Semgrep [41908983421](https://github.com/MitMike/crm_signals/actions/runs/41908983421), supported Frappe v15/v16 Bench integration and validation [41908983574](https://github.com/MitMike/crm_signals/actions/runs/41908983574), and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 [41908983460](https://github.com/MitMike/crm_signals/actions/runs/41908983460). The v15 integration and v16 integration/Playwright jobs passed; v15 Playwright was skipped by its matrix setting. Quality lint/static and Python 3.10/3.11/3.12/3.14 passed.
+- Post-merge main Quality [41920151879](https://github.com/MitMike/crm_signals/actions/runs/41920151879) and Security [41920151933](https://github.com/MitMike/crm_signals/actions/runs/41920151933) passed. Main Bench [41920152015](https://github.com/MitMike/crm_signals/actions/runs/41920152015) is still running at this review: v15 integration passed; v16 Playwright E2E is in progress. Do not record post-merge main Bench as passed until the run completes.
+- PR #165 labels every HTML `<pre>` block as Bash or Python, enforces the expected per-guide counts, parses all three Python snippets with AST, and validates all six Bash snippets with `bash -n`. It also corrects console-output newline escapes. CI never executes operator/site-discovery commands.
+- **Decision:** no new ADR is required. This is operator-documentation metadata, syntax validation and output formatting only; no application runtime, schema, permission, dependency, role or site-configuration behavior changed.
+- **Release boundary:** supported Frappe v15/v16 coverage and the pinned v16.5.0 reference lane remain CI-verified. Target-site installation, role/permission parity, D1/D2 financial reconciliation, D3 SLA, digest/mail, webhook, worker/realtime recovery, backup/restore/rollback and desktop/mobile visual acceptance remain pilot work. H is partial; Vault and Analysis remain approval-gated. Production is not approved.
 
 ### Operator support-guide Python syntax validation — PR #163 (merged and CI-verified as `ba348e6`)
 
