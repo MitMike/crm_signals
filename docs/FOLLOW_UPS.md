@@ -4,6 +4,8 @@ This file records known work that is intentionally not represented as complete. 
 
 **Ownership convention:** P0 target-site items belong to the site administrator/implementation lead with the relevant security or finance owner; P1 engineering items belong to CRM Signals maintainers; site-specific configuration items belong to the Sales Manager/business owner; P2 roadmap items belong to the product owner. Close an item only with the evidence described below.
 
+**Last reviewed:** 2026-11-04. **Reviewed main baseline:** [79b5298](https://github.com/MitMike/crm_signals/commit/79b529846f3173bb1fa1fb5682e135073d184fa9). PR #149 reconciled the PR #148 digest privacy merge evidence; its documentation-only checks do not close any target-site acceptance item.
+
 ## P0 — required before production sign-off
 
 - [ ] **Target-site preflight and acceptance.** Use the updated evidence template in [Target-Site Acceptance Kit](TARGET_SITE_ACCEPTANCE.md), including the staging-only Redis Socket.IO outage, worker restart, scheduler recovery and permission-revocation checks. Record the exact Frappe v16.5 patch/build, ERPNext and Helpdesk app versions, installed apps, Company currencies, timezone, workflows, custom fields and role matrix. Run Pilot import, migrate, scheduler, email, realtime, dashboard and rollback smoke tests.
