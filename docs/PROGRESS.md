@@ -878,3 +878,12 @@ All four final-head workflows passed: Quality/Python [41730709519](https://githu
 ## PR #147 opening — daily digest recipient eligibility (2026-11-04)
 
 Added unit and real-Frappe Bench coverage for the digest-specific recipient resolver. The tests prove deduplication across Sales Manager role membership and explicit recipients, and exclusion of disabled users, Guest, an enabled Website User and unknown addresses. ADR-111 records why digest eligibility is independently tested from realtime routing. The daily digest spec and target-site acceptance kit now map the tests and specify the live disabled-recipient check. No production runtime filter changed. Code-complete on `test/digest-recipient-eligibility-20261104`; final-head CI pending. Not pilot-verified.
+
+
+### 2026-11-04 — PR #147 initial integration failure and fixture correction
+
+The first final-head run passed Quality/Python and Security but failed the new recipient test in both moving Bench lanes and the pinned Frappe 16.5.0 lane. Evidence: [Bench v15/v16 run 41745913782](https://github.com/MitMike/crm_signals/actions/runs/41745913782), [pinned v16.5.0 run 41745913747](https://github.com/MitMike/crm_signals/actions/runs/41745913747). The Frappe test returned the newly created Sales Manager and pre-existing baseline recipients but omitted the explicit-recipient fixture; all preceding site setup, preflight, D1/D2/D3 and Python tests passed.
+
+Diagnosis: the explicit-recipient fixture created a role-less account while assuming it persisted as a Desk System User. The test had not asserted the saved User.user_type or the email-to-User lookup. Corrected the fixture to assign the non-Sales-Manager Sales User role to enabled and disabled explicit-recipient accounts, assert persisted user types and email mapping, and pass the configured email values to the resolver. This isolates explicit inclusion from Sales Manager role discovery. No production resolver or permission behavior changed. Re-run all four final-head workflows before merge.
+
+Revisit if either persisted user-type assertion fails or the email lookup still does not resolve the explicit recipient; inspect the User insert lifecycle and exact User.email mapping before considering any runtime change. Never relax the enabled-System-User filter.
