@@ -1,10 +1,11 @@
 # Changelog
 
-### Operator support-guide Python syntax validation — PR #163 (open)
+### Operator support-guide Python syntax validation — PR #163 (merged and CI-verified as `ba348e6`)
 
-- Add a fast static regression that extracts embedded Python examples from the standalone Frappe v16.5 support-configuration and D3 SLA-discovery HTML guides and parses each with Python AST. Assert the expected two support-configuration snippets and one D3 discovery snippet are all found, so a future snippet cannot silently escape parsing. Examples are not executed; no Bench/site connection or configuration mutation occurs.
-- Reconcile implementation, progress, follow-up and release-sprint baselines to main `25b3d76` after PR #162 and record the successful post-merge Quality [41893249731](https://github.com/MitMike/crm_signals/actions/runs/41893249731), Security [41893249689](https://github.com/MitMike/crm_signals/actions/runs/41893249689) and Bench [41893249676](https://github.com/MitMike/crm_signals/actions/runs/41893249676) runs.
-- PR #163 is open; final-head CI is required before merge. This is operator-guide CI coverage, not target-site or pilot acceptance.
+- Add a fast static regression that extracts the two Python examples in the Frappe v16.5 support-configuration guide and one in the D3 SLA-discovery guide, then parses each with Python AST. The final-head test asserts the expected examples are discovered.
+- Exact final head `17bdf9e` passed Quality [41898150244](https://github.com/MitMike/crm_signals/actions/runs/41898150244), Security [41898150223](https://github.com/MitMike/crm_signals/actions/runs/41898150223), Frappe v15/v16 Bench integration and validation [41898150235](https://github.com/MitMike/crm_signals/actions/runs/41898150235), and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 [41898150300](https://github.com/MitMike/crm_signals/actions/runs/41898150300). Merged as [ba348e6](https://github.com/MitMike/crm_signals/commit/ba348e6526a4d6d5844d56bfc3b8ac388efd4c52).
+- Post-merge main Quality [41903297571](https://github.com/MitMike/crm_signals/actions/runs/41903297571), Security [41903297622](https://github.com/MitMike/crm_signals/actions/runs/41903297622) and Bench [41903297576](https://github.com/MitMike/crm_signals/actions/runs/41903297576) passed. Main Bench ran v15/v16 integration and validation; the push-event change detector was skipped but did not suppress integration execution.
+- This is syntax coverage only; no Bench console, site connection or configuration mutation occurs. Target-site/pilot acceptance remains open.
 
 
 ### Read-only preflight source identity — PR #103 (merged and CI-verified as `5dbda02`)
