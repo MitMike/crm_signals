@@ -132,7 +132,22 @@ Selecting a preset applies its starting values. You can edit any field afterward
 - **Lead not-modified window:** reports Leads whose modified timestamp is older than the configured number of days. It does not prove there was no call, email or meeting.
 - **Digest time:** evaluated against the timezone in System Settings. The scheduler checks each minute; delivery can be delayed by worker/scheduler load.
 - **Digest quotation list:** at most 100 Quotations are shown. If more are due, the digest displays `100+` and a notice to review the full list in ERPNext.
-- **Additional digest recipients:** additional email addresses are resolved to enabled System Users. Arbitrary external email addresses, Guest users and disabled users are not accepted.
+- **Additional digest recipients:** additional email addresses are resolved to enabled System Users. They do not need the Sales Manager role; an explicitly approved non-manager System User may receive the digest. Website Users, Guest, disabled users and unknown addresses are excluded. Arbitrary external addresses are not sent.
+
+
+### Verify daily digest recipients in staging
+
+Use synthetic accounts and controlled mailboxes only. Create an enabled Sales Manager, an enabled non-manager Desk System User (for example, a Sales User), a disabled System User and a Website User. Add the enabled non-manager account and the negative-test addresses to **Additional digest recipients**. Do not use a real customer or employee mailbox.
+
+After the configured site-local digest time, allow the normal scheduler to run once. In an isolated staging site only, an operator may invoke the same scheduled function with:
+
+```bash
+bench --site <site-name> execute crm_signals.tasks.send_daily_signals_digest
+```
+
+Inspect the Email Queue and the CRM Signals Settings queued-recipient marker using the synthetic aliases. Expect the enabled Sales Manager and explicitly configured enabled non-manager System User; the disabled account, Website User, Guest and unknown address must not be queued. Confirm that a recipient's digest contains only Leads and Quotations readable by that recipient. Use a fresh digest date or an isolated staging marker when repeating the test; do not edit production queue records to manufacture a retry.
+
+Record only sanitized aliases, queue/status counts, the full deployed CRM Signals SHA, exact Frappe/ERPNext/Helpdesk versions and timestamp. Do not copy recipient email addresses, message bodies or business-document content into the acceptance record. A queued Email Queue row proves queueing only, not mail-provider delivery or inbox receipt.
 
 ## Using the Signals Console
 
