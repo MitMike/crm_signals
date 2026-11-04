@@ -459,7 +459,7 @@ def test_operator_html_code_examples_are_language_tagged_and_parse():
     for relative_path, expected_counts in expected_language_counts.items():
         document = (ROOT / relative_path).read_text()
         code_blocks = re.findall(
-            r"<pre\\b([^>]*)>(.*?)</pre>",
+            r"<pre\b([^>]*)>(.*?)</pre>",
             document,
             flags=re.DOTALL | re.IGNORECASE,
         )
@@ -468,7 +468,7 @@ def test_operator_html_code_examples_are_language_tagged_and_parse():
 
         for index, (attributes, source) in enumerate(code_blocks, start=1):
             language_match = re.search(
-                r"""\\bdata-language=["'](bash|python)["']""",
+                r"""\bdata-language=["'](bash|python)["']""",
                 attributes,
                 flags=re.IGNORECASE,
             )
@@ -493,10 +493,9 @@ def test_operator_html_code_examples_are_language_tagged_and_parse():
                 check=False,
             )
             assert result.returncode == 0, (
-                f"{relative_path} Bash block {index} is invalid:\\n"
+                f"{relative_path} Bash block {index} is invalid:\n"
                 f"{result.stderr}"
             )
-
 
         assert actual_counts == expected_counts, (
             f"Unexpected language counts in {relative_path}: {actual_counts}"
