@@ -4,9 +4,9 @@ This file records known work that is intentionally not represented as complete. 
 
 **Ownership convention:** P0 target-site items belong to the site administrator/implementation lead with the relevant security or finance owner; P1 engineering items belong to CRM Signals maintainers; site-specific configuration items belong to the Sales Manager/business owner; P2 roadmap items belong to the product owner. Close an item only with the evidence described below.
 
-**Last reviewed:** 2026-11-04. **Reviewed main baseline:** [508c432](https://github.com/MitMike/crm_signals/commit/508c432d8bf39108367a42664112db55c7f87435) (PR #152 documentation-only reconciliation).
+**Last reviewed:** 2026-11-04. **Reviewed main baseline:** [710be944](https://github.com/MitMike/crm_signals/commit/710be94479801f66ad69767e317b6ff987480564) (PR #153 documentation-only reconciliation; parent of PR #154).
 
-**Latest repository review (2026-11-04):** PR [#152](https://github.com/MitMike/crm_signals/pull/152) squash-merged as [508c432](https://github.com/MitMike/crm_signals/commit/508c432d8bf39108367a42664112db55c7f87435). Post-merge main Quality [41785092281](https://github.com/MitMike/crm_signals/actions/runs/41785092281), Security [41785092277](https://github.com/MitMike/crm_signals/actions/runs/41785092277), and Bench Integration/E2E [41785092279](https://github.com/MitMike/crm_signals/actions/runs/41785092279) all completed successfully. The live repository queries returned zero open PRs and zero open issues. This documentation-only merge closes no target-site acceptance item.
+**Latest repository review (2026-11-04):** PR [#153](https://github.com/MitMike/crm_signals/pull/153) squash-merged as [710be944](https://github.com/MitMike/crm_signals/commit/710be94479801f66ad69767e317b6ff987480564). Post-merge main Quality [41794694618](https://github.com/MitMike/crm_signals/actions/runs/41794694618), Security [41794694560](https://github.com/MitMike/crm_signals/actions/runs/41794694560), and Bench Integration/E2E [41794694578](https://github.com/MitMike/crm_signals/actions/runs/41794694578) all completed successfully. The live repository queries returned zero open PRs and zero open issues. This documentation-only merge closes no target-site acceptance item.
 
 **Autonomous implementation boundary:** no safe independent code task is currently unblocked by the recorded contracts. P0 installation, permissions, finance, Helpdesk, mail/realtime/webhook and recovery work requires the authorized Frappe v16.5 site and named owners. H VIP/proposal tracking requires product/privacy approval; Vault and Analysis require signed D1/D2 metric, source-permission and retention definitions; optional Explorer adapters require installed-provider/schema inventory. Revisit only when the exact inputs and owners listed in the relevant items below are recorded. The core implemented scope is not the same as the full roadmap: H remains partial and Vault/Analysis remain unimplemented.
 
@@ -576,3 +576,12 @@ The direct Desk form test observed GET `frappe.desk.form.load.getdoc`: linked-re
 - [x] Post-merge main Quality [41785092281](https://github.com/MitMike/crm_signals/actions/runs/41785092281), Security [41785092277](https://github.com/MitMike/crm_signals/actions/runs/41785092277), and Bench [41785092279](https://github.com/MitMike/crm_signals/actions/runs/41785092279) all passed. The Bench change detector skipped the documentation-only integration selector; v15/v16 integration and validation jobs passed.
 - [ ] P0 target-site acceptance remains blocked. Revisit only when an authorized Frappe v16.5 staging window, approved full CRM Signals SHA, exact Frappe/ERPNext/Helpdesk inventory, synthetic Sales User/Sales Manager/System Manager/non-sales accounts and named technical/business/security/finance owners are available. Then execute the existing target-site kit; do not infer pilot results from these main-branch checks.
 - **Decision:** no runtime change or new ADR is justified by this repository-only review. Preserve the current product/privacy/metric/provider approval gates and do not add speculative semantics.
+
+
+## PR #154 — README webhook command correction (2026-11-04)
+
+- [x] Correct the README webhook example so its URL line is continued with the following authorization/content-type/data arguments.
+- [x] Add a static contract test that rejects a split/malformed multiline shell command.
+- **Decision:** preserve the existing endpoint, token authentication and payload. This corrects shell syntax only; no runtime or security policy changes.
+- **Verification:** fast static regression added; PR Quality/Security/Bench checks are pending. Do not mark the fix CI-verified until the final PR head passes.
+- **No new target-site follow-up:** the example syntax can be verified in CI. Existing P0 staging acceptance remains open and unchanged; this correction does not verify live TLS, credentials, gateway policy or webhook delivery.
