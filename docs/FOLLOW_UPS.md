@@ -650,18 +650,18 @@ The direct Desk form test observed GET `frappe.desk.form.load.getdoc`: linked-re
 - **Release boundary unchanged:** Frappe v15/v16 compatibility and the pinned Frappe 16.5.0 reference lane remain CI-verified; actual target-site installation, permissions, D1/D2 reconciliation, D3 SLA, mail, webhook, worker/realtime, recovery and desktop/mobile visual acceptance remain pilot work. H remains partial; Vault and Analysis remain unimplemented and approval-gated. Production is not approved.
 
 
-## Operator HTML examples — language and syntax contract
+## Operator HTML examples — PR #165 implementation pending merge
 
-- [x] Every `<pre>` example in `docs/CRM_SIGNALS_SUPPORT_CONFIGURATION_GUIDE.html` and `docs/D3_SUPPORT_SLA_DISCOVERY_GUIDE.html` is explicitly tagged `data-language="bash"` or `data-language="python"`.
-- [x] Fast static tests require all code blocks to be tagged, enforce the expected per-guide language counts, parse Python with AST and validate Bash with `bash -n`.
-- **Decision:** syntax validation only. Do not execute Bench commands or Python site-discovery snippets in CI.
-- **Revisit criteria:** when an operator adds, removes or changes a code block, update its language tag and expected count; CI must fail for an untagged block or syntax error. A passing parser test does not replace execution on the authorized Frappe 16.5 staging site.
+- [ ] Merge the explicit `data-language` labels for every `<pre>` example in both standalone support guides.
+- [ ] Merge static coverage that checks every block is labelled and validates Python AST and Bash syntax.
+- **Decision:** syntax validation only; never execute Bench commands or site-discovery snippets in CI.
+- **Revisit criteria:** when PR #165 CI passes and the change is merged, mark these implementation items complete. A passing parser test does not replace execution on authorized Frappe 16.5 staging.
 
 
-## Operator HTML validation follow-up — PR #165 — operator HTML code-block language and syntax validation
+## PR #165 open — operator HTML code-block language and syntax validation
 
-- [ ] Explicitly label every `<pre>` example in the Frappe v16.5 support-configuration and D3 SLA-discovery HTML guides as Bash or Python.
-- [ ] Require the static contract test to discover every block, enforce expected per-guide language counts, AST-parse Python examples and run `bash -n` for Bash examples.
+- [x] Explicitly label every `<pre>` example in the Frappe v16.5 support-configuration and D3 SLA-discovery HTML guides as Bash or Python.
+- [x] Static contract test discovers every block, enforces expected per-guide language counts, AST-parses Python examples and runs `bash -n` for Bash examples.
 - [x] Focused local validation passed: all three embedded Python examples parse and all six embedded Bash examples pass `bash -n`.
 - [ ] Final-head Quality, Security, Frappe v15/v16 Bench and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 checks must pass before merge.
 - **Decision:** language metadata is explicit; syntax-check only and never execute site commands/snippets in CI. No runtime/schema/permission/dependency change and no new ADR.
