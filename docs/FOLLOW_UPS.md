@@ -667,3 +667,11 @@ The direct Desk form test observed GET `frappe.desk.form.load.getdoc`: linked-re
 - [ ] Final-head Quality, Security, Frappe v15/v16 Bench and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 checks must pass before merge.
 - **Decision:** language metadata is explicit; syntax-check only and never execute site commands/snippets in CI. No runtime/schema/permission/dependency change and no new ADR.
 - **Release boundary:** this improves operator-documentation integrity, not target-site acceptance or pilot verification.
+
+
+## 2026-11-05 — PR #165 merge closure and remaining acceptance
+
+- PR #165 is merged as [d0cb54f](https://github.com/MitMike/crm_signals/commit/d0cb54fe4d5f7f2cb3bbf9cbcc14fee9a8662d98) from exact head [3162597](https://github.com/MitMike/crm_signals/commit/3162597dec7e25d9790ced05d3c6792951fddd63); all four final-head required workflows passed (Quality 41908983613, Security 41908983421, Bench v15/v16 + Playwright 41908983574, pinned v16.5.0 41908983460). The prior PR #165 merge gate is satisfied.
+- Remaining P0 work is not a repository-only task: authorized Frappe v16.5 staging, approved full release SHA, exact installed-app inventory, four synthetic permission personas and named technical/security/finance/business owners are still required. Then execute install/upgrade/rollback, list/form/RPC/REST/report/export/print/dashboard permission parity, D1/D2 native-report reconciliation by currency, D3 SLA calendar/field permissions, actual digest mail, webhook/TLS/rotation, Redis/worker/scheduler/realtime recovery, backup/restore and desktop/mobile visual acceptance.
+- Revisit criteria: begin site acceptance only when the authorized staging window and access, approved SHA, version inventory, synthetic accounts/records and named owners are recorded. Do not infer pilot completion from CI.
+- Post-merge main Quality [41920151879](https://github.com/MitMike/crm_signals/actions/runs/41920151879), Security [41920151933](https://github.com/MitMike/crm_signals/actions/runs/41920151933) and Bench [41920152015](https://github.com/MitMike/crm_signals/actions/runs/41920152015) are still running at this update; revisit and record their final conclusions before calling main healthy.

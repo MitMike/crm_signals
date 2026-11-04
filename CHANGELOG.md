@@ -1,6 +1,6 @@
 # Changelog
 
-### Operator HTML code-block language and syntax validation — PR #165 (open)
+### Operator HTML code-block language and syntax validation — PR #165 (merged as d0cb54f)
 
 - Add explicit `data-language="bash"` / `data-language="python"` metadata to every `<pre>` example in the Frappe v16.5 support-configuration and D3 SLA-discovery HTML guides.
 - Extend the fast static contract test to require every block to be classified, enforce per-guide language counts, AST-parse all Python examples and run `bash -n` on all Bash examples. Local focused validation passed for all three Python and six Bash snippets.
@@ -839,3 +839,12 @@ PR #125 merged as [7029747](https://github.com/MitMike/crm_signals/commit/702974
 - The base review before PR #161 opened returned zero open pull requests and zero open issues. Post-merge main Quality [41859906665](https://github.com/MitMike/crm_signals/actions/runs/41859906665), Security [41859906759](https://github.com/MitMike/crm_signals/actions/runs/41859906759) and Bench Integration/E2E [41859906816](https://github.com/MitMike/crm_signals/actions/runs/41859906816) passed. Bench v15/v16 integration execution and validation passed; the v16 Playwright E2E step passed and v15 E2E was skipped by its matrix setting. The main push event skipped the integration-change detector, so it did not validate the docs-only PR path. PR #161's exact final head `5ff1e1f7fe045e9e1215c03ad28a883508e6cbd8` subsequently passed its docs-only CI: Security/Semgrep run [41884830252](https://github.com/MitMike/crm_signals/actions/runs/41884830252); Bench run [41884830360](https://github.com/MitMike/crm_signals/actions/runs/41884830360), with the change detector successful, both v15/v16 Bench-validation gates successful, and application integration execution correctly skipped; Quality run [41884830262](https://github.com/MitMike/crm_signals/actions/runs/41884830262), with lint/static checks successful and Python unit execution correctly skipped.
 - Reconfirmed the blocker decision: no independent runtime/product feature is unblocked by the current contracts. Target-site P0 work needs authorized Frappe v16.5 staging and named owners; H/V/A and optional Explorer work need the approvals or inventory recorded in FOLLOW_UPS.md. No new ADR was required.
 - No application runtime, schema, permissions, dependencies or site configuration changed. Reference-stack CI verification is not pilot verification; production remains not approved.
+
+
+### 2026-11-05 — PR #165 merged — operator HTML code-block language and syntax validation
+
+- Squash-merged as [d0cb54f](https://github.com/MitMike/crm_signals/commit/d0cb54fe4d5f7f2cb3bbf9cbcc14fee9a8662d98) from exact final head [3162597](https://github.com/MitMike/crm_signals/commit/3162597dec7e25d9790ced05d3c6792951fddd63).
+- All four required final-head workflows passed: Quality [41908983613](https://github.com/MitMike/crm_signals/actions/runs/41908983613), Security [41908983421](https://github.com/MitMike/crm_signals/actions/runs/41908983421), Frappe v15/v16 Bench + Playwright [41908983574](https://github.com/MitMike/crm_signals/actions/runs/41908983574), and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 [41908983460](https://github.com/MitMike/crm_signals/actions/runs/41908983460).
+- Post-merge main Quality [41920151879](https://github.com/MitMike/crm_signals/actions/runs/41920151879), Security [41920151933](https://github.com/MitMike/crm_signals/actions/runs/41920151933) and Bench [41920152015](https://github.com/MitMike/crm_signals/actions/runs/41920152015) were still running at the time of this record.
+- The HTML guides now classify every pre block as Bash or Python; CI enforces expected counts, parses Python AST and runs bash -n for shell snippets. The newline-output regression is fixed. No operator command or site-discovery script is executed in CI.
+- Reference-stack CI verification only; target-site/pilot acceptance remains open.
