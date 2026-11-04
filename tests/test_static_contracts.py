@@ -459,7 +459,7 @@ def test_support_guide_python_examples_parse():
         python_examples = [
             html.unescape(block).strip()
             for block in code_blocks
-            if re.match(r"\\s*(?:import|from)\\s+", html.unescape(block))
+            if re.match(r"\s*(?:import|from)\s+", html.unescape(block))
         ]
         assert python_examples, f"No Python examples found in {relative_path}"
         for index, example in enumerate(python_examples, start=1):
