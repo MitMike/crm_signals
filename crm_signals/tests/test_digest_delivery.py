@@ -154,16 +154,27 @@ class TestDigestDeliveryConcurrency(FrappeTestCase):
 
         manager = make_user("manager", role="Sales Manager")
         disabled_manager = make_user("disabled-manager", enabled=0, role="Sales Manager")
-        extra = make_user("extra")
-        disabled_extra = make_user("disabled-extra", enabled=0)
+        # An explicitly configured recipient must be a real Desk System User.
+        # Give these non-manager accounts a Sales User role so the fixture does
+        # not rely on a role-less account being promoted to System User.
+        extra = make_user("extra", role="Sales User")
+        disabled_extra = make_user("disabled-extra", enabled=0, role="Sales User")
         website_extra = make_user("website-extra", user_type="Website User")
+
+        self.assertEqual(extra.user_type, "System User")
+        self.assertEqual(disabled_extra.user_type, "System User")
+        self.assertEqual(website_extra.user_type, "Website User")
+        self.assertEqual(
+            frappe.db.get_value("User", {"email": extra.email}, "name"),
+            extra.name,
+        )
 
         recipients = tasks._resolve_digest_recipients(
             [
-                extra.name,
-                disabled_extra.name,
-                website_extra.name,
-                extra.name,
+                extra.email,
+                disabled_extra.email,
+                website_extra.email,
+                extra.email,
                 "missing-crm-signal-digest-user@example.com",
             ]
         )
