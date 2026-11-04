@@ -1,11 +1,13 @@
 # Changelog
 
-### Operator HTML code-block language and syntax validation — PR #165 (open)
+### Operator HTML code-block language and syntax validation — PR #165 (merged as `d0cb54f`)
 
-- Add explicit `data-language="bash"` / `data-language="python"` metadata to every `<pre>` example in the Frappe v16.5 support-configuration and D3 SLA-discovery HTML guides.
-- Extend the fast static contract test to require every block to be classified, enforce per-guide language counts, AST-parse all Python examples and run `bash -n` on all Bash examples. Local focused validation passed for all three Python and six Bash snippets.
-- Correct the Python console-output separators in both support guides to use actual newline escapes rather than printing literal `\\n` characters; add a regression assertion for that operator-facing output contract.
-- No operator command or site-discovery code is executed in CI. No runtime, schema, permission, dependency or site configuration changes. Final-head Quality, Security, supported Frappe v15/v16 Bench and pinned v16.5.0 checks are required before merge.
+- Added explicit `data-language="bash"` / `data-language="python"` metadata to every `<pre>` example in the Frappe v16.5 support-configuration and D3 SLA-discovery HTML guides.
+- Static coverage requires every block to be classified, enforces expected per-guide language counts, AST-parses all three Python examples and runs `bash -n` on all six Bash examples.
+- Corrected console-output separators to emit actual newlines rather than literal backslash-n text; a regression assertion protects the operator-facing output.
+- Exact final head [3162597](https://github.com/MitMike/crm_signals/commit/3162597dec7e25d9790ced05d3c6792951fddd63) passed Quality [41908983613](https://github.com/MitMike/crm_signals/actions/runs/41908983613), Security [41908983421](https://github.com/MitMike/crm_signals/actions/runs/41908983421), Frappe v15/v16 Bench integration and validation [41908983574](https://github.com/MitMike/crm_signals/actions/runs/41908983574), and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 [41908983460](https://github.com/MitMike/crm_signals/actions/runs/41908983460). Merged as [d0cb54f](https://github.com/MitMike/crm_signals/commit/d0cb54fe4d5f7f2cb3bbf9cbcc14fee9a8662d98).
+- Post-merge main Quality [41920151879](https://github.com/MitMike/crm_signals/actions/runs/41920151879), Security [41920151933](https://github.com/MitMike/crm_signals/actions/runs/41920151933) and Bench [41920152015](https://github.com/MitMike/crm_signals/actions/runs/41920152015) passed. Main Bench v15/v16 integration and validation passed; the push change detector was skipped but did not suppress integration execution.
+- No operator command or site-discovery code is executed in CI. No runtime/schema/permission/dependency/site-configuration change. This is operator-guide CI verification only, not target-site or pilot acceptance.
 
 ### Operator support-guide Python syntax validation — PR #163 (merged and CI-verified as `ba348e6`)
 
