@@ -750,7 +750,9 @@ def test_operator_shell_examples_parse_without_execution():
         "docs/DEPLOYMENT_RUNBOOK.md",
         "docs/TARGET_SITE_ACCEPTANCE.md",
     )
-    shell_fence = re.compile(r"\x60{3}(?:bash|sh|shell)\s*\n(.*?)\x60{3}", re.DOTALL)
+    shell_fence = re.compile(
+        r"\x60{3}(?:bash|sh|shell)\s*\n(.*?)\x60{3}", re.DOTALL
+    )
 
     for relative_path in documents:
         content = (ROOT / relative_path).read_text()
@@ -766,5 +768,6 @@ def test_operator_shell_examples_parse_without_execution():
                 check=False,
             )
             assert result.returncode == 0, (
-                f"{relative_path} shell block {block_number} is invalid:\n{result.stderr}"
+                f"{relative_path} shell block {block_number} is invalid:\n"
+                f"{result.stderr}"
             )
