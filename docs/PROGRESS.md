@@ -1031,3 +1031,13 @@ PR [#159](https://github.com/MitMike/crm_signals/pull/159) was squash-merged as 
 - Post-merge main Quality [41903297571](https://github.com/MitMike/crm_signals/actions/runs/41903297571), Security [41903297622](https://github.com/MitMike/crm_signals/actions/runs/41903297622) and Bench [41903297576](https://github.com/MitMike/crm_signals/actions/runs/41903297576) all passed. Main Quality ran lint/static and Python 3.10/3.11/3.12/3.14; main Bench ran v15/v16 integration and validation. The push-event change detector was skipped, but the integration jobs still executed and passed.
 - **Decision:** the first PR #163 regression only recognized Python snippets by leading `import`/`from` statements and did not validate the Bash command blocks in the same HTML guides. The follow-up PR explicitly labels every `<pre>` block as `bash` or `python`, checks the expected per-guide block counts, parses every Python block with AST and runs `bash -n` on every Bash block. Snippets are syntax-checked only; CI never executes operator commands or site-discovery code. No ADR is required because this is documentation metadata and test coverage only.
 - **Release boundary unchanged:** Frappe v15/v16 compatibility and the pinned Frappe 16.5.0 reference lane remain CI-verified; actual target-site installation, permissions, D1/D2 reconciliation, D3 SLA, mail, webhook, worker/realtime, recovery and desktop/mobile visual acceptance remain pilot work. H remains partial; Vault and Analysis remain unimplemented and approval-gated. Production is not approved.
+
+
+## Active PR #165 — operator HTML code-block language and syntax validation
+
+- [ ] Explicitly label every `<pre>` example in the Frappe v16.5 support-configuration and D3 SLA-discovery HTML guides as Bash or Python.
+- [ ] Require the static contract test to discover every block, enforce expected per-guide language counts, AST-parse Python examples and run `bash -n` for Bash examples.
+- [x] Focused local validation passed: all three embedded Python examples parse and all six embedded Bash examples pass `bash -n`.
+- [ ] Final-head Quality, Security, Frappe v15/v16 Bench and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 checks must pass before merge.
+- **Decision:** language metadata is explicit; syntax-check only and never execute site commands/snippets in CI. No runtime/schema/permission/dependency change and no new ADR.
+- **Release boundary:** this improves operator-documentation integrity, not target-site acceptance or pilot verification.
