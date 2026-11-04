@@ -527,3 +527,14 @@ The direct Desk form test observed GET `frappe.desk.form.load.getdoc`: linked-re
 - [ ] Complete the matrix with actual Sales User, Sales Manager, System Manager, non-sales and disabled-user staging evidence; CI does not satisfy this gate.
 - **Evidence:** branch `docs/split-permission-acceptance-matrix-20261104`; ADR-110; final-head Quality/Python [41730709519](https://github.com/MitMike/crm_signals/actions/runs/41730709519), Security/Semgrep [41730709486](https://github.com/MitMike/crm_signals/actions/runs/41730709486), Bench v15/v16 + Playwright [41730709475](https://github.com/MitMike/crm_signals/actions/runs/41730709475), Pinned Frappe 16.5.0 / ERPNext / Helpdesk [41730709472](https://github.com/MitMike/crm_signals/actions/runs/41730709472). Quality passed lint/static and Python 3.10/3.11/3.12/3.14. Bench v15/v16 integration, v16 Playwright and pinned v16.5.0 / ERPNext / Helpdesk integration plus Playwright passed. Main merge: `ed9c22c25d0a885bd351f396c11eadf1cdbac3c6`.
 - **Revisit criteria:** execute only on an authorized Frappe 16.5 staging site with the approved full deployed SHA, exact installed app versions, synthetic persona accounts and named technical/business owners. If a path cannot be exercised, mark only that cell Blocked and name the missing permission, credential, fixture or owner approval. Do not infer a pass from another path or use Administrator as a substitute. No pilot verification is implied by CI.
+
+
+## PR #147 — daily digest recipient eligibility regressions
+
+- [x] Add a unit test for Sales Manager role recipients plus explicit recipients, deduplication, and enabled-System-User filtering.
+- [x] Add a Bench-backed test using real Frappe User/Has Role records for disabled role members, disabled explicit recipients and an enabled Website User.
+- [x] Update the daily digest spec and target-site acceptance kit; record ADR-111.
+- [ ] Pass final-head Quality/Python, Security/Semgrep, Bench v15/v16 and pinned Frappe 16.5.0 workflows before merge.
+- [ ] Execute the controlled digest recipient check on authorized Frappe 16.5 staging; verify disabled and non-System User recipients are not queued and record only sanitized statuses, exact deployed SHA/app versions and timestamp.
+- **Evidence:** branch `test/digest-recipient-eligibility-20261104`; main baseline `0c6122113c08198a99789d897ce04980fe639d80`; unit test `tests/test_digest_rendering.py`; Bench test `crm_signals/tests/test_digest_delivery.py`; ADR-111.
+- **Revisit criteria:** if any ineligible user appears in the returned recipient set, inspect Has Role rows, User.enabled, User.user_type and explicit-recipient resolution. If the Bench fixture cannot create the intended persona, record the exact Frappe validation error and adjust only the fixture. Do not relax the enabled-System-User filter or send to arbitrary external addresses. CI is not pilot verification.
