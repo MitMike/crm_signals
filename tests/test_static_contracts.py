@@ -2,6 +2,7 @@
 
 import ast
 import json
+import re
 import subprocess
 from pathlib import Path
 
@@ -740,3 +741,33 @@ def test_target_site_permission_matrix_tracks_each_access_path_independently():
     ):
         assert f"| {access_path} |" in matrix
     assert "Do not infer a result from another column" in matrix
+
+
+def test_operator_shell_examples_parse_without_execution():
+    documents = (
+        "README.md",
+        "docs/ADMIN_GUIDE.md",
+        "docs/DEPLOYMENT_RUNBOOK.md",
+        "docs/TARGET_SITE_ACCEPTANCE.md",
+    )
+    shell_fence = re.compile(
+        r"\x60{3}(?:bash|sh|shell)\s*\n(.*?)\x60{3}", re.DOTALL
+    )
+
+    for relative_path in documents:
+        content = (ROOT / relative_path).read_text()
+        scripts = shell_fence.findall(content)
+        assert scripts, relative_path
+
+        for block_number, script in enumerate(scripts, start=1):
+            result = subprocess.run(
+                ["bash", "-n"],
+                input=script,
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+            assert result.returncode == 0, (
+                f"{relative_path} shell block {block_number} is invalid:\n"
+                f"{result.stderr}"
+            )
