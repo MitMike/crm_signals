@@ -43,7 +43,7 @@ Record, do not infer:
   bench --site <site-name> execute crm_signals.diagnostics.get_site_preflight_report --kwargs "{'test_users': {'sales_user': 'crm-sales-user-test', 'sales_manager': 'crm-sales-manager-test', 'system_manager': 'crm-system-manager-test', 'non_sales': 'crm-non-sales-test'}}"
   ```
 - [ ] For list-level record visibility, create dedicated synthetic Lead/Customer/Opportunity/Quotation/CRM Signal/invoice/payment/ticket records and optionally pass their exact names under `test_records`, keyed by profile, DocType and non-sensitive label. The report uses permission-filtered `frappe.get_list` with `fields=["name"]`; it returns labels/booleans only. A false result may mean missing or inaccessible.
-- [ ] For the Sales User linked-party boundary, create an allowed synthetic Lead and a restricted synthetic Lead; set the Sales User's Lead User Permission to the allowed Lead; create a linked CRM Signal for the restricted Lead owned by that Sales User; and create an unlinked CRM Signal owned by the same user. Verify both signals exist with the authorized setup account, then run the `test_records` probe for those two exact CRM Signal names. Expect `linked_restricted: false` and `unlinked_owned: true` with checked status. The linked signal must remain hidden despite CRM Signal ownership; do not add a share or replace permission-filtered reads with `get_all`. This mirrors the real-Frappe regression in PR #124.
+- [ ] For the Sales User linked-party boundary, create an allowed synthetic Lead and a restricted synthetic Lead; set the Sales User's Lead User Permission to the allowed Lead; create a linked CRM Signal for the restricted Lead owned by that Sales User; and create an unlinked CRM Signal owned by the same user. Set their `message` fields to exactly `CRM Signals E2E linked restricted signal` and `CRM Signals E2E unlinked owned signal`, respectively; use only synthetic content. Verify both signals exist with the authorized setup account, then run the `test_records` probe for those two exact CRM Signal names. Expect `linked_restricted: false` and `unlinked_owned: true` with checked status. The linked signal must remain hidden despite CRM Signal ownership; do not add a share or replace permission-filtered reads with `get_all`. This mirrors the real-Frappe regression in PR #124.
 - [ ] Confirm each supplied profile reports `status: checked`, active System User account and valid role membership; review every DocType and required-field result plus any supplied record-visibility result. `partial`, missing, invalid-role, false or unavailable results require investigation, not sign-off.
 - [ ] As an authorized System Manager, open the dedicated synthetic Sales User's User form and generate or rotate API credentials through its API Access controls (typically "Generate Keys"; confirm the label on the installed Frappe patch). Do not use Administrator credentials or print the secret with a Bench command.
 - [ ] Create a separate active synthetic non-sales System User with no CRM Signal, Lead, Opportunity, Sales Invoice, Payment Entry, HD Ticket or SLA read grants. Generate its API key/secret through that user's API Access controls; do not reuse the Sales User token.
@@ -82,6 +82,8 @@ request() {
 }
 
 base_url="${SITE_URL%/}"
+LINKED_RESTRICTED_MESSAGE="CRM Signals E2E linked restricted signal"
+UNLINKED_OWNED_MESSAGE="CRM Signals E2E unlinked owned signal"
 
 # Prove the API key belongs to the intended synthetic Sales User.
 status="$(request "$base_url/api/method/frappe.auth.get_logged_user" "$tmp_dir/user.json")"
@@ -102,22 +104,27 @@ status="$(request "$base_url/api/method/frappe.client.get" "$tmp_dir/restricted.
   --get --data-urlencode "doctype=CRM Signal" \
   --data-urlencode "name=$LINKED_RESTRICTED_SIGNAL")"
 [[ "$status" == "403" ]] || { echo "FAIL: restricted linked document expected HTTP 403, got $status" >&2; exit 1; }
-echo "PASS: linked restricted document denied (HTTP 403)"
+if grep -Fq -- "$LINKED_RESTRICTED_MESSAGE" "$tmp_dir/restricted.json"; then
+  echo "FAIL: restricted RPC response disclosed the linked message" >&2
+  exit 1
+fi
+echo "PASS: linked restricted document denied without message disclosure (HTTP 403)"
 
 # The same user must retain access to their unlinked owned signal.
 status="$(request "$base_url/api/method/frappe.client.get" "$tmp_dir/allowed.json" \
   --get --data-urlencode "doctype=CRM Signal" \
   --data-urlencode "name=$UNLINKED_OWNED_SIGNAL")"
 [[ "$status" == "200" ]] || { echo "FAIL: unlinked owned document expected HTTP 200, got $status" >&2; exit 1; }
-python3 - "$tmp_dir/allowed.json" "$UNLINKED_OWNED_SIGNAL" <<'PY'
+python3 - "$tmp_dir/allowed.json" "$UNLINKED_OWNED_SIGNAL" "$UNLINKED_OWNED_MESSAGE" <<'PY'
 import json
 import sys
 
 with open(sys.argv[1], encoding="utf-8") as response_file:
     payload = json.load(response_file)
-if payload.get("message", {}).get("name") != sys.argv[2]:
-    raise SystemExit("FAIL: allowed document response did not match the synthetic record")
-print("PASS: unlinked owned document readable (HTTP 200)")
+document = payload.get("message", {})
+if document.get("name") != sys.argv[2] or document.get("message") != sys.argv[3]:
+    raise SystemExit("FAIL: allowed document response did not match the synthetic record/message")
+print("PASS: unlinked owned document and message readable (HTTP 200)")
 PY
 
 # A permission-filtered list must exclude the linked restricted signal.
@@ -144,23 +151,24 @@ PY
 # The standard REST resource endpoint must enforce the same linked-party boundary.
 status="$(request "$base_url/api/resource/CRM%20Signal/$LINKED_RESTRICTED_SIGNAL" "$tmp_dir/resource-restricted.json" --header "Accept: application/json")"
 [[ "$status" == "403" ]] || { echo "FAIL: restricted REST resource expected HTTP 403, got $status" >&2; exit 1; }
-if grep -Fq -- "$LINKED_RESTRICTED_SIGNAL" "$tmp_dir/resource-restricted.json"; then
-  echo "FAIL: restricted REST resource response disclosed the record name" >&2
+if grep -Fq -- "$LINKED_RESTRICTED_SIGNAL" "$tmp_dir/resource-restricted.json" || grep -Fq -- "$LINKED_RESTRICTED_MESSAGE" "$tmp_dir/resource-restricted.json"; then
+  echo "FAIL: restricted REST resource response disclosed the record name/message" >&2
   exit 1
 fi
-echo "PASS: linked restricted REST resource denied without record-name disclosure (HTTP 403)"
+echo "PASS: linked restricted REST resource denied without name/message disclosure (HTTP 403)"
 
 status="$(request "$base_url/api/resource/CRM%20Signal/$UNLINKED_OWNED_SIGNAL" "$tmp_dir/resource-allowed.json" --header "Accept: application/json")"
 [[ "$status" == "200" ]] || { echo "FAIL: allowed REST resource expected HTTP 200, got $status" >&2; exit 1; }
-python3 - "$tmp_dir/resource-allowed.json" "$UNLINKED_OWNED_SIGNAL" <<'PY'
+python3 - "$tmp_dir/resource-allowed.json" "$UNLINKED_OWNED_SIGNAL" "$UNLINKED_OWNED_MESSAGE" <<'PY'
 import json
 import sys
 
 with open(sys.argv[1], encoding="utf-8") as response_file:
     payload = json.load(response_file)
-if payload.get("data", {}).get("name") != sys.argv[2]:
-    raise SystemExit("FAIL: REST resource response did not match the synthetic record")
-print("PASS: unlinked owned REST resource readable (HTTP 200)")
+document = payload.get("data", {})
+if document.get("name") != sys.argv[2] or document.get("message") != sys.argv[3]:
+    raise SystemExit("FAIL: REST resource response did not match the synthetic record/message")
+print("PASS: unlinked owned REST resource and message readable (HTTP 200)")
 PY
 
 status="$(request "$base_url/api/resource/CRM%20Signal" "$tmp_dir/resource-list.json" \
@@ -189,7 +197,7 @@ status="$(request "$base_url/api/method/frappe.desk.reportview.get_list" "$tmp_d
   --data-urlencode "filters=$report_filters" \
   --data-urlencode "limit_page_length=10")"
 [[ "$status" == "200" ]] || { echo "FAIL: Report View expected HTTP 200, got $status" >&2; exit 1; }
-python3 - "$tmp_dir/reportview.json" "$UNLINKED_OWNED_SIGNAL" <<'PY'
+python3 - "$tmp_dir/reportview.json" "$LINKED_RESTRICTED_MESSAGE" "$UNLINKED_OWNED_SIGNAL" "$UNLINKED_OWNED_MESSAGE" <<'PY'
 import json
 import sys
 
@@ -197,9 +205,12 @@ with open(sys.argv[1], encoding="utf-8") as response_file:
     payload = json.load(response_file)
 rows = payload.get("message", [])
 names = {row.get("name") for row in rows}
-if names != {sys.argv[2]}:
-    raise SystemExit("FAIL: Report View did not return only the unlinked owned record")
-print("PASS: Report View contains only the unlinked owned record (HTTP 200)")
+rows_text = json.dumps(rows)
+if sys.argv[2] in rows_text:
+    raise SystemExit("FAIL: Report View disclosed the linked restricted message")
+if names != {sys.argv[3]} or sys.argv[4] not in rows_text:
+    raise SystemExit("FAIL: Report View omitted or changed the unlinked owned record/message")
+print("PASS: Report View contains only the permitted record/message (HTTP 200)")
 PY
 
 status="$(request "$base_url/api/method/frappe.desk.reportview.export_query" "$tmp_dir/reportview-export.csv" \
@@ -211,21 +222,21 @@ status="$(request "$base_url/api/method/frappe.desk.reportview.export_query" "$t
   --data-urlencode "csv_delimiter=," \
   --data-urlencode "csv_quoting=2")"
 [[ "$status" == "200" ]] || { echo "FAIL: Report View CSV export expected HTTP 200, got $status" >&2; exit 1; }
-python3 - "$tmp_dir/reportview-export.csv" "$LINKED_RESTRICTED_SIGNAL" "$UNLINKED_OWNED_SIGNAL" <<'PY'
+python3 - "$tmp_dir/reportview-export.csv" "$LINKED_RESTRICTED_SIGNAL" "$LINKED_RESTRICTED_MESSAGE" "$UNLINKED_OWNED_SIGNAL" "$UNLINKED_OWNED_MESSAGE" <<'PY'
 from pathlib import Path
 import sys
 
 csv_text = Path(sys.argv[1]).read_text(encoding="utf-8")
-if sys.argv[2] in csv_text:
-    raise SystemExit("FAIL: CSV export disclosed the linked restricted record name")
-if sys.argv[3] not in csv_text:
-    raise SystemExit("FAIL: CSV export omitted the unlinked owned record")
-print("PASS: CSV export includes only the permitted synthetic record (HTTP 200)")
+if sys.argv[2] in csv_text or sys.argv[3] in csv_text:
+    raise SystemExit("FAIL: CSV export disclosed the linked restricted record name/message")
+if sys.argv[4] not in csv_text or sys.argv[5] not in csv_text:
+    raise SystemExit("FAIL: CSV export omitted the unlinked owned record/message")
+print("PASS: CSV export includes only the permitted record/message (HTTP 200)")
 PY
 
 status="$(request "$base_url/api/method/crm_signals.api.get_dashboard_data" "$tmp_dir/signals-dashboard.json" --get)"
 [[ "$status" == "200" ]] || { echo "FAIL: CRM Signals dashboard API expected HTTP 200, got $status" >&2; exit 1; }
-python3 - "$tmp_dir/signals-dashboard.json" "$LINKED_RESTRICTED_SIGNAL" "$UNLINKED_OWNED_SIGNAL" <<'PY'
+python3 - "$tmp_dir/signals-dashboard.json" "$LINKED_RESTRICTED_SIGNAL" "$UNLINKED_OWNED_SIGNAL" "$LINKED_RESTRICTED_MESSAGE" "$UNLINKED_OWNED_MESSAGE" <<'PY'
 import json
 import sys
 
@@ -234,9 +245,9 @@ with open(sys.argv[1], encoding="utf-8") as response_file:
 recent = payload.get("message", {}).get("recent", [])
 names = {row.get("name") for row in recent}
 recent_text = json.dumps(recent)
-if sys.argv[2] in names or "CRM Signals E2E linked restricted signal" in recent_text:
+if sys.argv[2] in names or sys.argv[4] in recent_text:
     raise SystemExit("FAIL: CRM Signals dashboard disclosed the linked restricted signal")
-if sys.argv[3] not in names or "CRM Signals E2E unlinked owned signal" not in recent_text:
+if sys.argv[3] not in names or sys.argv[5] not in recent_text:
     raise SystemExit("FAIL: CRM Signals dashboard omitted the unlinked owned signal")
 print("PASS: CRM Signals dashboard API preserves linked-party row visibility (HTTP 200)")
 PY
@@ -263,17 +274,12 @@ PY
 
 status="$(request "$base_url/api/method/crm_signals.api.get_dashboard_data" "$tmp_dir/non-sales-signals-dashboard.json")"
 [[ "$status" == "403" ]] || { echo "FAIL: non-sales CRM Signals dashboard expected HTTP 403, got $status" >&2; exit 1; }
-python3 - "$tmp_dir/non-sales-signals-dashboard.json" "$LINKED_RESTRICTED_SIGNAL" "$UNLINKED_OWNED_SIGNAL" <<'PY'
+python3 - "$tmp_dir/non-sales-signals-dashboard.json" "$LINKED_RESTRICTED_SIGNAL" "$UNLINKED_OWNED_SIGNAL" "$LINKED_RESTRICTED_MESSAGE" "$UNLINKED_OWNED_MESSAGE" <<'PY'
 from pathlib import Path
 import sys
 
 body = Path(sys.argv[1]).read_text(encoding="utf-8")
-for secret_value in (
-    sys.argv[2],
-    sys.argv[3],
-    "CRM Signals E2E linked restricted signal",
-    "CRM Signals E2E unlinked owned signal",
-):
+for secret_value in (sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5]):
     if secret_value in body:
         raise SystemExit("FAIL: non-sales CRM Signals dashboard disclosed a synthetic signal")
 print("PASS: non-sales CRM Signals dashboard denied without signal disclosure (HTTP 403)")
