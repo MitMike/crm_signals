@@ -62,7 +62,7 @@ Escape every party name, document name and other user-controlled HTML value. Pre
 
 ## Validation mapping
 
-`tests/test_digest_rendering.py` covers enabled-System-User recipient filtering, Sales Manager role membership, explicit-recipient resolution and deduplication. `crm_signals/tests/test_digest_delivery.py` repeats the eligibility check against real Frappe User/Has Role records, including disabled role members, disabled explicit recipients and an enabled Website User. The existing two-worker Bench test covers same-recipient/date queue serialization.
+`tests/test_digest_rendering.py` covers enabled-System-User recipient filtering, Sales Manager role membership, explicit-recipient resolution and deduplication. `crm_signals/tests/test_digest_delivery.py` repeats the eligibility check against real Frappe User/Has Role records. Its explicit-recipient fixture uses a non-Sales-Manager Sales User account to prove that an explicitly configured enabled System User is eligible independently of Sales Manager role membership; disabled role members, disabled explicit recipients and an enabled Website User are excluded. The existing two-worker Bench test covers same-recipient/date queue serialization.
 
 Continue to test date boundaries, currency rendering, escaping and duplicate-run behavior. The target-site smoke still needs actual Sales Manager accounts and the site's configured scheduler/mail provider.
 
