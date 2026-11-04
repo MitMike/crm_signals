@@ -663,6 +663,7 @@ The direct Desk form test observed GET `frappe.desk.form.load.getdoc`: linked-re
 - [x] Explicitly label every `<pre>` example in the Frappe v16.5 support-configuration and D3 SLA-discovery HTML guides as Bash or Python.
 - [x] Static contract test discovers every block, enforces expected per-guide language counts, AST-parses Python examples and runs `bash -n` for Bash examples.
 - [x] Focused local validation passed: all three embedded Python examples parse and all six embedded Bash examples pass `bash -n`.
+- [x] Correct the support scripts' console-output separators to use actual newline escapes instead of printing literal `\\n`; static coverage rejects the old form.
 - [ ] Final-head Quality, Security, Frappe v15/v16 Bench and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 checks must pass before merge.
 - **Decision:** language metadata is explicit; syntax-check only and never execute site commands/snippets in CI. No runtime/schema/permission/dependency change and no new ADR.
 - **Release boundary:** this improves operator-documentation integrity, not target-site acceptance or pilot verification.
