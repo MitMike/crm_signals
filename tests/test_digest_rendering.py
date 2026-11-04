@@ -168,7 +168,6 @@ def test_digest_truncates_large_quotation_lists_with_an_explicit_notice(monkeypa
     assert "Additional quotations are not shown" in content
 
 
-
 def test_digest_recipients_are_deduplicated_and_limited_to_enabled_system_users(monkeypatch):
     tasks = load_tasks(monkeypatch)
     fake = sys.modules["frappe"]
@@ -202,6 +201,7 @@ def test_digest_recipients_are_deduplicated_and_limited_to_enabled_system_users(
             assert filters["enabled"] == 1
             assert filters["user_type"] == "System User"
             requested = filters["name"][1]
+            assert set(requested) == known_names - {"Guest"}
             return [user for user in requested if user in eligible]
         raise AssertionError(f"Unexpected DocType: {doctype}")
 
@@ -217,6 +217,7 @@ def test_digest_recipients_are_deduplicated_and_limited_to_enabled_system_users(
             "disabled-extra@example.com",
             "website-extra@example.com",
             "disabled-manager@example.com",
+            "Guest",
             "extra@example.com",
             "unknown@example.com",
         ]
