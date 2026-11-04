@@ -816,3 +816,11 @@ PR #125 merged as [7029747](https://github.com/MitMike/crm_signals/commit/702974
 
 
 - **PR #159 merged:** [bfc4886](https://github.com/MitMike/crm_signals/commit/bfc4886382877ce4014ac2ef0d2cb0c64000b4c1) strengthens target-site message-level privacy assertions. Exact final-head Quality [41851046486](https://github.com/MitMike/crm_signals/actions/runs/41851046486), Security [41851046368](https://github.com/MitMike/crm_signals/actions/runs/41851046368), Bench v15/v16 + Playwright [41851046485](https://github.com/MitMike/crm_signals/actions/runs/41851046485), and pinned Frappe 16.5.0 [41851046388](https://github.com/MitMike/crm_signals/actions/runs/41851046388) passed. The credentialed target-site script remains parse-only in CI; no pilot verification is implied.
+
+
+### 2026-11-04 — repository review after PR #160
+
+- Reconciled the reviewed-main baseline to 73be9eba4e9ff84be072c35f14587133d7b3193d across the implementation plan, progress register, follow-up register and release-readiness sprint.
+- Confirmed zero open pull requests and zero open issues. Post-merge main Quality [41859906665](https://github.com/MitMike/crm_signals/actions/runs/41859906665), Security [41859906759](https://github.com/MitMike/crm_signals/actions/runs/41859906759) and Bench Integration/E2E [41859906816](https://github.com/MitMike/crm_signals/actions/runs/41859906816) passed. Bench v15/v16 integration and validation passed; v16 Playwright passed; docs-only integration selection skipped as expected.
+- Reconfirmed the blocker decision: no independent runtime/product feature is unblocked by the current contracts. Target-site P0 work needs authorized Frappe v16.5 staging and named owners; H/V/A and optional Explorer work need the approvals or inventory recorded in FOLLOW_UPS.md. No new ADR was required.
+- No application runtime, schema, permissions, dependencies or site configuration changed. Reference-stack CI verification is not pilot verification; production remains not approved.
