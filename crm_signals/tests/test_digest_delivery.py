@@ -136,6 +136,7 @@ class TestDigestDeliveryConcurrency(FrappeTestCase):
 
 
     def test_digest_recipients_exclude_disabled_and_non_system_users(self):
+        baseline_recipients = set(tasks._resolve_digest_recipients([]))
         suffix = frappe.generate_hash(length=8)
 
         def make_user(label, *, enabled=1, user_type="System User", role=None):
@@ -152,7 +153,7 @@ class TestDigestDeliveryConcurrency(FrappeTestCase):
             return frappe.get_doc(data).insert(ignore_permissions=True)
 
         manager = make_user("manager", role="Sales Manager")
-        make_user("disabled-manager", enabled=0, role="Sales Manager")
+        disabled_manager = make_user("disabled-manager", enabled=0, role="Sales Manager")
         extra = make_user("extra")
         disabled_extra = make_user("disabled-extra", enabled=0)
         website_extra = make_user("website-extra", user_type="Website User")
@@ -167,4 +168,10 @@ class TestDigestDeliveryConcurrency(FrappeTestCase):
             ]
         )
 
-        self.assertEqual(recipients, sorted([manager.name, extra.name]))
+        self.assertEqual(
+            recipients,
+            sorted(baseline_recipients | {manager.name, extra.name}),
+        )
+        self.assertNotIn(disabled_manager.name, recipients)
+        self.assertNotIn(disabled_extra.name, recipients)
+        self.assertNotIn(website_extra.name, recipients)
