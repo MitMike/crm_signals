@@ -10,7 +10,7 @@ This file records known work that is intentionally not represented as complete. 
 
 **Autonomous implementation boundary (reconfirmed 2026-11-05 on main d0cb54f):** no safe independent runtime/product feature task is currently unblocked by the approved contracts. P0 installation, effective permissions, finance reconciliation, Helpdesk SLA, mail/realtime/webhook and recovery require authorized Frappe v16.5 staging and named site/business owners. H VIP/proposal tracking requires product/privacy approval; Vault and Analysis require signed D1/D2 metric, source-permission and retention definitions; optional Explorer adapters require installed-provider/schema inventory. Revisit only when the exact inputs and owners listed below are recorded. Do not create speculative runtime behavior or infer site configuration. The core implemented scope is not the full roadmap: H remains partial and Vault/Analysis remain unimplemented.
 
-## P0 — required before production sign-off/
+## P0 — required before production sign-off
 
 - [ ] **Target-site preflight and acceptance.** Use the updated evidence template in [Target-Site Acceptance Kit](TARGET_SITE_ACCEPTANCE.md), including the staging-only Redis Socket.IO outage, worker restart, scheduler recovery and permission-revocation checks. Record the exact Frappe v16.5 patch/build, ERPNext and Helpdesk app versions, installed apps, Company currencies, timezone, workflows, custom fields and role matrix. Run Pilot import, migrate, scheduler, email, realtime, dashboard and rollback smoke tests.
 
