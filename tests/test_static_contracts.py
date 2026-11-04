@@ -446,10 +446,11 @@ def test_support_guides_describe_existing_adapter_and_custom_scope_boundary():
 
 
 def test_support_guide_python_examples_parse():
-    for relative_path in (
-        "docs/CRM_SIGNALS_SUPPORT_CONFIGURATION_GUIDE.html",
-        "docs/D3_SUPPORT_SLA_DISCOVERY_GUIDE.html",
-    ):
+    expected_python_example_counts = {
+        "docs/CRM_SIGNALS_SUPPORT_CONFIGURATION_GUIDE.html": 2,
+        "docs/D3_SUPPORT_SLA_DISCOVERY_GUIDE.html": 1,
+    }
+    for relative_path, expected_count in expected_python_example_counts.items():
         document = (ROOT / relative_path).read_text()
         code_blocks = re.findall(
             r"<pre\b[^>]*>(.*?)</pre>",
@@ -462,11 +463,12 @@ def test_support_guide_python_examples_parse():
             for block in decoded_blocks
             if re.search(r"(?m)^\s*(?:import|from)\s+", block)
         ]
-        assert python_examples, f"No Python examples found in {relative_path}"
+        assert len(python_examples) == expected_count, (
+            f"Expected {expected_count} Python examples in {relative_path}, "
+            f"found {len(python_examples)}"
+        )
         for index, example in enumerate(python_examples, start=1):
             ast.parse(example, filename=f"{relative_path}:<pre #{index}>")
-
-
 def test_crm_signals_dashboard_retains_horizontal_inset():
     stylesheet = (
         APP_ROOT / "crm_signals/page/crm_signals_dashboard/crm_signals_dashboard.css"
