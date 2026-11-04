@@ -803,3 +803,10 @@ PR #125 merged as [7029747](https://github.com/MitMike/crm_signals/commit/702974
 
 - Main Quality [41832550271](https://github.com/MitMike/crm_signals/actions/runs/41832550271) and Security [41832550353](https://github.com/MitMike/crm_signals/actions/runs/41832550353) passed after merge `e2cb38efb2d39ae6260116f35dbeb4d953f5cdb5`.
 - Main Bench [41832550281](https://github.com/MitMike/crm_signals/actions/runs/41832550281) was still running at review; v15 had reached D1/D2 aggregate-value verification and v16 was creating the site/installing apps. Do not record the main Bench run as passed until it completes.
+
+
+### Operator shell-example syntax coverage — PR #157 (merged and CI-verified as `05a0045`)
+
+- Parse every fenced Bash/sh/shell example in README.md, docs/ADMIN_GUIDE.md, docs/DEPLOYMENT_RUNBOOK.md and docs/TARGET_SITE_ACCEPTANCE.md with `bash -n`; commands, credentials and site requests are never executed.
+- Exact tested head `6e719f7` passed Quality [41843318924](https://github.com/MitMike/crm_signals/actions/runs/41843318924), Security [41843318929](https://github.com/MitMike/crm_signals/actions/runs/41843318929), Bench v15/v16 + Playwright [41843319089](https://github.com/MitMike/crm_signals/actions/runs/41843319089), and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 [41843319094](https://github.com/MitMike/crm_signals/actions/runs/41843319094). Squash-merged as `05a0045`.
+- Post-merge main Quality [41844574383](https://github.com/MitMike/crm_signals/actions/runs/41844574383), Security [41844574353](https://github.com/MitMike/crm_signals/actions/runs/41844574353) and Bench [41844574376](https://github.com/MitMike/crm_signals/actions/runs/41844574376) passed. This is operator syntax CI verification only; no target-site or pilot acceptance is implied.
