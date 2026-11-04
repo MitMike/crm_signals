@@ -1310,3 +1310,8 @@ PR #135 merged as [81d70410f0f81124ae468c1d929caefd1610fd9e](https://github.com/
 - **Scope:** tests, digest spec and operator acceptance instructions only. No production runtime, role, schema, dependency or site configuration change. Retain Frappe v15/v16 and pinned v16.5.0 coverage.
 - **Verification:** final-head Quality/Python, Security/Semgrep, Bench v15/v16 and pinned Frappe 16.5.0 workflows required before merge. CI verification does not prove the target site's scheduler, recipient list or mail-provider behavior.
 - **Revisit criteria:** if a disabled, Guest or non-System User is returned, inspect the Has Role candidate set, User.enabled, User.user_type and explicit-address resolution. Do not relax the enabled/System User filter or send to arbitrary external addresses.
+
+
+### ADR-111 implementation note — real-Frappe fixture correction (2026-11-04)
+
+The initial Bench run showed that the explicit-recipient test account was omitted while the role-based Sales Manager was returned. The fixture had no non-manager Desk role and did not verify the persisted User type or email lookup. It now uses a non-Sales-Manager Sales User role, asserts the persisted System User/Website User types and verifies the explicit email maps to the expected User. This is a test-fixture correction only; the enabled-System-User runtime filter remains unchanged. Revisit runtime resolution only if the corrected real-Frappe test still fails.
