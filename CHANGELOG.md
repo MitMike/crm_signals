@@ -775,3 +775,10 @@ PR #125 merged as [7029747](https://github.com/MitMike/crm_signals/commit/702974
 - PR #152 squash-merged as [508c432](https://github.com/MitMike/crm_signals/commit/508c432d8bf39108367a42664112db55c7f87435); reviewed-main references in the implementation plan, progress register and follow-up register now point to the merged main baseline.
 - Post-merge main Quality [41785092281](https://github.com/MitMike/crm_signals/actions/runs/41785092281), Security [41785092277](https://github.com/MitMike/crm_signals/actions/runs/41785092277) and Bench [41785092279](https://github.com/MitMike/crm_signals/actions/runs/41785092279) passed. Documentation-only change detection skipped full integration execution; supported-version integration/validation jobs passed.
 - No application runtime, schema, permission, dependency or generated asset changed. No pilot verification is implied.
+
+
+### 2026-11-04 — README webhook command correction (PR #154)
+
+- Fixed the webhook `curl` example so its URL, authorization header, content type and form fields are passed as one shell command.
+- Added a static regression test to prevent the multiline example from splitting into separate commands.
+- The endpoint, authentication requirements and payload are unchanged. Target-site webhook/TLS acceptance remains open.

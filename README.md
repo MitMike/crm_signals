@@ -88,7 +88,7 @@ Use a dedicated integration user and Frappe API key/secret over HTTPS. The endpo
 Example:
 
 ```bash
-curl -X POST 'https://<site>/api/method/crm_signals.api.ingest_signal'
+curl -X POST 'https://<site>/api/method/crm_signals.api.ingest_signal' \
   -H 'Authorization: token <api_key>:<api_secret>' \
   -H 'Content-Type: application/x-www-form-urlencoded' \
   --data-urlencode 'signal_type=Website Visit' \

@@ -283,6 +283,21 @@ def test_change_aware_bench_filters_cover_frappe_metadata_and_workflows():
         assert "needs.changes.result != 'success'" in gate
 
 
+
+def test_readme_webhook_curl_example_uses_line_continuations():
+    readme = (ROOT / "README.md").read_text()
+    webhook = readme.split("## Webhook authentication", 1)[1].split(
+        "## Configuration still required", 1
+    )[0]
+    command = webhook.split("```bash", 1)[1].split("```", 1)[0]
+    lines = [line.rstrip() for line in command.splitlines() if line.strip()]
+
+    assert lines[0].startswith("curl -X POST ")
+    assert lines[0].endswith("\\")
+    assert all(line.endswith("\\") for line in lines[1:-1])
+    assert not lines[-1].endswith("\\")
+
+
 def test_operator_installation_pins_source_before_bench_setup():
     guide = (ROOT / "docs/ADMIN_GUIDE.md").read_text()
     runbook = (ROOT / "docs/DEPLOYMENT_RUNBOOK.md").read_text()
