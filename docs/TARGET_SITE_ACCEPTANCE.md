@@ -469,7 +469,7 @@ Use a fixed, approved date range and the site's native ERPNext reports as the co
 
 - [ ] Confirm scheduler is enabled and workers are healthy.
 - [ ] Confirm digest time is interpreted in the intended System Settings timezone.
-- [ ] Confirm the configured recipient list contains only active, approved System Users.
+- [ ] Confirm the configured recipient list contains only active, approved System Users; include an explicitly configured non-Sales-Manager System User and verify that role membership is not required for an approved additional recipient.
 - [ ] Disable a synthetic Sales Manager who is present in Has Role and a separate explicitly configured digest recipient before the controlled digest run; confirm neither receives a new Email Queue entry and neither appears in the queued-recipient marker. Re-enable only after recording the sanitized result.
 - [ ] Add an enabled Website User to the explicit-recipient test input and confirm it is not queued; the digest accepts only enabled System Users, not every enabled Frappe account.
 - [ ] Trigger a controlled digest and inspect the queued email as each recipient.
