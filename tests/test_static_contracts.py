@@ -482,6 +482,10 @@ def test_operator_html_code_examples_are_language_tagged_and_parse():
             assert example, f"{relative_path} code block {index} is empty"
 
             if language == "python":
+                assert r'print("\\n' not in example, (
+                    f"{relative_path} Python block {index} prints a literal "
+                    "backslash-n instead of a line break"
+                )
                 ast.parse(example, filename=f"{relative_path}:<pre #{index}>")
                 continue
 
