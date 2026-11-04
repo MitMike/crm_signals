@@ -988,3 +988,15 @@ PR [#157](https://github.com/MitMike/crm_signals/pull/157) was squash-merged as 
 - **Decision:** use the two fixed synthetic message values already used by the dashboard smoke (`CRM Signals E2E linked restricted signal` and `CRM Signals E2E unlinked owned signal`). Require the restricted message to be absent from denied RPC/REST and permission-filtered Report View/CSV; require the allowed message alongside the allowed record on readable RPC/REST, Report View, CSV and dashboard paths. Keep name-only list queries name-only. No new ADR: this applies existing ADR-104, ADR-105 and ADR-107 endpoint-specific permission contracts to the operator script.
 - **Scope:** target-site acceptance documentation and static regression tests only. The credentialed script remains parse-only in CI; no credentials are expanded, no requests are sent and no production runtime/role/schema/dependency/site configuration changes occur.
 - **Verification:** final-head Quality, Security, supported Frappe v15/v16 Bench + Playwright and pinned Frappe 16.5.0 checks required before merge. Not pilot-verified.
+
+
+## PR #159 merged — message-level privacy in target-site permission smoke (2026-11-04)
+
+PR [#159](https://github.com/MitMike/crm_signals/pull/159) was squash-merged as [bfc4886](https://github.com/MitMike/crm_signals/commit/bfc4886382877ce4014ac2ef0d2cb0c64000b4c1) from exact tested head [fb5b00c](https://github.com/MitMike/crm_signals/commit/fb5b00c6a180296c2b502e2d5c478f903203fcfb).
+
+- Strengthens the target-site Sales User permission smoke so the linked-restricted synthetic message is rejected from denied RPC/REST responses, Report View rows, CSV export and dashboard data, while the unlinked-owned message is required on allowed RPC/REST, Report View, CSV and dashboard paths.
+- Keeps list queries name-only, preserves existing HTTP/identity/row assertions, and leaves the credentialed script parse-only in CI. No runtime, schema, role, dependency or site configuration changed.
+- Final-head Quality [41851046486](https://github.com/MitMike/crm_signals/actions/runs/41851046486), Security [41851046368](https://github.com/MitMike/crm_signals/actions/runs/41851046368), Frappe v15/v16 Bench + Playwright [41851046485](https://github.com/MitMike/crm_signals/actions/runs/41851046485), and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 [41851046388](https://github.com/MitMike/crm_signals/actions/runs/41851046388) all passed on the exact final head.
+- Main now points to bfc4886382877ce4014ac2ef0d2cb0c64000b4c1; the main-vs-merge comparison is identical. Separate post-merge main workflow results were not independently confirmed in this review and are not claimed here.
+
+**Decision:** apply the existing ADR-104/105/107 endpoint-specific privacy contracts to the operator acceptance script; no new ADR and no runtime permission change. This is CI-verified operator acceptance coverage, not live target-site or pilot verification. The target-site run remains blocked pending authorized Frappe 16.5 staging, approved deployed SHA, exact installed versions, synthetic records/accounts and named technical/security owners.
