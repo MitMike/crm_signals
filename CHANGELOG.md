@@ -1,5 +1,12 @@
 # Changelog
 
+### Operator shell-example syntax coverage — PR #157 (merged and CI-verified as `05a0045`)
+
+- Add parse-only `bash -n` coverage for all 22 fenced Bash/sh/shell examples across the README, Administrator Guide, Deployment Runbook and Target-Site Acceptance Kit.
+- Preserve focused webhook continuation and credentialed smoke-block selection checks. CI parses commands only; it does not execute credentials or contact a site.
+- Final head `6e719f7` passed Quality/Python, Security/Semgrep, Frappe v15/v16 Bench + Playwright (23 v16 browser tests) and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0 (8 browser tests and synthetic D3 aggregate smoke). The pinned smoke does not test the live SLA engine/calendar.
+- Squash-merged as `05a0045`. No runtime, schema, permission, dependency or site-configuration behavior changed; target-site/pilot acceptance remains open.
+
 ### Read-only preflight source identity — PR #103 (merged and CI-verified as `5dbda02`)
 
 - Extend the server-side target-site preflight to report the exact CRM Signals Git commit SHA only for a clean checkout, using bounded, fixed read-only Git queries; dirty, unavailable or malformed revisions fail closed.
