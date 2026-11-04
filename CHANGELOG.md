@@ -789,3 +789,17 @@ PR #125 merged as [7029747](https://github.com/MitMike/crm_signals/commit/702974
 - Correct the README multiline `curl` example so the URL, authorization header, content type and form fields execute as one command; the endpoint, token authentication and payload are unchanged.
 - Final head `fcbca00` passed Quality/Python 3.10–3.14, Security/Semgrep, Frappe v15/v16 Bench + Playwright, and pinned Frappe 16.5.0 / Helpdesk 1.28.0. Squash-merged as `00715e06529aebc62770d8c5b283c142bf4c9f08`.
 - Post-merge main Quality and Security passed; Bench v15/v16 integration was still running at the latest review. No live webhook, TLS, credential or pilot acceptance is implied.
+
+
+### Operator guide webhook and acceptance-script regression coverage — PR #155 (merged and CI-verified as `e2cb38e`)
+
+- Extend the shell-continuation regression to both README and Administrator Guide webhook examples.
+- Add a non-executing bash -n syntax check for the credentialed target-site permission smoke block in the acceptance kit.
+- Final head `f12db6128f09ff7c70f3ba957b6ab718c842c03f` passed Quality/Python, Security/Semgrep, Frappe v15/v16 Bench + Playwright, and pinned Frappe 16.5.0 / ERPNext 16.5.0 / Helpdesk 1.28.0. Squash-merged as `e2cb38efb2d39ae6260116f35dbeb4d953f5cdb5`.
+- No runtime, schema, permission policy, dependency or site configuration changed. CI did not execute credentials or send site requests; target-site and pilot acceptance remain open.
+
+
+### PR #155 post-merge main verification
+
+- Main Quality [41832550271](https://github.com/MitMike/crm_signals/actions/runs/41832550271) and Security [41832550353](https://github.com/MitMike/crm_signals/actions/runs/41832550353) passed after merge `e2cb38efb2d39ae6260116f35dbeb4d953f5cdb5`.
+- Main Bench [41832550281](https://github.com/MitMike/crm_signals/actions/runs/41832550281) was still running at review; v15 had reached D1/D2 aggregate-value verification and v16 was creating the site/installing apps. Do not record the main Bench run as passed until it completes.
