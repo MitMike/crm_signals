@@ -1,5 +1,10 @@
 # Changelog
 
+### PR #166 main-CI and release-record reconciliation — follow-up
+
+- PR #166 merged as [9c08b7d](https://github.com/MitMike/crm_signals/commit/9c08b7d55590fac877eea65057b65bb211609fb9). Main Quality [41922274198](https://github.com/MitMike/crm_signals/actions/runs/41922274198), Security [41922274348](https://github.com/MitMike/crm_signals/actions/runs/41922274348) and Bench Integration/E2E [41922274374](https://github.com/MitMike/crm_signals/actions/runs/41922274374) all passed on the exact main SHA.
+- Bench v15 integration and validation passed; v16 integration, effective-user preflight, D1/D2 query and aggregate tests, schema upgrade, Python/Frappe integration tests and Playwright E2E passed. The main-push change detector was skipped but did not suppress integration execution.
+- Corrected the reviewed-main baseline and current CI evidence in the implementation plan, progress, follow-ups and release-readiness sprint. No runtime/product change and no new ADR; target-site pilot remains blocked by authorized staging and named acceptance inputs.
 ### Operator HTML code-block language and syntax validation — PR #165 (merged as `d0cb54f`)
 
 - Added explicit `data-language="bash"` / `data-language="python"` metadata to every `<pre>` example in the Frappe v16.5 support-configuration and D3 SLA-discovery HTML guides.
